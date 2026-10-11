@@ -10,6 +10,14 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 boot_splash/bg_color=Color(0.031, 0.024, 0.039, 1)
 config/icon="res://icon.png"
 
+[autoload]
+
+Store="*res://scripts/core/store.gd"
+Clock="*res://scripts/core/clock.gd"
+D="*res://scripts/core/data.gd"
+Quality="*res://scripts/core/quality.gd"
+Settings="*res://scripts/core/settings.gd"
+
 [display]
 
 window/size/viewport_width=390

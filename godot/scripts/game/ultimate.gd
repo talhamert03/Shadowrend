@@ -33,7 +33,7 @@ const KIND := {
 }
 const MAXS := 48
 
-static func hash(s: float, i: float) -> float:
+static func _uhash(s: float, i: float) -> float:
 	var v := sin(s * 12.9898 + i * 78.233) * 43758.5453
 	return v - floor(v)
 
@@ -312,25 +312,25 @@ func _draw_bolt(ctx: Ctx2D, s, u: float, post: float, K) -> void:
 		return
 	var f: float = 1 - post / K.linger
 	if f <= 0: return
-	var flick := 1.0 if hash(s.seed, floor(post * 40)) > 0.3 else 0.4
+	var flick := 1.0 if _uhash(s.seed, floor(post * 40)) > 0.3 else 0.4
 	var top: float = s.y - 640
 	var N := 8
 	for pass_ in 2:
 		ctx.global_alpha = f * flick * (1.0 if pass_ else 0.4)
 		ctx.set_stroke("#ffffff" if pass_ else "#6cc8ff")
 		ctx.line_width = 3 if pass_ else 11
-		ctx.begin_path(); ctx.move_to(s.x + (hash(s.seed, 0) - 0.5) * 60, top)
+		ctx.begin_path(); ctx.move_to(s.x + (_uhash(s.seed, 0) - 0.5) * 60, top)
 		for i in range(1, N + 1):
 			var v := float(i) / N
-			var jx := 0.0 if i == N else (hash(s.seed, i) - 0.5) * 70 * (1 - v * 0.5)
+			var jx := 0.0 if i == N else (_uhash(s.seed, i) - 0.5) * 70 * (1 - v * 0.5)
 			ctx.line_to(s.x + jx, top + (s.y - top) * v)
 		ctx.stroke()
-		var bi := 3 + int(hash(s.seed, 9) * 3)
+		var bi := 3 + int(_uhash(s.seed, 9) * 3)
 		var bv := float(bi) / N
-		var bx: float = s.x + (hash(s.seed, bi) - 0.5) * 70 * (1 - bv * 0.5)
+		var bx: float = s.x + (_uhash(s.seed, bi) - 0.5) * 70 * (1 - bv * 0.5)
 		var by: float = top + (s.y - top) * bv
 		ctx.line_width = 1.6 if pass_ else 6
-		ctx.begin_path(); ctx.move_to(bx, by); ctx.line_to(bx + (hash(s.seed, 11) - 0.5) * 120, by + 60); ctx.line_to(bx + (hash(s.seed, 12) - 0.5) * 160, by + 130); ctx.stroke()
+		ctx.begin_path(); ctx.move_to(bx, by); ctx.line_to(bx + (_uhash(s.seed, 11) - 0.5) * 120, by + 60); ctx.line_to(bx + (_uhash(s.seed, 12) - 0.5) * 160, by + 130); ctx.stroke()
 	ctx.global_alpha = f * 0.7; ctx.set_fill("#e6f6ff")
 	ctx.begin_path(); ctx.ellipse(s.x, s.y, 46 * (1.2 - f * 0.4), 24 * (1.2 - f * 0.4), 0, 0, TAU); ctx.fill()
 
@@ -404,7 +404,7 @@ func _draw_slash(ctx: Ctx2D, s, u: float, post: float, K) -> void:
 func _draw_spike(ctx: Ctx2D, s, u: float, post: float, K) -> void:
 	var rise: float = u if post < 0 else (maxf(0.0, (K.linger - post) / 0.18) if post > K.linger - 0.18 else 1.0)
 	if rise <= 0: return
-	var h := (38 + hash(s.seed, 1) * 20) * rise
+	var h := (38 + _uhash(s.seed, 1) * 20) * rise
 	var w := 11.0
 	ctx.comp = "source-over"
 	ctx.set_fill("#bfe9ff"); ctx.set_stroke("rgba(11,9,16,0.7)"); ctx.line_width = 2

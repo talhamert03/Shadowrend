@@ -23,7 +23,7 @@ const SEAL_TIERS := [
 
 ## new Date(2026, 0, 5) — yerel saatle pazartesi gece yarısı.
 static func _epoch() -> float:
-	var bias := Time.get_time_zone_from_system().get("bias", 0) * 60.0 * 1000.0
+	var bias: float = Time.get_time_zone_from_system().get("bias", 0) * 60.0 * 1000.0
 	var d := {"year": 2026, "month": 1, "day": 5, "hour": 0, "minute": 0, "second": 0}
 	return Time.get_unix_time_from_datetime_dict(d) * 1000.0 - bias
 

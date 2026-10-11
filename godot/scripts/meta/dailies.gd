@@ -49,7 +49,7 @@ static func day_gap(a: String, b: String) -> int:
 ## Yerel gece yarısının Clock ms'i (gün başı).
 static func _local_midnight_ms(ms: float) -> float:
 	var t := Clock.date(ms)
-	var bias := Time.get_time_zone_from_system().get("bias", 0) * 60.0 * 1000.0
+	var bias: float = Time.get_time_zone_from_system().get("bias", 0) * 60.0 * 1000.0
 	var d := {"year": t.year, "month": t.month, "day": t.day, "hour": 0, "minute": 0, "second": 0}
 	return Time.get_unix_time_from_datetime_dict(d) * 1000.0 - bias
 

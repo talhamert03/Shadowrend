@@ -224,7 +224,7 @@ func _ready() -> void:
 func _guess_tier() -> String:
 	# web: bellek + çekirdek + dokunmatik + GPU ailesi; yerelde aynı mantık
 	var cores := OS.get_processor_count()
-	var mem_mb := OS.get_memory_info().get("physical", 0) / 1048576.0
+	var mem_mb: float = OS.get_memory_info().get("physical", 0) / 1048576.0
 	var t := "high"
 	if isMobile:
 		if (mem_mb > 0 and mem_mb <= 3200) or cores <= 4: t = "low"

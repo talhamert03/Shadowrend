@@ -68,7 +68,7 @@ func now() -> float:
 ## Yerel tarih sözlüğü (year, month 1-12, day, weekday 0=Pazar, hour, minute, second).
 func date(ms: float = -1.0) -> Dictionary:
 	if ms < 0: ms = now()
-	var bias := Time.get_time_zone_from_system().get("bias", 0) * 60.0
+	var bias: float = Time.get_time_zone_from_system().get("bias", 0) * 60.0
 	return Time.get_datetime_dict_from_unix_time(int(floor(ms / 1000.0 + bias)))
 
 ## Sunucu yanıtının Date başlığıyla sapmayı düzelt (HTTP-date dizesi).

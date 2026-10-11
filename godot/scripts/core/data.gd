@@ -275,7 +275,7 @@ func missionDef(w: int, m: int) -> Dictionary:
 	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * grace
 	var bossCurve := JS.num(wd, "bossCurve", 1.0)
 	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace
-	var mixOffset := (w - 1) * 2 + floor((m - 1) / 2.0)
+	var mixOffset: float = (w - 1) * 2 + floor((m - 1) / 2.0)
 	var mt := mType(w, m)
 	var objective: String
 	if isBoss:
