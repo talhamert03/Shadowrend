@@ -1,0 +1,30 @@
+{
+ "NM": {
+  "hp": 1.3,
+  "dmg": 1.2,
+  "perWorld": 0.06,
+  "elite": 1.6,
+  "eliteMin": 0.06,
+  "gold": 2,
+  "gem": 8,
+  "bossGem": 20,
+  "frameAt": 10
+ },
+ "Nightmare": {
+  "open": {
+   "__fn": "Nightmare.open"
+  },
+  "hasFrame": {
+   "__fn": "Nightmare.hasFrame"
+  },
+  "applyWave": {
+   "__fn": "Nightmare.applyWave"
+  },
+  "finish": {
+   "__fn": "Nightmare.finish"
+  }
+ },
+ "nmBook": {
+  "__fn": "nmBook"
+ }
+}

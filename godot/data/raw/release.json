@@ -1,0 +1,41 @@
+{
+ "APP": {
+  "name": "Shadowrend",
+  "version": "1.0.0",
+  "build": 44,
+  "versionUrl": "",
+  "supportMail": "destek@shadowrend.game"
+ },
+ "Notify": {
+  "enabled": {
+   "__fn": "Notify.enabled"
+  },
+  "setEnabled": {
+   "__fn": "Notify.setEnabled"
+  },
+  "available": {
+   "__fn": "Notify.available"
+  },
+  "ask": {
+   "__fn": "Notify.ask"
+  },
+  "cancelAll": {
+   "__fn": "Notify.cancelAll"
+  },
+  "schedule": {
+   "__fn": "Notify.schedule"
+  }
+ },
+ "checkUpdate": {
+  "__fn": "checkUpdate"
+ },
+ "isNative": {
+  "__fn": "isNative"
+ },
+ "lockPortrait": {
+  "__fn": "lockPortrait"
+ },
+ "platform": {
+  "__fn": "platform"
+ }
+}

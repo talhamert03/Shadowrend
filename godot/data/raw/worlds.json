@@ -1,0 +1,308 @@
+{
+ "MISSIONS_PER_WORLD": 10,
+ "WORLDS": [
+  {
+   "id": 1,
+   "name": "SOLGUN MEZARLIK",
+   "sub": "Hasat burada başladı",
+   "color": "#ff3b4e",
+   "glow": "rgba(255,59,78,0.5)",
+   "floor": "mezarlik",
+   "hue": 0,
+   "roster": {
+    "zombi": 1,
+    "atici": 1,
+    "muhafiz": 1,
+    "kral": 1
+   },
+   "hpMul": 1,
+   "dmgMul": 1,
+   "speedMul": 1,
+   "gemMul": 1,
+   "density": 1,
+   "aliveCap": 110,
+   "eliteChance": 0,
+   "boss": "KADİM HASATÇI",
+   "moon": [
+    "#ff8d78",
+    "#e0364a",
+    "#7a1220",
+    "#3d0a12"
+   ],
+   "lore": "Kızıl ayın ilk değdiği toprak. Ölüler burada uyumayı unuttu.",
+   "bossCurve": 1
+  },
+  {
+   "id": 2,
+   "name": "KÜL ÇUKURLARI",
+   "sub": "Közler hiç sönmez",
+   "color": "#ff8a3c",
+   "glow": "rgba(255,138,60,0.5)",
+   "floor": "kul",
+   "hue": -18,
+   "roster": {
+    "zombi": 1,
+    "atici": 1,
+    "muhafiz": 1
+   },
+   "hpMul": 1.38,
+   "dmgMul": 1.23,
+   "speedMul": 1.04,
+   "gemMul": 1.7,
+   "density": 1.1,
+   "aliveCap": 140,
+   "eliteChance": 0.05,
+   "boss": "KOR ÇOBANI",
+   "moon": [
+    "#ffc48a",
+    "#e07a36",
+    "#7a3d12",
+    "#3d1e0a"
+   ],
+   "lore": "Yanmış tarlaların altında hâlâ nefes alan bir fırın var.",
+   "bossCurve": 1.31
+  },
+  {
+   "id": 3,
+   "name": "ZEHİR BATAKLIĞI",
+   "sub": "Su bile ısırır",
+   "color": "#59e3c8",
+   "glow": "rgba(89,227,200,0.5)",
+   "floor": "bataklik",
+   "hue": 105,
+   "roster": {
+    "zombi": 1,
+    "muhafiz": 1.25
+   },
+   "hpMul": 1.87,
+   "dmgMul": 1.51,
+   "speedMul": 1.07,
+   "gemMul": 2.6,
+   "density": 1.2,
+   "aliveCap": 170,
+   "eliteChance": 0.08,
+   "boss": "BATAK ANASI",
+   "moon": [
+    "#a8f0d8",
+    "#3ac8a0",
+    "#12604c",
+    "#0a2d24"
+   ],
+   "lore": "Buradaki sis, içine çekeni bir daha geri vermez.",
+   "bossCurve": 1.7
+  },
+  {
+   "id": 4,
+   "name": "KAN KATEDRALİ",
+   "sub": "Dua etmek için çok geç",
+   "color": "#9b6cff",
+   "glow": "rgba(155,108,255,0.5)",
+   "floor": "katedral",
+   "hue": -55,
+   "hpMul": 2.5,
+   "dmgMul": 1.83,
+   "speedMul": 1.1,
+   "gemMul": 3.8,
+   "density": 1.3,
+   "aliveCap": 200,
+   "eliteChance": 0.11,
+   "boss": "KIZIL PİSKOPOS",
+   "moon": [
+    "#c8a8ff",
+    "#7a4ae0",
+    "#38127a",
+    "#1a0a3d"
+   ],
+   "lore": "Vitraylardan süzülen ışık bile burada kanla boyanır.",
+   "bossCurve": 2.19
+  },
+  {
+   "id": 5,
+   "name": "HİÇLİK TAHTI",
+   "sub": "Son kılıç, son kapı",
+   "color": "#e8e4d8",
+   "glow": "rgba(232,228,216,0.45)",
+   "floor": "hiclik",
+   "hue": 150,
+   "hpMul": 3.28,
+   "dmgMul": 2.2,
+   "speedMul": 1.13,
+   "gemMul": 5.2,
+   "density": 1.4,
+   "aliveCap": 230,
+   "eliteChance": 0.15,
+   "boss": "HİÇLİK KRALI",
+   "moon": [
+    "#f0ecff",
+    "#9a94c8",
+    "#3a3660",
+    "#14122a"
+   ],
+   "lore": "Dünyanın bittiği yerde, taht hâlâ birini bekliyor.",
+   "bossCurve": 2.8
+  },
+  {
+   "id": 6,
+   "name": "RÜZGÂR BAHÇESİ",
+   "sub": "Ada koptu, bahçe açmaya devam etti",
+   "color": "#ff9ec4",
+   "glow": "rgba(255,158,196,0.5)",
+   "floor": "gokada",
+   "hue": -70,
+   "hpMul": 4.3,
+   "dmgMul": 2.66,
+   "speedMul": 1.16,
+   "gemMul": 7.2,
+   "density": 1.5,
+   "aliveCap": 260,
+   "eliteChance": 0.18,
+   "boss": "GÖK YARGICI",
+   "moon": [
+    "#fff4f0",
+    "#ffc2b0",
+    "#c0587a",
+    "#4a1e3a"
+   ],
+   "lore": "Kopan kıtanın teraslarında rüzgâr hâlâ badem çiçeği taşıyor.",
+   "bossCurve": 3.58
+  },
+  {
+   "id": 7,
+   "name": "TUZ TABANI",
+   "sub": "Göl çekildi, altındaki şey çekilmedi",
+   "color": "#ffd68c",
+   "glow": "rgba(255,214,140,0.5)",
+   "floor": "tuzla",
+   "hue": 40,
+   "roster": {
+    "zombi": 1,
+    "muhafiz": 1,
+    "patlayici": 1
+   },
+   "hpMul": 5.72,
+   "dmgMul": 3.22,
+   "speedMul": 1.19,
+   "gemMul": 9.8,
+   "density": 1.58,
+   "aliveCap": 280,
+   "eliteChance": 0.21,
+   "boss": "TUZ MUHAFIZI",
+   "moon": [
+    "#fff0c8",
+    "#e0b060",
+    "#7a5a1a",
+    "#3d2c0d"
+   ],
+   "lore": "Kurumuş göl tabanı bir kabuk. Altında yürüyen şeyler var.",
+   "bossCurve": 4.67
+  },
+  {
+   "id": 8,
+   "name": "DONMUŞ GÖL",
+   "sub": "Buzun altındakiler kıpırdıyor",
+   "color": "#8cdcff",
+   "glow": "rgba(140,220,255,0.5)",
+   "floor": "buzul",
+   "hue": 130,
+   "roster": {
+    "zombi": 1,
+    "atici": 1,
+    "muhafiz": 1,
+    "agir": 1
+   },
+   "hpMul": 7.52,
+   "dmgMul": 3.87,
+   "speedMul": 1.22,
+   "gemMul": 13.2,
+   "density": 1.66,
+   "aliveCap": 300,
+   "eliteChance": 0.24,
+   "boss": "AYAZ LORDU",
+   "moon": [
+    "#dff4ff",
+    "#68b8e0",
+    "#1a4a6a",
+    "#0c2434"
+   ],
+   "lore": "Buzun altındaki siluetler seninle aynı hızda yürüyor.",
+   "bossCurve": 6.03
+  },
+  {
+   "id": 9,
+   "name": "KEMİK BAHÇESİ",
+   "sub": "Burada ekilen her şey kemik verdi",
+   "color": "#ffe296",
+   "glow": "rgba(255,226,150,0.5)",
+   "floor": "kemikbahce",
+   "hue": 30,
+   "hpMul": 9.5,
+   "dmgMul": 4.62,
+   "speedMul": 1.25,
+   "gemMul": 17.6,
+   "density": 1.74,
+   "aliveCap": 320,
+   "eliteChance": 0.27,
+   "boss": "FİLDİŞİ BAHÇIVAN",
+   "moon": [
+    "#fff4d0",
+    "#e0c078",
+    "#7a6428",
+    "#3d3214"
+   ],
+   "lore": "Hasatçılar burayı bahçe sanıyor. Belki haklılar.",
+   "bossCurve": 7.5
+  },
+  {
+   "id": 10,
+   "name": "YILDIZ DÖKÜMHANESİ",
+   "sub": "Yıldızlar burada dökülüp göğe asıldı",
+   "color": "#7aa6ff",
+   "glow": "rgba(122,166,255,0.5)",
+   "floor": "gokcark",
+   "hue": -85,
+   "hpMul": 11.45,
+   "dmgMul": 5.43,
+   "speedMul": 1.28,
+   "gemMul": 23,
+   "density": 1.82,
+   "aliveCap": 340,
+   "eliteChance": 0.3,
+   "boss": "ÇARKIN İLK DİŞİ",
+   "moon": [
+    "#ffffff",
+    "#cfe4ff",
+    "#4a6ab8",
+    "#16204a"
+   ],
+   "lore": "Son durak değil — gökyüzünün döküldüğü yer.",
+   "bossCurve": 8.91
+  }
+ ],
+ "loadProgress": {
+  "__fn": "loadProgress"
+ },
+ "missionDef": {
+  "__fn": "missionDef"
+ },
+ "missionReward": {
+  "__fn": "missionReward"
+ },
+ "missionUnlocked": {
+  "__fn": "missionUnlocked"
+ },
+ "nextMission": {
+  "__fn": "nextMission"
+ },
+ "replayReward": {
+  "__fn": "replayReward"
+ },
+ "saveProgress": {
+  "__fn": "saveProgress"
+ },
+ "worldCleared": {
+  "__fn": "worldCleared"
+ },
+ "worldUnlocked": {
+  "__fn": "worldUnlocked"
+ }
+}

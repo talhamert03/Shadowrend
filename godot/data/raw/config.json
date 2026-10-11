@@ -1,0 +1,4799 @@
+{
+ "BASE_ROSTER": {
+  "zombi": 1,
+  "atici": 1,
+  "muhafiz": 1
+ },
+ "BATTLE_PASS": {
+  "maxTier": 50,
+  "xpPerTier": 120,
+  "premiumPrice": 280,
+  "season": "SEZON I — KIZIL AY"
+ },
+ "BATTLE_PASS_TIERS": [
+  {
+   "tier": 1,
+   "free": {
+    "kind": "rubies",
+    "amount": 16
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 35
+   }
+  },
+  {
+   "tier": 2,
+   "free": {
+    "kind": "rubies",
+    "amount": 18
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 38
+   }
+  },
+  {
+   "tier": 3,
+   "free": {
+    "kind": "rubies",
+    "amount": 24
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 1
+   }
+  },
+  {
+   "tier": 4,
+   "free": {
+    "kind": "rubies",
+    "amount": 22
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 44
+   }
+  },
+  {
+   "tier": 5,
+   "free": {
+    "kind": "rubies",
+    "amount": 65
+   },
+   "premium": {
+    "kind": "stone",
+    "amount": 8
+   }
+  },
+  {
+   "tier": 6,
+   "free": {
+    "kind": "rubies",
+    "amount": 30
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "yaygin"
+   }
+  },
+  {
+   "tier": 7,
+   "free": {
+    "kind": "rubies",
+    "amount": 28
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 53
+   }
+  },
+  {
+   "tier": 8,
+   "free": {
+    "kind": "rubies",
+    "amount": 30
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 56
+   }
+  },
+  {
+   "tier": 9,
+   "free": {
+    "kind": "rubies",
+    "amount": 36
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kemik"
+   }
+  },
+  {
+   "tier": 10,
+   "free": {
+    "kind": "rubies",
+    "amount": 100
+   },
+   "premium": {
+    "kind": "char",
+    "hidden": true,
+    "rarity": 2
+   }
+  },
+  {
+   "tier": 11,
+   "free": {
+    "kind": "rubies",
+    "amount": 36
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 65
+   }
+  },
+  {
+   "tier": 12,
+   "free": {
+    "kind": "rubies",
+    "amount": 42
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 2
+   }
+  },
+  {
+   "tier": 13,
+   "free": {
+    "kind": "rubies",
+    "amount": 40
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "yaygin"
+   }
+  },
+  {
+   "tier": 14,
+   "free": {
+    "kind": "rubies",
+    "amount": 42
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 74
+   }
+  },
+  {
+   "tier": 15,
+   "free": {
+    "kind": "chest",
+    "chest": "yaygin"
+   },
+   "premium": {
+    "kind": "stone",
+    "amount": 12
+   }
+  },
+  {
+   "tier": 16,
+   "free": {
+    "kind": "rubies",
+    "amount": 46
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 80
+   }
+  },
+  {
+   "tier": 17,
+   "free": {
+    "kind": "rubies",
+    "amount": 48
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 83
+   }
+  },
+  {
+   "tier": 18,
+   "free": {
+    "kind": "rubies",
+    "amount": 54
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 2
+   }
+  },
+  {
+   "tier": 19,
+   "free": {
+    "kind": "rubies",
+    "amount": 52
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 89
+   }
+  },
+  {
+   "tier": 20,
+   "free": {
+    "kind": "rubies",
+    "amount": 140
+   },
+   "premium": {
+    "kind": "char",
+    "hidden": true,
+    "rarity": 3
+   }
+  },
+  {
+   "tier": 21,
+   "free": {
+    "kind": "rubies",
+    "amount": 60
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kemik"
+   }
+  },
+  {
+   "tier": 22,
+   "free": {
+    "kind": "rubies",
+    "amount": 58
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 98
+   }
+  },
+  {
+   "tier": 23,
+   "free": {
+    "kind": "rubies",
+    "amount": 60
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 101
+   }
+  },
+  {
+   "tier": 24,
+   "free": {
+    "kind": "rubies",
+    "amount": 66
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 3
+   }
+  },
+  {
+   "tier": 25,
+   "free": {
+    "kind": "rubies",
+    "amount": 145
+   },
+   "premium": {
+    "kind": "stone",
+    "amount": 16
+   }
+  },
+  {
+   "tier": 26,
+   "free": {
+    "kind": "rubies",
+    "amount": 66
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kan"
+   }
+  },
+  {
+   "tier": 27,
+   "free": {
+    "kind": "rubies",
+    "amount": 72
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 3
+   }
+  },
+  {
+   "tier": 28,
+   "free": {
+    "kind": "chest",
+    "chest": "yaygin"
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 116
+   }
+  },
+  {
+   "tier": 29,
+   "free": {
+    "kind": "rubies",
+    "amount": 72
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 119
+   }
+  },
+  {
+   "tier": 30,
+   "free": {
+    "kind": "rubies",
+    "amount": 180
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kadim"
+   }
+  },
+  {
+   "tier": 31,
+   "free": {
+    "kind": "rubies",
+    "amount": 76
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 125
+   }
+  },
+  {
+   "tier": 32,
+   "free": {
+    "kind": "rubies",
+    "amount": 78
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 128
+   }
+  },
+  {
+   "tier": 33,
+   "free": {
+    "kind": "rubies",
+    "amount": 84
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kemik"
+   }
+  },
+  {
+   "tier": 34,
+   "free": {
+    "kind": "rubies",
+    "amount": 82
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 134
+   }
+  },
+  {
+   "tier": 35,
+   "free": {
+    "kind": "rubies",
+    "amount": 185
+   },
+   "premium": {
+    "kind": "stone",
+    "amount": 20
+   }
+  },
+  {
+   "tier": 36,
+   "free": {
+    "kind": "rubies",
+    "amount": 90
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 4
+   }
+  },
+  {
+   "tier": 37,
+   "free": {
+    "kind": "rubies",
+    "amount": 88
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 143
+   }
+  },
+  {
+   "tier": 38,
+   "free": {
+    "kind": "rubies",
+    "amount": 90
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 146
+   }
+  },
+  {
+   "tier": 39,
+   "free": {
+    "kind": "rubies",
+    "amount": 96
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 4
+   }
+  },
+  {
+   "tier": 40,
+   "free": {
+    "kind": "rubies",
+    "amount": 220
+   },
+   "premium": {
+    "kind": "char",
+    "hidden": true,
+    "rarity": 4
+   }
+  },
+  {
+   "tier": 41,
+   "free": {
+    "kind": "rubies",
+    "amount": 96
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 155
+   }
+  },
+  {
+   "tier": 42,
+   "free": {
+    "kind": "chest",
+    "chest": "kan"
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 4
+   }
+  },
+  {
+   "tier": 43,
+   "free": {
+    "kind": "rubies",
+    "amount": 100
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 161
+   }
+  },
+  {
+   "tier": 44,
+   "free": {
+    "kind": "rubies",
+    "amount": 102
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kan"
+   }
+  },
+  {
+   "tier": 45,
+   "free": {
+    "kind": "rubies",
+    "amount": 225
+   },
+   "premium": {
+    "kind": "stone",
+    "amount": 24
+   }
+  },
+  {
+   "tier": 46,
+   "free": {
+    "kind": "rubies",
+    "amount": 106
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 170
+   }
+  },
+  {
+   "tier": 47,
+   "free": {
+    "kind": "rubies",
+    "amount": 108
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "kadim"
+   }
+  },
+  {
+   "tier": 48,
+   "free": {
+    "kind": "rubies",
+    "amount": 114
+   },
+   "premium": {
+    "kind": "gear",
+    "rarityMax": 4
+   }
+  },
+  {
+   "tier": 49,
+   "free": {
+    "kind": "rubies",
+    "amount": 112
+   },
+   "premium": {
+    "kind": "rubies",
+    "amount": 179
+   }
+  },
+  {
+   "tier": 50,
+   "free": {
+    "kind": "chest",
+    "chest": "kadim"
+   },
+   "premium": {
+    "kind": "chest",
+    "chest": "mistik"
+   }
+  }
+ ],
+ "BOSS": {
+  "name": "KADİM HASATÇI",
+  "hp": 4100,
+  "speed": 60,
+  "radius": 47,
+  "dmg": 44,
+  "xp": 60,
+  "knockRes": 0.02,
+  "chargeCd": 6,
+  "chargeSpeed": 360,
+  "chargeTime": 0.7,
+  "spitCd": 3,
+  "spitCount": 12,
+  "bulletSpeed": 145,
+  "bulletDmg": 17
+ },
+ "CHARACTERS": {
+  "okcu": {
+   "id": "okcu",
+   "rarity": 2,
+   "name": "AY OKÇUSU",
+   "title": "Elf Nişancı",
+   "price": 220,
+   "stonePrice": 40,
+   "style": "ranged",
+   "startWeapon": "yay",
+   "lore": "Solgun ormanın derinliğinden gelen elf nişancı; yanında süzülen ruh yayı, o yürürken kendi kendine avlanır.",
+   "mods": {
+    "atkPct": 0.19,
+    "speedPct": 0.1,
+    "maxHp": -10
+   },
+   "perks": [
+    "İmza: Ay Yayı — yanında süzülen otomatik yay",
+    "Saldırı hızı +%19, hız +%10, azami can −10",
+    "3D animasyonlu model — yürür, yay tek başına saldırır"
+   ],
+   "colors": {
+    "cloak": "#2f5c3a",
+    "hood": "#3f7a4c",
+    "eye": "#7fd8ff",
+    "emblem": "#7fd8ff",
+    "rim": "rgba(127,216,255,0.48)"
+   },
+   "emblem": "arrow"
+  },
+  "sapanci": {
+   "id": "sapanci",
+   "rarity": 1,
+   "name": "SAPANCI",
+   "title": "Seken Taş",
+   "price": 90,
+   "stonePrice": 14,
+   "style": "ranged",
+   "startWeapon": "sapan",
+   "lore": "Kızıl Hasat tarlasının bekçisi. Kuş kovmak için sapan sallamayı öğrenmiş bir çocuktu; kovduğu şey değişti, sapanı değişmedi. Deri kese şimdi yanında havada süzülüyor ve o yürüdükçe kendi kendine savuruyor.",
+   "mods": {
+    "atkPct": 0.095,
+    "speedPct": 0.08,
+    "maxHp": -4
+   },
+   "perks": [
+    "İmza: Kavlak Sapan — yanında süzülen deri sapan",
+    "Kısa menzil — düşman yaklaşınca savurur",
+    "Sapan ustalaşınca taş sekip ikinciyi de vurur",
+    "Saldırı hızı +%9,5, hız +%8, azami can −4",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#2e2e33",
+    "hood": "#a83a32",
+    "eye": "#ffe6b0",
+    "emblem": "#c9bfa8",
+    "rim": "rgba(201,191,168,0.45)"
+   },
+   "emblem": "arrow"
+  },
+  "seher": {
+   "id": "seher",
+   "rarity": 3,
+   "name": "SEHER",
+   "title": "Süzülen Kılıç",
+   "price": 900,
+   "stonePrice": 95,
+   "style": "melee",
+   "startWeapon": "kilic",
+   "lore": "Solgun ormanın tan vaktinde yürüyen ak saçlı savaşçı. Kılıcını yıllar önce elinden bıraktı; o gün beri kılıç yanında havada süzülüyor ve o vurdukça kendi savuruşunu yapıyor.",
+   "mods": {
+    "dmgPct": 0.12,
+    "atkPct": 0.08,
+    "critChance": 0.04
+   },
+   "perks": [
+    "İmza: Seher Kılıcı — yanında havada süzülen ruh kılıcı",
+    "Hasar +%12, saldırı hızı +%8, kritik +%4",
+    "Seviye ile açılan 5 efsanevi kılıç yeteneği",
+    "Destan — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#6b4a2e",
+    "hood": "#8a6438",
+    "eye": "#ffe6b0",
+    "emblem": "#ffd98a",
+    "rim": "rgba(255,222,158,0.5)"
+   },
+   "emblem": "star"
+  },
+  "simsek": {
+   "id": "simsek",
+   "rarity": 4,
+   "name": "ŞİMŞEK",
+   "title": "Süzülen Yıldırım",
+   "price": 1400,
+   "stonePrice": 150,
+   "style": "ranged",
+   "startWeapon": "simsek",
+   "lore": "Fırtınanın tam ortasında doğduğu söylenir; gökyüzü onu hiç terk etmedi. Elinden düşen gökyüzü parçası şimdi yanında süzülüyor ve o yürüdükçe düşmandan düşmana sıçrıyor.",
+   "mods": {
+    "dmgPct": 0.15,
+    "atkPct": 0.115,
+    "critChance": 0.055
+   },
+   "perks": [
+    "İmza: Şimşek Kırığı — yanında süzülen gökyüzü parçası",
+    "Hasar +%15, saldırı hızı +%11,5, kritik +%5,5",
+    "Seviye ile açılan 5 efsanevi fırtına yeteneği",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#1c2a4a",
+    "hood": "#2e3f6e",
+    "eye": "#bfe8ff",
+    "emblem": "#7fdfff",
+    "rim": "rgba(150,220,255,0.52)"
+   },
+   "emblem": "bolt"
+  },
+  "savasci": {
+   "id": "savasci",
+   "rarity": 1,
+   "name": "SAVAŞÇI",
+   "title": "Kale Nöbetçisi",
+   "price": 70,
+   "stonePrice": 12,
+   "style": "melee",
+   "startWeapon": "pala",
+   "lore": "Kalenin nöbet kulesinde büyüdü, palasını babasından öğrendi. Ne sihri var ne unvanı — sadece asla kaçmayan bir omuz.",
+   "mods": {
+    "maxHp": 13,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Kale Palası — elde tutulan, dürüst bir pala",
+    "Azami can +13, zırh +1",
+    "Seviye ile açılan 5 nöbetçi yeteneği",
+    "Adi — kadronun en yaygın kademesi"
+   ],
+   "colors": {
+    "cloak": "#4a5262",
+    "hood": "#5c6575",
+    "eye": "#dfe4ec",
+    "emblem": "#b8c0cc",
+    "rim": "rgba(184,192,204,0.42)"
+   },
+   "emblem": "shield"
+  },
+  "gokalev": {
+   "id": "gokalev",
+   "rarity": 4,
+   "name": "GÖKALEV",
+   "title": "Mavi Ateş Büyücüsü",
+   "price": 1500,
+   "stonePrice": 160,
+   "style": "ranged",
+   "startWeapon": "alev",
+   "lore": "Kitaplarını yıllarca mavi bir alevin ışığında okudu; o alev artık sönmüyor, peşinden geliyor. Dokunduğu şey ısınmaz — doğrudan kül olur.",
+   "mods": {
+    "dmgPct": 0.18,
+    "atkPct": 0.1,
+    "critChance": 0.065,
+    "maxHp": -5
+   },
+   "perks": [
+    "İmza: Mavi Alev — yanında süzülen mavi ateş",
+    "Hasar +%18, saldırı hızı +%10, kritik +%6,5, azami can −5",
+    "Seviye ile açılan 5 efsanevi ateş yeteneği",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#2b2f6e",
+    "hood": "#3d47a0",
+    "eye": "#9fd8ff",
+    "emblem": "#6fb7ff",
+    "rim": "rgba(120,180,255,0.52)"
+   },
+   "emblem": "flame"
+  },
+  "korsan": {
+   "id": "korsan",
+   "rarity": 4,
+   "name": "KARA KAPTAN",
+   "title": "Hayalet Top Atar",
+   "price": 1600,
+   "stonePrice": 175,
+   "style": "ranged",
+   "startWeapon": "topatar",
+   "lore": "Gemisi kırk yıl önce battı; o batmadı. Kemikleri tuz tuttu, ceketinin sırması hiç solmadı. Elinden düşen top artık yanında süzülüyor ve her gece kendine yeni bir hedef seçiyor.",
+   "mods": {
+    "dmgPct": 0.165,
+    "atkPct": 0.09,
+    "critChance": 0.045,
+    "maxHp": 4
+   },
+   "perks": [
+    "İmza: Kaptan Topu — yanında süzülen hayalet top",
+    "Hasar +%16,5, saldırı hızı +%9, kritik +%4,5, azami can +4",
+    "Seviye ile açılan 5 efsanevi barut yeteneği",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#1f4a33",
+    "hood": "#2f6b45",
+    "eye": "#ff4a3c",
+    "emblem": "#f5c044",
+    "rim": "rgba(245,192,68,0.5)"
+   },
+   "emblem": "cleaver"
+  },
+  "kralice": {
+   "id": "kralice",
+   "rarity": 3,
+   "name": "GECE KRALİÇESİ",
+   "title": "Mavi Kesik",
+   "price": 950,
+   "stonePrice": 105,
+   "style": "melee",
+   "startWeapon": "tackilic",
+   "lore": "Tacını kendi eliyle dövdü, tahtını kendi eliyle bıraktı. Taç kılıcı artık avucunda değil yanında süzlüyor; o savurduğu her yerde geriye mavi bir hüküm izi kalıyor.",
+   "mods": {
+    "dmgPct": 0.05,
+    "atkPct": 0.05,
+    "critChance": 0.025,
+    "maxHp": 24
+   },
+   "perks": [
+    "İmza: Taç Kılıcı — her savuruşta ileriye mavi kesik fırlatır",
+    "Alan vurur: kılıcın değmesi şart değil",
+    "Hasar +%5, saldırı hızı +%5, kritik +%2,5, azami can +24",
+    "Destan — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#432a6e",
+    "hood": "#5c3a95",
+    "eye": "#bfe3ff",
+    "emblem": "#c9a6ff",
+    "rim": "rgba(160,200,255,0.5)"
+   },
+   "emblem": "star"
+  },
+  "sovalye": {
+   "id": "sovalye",
+   "rarity": 2,
+   "name": "AYAZ",
+   "title": "Sur Şövalyesi",
+   "price": 260,
+   "stonePrice": 45,
+   "style": "melee",
+   "startWeapon": "yemin",
+   "lore": "Sur kapısını kırk kış tek başına tuttu; yemin ettiği gün kılıcını taşa sapladı, taş onu geri vermedi. O gün beri kılıç avucunda değil yanında süzülüyor ve her indiğinde zemin ayazla çatlıyor.",
+   "mods": {
+    "dmgPct": 0.065,
+    "maxHp": 11,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Yemin Kılıcı — yanında süzülen buz kılıcı",
+    "Her savuruş zemine ayaz halkası bırakır (taban)",
+    "Hasar +%6,5, azami can +11, zırh +1",
+    "Nadir — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#2e4a6b",
+    "hood": "#42688f",
+    "eye": "#8ff0ff",
+    "emblem": "#9fe8ff",
+    "rim": "rgba(150,232,255,0.5)"
+   },
+   "emblem": "shield"
+  }
+ },
+ "CHAR_CARD_REQ": [
+  0,
+  0,
+  2,
+  4,
+  10,
+  20,
+  50,
+  100,
+  200,
+  400
+ ],
+ "CHAR_GOLD_COST": [
+  0,
+  0,
+  20,
+  50,
+  120,
+  300,
+  700,
+  1500,
+  3000,
+  6000
+ ],
+ "CHAR_MAX_LEVEL": 9,
+ "CHAR_RARITIES": [
+  null,
+  {
+   "name": "ADİ",
+   "color": "#b8c0cc",
+   "glow": "rgba(184,192,204,0.30)",
+   "dropW": 100
+  },
+  {
+   "name": "NADİR",
+   "color": "#5aa9ff",
+   "glow": "rgba(90,169,255,0.38)",
+   "dropW": 34
+  },
+  {
+   "name": "DESTAN",
+   "color": "#b96cff",
+   "glow": "rgba(185,108,255,0.44)",
+   "dropW": 10
+  },
+  {
+   "name": "EFSANE",
+   "color": "#c98a52",
+   "glow": "rgba(255,122,44,0.58)",
+   "dropW": 3
+  }
+ ],
+ "CLASS_SYNERGIES": {
+  "ruh": [
+   {
+    "need": 2,
+    "name": "Ruh Bağı",
+    "desc": "Saldırı hızı +%8",
+    "mods": {
+     "atkPct": 0.08
+    }
+   }
+  ],
+  "atesli": [
+   {
+    "need": 2,
+    "name": "Barut Kokusu",
+    "desc": "Patlama şansı +%8",
+    "mods": {
+     "explodeChance": 0.08
+    }
+   },
+   {
+    "need": 3,
+    "name": "Yangın Hattı",
+    "desc": "Patlama hasarı +%30",
+    "mods": {
+     "explodeDmgPct": 0.3
+    }
+   }
+  ],
+  "buyu": [
+   {
+    "need": 2,
+    "name": "Kadim Akım",
+    "desc": "Saldırı hızı +%8, çekim +%20",
+    "mods": {
+     "atkPct": 0.08,
+     "magnetPct": 0.2
+    }
+   }
+  ]
+ },
+ "COLORS": {
+  "bg": "#0b0d13",
+  "bone": "#e8e4d8",
+  "dim": "#8b90a3",
+  "blood": "#ff3b4e",
+  "ember": "#b87351",
+  "gold": "#d8a284",
+  "spirit": "#59e3c8",
+  "purple": "#9b6cff",
+  "zombi": "#6f9a5c",
+  "kosucu": "#d9884a",
+  "tank": "#7d6ba8",
+  "atici": "#5fd190",
+  "muhafiz": "#c79a4a",
+  "boss": "#c92a3c"
+ },
+ "DEFAULT_CHAR": "okcu",
+ "DRAGON": {
+  "spitCd": 2.9,
+  "spitCount": 3,
+  "spitTell": 0.85,
+  "spitR": 64,
+  "spitDmg": 26,
+  "poisonDur": 3.4,
+  "poisonDmg": 9,
+  "spitSpread": 96,
+  "leapCd": 6.4,
+  "leapTell": 0.78,
+  "leapTime": 0.42,
+  "leapR": 104,
+  "leapDmg": 46,
+  "turnRate": 2.2
+ },
+ "DYN": {
+  "min": 0.78,
+  "max": 1.06,
+  "onDeath": 0.06,
+  "onWin": 0.035,
+  "winFlawless": 0.06
+ },
+ "ENEMY_TYPES": {
+  "zombi": {
+   "name": "İskelet Savaşçı",
+   "hp": 22,
+   "speed": 46,
+   "radius": 15,
+   "dmg": 12,
+   "xp": 1,
+   "color": "#6f9a5c",
+   "weight": 10,
+   "knockRes": 1
+  },
+  "atici": {
+   "name": "İskelet Büyücü",
+   "hp": 30,
+   "speed": 48,
+   "radius": 14,
+   "dmg": 10,
+   "xp": 2,
+   "color": "#5fd190",
+   "weight": 0,
+   "knockRes": 0.9,
+   "range": 265,
+   "fireCd": 2.5,
+   "bulletSpeed": 155,
+   "bulletDmg": 13,
+   "backRange": 120
+  },
+  "muhafiz": {
+   "name": "Mezar Muhafızı",
+   "hp": 88,
+   "speed": 33,
+   "radius": 21,
+   "dmg": 22,
+   "xp": 5,
+   "color": "#c79a4a",
+   "weight": 0,
+   "knockRes": 0.35
+  },
+  "agir": {
+   "name": "Ağır Pençe",
+   "hp": 165,
+   "speed": 27,
+   "radius": 26,
+   "dmg": 30,
+   "xp": 9,
+   "color": "#7d6ba8",
+   "weight": 0,
+   "knockRes": 0.24
+  },
+  "patlayici": {
+   "name": "Tuz Koşucusu",
+   "hp": 26,
+   "speed": 78,
+   "radius": 19,
+   "dmg": 0,
+   "xp": 3,
+   "color": "#d9884a",
+   "weight": 0,
+   "knockRes": 0.75,
+   "fuseR": 62,
+   "fuse": 0.55,
+   "blastR": 104,
+   "blastDmg": 34
+  },
+  "kral": {
+   "name": "İskelet Kral",
+   "hp": 560,
+   "speed": 20,
+   "radius": 34,
+   "dmg": 34,
+   "xp": 26,
+   "color": "#c92a3c",
+   "weight": 0,
+   "knockRes": 0.1,
+   "auraCd": 3.1,
+   "auraTell": 0.62,
+   "auraR": 132,
+   "auraDmg": 30
+  }
+ },
+ "EQUIPMENT": [
+  {
+   "id": "e_cy_kilic",
+   "name": "Paslı Kılıç",
+   "slot": "silah",
+   "rarity": 1,
+   "price": 40,
+   "icon": "w_cy_kilic",
+   "desc": "Eski ama hâlâ keser.",
+   "mods": {
+    "dmgPct": 0.06
+   }
+  },
+  {
+   "id": "e_cy_balta",
+   "name": "Çentik Balta",
+   "slot": "silah",
+   "rarity": 1,
+   "price": 42,
+   "icon": "w_cy_balta",
+   "desc": "Sapı gıcırdar, ağzı iş görür.",
+   "mods": {
+    "dmgPct": 0.06
+   }
+  },
+  {
+   "id": "e_cy_yay",
+   "name": "Basit Avcı Yayı",
+   "slot": "silah",
+   "rarity": 1,
+   "price": 40,
+   "icon": "w_cy_yay",
+   "desc": "Köylü işi, ama gerer.",
+   "mods": {
+    "atkPct": 0.065
+   }
+  },
+  {
+   "id": "e_cy_asa",
+   "name": "Çatlak Asa",
+   "slot": "silah",
+   "rarity": 1,
+   "price": 42,
+   "icon": "w_cy_asa",
+   "desc": "Çırağın ilk asası.",
+   "mods": {
+    "dmgPct": 0.045,
+    "atkPct": 0.02
+   }
+  },
+  {
+   "id": "e_cy_hancer",
+   "name": "Kör Hançer",
+   "slot": "silah",
+   "rarity": 1,
+   "price": 38,
+   "icon": "w_cy_hancer",
+   "desc": "Bilenmesi gerek, ama iş görür.",
+   "mods": {
+    "atkPct": 0.065
+   }
+  },
+  {
+   "id": "e_yg_kilic",
+   "name": "Bakır Kılıç",
+   "slot": "silah",
+   "rarity": 2,
+   "price": 110,
+   "icon": "w_yg_kilic",
+   "desc": "Parlatılmış tunç, dengeli darbe.",
+   "mods": {
+    "dmgPct": 0.11
+   }
+  },
+  {
+   "id": "e_yg_balta",
+   "name": "Bronz Balta",
+   "slot": "silah",
+   "rarity": 2,
+   "price": 115,
+   "icon": "w_yg_balta",
+   "desc": "Ustaca dövülmüş bronz ağız.",
+   "mods": {
+    "dmgPct": 0.11
+   }
+  },
+  {
+   "id": "e_yg_yay",
+   "name": "Composite Yay",
+   "slot": "silah",
+   "rarity": 2,
+   "price": 112,
+   "icon": "w_yg_yay",
+   "desc": "Katmanlı ahşap, sert gerilim.",
+   "mods": {
+    "atkPct": 0.1,
+    "dmgPct": 0.02
+   }
+  },
+  {
+   "id": "e_yg_asa",
+   "name": "Söğüt Asası",
+   "slot": "silah",
+   "rarity": 2,
+   "price": 108,
+   "icon": "w_yg_asa",
+   "desc": "Söğüt özünden büyü akar.",
+   "mods": {
+    "dmgPct": 0.07,
+    "atkPct": 0.045
+   }
+  },
+  {
+   "id": "e_yg_hancer",
+   "name": "Suikastçı Hançeri",
+   "slot": "silah",
+   "rarity": 2,
+   "price": 105,
+   "icon": "w_yg_hancer",
+   "desc": "Sessiz, hızlı, ölümcül.",
+   "mods": {
+    "atkPct": 0.12
+   }
+  },
+  {
+   "id": "e_nd_kilic",
+   "name": "Buzul Kılıcı",
+   "slot": "silah",
+   "rarity": 5,
+   "price": 260,
+   "icon": "w_nd_kilic",
+   "desc": "Ağzı hiç erimeyen bir kışın parçası.",
+   "mods": {
+    "dmgPct": 0.135,
+    "atkPct": 0.025
+   }
+  },
+  {
+   "id": "e_nd_balta",
+   "name": "Fırtına Baltası",
+   "slot": "silah",
+   "rarity": 5,
+   "price": 270,
+   "icon": "w_nd_balta",
+   "desc": "Her darbe don damarları bırakır.",
+   "mods": {
+    "dmgPct": 0.16
+   }
+  },
+  {
+   "id": "e_nd_yay",
+   "name": "Buz Rüzgârı Yayı",
+   "slot": "silah",
+   "rarity": 5,
+   "price": 265,
+   "icon": "w_nd_yay",
+   "desc": "Fırlattığı her ok kışı taşır.",
+   "mods": {
+    "atkPct": 0.135,
+    "dmgPct": 0.04
+   }
+  },
+  {
+   "id": "e_nd_asa",
+   "name": "Buz Kristali Asası",
+   "slot": "silah",
+   "rarity": 5,
+   "price": 255,
+   "icon": "w_nd_asa",
+   "desc": "Kristal öz büyüyü donduruyor.",
+   "mods": {
+    "dmgPct": 0.115,
+    "atkPct": 0.05
+   }
+  },
+  {
+   "id": "e_nd_hancer",
+   "name": "Buz İğnesi Hançeri",
+   "slot": "silah",
+   "rarity": 5,
+   "price": 250,
+   "icon": "w_nd_hancer",
+   "desc": "İnce, soğuk, sessiz bir son.",
+   "mods": {
+    "atkPct": 0.155,
+    "dmgPct": 0.02
+   }
+  },
+  {
+   "id": "e_ep_kilic",
+   "name": "Fırtına Ejder Kılıcı",
+   "slot": "silah",
+   "rarity": 3,
+   "price": 400,
+   "icon": "w_ep_kilic",
+   "desc": "Her savuruşta yıldırım çatlar.",
+   "mods": {
+    "dmgPct": 0.195,
+    "atkPct": 0.04
+   }
+  },
+  {
+   "id": "e_ep_balta",
+   "name": "Kaos Baltası",
+   "slot": "silah",
+   "rarity": 3,
+   "price": 410,
+   "icon": "w_ep_balta",
+   "desc": "Vuruşları gökyüzünü yırtar.",
+   "mods": {
+    "dmgPct": 0.23
+   }
+  },
+  {
+   "id": "e_ep_yay",
+   "name": "Ruh Emici Yay",
+   "slot": "silah",
+   "rarity": 3,
+   "price": 405,
+   "icon": "w_ep_yay",
+   "desc": "Her ok bir şimşek çatalı taşır.",
+   "mods": {
+    "atkPct": 0.165,
+    "dmgPct": 0.08
+   }
+  },
+  {
+   "id": "e_ep_asa",
+   "name": "Yıldırım Asası",
+   "slot": "silah",
+   "rarity": 3,
+   "price": 395,
+   "icon": "w_ep_asa",
+   "desc": "Fırtınayı avucunda tutar.",
+   "mods": {
+    "dmgPct": 0.165,
+    "atkPct": 0.075
+   }
+  },
+  {
+   "id": "e_ep_hancer",
+   "name": "Fısıltı Hançeri",
+   "slot": "silah",
+   "rarity": 3,
+   "price": 390,
+   "icon": "w_ep_hancer",
+   "desc": "Çakan bir sessizlikle vurur.",
+   "mods": {
+    "atkPct": 0.19,
+    "dmgPct": 0.06
+   }
+  },
+  {
+   "id": "e_ef_kilic",
+   "name": "Güneş Alevi Kılıcı",
+   "slot": "silah",
+   "rarity": 4,
+   "price": 620,
+   "icon": "w_ef_kilic",
+   "desc": "Kadim güneşten dökülmüş alev.",
+   "mods": {
+    "dmgPct": 0.25,
+    "atkPct": 0.055
+   }
+  },
+  {
+   "id": "e_ef_balta",
+   "name": "Kıyamet Baltası",
+   "slot": "silah",
+   "rarity": 4,
+   "price": 640,
+   "icon": "w_ef_balta",
+   "desc": "Her darbesi bir son provası.",
+   "mods": {
+    "dmgPct": 0.3
+   }
+  },
+  {
+   "id": "e_ef_yay",
+   "name": "Şimşek Tanrı Yayı",
+   "slot": "silah",
+   "rarity": 4,
+   "price": 630,
+   "icon": "w_ef_yay",
+   "desc": "Fırlattığı alev göğü yakar.",
+   "mods": {
+    "atkPct": 0.2,
+    "dmgPct": 0.12
+   }
+  },
+  {
+   "id": "e_ef_asa",
+   "name": "Kadim Güneş Asası",
+   "slot": "silah",
+   "rarity": 4,
+   "price": 615,
+   "icon": "w_ef_asa",
+   "desc": "Güneşin son kıvılcımını taşır.",
+   "mods": {
+    "dmgPct": 0.22,
+    "atkPct": 0.09
+   }
+  },
+  {
+   "id": "e_ef_hancer",
+   "name": "Ejder Dişi Hançeri",
+   "slot": "silah",
+   "rarity": 4,
+   "price": 610,
+   "icon": "w_ef_hancer",
+   "desc": "Bir ejderin son nefesinden dökülmüş.",
+   "mods": {
+    "atkPct": 0.23,
+    "dmgPct": 0.095
+   }
+  },
+  {
+   "id": "e_derizirh",
+   "name": "Deri Zırh",
+   "slot": "zirh",
+   "rarity": 1,
+   "price": 45,
+   "icon": "z_deri",
+   "desc": "Hafif ama işini görür.",
+   "mods": {
+    "maxHp": 9
+   }
+  },
+  {
+   "id": "e_demirlevha",
+   "name": "Demir Levha",
+   "slot": "zirh",
+   "rarity": 1,
+   "price": 50,
+   "icon": "z_levha",
+   "desc": "Ağır ama güvenilir bir kalkanlama.",
+   "mods": {
+    "maxHp": 6,
+    "dmgPct": 0.015
+   }
+  },
+  {
+   "id": "e_celikzirh",
+   "name": "Çelik Zırh",
+   "slot": "zirh",
+   "rarity": 2,
+   "price": 110,
+   "icon": "z_celik",
+   "desc": "Nöbetçi zırhıymış — sağlam görünüyor.",
+   "mods": {
+    "maxHp": 17
+   }
+  },
+  {
+   "id": "e_agirplaka",
+   "name": "Ağır Plaka",
+   "slot": "zirh",
+   "rarity": 2,
+   "price": 125,
+   "icon": "z_plaka",
+   "desc": "Koruma ağırlığıyla gelir.",
+   "mods": {
+    "maxHp": 22,
+    "atkPct": -0.03
+   }
+  },
+  {
+   "id": "e_ejderpul",
+   "name": "Ejder Pulu Zırhı",
+   "slot": "zirh",
+   "rarity": 3,
+   "price": 210,
+   "icon": "z_ejder",
+   "desc": "Her pul kadim bir savaşın izini taşır.",
+   "mods": {
+    "maxHp": 26,
+    "dmgPct": 0.04
+   }
+  },
+  {
+   "id": "e_karademir",
+   "name": "Kara Demir Zırh",
+   "slot": "zirh",
+   "rarity": 3,
+   "price": 220,
+   "icon": "z_kara",
+   "desc": "Kanı emen kara bir alaşım.",
+   "mods": {
+    "maxHp": 29,
+    "lifeSteal": 0.02
+   }
+  },
+  {
+   "id": "e_kadimzirh",
+   "name": "Kadim Muhafız Zırhı",
+   "slot": "zirh",
+   "rarity": 4,
+   "price": 390,
+   "icon": "z_kadim",
+   "desc": "Sayısız savaş görmüş, hiç kırılmamış.",
+   "mods": {
+    "maxHp": 36,
+    "dmgPct": 0.045
+   }
+  },
+  {
+   "id": "e_derield",
+   "name": "Deri Eldiven",
+   "slot": "eldiven",
+   "rarity": 1,
+   "price": 40,
+   "icon": "g_deri",
+   "desc": "İyi bir kavrama her şeyi değiştirir.",
+   "mods": {
+    "atkPct": 0.05
+   }
+  },
+  {
+   "id": "e_zincirel",
+   "name": "Zincir Eldiven",
+   "slot": "eldiven",
+   "rarity": 2,
+   "price": 110,
+   "icon": "g_zincir",
+   "desc": "Halkalar arasında hız saklı.",
+   "mods": {
+    "atkPct": 0.12,
+    "maxHp": -5
+   }
+  },
+  {
+   "id": "e_kanpence",
+   "name": "Kan Emici Pençe",
+   "slot": "eldiven",
+   "rarity": 2,
+   "price": 120,
+   "icon": "g_kanpence",
+   "desc": "Tuttuğu her şeyden bir pay alır.",
+   "mods": {
+    "lifeSteal": 0.06
+   }
+  },
+  {
+   "id": "e_keskinpence",
+   "name": "Keskin Pençe",
+   "slot": "eldiven",
+   "rarity": 3,
+   "price": 210,
+   "icon": "g_keskin",
+   "desc": "Vuruş hem sert hem çevik.",
+   "mods": {
+    "dmgPct": 0.12,
+    "atkPct": 0.06
+   }
+  },
+  {
+   "id": "e_vampirel",
+   "name": "Vampir Eldiveni",
+   "slot": "eldiven",
+   "rarity": 3,
+   "price": 220,
+   "icon": "g_vampir",
+   "desc": "Gece beslenmeyi öğretir.",
+   "mods": {
+    "lifeSteal": 0.07,
+    "dmgPct": 0.105,
+    "maxHp": -6
+   }
+  },
+  {
+   "id": "e_savaseldiven",
+   "name": "Kadim Savaş Eldiveni",
+   "slot": "eldiven",
+   "rarity": 4,
+   "price": 380,
+   "icon": "g_kadim",
+   "desc": "Sayısız düşman bu eli tanıdı.",
+   "mods": {
+    "dmgPct": 0.14,
+    "atkPct": 0.095
+   }
+  },
+  {
+   "id": "e_derizizme",
+   "name": "Deri Çizme",
+   "slot": "cizme",
+   "rarity": 1,
+   "price": 40,
+   "icon": "b_deri",
+   "desc": "Sessiz adımlar, hızlı vuruş.",
+   "mods": {
+    "atkPct": 0.05
+   }
+  },
+  {
+   "id": "e_cevikbot",
+   "name": "Çevik Bot",
+   "slot": "cizme",
+   "rarity": 2,
+   "price": 110,
+   "icon": "b_cevik",
+   "desc": "Hafiflik hıza dönüşür.",
+   "mods": {
+    "atkPct": 0.12,
+    "maxHp": -5
+   }
+  },
+  {
+   "id": "e_zirhlibot",
+   "name": "Zırhlı Bot",
+   "slot": "cizme",
+   "rarity": 2,
+   "price": 115,
+   "icon": "b_zirhli",
+   "desc": "Ağır adımlar, sağlam duruş.",
+   "mods": {
+    "maxHp": 17
+   }
+  },
+  {
+   "id": "e_firtinacizme",
+   "name": "Fırtına Çizmesi",
+   "slot": "cizme",
+   "rarity": 3,
+   "price": 210,
+   "icon": "b_firtina",
+   "desc": "Her adım bir önceki rüzgârı taşır.",
+   "mods": {
+    "atkPct": 0.19
+   }
+  },
+  {
+   "id": "e_kanizi",
+   "name": "Kan İzi Botu",
+   "slot": "cizme",
+   "rarity": 3,
+   "price": 215,
+   "icon": "b_kanizi",
+   "desc": "Bastığı yerde iz değil, kan bırakır.",
+   "mods": {
+    "lifeSteal": 0.06,
+    "atkPct": 0.1
+   }
+  },
+  {
+   "id": "e_avcicizme",
+   "name": "Kadim Avcı Çizmesi",
+   "slot": "cizme",
+   "rarity": 4,
+   "price": 380,
+   "icon": "b_kadim",
+   "desc": "Hiçbir av bu adımlardan kaçamaz.",
+   "mods": {
+    "atkPct": 0.17500000000000002,
+    "dmgPct": 0.07
+   }
+  }
+ ],
+ "EQUIP_SLOTS": [
+  {
+   "id": "silah",
+   "name": "SİLAH KATI",
+   "hint": "İmza silahını saran kat — saldırı gücü"
+  },
+  {
+   "id": "zirh",
+   "name": "ZIRH",
+   "hint": "Gövde koruması — can ve savunma"
+  },
+  {
+   "id": "eldiven",
+   "name": "ELDİVEN",
+   "hint": "El işçiliği — kritik, hız, kan"
+  },
+  {
+   "id": "cizme",
+   "name": "ÇİZME",
+   "hint": "Ayak işi — hız ve kaçış"
+  }
+ ],
+ "FX": {
+  "hitStopMs": 0,
+  "critStopMs": 0,
+  "bossHitStopMs": 0,
+  "shakeHit": 0,
+  "shakeCrit": 0.09,
+  "shakeHurt": 0.26,
+  "shakeBoss": 0.4,
+  "maxShakePx": 7,
+  "shakeDecay": 3.6,
+  "floatTextLife": 0.85,
+  "hitFlashTime": 0.09
+ },
+ "GEAR_CARD_REQ": [
+  0,
+  0,
+  2,
+  4,
+  8,
+  14,
+  22
+ ],
+ "GEAR_GOLD_COST": [
+  0,
+  0,
+  25,
+  60,
+  130,
+  260,
+  480
+ ],
+ "GEAR_MAX_LEVEL": 6,
+ "GEM_TIERS": [
+  {
+   "min": 0,
+   "color": "#8a1620",
+   "r": 4.5,
+   "glow": "rgba(180,30,42,0.42)"
+  },
+  {
+   "min": 3,
+   "color": "#d81f34",
+   "r": 6,
+   "glow": "rgba(216,31,52,0.55)"
+  },
+  {
+   "min": 10,
+   "color": "#ff3b4e",
+   "r": 8,
+   "glow": "rgba(255,59,78,0.65)"
+  }
+ ],
+ "HAZARD_CAP": 12,
+ "ITEMS": [
+  {
+   "id": "kemik",
+   "name": "Kemik Tılsımı",
+   "rarity": 1,
+   "price": 12,
+   "icon": "tilsim",
+   "desc": "Mezar tozuyla kutsanmış omur.",
+   "mods": {
+    "maxHp": 12
+   }
+  },
+  {
+   "id": "pasli",
+   "name": "Paslı Yüzük",
+   "rarity": 1,
+   "price": 13,
+   "icon": "yuzuk",
+   "desc": "Kimin parmağından çıktığı meçhul.",
+   "mods": {
+    "dmgPct": 0.06
+   }
+  },
+  {
+   "id": "mum",
+   "name": "Kara Mum",
+   "rarity": 1,
+   "price": 12,
+   "icon": "mum",
+   "desc": "Alevi zayıf noktaları gösterir.",
+   "mods": {
+    "critChance": 0.03
+   }
+  },
+  {
+   "id": "yama",
+   "name": "Yamalı Pelerin",
+   "rarity": 1,
+   "price": 13,
+   "icon": "pelerin",
+   "desc": "Yamalar darbeyi dağıtır.",
+   "mods": {
+    "armor": 1,
+    "dodge": 0.02
+   }
+  },
+  {
+   "id": "kese",
+   "name": "Çıngırak Kesesi",
+   "rarity": 1,
+   "price": 14,
+   "icon": "kese",
+   "desc": "İçine düşen her cevher çoğalır.",
+   "mods": {
+    "harvest": 0.12
+   }
+  },
+  {
+   "id": "fener",
+   "name": "Soluk Fener",
+   "rarity": 1,
+   "price": 11,
+   "icon": "fener",
+   "desc": "Ruh cevherleri ışığa gelir.",
+   "mods": {
+    "magnetPct": 0.3
+   }
+  },
+  {
+   "id": "nektar",
+   "name": "Kan Kolyesi",
+   "rarity": 2,
+   "price": 27,
+   "icon": "kolye",
+   "desc": "Verdiğin her yara seni onarır.",
+   "mods": {
+    "lifeSteal": 0.02
+   }
+  },
+  {
+   "id": "tuylu",
+   "name": "Tüylü Çizme",
+   "rarity": 2,
+   "price": 24,
+   "icon": "cizme",
+   "desc": "Kuzgun tüyü — adım sessiz, gölge hızlı.",
+   "mods": {
+    "speedPct": 0.08,
+    "dodge": 0.03
+   }
+  },
+  {
+   "id": "korkup",
+   "name": "Barut Boynuzu",
+   "rarity": 2,
+   "price": 28,
+   "icon": "boynuz",
+   "desc": "Ölen düşman bazen kor gibi patlar.",
+   "mods": {
+    "explodeChance": 0.1
+   }
+  },
+  {
+   "id": "dis",
+   "name": "Kasap Palası",
+   "rarity": 2,
+   "price": 25,
+   "icon": "pala",
+   "desc": "Ağır kesik, ağır bedel.",
+   "mods": {
+    "dmgPct": 0.1,
+    "maxHp": -5
+   }
+  },
+  {
+   "id": "sarap",
+   "name": "Ay İksiri",
+   "rarity": 2,
+   "price": 24,
+   "icon": "iksir",
+   "desc": "Kızıl ayın ışığında mayalanmış.",
+   "mods": {
+    "regen": 1.2
+   }
+  },
+  {
+   "id": "zar",
+   "name": "Kurşun Zar",
+   "rarity": 2,
+   "price": 26,
+   "icon": "zar",
+   "desc": "Hep hile yapar — senin lehine.",
+   "mods": {
+    "luck": 0.15
+   }
+  },
+  {
+   "id": "el",
+   "name": "Hasatçı Eli",
+   "rarity": 3,
+   "price": 55,
+   "icon": "el",
+   "desc": "Kuruyup kalmış ama hâlâ çok çabuk.",
+   "mods": {
+    "atkPct": 0.12
+   }
+  },
+  {
+   "id": "muska",
+   "name": "Kızıl Muska",
+   "rarity": 3,
+   "price": 58,
+   "icon": "muska",
+   "desc": "Damarların atışını duyar.",
+   "mods": {
+    "critChance": 0.07,
+    "critMult": 0.25
+   }
+  },
+  {
+   "id": "fici",
+   "name": "Barut Fıçısı",
+   "rarity": 3,
+   "price": 60,
+   "icon": "fici",
+   "desc": "Her ölüm bir fitil olabilir.",
+   "mods": {
+    "explodeChance": 0.15,
+    "explodeDmgPct": 0.4
+   }
+  },
+  {
+   "id": "golge",
+   "name": "Gölge Zırhı",
+   "rarity": 3,
+   "price": 52,
+   "icon": "zirh",
+   "desc": "Dokunulamayanı vuramazsın.",
+   "mods": {
+    "armor": 3,
+    "dodge": 0.05
+   }
+  },
+  {
+   "id": "kadeh",
+   "name": "Ruh Kadehi",
+   "rarity": 3,
+   "price": 50,
+   "icon": "kadeh",
+   "desc": "Düşen her ruh son damlasına dek içilir.",
+   "mods": {
+    "xpPct": 0.2
+   }
+  },
+  {
+   "id": "yurek2",
+   "name": "Demir Yürek",
+   "rarity": 3,
+   "price": 48,
+   "icon": "kalp",
+   "desc": "Ağır ama durdurulamaz.",
+   "mods": {
+    "maxHp": 30,
+    "speedPct": -0.04
+   }
+  },
+  {
+   "id": "fitil",
+   "name": "Kıyamet Fitili",
+   "rarity": 4,
+   "price": 110,
+   "icon": "boynuz",
+   "desc": "Dünyanın sonunu prova eder.",
+   "mods": {
+    "explodeChance": 0.2,
+    "explodeRPct": 0.6
+   }
+  },
+  {
+   "id": "tac",
+   "name": "Hasat Tacı",
+   "rarity": 4,
+   "price": 95,
+   "icon": "tac",
+   "desc": "Tarlanın tek sahibi sensin.",
+   "mods": {
+    "harvest": 0.35,
+    "luck": 0.25
+   }
+  },
+  {
+   "id": "kadim",
+   "name": "Kadim Kalp",
+   "rarity": 4,
+   "price": 100,
+   "icon": "kalp",
+   "desc": "Hâlâ atıyor. Artık senin göğsünde.",
+   "mods": {
+    "maxHp": 50,
+    "regen": 2
+   }
+  },
+  {
+   "id": "cikrik",
+   "name": "Ölüm Çıkrığı",
+   "rarity": 4,
+   "price": 115,
+   "icon": "kum",
+   "desc": "İpi eğirdikçe tırpan hızlanır.",
+   "mods": {
+    "atkPct": 0.2,
+    "dmgPct": 0.15
+   }
+  },
+  {
+   "id": "vampir",
+   "name": "Vampir Kolyesi",
+   "rarity": 4,
+   "price": 105,
+   "icon": "kolye",
+   "desc": "Gece seninle beslenir.",
+   "mods": {
+    "lifeSteal": 0.05,
+    "critChance": 0.05
+   }
+  }
+ ],
+ "MODS": {
+  "maxHp": {
+   "label": "Azami Can",
+   "fmt": "flat"
+  },
+  "regen": {
+   "label": "Can Yenileme",
+   "fmt": "persec"
+  },
+  "speedPct": {
+   "label": "Hız",
+   "fmt": "pct"
+  },
+  "dmgPct": {
+   "label": "Hasar",
+   "fmt": "pct"
+  },
+  "atkPct": {
+   "label": "Saldırı Hızı",
+   "fmt": "pct"
+  },
+  "critChance": {
+   "label": "Kritik Şansı",
+   "fmt": "pct"
+  },
+  "critMult": {
+   "label": "Kritik Hasarı",
+   "fmt": "pct"
+  },
+  "armor": {
+   "label": "Zırh",
+   "fmt": "flat"
+  },
+  "dodge": {
+   "label": "Sıyrılma",
+   "fmt": "pct"
+  },
+  "magnetPct": {
+   "label": "Çekim Alanı",
+   "fmt": "pct"
+  },
+  "lifeSteal": {
+   "label": "Can Çalma",
+   "fmt": "pct"
+  },
+  "luck": {
+   "label": "Şans",
+   "fmt": "pct"
+  },
+  "harvest": {
+   "label": "Hasat",
+   "fmt": "pct"
+  },
+  "xpPct": {
+   "label": "Tecrübe",
+   "fmt": "pct"
+  },
+  "explodeChance": {
+   "label": "Patlama Şansı",
+   "fmt": "pct"
+  },
+  "explodeDmgPct": {
+   "label": "Patlama Hasarı",
+   "fmt": "pct"
+  },
+  "explodeRPct": {
+   "label": "Patlama Alanı",
+   "fmt": "pct"
+  }
+ },
+ "PASSIVES": {
+  "kalp": {
+   "name": "Kadim Yürek",
+   "desc": "Azami can +22 — aldığın an dolar.",
+   "maxLevel": 4,
+   "mods": {
+    "maxHp": 22
+   }
+  },
+  "cizme": {
+   "name": "Rüzgâr Adımı",
+   "desc": "%10 daha hızlı koşarsın.",
+   "maxLevel": 4,
+   "mods": {
+    "speedPct": 0.1
+   }
+  },
+  "miknatis": {
+   "name": "Ruh Feneri",
+   "desc": "Cevherleri %55 daha uzaktan çeker.",
+   "maxLevel": 4,
+   "mods": {
+    "magnetPct": 0.55
+   }
+  },
+  "keskinlik": {
+   "name": "Kan Keskinliği",
+   "desc": "Kritik şansı +%6, kritik hasarı +%15.",
+   "maxLevel": 4,
+   "mods": {
+    "critChance": 0.06,
+    "critMult": 0.15
+   }
+  },
+  "zirh": {
+   "name": "Kemik Zırh",
+   "desc": "Yediğin her vuruştan 2 hasar siler.",
+   "maxLevel": 4,
+   "mods": {
+    "armor": 2
+   }
+  },
+  "gazap": {
+   "name": "Kan Gazabı",
+   "desc": "Verdiğin bütün hasar +%11.",
+   "maxLevel": 4,
+   "mods": {
+    "dmgPct": 0.11
+   }
+  },
+  "cabukluk": {
+   "name": "Gölge Çabukluğu",
+   "desc": "Bütün silahlar %10 daha sık vurur.",
+   "maxLevel": 4,
+   "mods": {
+    "atkPct": 0.1
+   }
+  }
+ },
+ "PLAYER": {
+  "speed": 172,
+  "radius": 14,
+  "maxHp": 100,
+  "regen": 0.35,
+  "critChance": 0.08,
+  "critMult": 2.2,
+  "armor": 0,
+  "magnet": 95,
+  "invulnTime": 0.42,
+  "pickupR": 18
+ },
+ "RAMP": {
+  "breathSec": 50,
+  "breathMul": 0.6,
+  "waveEaseSec": 6,
+  "waveEaseMul": 0.55,
+  "gapMax": 2.9,
+  "spread": 0.09
+ },
+ "RARITIES": [
+  null,
+  {
+   "name": "ÇOK YAYGIN",
+   "color": "#8b90a3",
+   "glow": "rgba(139,144,163,0.22)"
+  },
+  {
+   "name": "YAYGIN",
+   "color": "#c98a5a",
+   "glow": "rgba(201,138,90,0.30)"
+  },
+  {
+   "name": "EPİK",
+   "color": "#9b6cff",
+   "glow": "rgba(155,108,255,0.35)"
+  },
+  {
+   "name": "EFSANEVİ",
+   "color": "#c98a52",
+   "glow": "rgba(255,122,44,0.48)"
+  },
+  {
+   "name": "NADİR",
+   "color": "#3d9bff",
+   "glow": "rgba(61,155,255,0.40)"
+  }
+ ],
+ "RUBY_EXCHANGE": [
+  {
+   "id": "ex1",
+   "stone": 10,
+   "rubies": 120,
+   "tag": ""
+  },
+  {
+   "id": "ex2",
+   "stone": 40,
+   "rubies": 550,
+   "tag": "+%15"
+  },
+  {
+   "id": "ex3",
+   "stone": 100,
+   "rubies": 1500,
+   "tag": "+%25"
+  }
+ ],
+ "RUN": {
+  "bossWave": 10,
+  "bossEvery": 5
+ },
+ "SHOP": {
+  "slots": 4,
+  "weaponChance": 0.34,
+  "weaponPrice": [
+   15,
+   25,
+   38,
+   55,
+   75
+  ],
+  "priceMul": {
+   "__fn": "SHOP.priceMul"
+  },
+  "rerollCost": {
+   "__fn": "SHOP.rerollCost"
+  }
+ },
+ "SIGNATURES": {
+  "sapanci": [
+   {
+    "id": "sig_s1",
+    "name": "Ağır Taş",
+    "desc": "Sapan hasarı +%12.",
+    "boost": {
+     "weapon": "sapan",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_s2",
+    "name": "Hızlı Kol",
+    "desc": "Sapan %10 daha sık savrulur.",
+    "boost": {
+     "weapon": "sapan",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_s3",
+    "name": "Yassı Taş",
+    "desc": "Taş bir kez daha seker.",
+    "boost": {
+     "weapon": "sapan",
+     "bounceAdd": 1
+    }
+   },
+   {
+    "id": "sig_s4",
+    "name": "Uzun Kayış",
+    "desc": "Menzil +%12, taş %8 daha hızlı uçar.",
+    "boost": {
+     "weapon": "sapan",
+     "range": 1.12,
+     "speed": 1.08
+    }
+   },
+   {
+    "id": "sig_s5",
+    "name": "Sivri Çakıl",
+    "desc": "Taş bir düşmanı deler geçer.",
+    "boost": {
+     "weapon": "sapan",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_s6",
+    "name": "Nişan Alışkanlığı",
+    "desc": "Kritik şansı +%5, kritik hasarı +%18.",
+    "boost": {
+     "weapon": "sapan",
+     "critAdd": 0.05,
+     "critMultAdd": 0.18
+    }
+   },
+   {
+    "id": "sig_s7",
+    "name": "Çift Kayış",
+    "minLvl": 1,
+    "myth": true,
+    "sapanci": true,
+    "glyph": "ciftkayis",
+    "desc": "Her savuruşta ikinci taş fırlar.",
+    "boost": {
+     "weapon": "sapan",
+     "volley": 1
+    }
+   },
+   {
+    "id": "sig_s8",
+    "name": "Kırık Taş",
+    "minLvl": 1,
+    "myth": true,
+    "sapanci": true,
+    "glyph": "kiriktas",
+    "desc": "Taş sekerken üçe ayrılır, parçalar saçılır.",
+    "boost": {
+     "weapon": "sapan",
+     "shatterAdd": 1
+    }
+   },
+   {
+    "id": "sig_s9",
+    "name": "Taş Yağmuru",
+    "minLvl": 2,
+    "myth": true,
+    "sapanci": true,
+    "glyph": "tasyagmuru",
+    "desc": "Her 5. savuruşta gökten taş yağar.",
+    "boost": {
+     "weapon": "sapan",
+     "rainAdd": 1
+    }
+   },
+   {
+    "id": "sig_s10",
+    "name": "Sapan Ustası",
+    "minLvl": 3,
+    "myth": true,
+    "sapanci": true,
+    "glyph": "sapanustasi",
+    "desc": "Kritik şansı +%10, kritik hasarı +%35.",
+    "boost": {
+     "weapon": "sapan",
+     "critAdd": 0.1,
+     "critMultAdd": 0.35
+    }
+   },
+   {
+    "id": "sig_s11",
+    "name": "Gülle",
+    "minLvl": 4,
+    "myth": true,
+    "sapanci": true,
+    "glyph": "gulle",
+    "desc": "Taş ağırlaşır: hasar +%40, geri tepme iki katı, ama %20 yavaş.",
+    "boost": {
+     "weapon": "sapan",
+     "dmg": 1.4,
+     "knock": 2,
+     "speed": 0.8
+    }
+   }
+  ],
+  "okcu": [
+   {
+    "id": "sig_o1",
+    "name": "Çatal Kiriş",
+    "desc": "Her gerişte bir ok daha fırlar.",
+    "boost": {
+     "weapon": "yay",
+     "volley": 1
+    }
+   },
+   {
+    "id": "sig_o2",
+    "name": "Delici Uç",
+    "desc": "Ok bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "yay",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_o3",
+    "name": "Kor Uç",
+    "desc": "Oklar tutuşur, yakıcı hasar ekler.",
+    "boost": {
+     "weapon": "yay",
+     "flame": 1,
+     "dmg": 1.07
+    }
+   },
+   {
+    "id": "sig_o4",
+    "name": "Gergin Tel",
+    "desc": "Yay %7 daha çabuk gerilir.",
+    "boost": {
+     "weapon": "yay",
+     "cd": 0.93
+    }
+   },
+   {
+    "id": "sig_o5",
+    "name": "Seken Ok",
+    "desc": "Ok saplandıktan sonra sekip vurur.",
+    "boost": {
+     "weapon": "yay",
+     "bounceAdd": 1
+    }
+   },
+   {
+    "id": "sig_o6",
+    "name": "Uzun Kiriş",
+    "desc": "Ok hasarı +%12, uçuş hızı +%8.",
+    "boost": {
+     "weapon": "yay",
+     "dmg": 1.12,
+     "speed": 1.08
+    }
+   },
+   {
+    "id": "sig_o7",
+    "name": "Patlayıcı Uç",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "patlayici",
+    "desc": "Ok son hedefte patlar, çevreyi biçer.",
+    "boost": {
+     "weapon": "yay",
+     "explodeAdd": 1
+    }
+   },
+   {
+    "id": "sig_o8",
+    "name": "Takipçi Ok",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci",
+    "desc": "Oklar hedefi kovalar, ıskalamaz.",
+    "boost": {
+     "weapon": "yay",
+     "homingAdd": 1
+    }
+   },
+   {
+    "id": "sig_o9",
+    "name": "Ay Nişancısı",
+    "minLvl": 5,
+    "myth": true,
+    "glyph": "nisanci",
+    "desc": "Kritik şansı +%7, kritik hasarı +%25.",
+    "boost": {
+     "weapon": "yay",
+     "critAdd": 0.07,
+     "critMultAdd": 0.25
+    }
+   },
+   {
+    "id": "sig_o10",
+    "name": "Ok Sağanağı",
+    "minLvl": 7,
+    "myth": true,
+    "glyph": "yagmur",
+    "desc": "Her 4. gerişte gökten ok sağanağı iner.",
+    "boost": {
+     "weapon": "yay",
+     "rainAdd": 1
+    }
+   },
+   {
+    "id": "sig_o11",
+    "name": "Dolunay Salvosu",
+    "minLvl": 9,
+    "myth": true,
+    "glyph": "salvo",
+    "desc": "Her gerişte +2 ok, yelpaze genişler.",
+    "boost": {
+     "weapon": "yay",
+     "volley": 2,
+     "spreadMul": 1.12
+    }
+   }
+  ],
+  "seher": [
+   {
+    "id": "sig_e1",
+    "name": "Tan Kesiği",
+    "desc": "Kılıç hasarı +%25.",
+    "boost": {
+     "weapon": "kilic",
+     "dmg": 1.25
+    }
+   },
+   {
+    "id": "sig_e2",
+    "name": "Hafif El",
+    "desc": "Kılıç %18 daha sık savrulur.",
+    "boost": {
+     "weapon": "kilic",
+     "cd": 0.82
+    }
+   },
+   {
+    "id": "sig_e3",
+    "name": "Geniş Hilal",
+    "desc": "Savuruş yayı %12 genişler.",
+    "boost": {
+     "weapon": "kilic",
+     "arc": 1.12
+    }
+   },
+   {
+    "id": "sig_e4",
+    "name": "Uzun Kavis",
+    "desc": "Menzil +%8, hasar +%10.",
+    "boost": {
+     "weapon": "kilic",
+     "range": 1.08,
+     "dmg": 1.1
+    }
+   },
+   {
+    "id": "sig_e5",
+    "name": "Ağır Savuruş",
+    "desc": "Geri tepme +%35, hasar +%15.",
+    "boost": {
+     "weapon": "kilic",
+     "knock": 1.35,
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_e6",
+    "name": "Keskin Ruh",
+    "desc": "Kritik şansı +%8, kritik hasarı +%30.",
+    "boost": {
+     "weapon": "kilic",
+     "critAdd": 0.08,
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_e7",
+    "name": "Girdap",
+    "minLvl": 1,
+    "myth": true,
+    "seher": true,
+    "glyph": "girdap",
+    "desc": "Aralıklı 360° savuruş; kademe sıklaştırır.",
+    "boost": {
+     "weapon": "kilic",
+     "spinAdd": 1
+    }
+   },
+   {
+    "id": "sig_e8",
+    "name": "İkiz Savuruş",
+    "minLvl": 1,
+    "myth": true,
+    "seher": true,
+    "glyph": "ikiz",
+    "desc": "Aynı hedefe ters yönden ikinci kesik.",
+    "boost": {
+     "weapon": "kilic",
+     "twinAdd": 1
+    }
+   },
+   {
+    "id": "sig_e9",
+    "name": "Ay Kesiği",
+    "minLvl": 2,
+    "myth": true,
+    "seher": true,
+    "glyph": "kesik",
+    "desc": "Savuruştan delip geçen hilal dalga çıkar.",
+    "boost": {
+     "weapon": "kilic",
+     "waveAdd": 1
+    }
+   },
+   {
+    "id": "sig_e10",
+    "name": "Ruh Yankısı",
+    "minLvl": 3,
+    "myth": true,
+    "seher": true,
+    "glyph": "yanki",
+    "desc": "Savuruş hayalet olarak bir kez tekrarlar.",
+    "boost": {
+     "weapon": "kilic",
+     "echoAdd": 1
+    }
+   },
+   {
+    "id": "sig_e11",
+    "name": "Seher Nişanı",
+    "minLvl": 4,
+    "myth": true,
+    "seher": true,
+    "glyph": "nisan",
+    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "boost": {
+     "weapon": "kilic",
+     "critAdd": 0.15,
+     "critMultAdd": 0.6
+    }
+   }
+  ],
+  "simsek": [
+   {
+    "id": "sig_z1",
+    "name": "Fırtına Gücü",
+    "desc": "Şimşek hasarı +%25.",
+    "boost": {
+     "weapon": "simsek",
+     "dmg": 1.25
+    }
+   },
+   {
+    "id": "sig_z2",
+    "name": "Kısa Devre",
+    "desc": "Şimşek %18 daha sık çakar.",
+    "boost": {
+     "weapon": "simsek",
+     "cd": 0.82
+    }
+   },
+   {
+    "id": "sig_z3",
+    "name": "Uzun Akım",
+    "desc": "Menzil +%15.",
+    "boost": {
+     "weapon": "simsek",
+     "range": 1.15
+    }
+   },
+   {
+    "id": "sig_z4",
+    "name": "Geniş Sıçrama",
+    "desc": "Sıçrama menzili +%20, hasar +%8.",
+    "boost": {
+     "weapon": "simsek",
+     "chainRange": 1.2,
+     "dmg": 1.08
+    }
+   },
+   {
+    "id": "sig_z5",
+    "name": "Yakıcı Volt",
+    "desc": "Hasar +%15, bekleme −%10.",
+    "boost": {
+     "weapon": "simsek",
+     "dmg": 1.15,
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_z6",
+    "name": "Kadim Volt",
+    "desc": "Kritik şansı +%8, kritik hasarı +%30.",
+    "boost": {
+     "weapon": "simsek",
+     "critAdd": 0.08,
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_z7",
+    "name": "Zincirleme",
+    "minLvl": 1,
+    "myth": true,
+    "simsek": true,
+    "glyph": "zincir",
+    "desc": "Bir hedefe daha sıçrar.",
+    "boost": {
+     "weapon": "simsek",
+     "chainAdd": 1
+    }
+   },
+   {
+    "id": "sig_z8",
+    "name": "Şok Dalgası",
+    "minLvl": 1,
+    "myth": true,
+    "simsek": true,
+    "glyph": "sokdalga",
+    "desc": "Her sıçrama küçük bir alan patlaması bırakır.",
+    "boost": {
+     "weapon": "simsek",
+     "shockAdd": 1
+    }
+   },
+   {
+    "id": "sig_z9",
+    "name": "Yıkıcı Çarpma",
+    "minLvl": 2,
+    "myth": true,
+    "simsek": true,
+    "glyph": "yikici",
+    "desc": "Geri tepme büyük artar, düşmanlar savrulur.",
+    "boost": {
+     "weapon": "simsek",
+     "knockAdd": 1
+    }
+   },
+   {
+    "id": "sig_z10",
+    "name": "Fırtına Çağrısı",
+    "minLvl": 3,
+    "myth": true,
+    "simsek": true,
+    "glyph": "firtina",
+    "desc": "Aralıklı gökten devasa bir yıldırım düşer.",
+    "boost": {
+     "weapon": "simsek",
+     "stormAdd": 1
+    }
+   },
+   {
+    "id": "sig_z11",
+    "name": "Kadim Fırtına",
+    "minLvl": 4,
+    "myth": true,
+    "simsek": true,
+    "glyph": "kadimfirtina",
+    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "boost": {
+     "weapon": "simsek",
+     "critAdd": 0.15,
+     "critMultAdd": 0.6
+    }
+   }
+  ],
+  "savasci": [
+   {
+    "id": "sig_s1",
+    "name": "Ağır Darbe",
+    "desc": "Pala hasarı +%20.",
+    "boost": {
+     "weapon": "pala",
+     "dmg": 1.2
+    }
+   },
+   {
+    "id": "sig_s2",
+    "name": "Tez Adım",
+    "desc": "Pala %15 daha sık savrulur.",
+    "boost": {
+     "weapon": "pala",
+     "cd": 0.85
+    }
+   },
+   {
+    "id": "sig_s3",
+    "name": "Geniş Yay",
+    "desc": "Savuruş yayı %10 genişler.",
+    "boost": {
+     "weapon": "pala",
+     "arc": 1.1
+    }
+   },
+   {
+    "id": "sig_s4",
+    "name": "Uzun Kol",
+    "desc": "Menzil +%8, hasar +%6.",
+    "boost": {
+     "weapon": "pala",
+     "range": 1.08,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_s5",
+    "name": "Kalkan Yumruğu",
+    "desc": "Geri tepme +%30, hasar +%10.",
+    "boost": {
+     "weapon": "pala",
+     "knock": 1.3,
+     "dmg": 1.1
+    }
+   },
+   {
+    "id": "sig_s6",
+    "name": "Nöbetçi Refleksi",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "pala",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_s7",
+    "name": "Kalkan Duruşu",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kalkan",
+    "desc": "Zırh +2, kalıcı olarak yerleşir.",
+    "boost": {
+     "weapon": "pala",
+     "armorAdd": 2
+    }
+   },
+   {
+    "id": "sig_s8",
+    "name": "Kasırga Vuruşu",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "cevirme",
+    "desc": "Aralıklı geniş bir çevirme vuruşu savurur.",
+    "boost": {
+     "weapon": "pala",
+     "spinAdd": 1
+    }
+   },
+   {
+    "id": "sig_s9",
+    "name": "Çifte Vuruş",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "ikincidarbe",
+    "desc": "Ters yönden gecikmeli ikinci bir vuruş gelir.",
+    "boost": {
+     "weapon": "pala",
+     "twinAdd": 1
+    }
+   },
+   {
+    "id": "sig_s10",
+    "name": "Sarsıcı Darbe",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "sarsinti",
+    "desc": "Her savuruş küçük bir şok dalgası bırakır.",
+    "boost": {
+     "weapon": "pala",
+     "shockAdd": 1
+    }
+   },
+   {
+    "id": "sig_s11",
+    "name": "Son Nöbet",
+    "minLvl": 5,
+    "myth": true,
+    "glyph": "nobetson",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "pala",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    }
+   }
+  ],
+  "gokalev": [
+   {
+    "id": "sig_a1",
+    "name": "Alev Gücü",
+    "desc": "Mavi Alev hasarı +%24.",
+    "boost": {
+     "weapon": "alev",
+     "dmg": 1.24
+    }
+   },
+   {
+    "id": "sig_a2",
+    "name": "Çabuk Kıvılcım",
+    "desc": "Alev %16 daha sık savrulur.",
+    "boost": {
+     "weapon": "alev",
+     "cd": 0.84
+    }
+   },
+   {
+    "id": "sig_a3",
+    "name": "Delici Kor",
+    "desc": "Kor topu bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "alev",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_a4",
+    "name": "Hızlı Alev",
+    "desc": "Alev %14 hızlı uçar, hasar +%8.",
+    "boost": {
+     "weapon": "alev",
+     "speed": 1.14,
+     "dmg": 1.08
+    }
+   },
+   {
+    "id": "sig_a5",
+    "name": "Geniş Kor",
+    "desc": "Alev daha uzun yaşar, hasar +%12.",
+    "boost": {
+     "weapon": "alev",
+     "life": 1.25,
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_a6",
+    "name": "Kül Keskinliği",
+    "desc": "Kritik şansı +%8, kritik hasarı +%30.",
+    "boost": {
+     "weapon": "alev",
+     "critAdd": 0.08,
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_a7",
+    "name": "Mavi Nova",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nova",
+    "desc": "Kor topu çarptığı anda patlar: geniş alana hasar + yanan zemin.",
+    "boost": {
+     "weapon": "alev",
+     "novaAdd": 1
+    }
+   },
+   {
+    "id": "sig_a8",
+    "name": "Kor Kasırgası",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga",
+    "desc": "Çevrende dönen mavi alev küreleri, değdiğini yakar.",
+    "boost": {
+     "weapon": "alev",
+     "cycloneAdd": 1
+    }
+   },
+   {
+    "id": "sig_a9",
+    "name": "Takipçi Alev",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipalev",
+    "desc": "Alev hedefi kovalar, ıskalamaz.",
+    "boost": {
+     "weapon": "alev",
+     "homingAdd": 1
+    }
+   },
+   {
+    "id": "sig_a10",
+    "name": "Alev Yağmuru",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "alevyagmur",
+    "desc": "Her 4. savuruşta gökten kor sağanak iner.",
+    "boost": {
+     "weapon": "alev",
+     "rainAdd": 1
+    }
+   },
+   {
+    "id": "sig_a11",
+    "name": "Mavi Cehennem",
+    "minLvl": 5,
+    "myth": true,
+    "glyph": "cehennem",
+    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "boost": {
+     "weapon": "alev",
+     "critAdd": 0.15,
+     "critMultAdd": 0.6
+    }
+   }
+  ],
+  "korsan": [
+   {
+    "id": "sig_k1",
+    "name": "Ağır Gülle",
+    "desc": "Gülle hasarı +%24.",
+    "boost": {
+     "weapon": "topatar",
+     "dmg": 1.24
+    }
+   },
+   {
+    "id": "sig_k2",
+    "name": "Kuru Barut",
+    "desc": "Top %16 daha çabuk doldurulur.",
+    "boost": {
+     "weapon": "topatar",
+     "cd": 0.84
+    }
+   },
+   {
+    "id": "sig_k3",
+    "name": "Demir Gülle",
+    "desc": "Gülle bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "topatar",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_k4",
+    "name": "Uzun Namlu",
+    "desc": "Gülle %14 hızlı uçar, hasar +%8.",
+    "boost": {
+     "weapon": "topatar",
+     "speed": 1.14,
+     "dmg": 1.08
+    }
+   },
+   {
+    "id": "sig_k5",
+    "name": "Ağır Yük",
+    "desc": "Gülle daha uzun uçar, hasar +%12.",
+    "boost": {
+     "weapon": "topatar",
+     "life": 1.22,
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_k6",
+    "name": "Kaptan Nişanı",
+    "desc": "Kritik şansı +%8, kritik hasarı +%30.",
+    "boost": {
+     "weapon": "topatar",
+     "critAdd": 0.08,
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_k7",
+    "name": "Saçılan Gülle",
+    "minLvl": 1,
+    "myth": true,
+    "korsan": true,
+    "glyph": "sacilan",
+    "desc": "Gülle isabette üç parçaya bölünür.",
+    "boost": {
+     "weapon": "topatar",
+     "splitAdd": 1
+    }
+   },
+   {
+    "id": "sig_k8",
+    "name": "Barut Fıçısı",
+    "minLvl": 1,
+    "myth": true,
+    "korsan": true,
+    "glyph": "barutfici",
+    "desc": "Gülle son hedefte patlar, çevreyi biçer.",
+    "boost": {
+     "weapon": "topatar",
+     "explodeAdd": 1
+    }
+   },
+   {
+    "id": "sig_k9",
+    "name": "Çifte Namlu",
+    "minLvl": 2,
+    "myth": true,
+    "korsan": true,
+    "glyph": "ciftnamlu",
+    "desc": "Her tetikte bir gülle daha çıkar.",
+    "boost": {
+     "weapon": "topatar",
+     "volley": 1,
+     "spreadMul": 1.1
+    }
+   },
+   {
+    "id": "sig_k10",
+    "name": "Bordo Ateşi",
+    "minLvl": 3,
+    "myth": true,
+    "korsan": true,
+    "glyph": "bordo",
+    "desc": "Aralıklı yedi gülleli yan ateş açar.",
+    "boost": {
+     "weapon": "topatar",
+     "broadsideAdd": 1
+    }
+   },
+   {
+    "id": "sig_k11",
+    "name": "Hayalet Salvosu",
+    "minLvl": 4,
+    "myth": true,
+    "korsan": true,
+    "glyph": "hayaletsalvo",
+    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "boost": {
+     "weapon": "topatar",
+     "critAdd": 0.15,
+     "critMultAdd": 0.6
+    }
+   }
+  ],
+  "kralice": [
+   {
+    "id": "sig_q1",
+    "name": "Mavi Hüküm",
+    "desc": "Kesik hasarı +%25.",
+    "boost": {
+     "weapon": "tackilic",
+     "dmg": 1.25
+    }
+   },
+   {
+    "id": "sig_q2",
+    "name": "Çevik Taç",
+    "desc": "Kılıç %18 daha sık savrulur.",
+    "boost": {
+     "weapon": "tackilic",
+     "cd": 0.82
+    }
+   },
+   {
+    "id": "sig_q3",
+    "name": "Geniş Kesik",
+    "desc": "Kesik %14 genişler, yay %8 açılır.",
+    "boost": {
+     "weapon": "tackilic",
+     "waveR": 1.14,
+     "arc": 1.08
+    }
+   },
+   {
+    "id": "sig_q4",
+    "name": "Uzun Ferman",
+    "desc": "Kesik %18 daha uzak gider, hasar +%8.",
+    "boost": {
+     "weapon": "tackilic",
+     "waveLife": 1.18,
+     "dmg": 1.08
+    }
+   },
+   {
+    "id": "sig_q5",
+    "name": "Ağır Ferman",
+    "desc": "Geri tepme +%35, hasar +%15.",
+    "boost": {
+     "weapon": "tackilic",
+     "knock": 1.35,
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_q6",
+    "name": "Menekşe Keskinlik",
+    "desc": "Kritik şansı +%8, kritik hasarı +%30.",
+    "boost": {
+     "weapon": "tackilic",
+     "critAdd": 0.08,
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_q7",
+    "name": "Üçlü Kesik",
+    "minLvl": 1,
+    "myth": true,
+    "kralice": true,
+    "glyph": "uclu",
+    "desc": "Her savuruşta üç kesik yelpazesi fırlar.",
+    "boost": {
+     "weapon": "tackilic",
+     "fanAdd": 1
+    }
+   },
+   {
+    "id": "sig_q8",
+    "name": "Kanat Kesiği",
+    "minLvl": 1,
+    "myth": true,
+    "kralice": true,
+    "glyph": "kanat",
+    "desc": "Kesikler güçlenir ve daha geniş vurur.",
+    "boost": {
+     "weapon": "tackilic",
+     "waveAdd": 1
+    }
+   },
+   {
+    "id": "sig_q9",
+    "name": "İkiz Ferman",
+    "minLvl": 2,
+    "myth": true,
+    "kralice": true,
+    "glyph": "ikizferman",
+    "desc": "Ters yönden gecikmeli ikinci bir kesik gelir.",
+    "boost": {
+     "weapon": "tackilic",
+     "twinAdd": 1
+    }
+   },
+   {
+    "id": "sig_q10",
+    "name": "Gök Kılıcı",
+    "minLvl": 3,
+    "myth": true,
+    "kralice": true,
+    "glyph": "gokkilic",
+    "desc": "Aralıklı gökten mavi bir hüküm kılıcı iner.",
+    "boost": {
+     "weapon": "tackilic",
+     "judgeAdd": 1
+    }
+   },
+   {
+    "id": "sig_q11",
+    "name": "Taç Nişanı",
+    "minLvl": 4,
+    "myth": true,
+    "kralice": true,
+    "glyph": "tacnisan",
+    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "boost": {
+     "weapon": "tackilic",
+     "critAdd": 0.15,
+     "critMultAdd": 0.6
+    }
+   }
+  ],
+  "sovalye": [
+   {
+    "id": "sig_v1",
+    "name": "Ağır Yemin",
+    "desc": "Kılıç hasarı +%18.",
+    "boost": {
+     "weapon": "yemin",
+     "dmg": 1.18
+    }
+   },
+   {
+    "id": "sig_v2",
+    "name": "Çevik Kabza",
+    "desc": "Kılıç %13 daha sık savrulur.",
+    "boost": {
+     "weapon": "yemin",
+     "cd": 0.87
+    }
+   },
+   {
+    "id": "sig_v3",
+    "name": "Geniş Nöbet",
+    "desc": "Savuruş yayı %10 genişler.",
+    "boost": {
+     "weapon": "yemin",
+     "arc": 1.1
+    }
+   },
+   {
+    "id": "sig_v4",
+    "name": "İleri Adım",
+    "desc": "Menzil +%9, hasar +%7.",
+    "boost": {
+     "weapon": "yemin",
+     "range": 1.09,
+     "dmg": 1.07
+    }
+   },
+   {
+    "id": "sig_v5",
+    "name": "Sur Darbesi",
+    "desc": "Geri tepme +%30, hasar +%12.",
+    "boost": {
+     "weapon": "yemin",
+     "knock": 1.3,
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_v6",
+    "name": "Keskin Ayaz",
+    "desc": "Kritik şansı +%7, kritik hasarı +%25.",
+    "boost": {
+     "weapon": "yemin",
+     "critAdd": 0.07,
+     "critMultAdd": 0.25
+    }
+   },
+   {
+    "id": "sig_v7",
+    "name": "Kalkan Duruşu",
+    "minLvl": 1,
+    "myth": true,
+    "sovalye": true,
+    "glyph": "durus",
+    "desc": "Ayaz halkası büyür ve daha sert vurur.",
+    "boost": {
+     "weapon": "yemin",
+     "shockAdd": 1
+    }
+   },
+   {
+    "id": "sig_v8",
+    "name": "Ayaz Kabuğu",
+    "minLvl": 1,
+    "myth": true,
+    "sovalye": true,
+    "glyph": "kabuk",
+    "desc": "Hasar aldığında çevrene ayaz patlar: alan hasarı + sert geri tepme.",
+    "boost": {
+     "weapon": "yemin",
+     "carapaceAdd": 1
+    }
+   },
+   {
+    "id": "sig_v9",
+    "name": "Ayaz Kesiği",
+    "minLvl": 2,
+    "myth": true,
+    "sovalye": true,
+    "glyph": "ayazkesik",
+    "desc": "Savuruştan delip geçen buz dalgası çıkar.",
+    "boost": {
+     "weapon": "yemin",
+     "waveAdd": 1
+    }
+   },
+   {
+    "id": "sig_v10",
+    "name": "Kasırga Nöbeti",
+    "minLvl": 3,
+    "myth": true,
+    "sovalye": true,
+    "glyph": "nobet",
+    "desc": "Aralıklı 360° savuruş; kademe sıklaştırır.",
+    "boost": {
+     "weapon": "yemin",
+     "spinAdd": 1
+    }
+   },
+   {
+    "id": "sig_v11",
+    "name": "Yemin Nişanı",
+    "minLvl": 4,
+    "myth": true,
+    "sovalye": true,
+    "glyph": "yeminnisan",
+    "desc": "Kritik şansı +%12, kritik hasarı +%45.",
+    "boost": {
+     "weapon": "yemin",
+     "critAdd": 0.12,
+     "critMultAdd": 0.45
+    }
+   }
+  ]
+ },
+ "SPECIAL_PERKS": [
+  {
+   "id": "kanoragi",
+   "name": "Kan Orağı",
+   "icon": "kilic",
+   "need": {
+    "weapon": "kilic",
+    "lvl": 3
+   },
+   "desc": "Kılıç hasarı +%40, yay +%25 genişler.",
+   "boost": {
+    "weapon": "kilic",
+    "dmg": 1.4,
+    "arc": 1.25
+   }
+  },
+  {
+   "id": "hayalet",
+   "name": "Hayalet Yağmuru",
+   "icon": "ok",
+   "need": {
+    "weapon": "ok",
+    "lvl": 3
+   },
+   "desc": "Ruh Oku çift atılır, delme +2.",
+   "boost": {
+    "weapon": "ok",
+    "volley": 1,
+    "pierce": 2
+   }
+  },
+  {
+   "id": "ciftnamlu",
+   "name": "Çift Namlu",
+   "icon": "tabanca",
+   "need": {
+    "weapon": "tabanca",
+    "lvl": 3
+   },
+   "desc": "Her tetikte +1 kurşun, bekleme −%15.",
+   "boost": {
+    "weapon": "tabanca",
+    "volley": 1,
+    "cd": 0.85
+   }
+  },
+  {
+   "id": "domuzfisek",
+   "name": "Domuz Fişeği",
+   "icon": "sacma",
+   "need": {
+    "weapon": "sacma",
+    "lvl": 3
+   },
+   "desc": "Yelpazeye +3 saçma, hasar +%20.",
+   "boost": {
+    "weapon": "sacma",
+    "volley": 3,
+    "dmg": 1.2
+   }
+  },
+  {
+   "id": "kiyametfi",
+   "name": "Kıyamet Fıçısı",
+   "icon": "bomba",
+   "need": {
+    "weapon": "bomba",
+    "lvl": 3
+   },
+   "desc": "Patlama alanı +%30, hasarı +%30.",
+   "boost": {
+    "weapon": "bomba",
+    "dmg": 1.3,
+    "radius": 1.3
+   }
+  },
+  {
+   "id": "cehennem",
+   "name": "Cehennem Ağzı",
+   "icon": "kor",
+   "need": {
+    "weapon": "kor",
+    "lvl": 3
+   },
+   "desc": "Kor alanı %40 daha kavurucu, %20 geniş.",
+   "boost": {
+    "weapon": "kor",
+    "dmg": 1.4,
+    "radius": 1.2
+   }
+  },
+  {
+   "id": "kasirga",
+   "name": "Gölge Kasırgası",
+   "icon": "bicak",
+   "need": {
+    "weapon": "bicak",
+    "lvl": 3
+   },
+   "desc": "Yörüngeye +2 bıçak, %25 hızlı dönüş.",
+   "boost": {
+    "weapon": "bicak",
+    "count": 2,
+    "spin": 1.25
+   }
+  },
+  {
+   "id": "gokyarigi",
+   "name": "Gök Yarığı",
+   "icon": "yildirim",
+   "need": {
+    "weapon": "yildirim",
+    "lvl": 3
+   },
+   "desc": "Yıldırım +2 hedef vurur, hasar +%25.",
+   "boost": {
+    "weapon": "yildirim",
+    "targets": 2,
+    "dmg": 1.25
+   }
+  },
+  {
+   "id": "ayfirtinasi",
+   "name": "Ay Fırtınası",
+   "icon": "kure",
+   "need": {
+    "weapon": "kure",
+    "lvl": 3
+   },
+   "desc": "Küre çiftlenir, delme +2, hasar +%25.",
+   "boost": {
+    "weapon": "kure",
+    "volley": 1,
+    "pierce": 2,
+    "dmg": 1.25
+   }
+  },
+  {
+   "id": "alevyagmuru",
+   "name": "Alev Yağmuru",
+   "icon": "yay",
+   "need": {
+    "weapon": "yay",
+    "lvl": 3
+   },
+   "desc": "Her gerişte +1 tutuşan ok, delme +2.",
+   "boost": {
+    "weapon": "yay",
+    "volley": 1,
+    "pierce": 2,
+    "flame": 1
+   }
+  }
+ ],
+ "STARTING_WEAPON": "kilic",
+ "STONE_PACKS": [
+  {
+   "id": "kese",
+   "name": "KAN KESESİ",
+   "amount": 80,
+   "bonus": 0,
+   "price": "₺29,99",
+   "tag": ""
+  },
+  {
+   "id": "avuc",
+   "name": "DOLU AVUÇ",
+   "amount": 250,
+   "bonus": 25,
+   "price": "₺79,99",
+   "tag": "+%10"
+  },
+  {
+   "id": "sandik",
+   "name": "TAŞ SANDIĞI",
+   "amount": 600,
+   "bonus": 120,
+   "price": "₺149,99",
+   "tag": "EN POPÜLER"
+  },
+  {
+   "id": "kule",
+   "name": "KAN KULESİ",
+   "amount": 1400,
+   "bonus": 400,
+   "price": "₺299,99",
+   "tag": "EN İYİ DEĞER"
+  }
+ ],
+ "SURVIVAL_MILESTONES": [
+  {
+   "id": "m1",
+   "need": 2,
+   "reward": {
+    "kind": "rubies",
+    "amount": 150
+   }
+  },
+  {
+   "id": "m2",
+   "need": 5,
+   "reward": {
+    "kind": "chest",
+    "chest": "ahsap"
+   }
+  },
+  {
+   "id": "m3",
+   "need": 9,
+   "reward": {
+    "kind": "rubies",
+    "amount": 320
+   }
+  },
+  {
+   "id": "m4",
+   "need": 15,
+   "reward": {
+    "kind": "chest",
+    "chest": "kemik"
+   }
+  },
+  {
+   "id": "m5",
+   "need": 23,
+   "reward": {
+    "kind": "cards",
+    "char": "seher",
+    "amount": 2
+   }
+  },
+  {
+   "id": "m6",
+   "need": 34,
+   "reward": {
+    "kind": "chest",
+    "chest": "kan"
+   }
+  },
+  {
+   "id": "m7",
+   "need": 50,
+   "reward": {
+    "kind": "rubies",
+    "amount": 900
+   }
+  },
+  {
+   "id": "m8",
+   "need": 70,
+   "reward": {
+    "kind": "chest",
+    "chest": "kadim"
+   }
+  }
+ ],
+ "UNLOCK_ALL_CHARS": false,
+ "WAVES": {
+  "maxEnemies": 420,
+  "spawnDist": 60
+ },
+ "WEAPONS": {
+  "kilic": {
+   "name": "Seher Kılıcı",
+   "descNew": "Seher’in yanında süzülen ruh kılıcı — hedefine hilal bir kesik savurur.",
+   "descUp": [
+    "Hasar +6, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +11, darbe sertleşir",
+    "Ağır hilal, geri tepme +"
+   ],
+   "dmg": [
+    14,
+    20,
+    28,
+    39,
+    53
+   ],
+   "cooldown": [
+    0.9,
+    0.82,
+    0.76,
+    0.68,
+    0.6
+   ],
+   "range": [
+    118,
+    122,
+    126,
+    130,
+    134
+   ],
+   "arc": [
+    2.1,
+    2.1,
+    2.1,
+    2.1,
+    2.1
+   ],
+   "knock": [
+    240,
+    260,
+    285,
+    315,
+    360
+   ],
+   "spin": 0,
+   "twin": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "pala": {
+   "name": "Kale Palası",
+   "descNew": "Nöbetçinin elinde sıkı tuttuğu ağır pala — önüne geleni yarar.",
+   "descUp": [
+    "Hasar +6, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +12, darbe sertleşir",
+    "Ağır darbe, geri tepme +"
+   ],
+   "dmg": [
+    20,
+    26,
+    36,
+    48,
+    62
+   ],
+   "cooldown": [
+    0.88,
+    0.8,
+    0.74,
+    0.66,
+    0.58
+   ],
+   "range": [
+    112,
+    116,
+    120,
+    124,
+    128
+   ],
+   "arc": [
+    2.05,
+    2.05,
+    2.05,
+    2.05,
+    2.05
+   ],
+   "knock": [
+    260,
+    285,
+    310,
+    345,
+    390
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "yemin": {
+   "name": "Yemin Kılıcı",
+   "descNew": "Ayaz’ın yanında süzülen yemin kılıcı — her darbede zemin ayazla çatlar.",
+   "descUp": [
+    "Hasar +4, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +9, darbe sertleşir",
+    "Ağır yemin, geri tepme +"
+   ],
+   "dmg": [
+    13,
+    17,
+    24,
+    33,
+    45
+   ],
+   "cooldown": [
+    0.88,
+    0.8,
+    0.74,
+    0.67,
+    0.6
+   ],
+   "range": [
+    120,
+    124,
+    128,
+    132,
+    136
+   ],
+   "arc": [
+    2.02,
+    2.02,
+    2.02,
+    2.02,
+    2.02
+   ],
+   "knock": [
+    300,
+    330,
+    360,
+    400,
+    450
+   ],
+   "shock": 1,
+   "spin": 0,
+   "wave": 0,
+   "carapace": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "alev": {
+   "name": "Mavi Alev",
+   "kind": "gun",
+   "class": "buyu",
+   "orb": true,
+   "flameVisual": true,
+   "fireball": true,
+   "descNew": "Gökalev’in yanında süzülen mavi alev — en yakın düşmana kor topu savurur, delip geçer.",
+   "descUp": [
+    "Hasar +, +1 delme",
+    "Daha çabuk savurur",
+    "+1 delme, hasar +",
+    "Ağır kor — hasar büyük artış"
+   ],
+   "dmg": [
+    24,
+    34,
+    46,
+    63,
+    83
+   ],
+   "pierce": [
+    1,
+    2,
+    2,
+    3,
+    4
+   ],
+   "cooldown": [
+    1,
+    0.92,
+    0.85,
+    0.78,
+    0.72
+   ],
+   "speed": 445,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "spread": 0.15,
+   "bulletLife": 1.7,
+   "color": "#4fa8ff",
+   "r": 11,
+   "sfx": "shoot",
+   "rainColor": "#7fc4ff",
+   "flame": 0,
+   "explode": 0,
+   "nova": 0,
+   "cyclone": 0,
+   "homing": 0,
+   "rain": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "tackilic": {
+   "name": "Taç Kılıcı",
+   "descNew": "Kraliçenin yanında süzlen taç kılıcı — her savuruşta ileriye mavi bir kesik fırlatır.",
+   "descUp": [
+    "Hasar +3, kesik genişler",
+    "Daha çabuk savurur",
+    "Hasar +7, kesik güçlenir",
+    "Ağır hüküm, geri tepme +"
+   ],
+   "dmg": [
+    13,
+    16,
+    21,
+    28,
+    36
+   ],
+   "cooldown": [
+    0.94,
+    0.86,
+    0.78,
+    0.68,
+    0.58
+   ],
+   "range": [
+    104,
+    108,
+    112,
+    116,
+    120
+   ],
+   "arc": [
+    2.02,
+    2.02,
+    2.02,
+    2.02,
+    2.02
+   ],
+   "knock": [
+    200,
+    220,
+    240,
+    265,
+    300
+   ],
+   "wave": 1,
+   "waveR": 1,
+   "waveLife": 1,
+   "fan": 0,
+   "judge": 0,
+   "spin": 0,
+   "twin": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "topatar": {
+   "name": "Kaptan Topu",
+   "kind": "gun",
+   "class": "atesli",
+   "orb": true,
+   "cannonVisual": true,
+   "sfx": "cannon",
+   "descNew": "Kaptanın yanında süzülen hayalet topu — en yakın düşmana ağır bir gülle savurur.",
+   "descUp": [
+    "Hasar +, +1 delme",
+    "Daha çabuk doldurur",
+    "+1 delme, hasar +",
+    "Ağır bordo güllesi — hasar büyük artış"
+   ],
+   "dmg": [
+    26,
+    39,
+    56,
+    77,
+    100
+   ],
+   "pierce": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "cooldown": [
+    1.08,
+    1,
+    0.93,
+    0.86,
+    0.78
+   ],
+   "speed": 400,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "spread": 0.11,
+   "bulletLife": 1.6,
+   "color": "#8d9096",
+   "r": 7,
+   "metallic": true,
+   "rainColor": "#8d9096",
+   "smokeTrail": true,
+   "split": 0,
+   "broadside": 0,
+   "explode": 0,
+   "homing": 0,
+   "rain": 0,
+   "flame": 0,
+   "bounce": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "bicak": {
+   "name": "Gölge Bıçakları",
+   "descNew": "Etrafında yörüngede dönen koruyucu bıçaklar.",
+   "descUp": [
+    "+1 bıçak",
+    "+1 bıçak, hasar artar",
+    "+1 bıçak, yörünge genişler",
+    "+1 bıçak, daha hızlı döner"
+   ],
+   "count": [
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "dmg": [
+    10,
+    14,
+    18,
+    24,
+    31
+   ],
+   "radius": [
+    68,
+    74,
+    80,
+    88,
+    97
+   ],
+   "spin": [
+    2.6,
+    2.8,
+    3,
+    3.2,
+    3.5
+   ],
+   "hitCd": 0.38
+  },
+  "kor": {
+   "name": "Kor Çemberi",
+   "kind": "zone",
+   "class": "atesli",
+   "descNew": "Yerde beliren ve içindekileri kavuran ateş alanı.",
+   "descUp": [
+    "Daha sık belirir",
+    "+1 eşzamanlı alan, DPS +",
+    "Alan büyür",
+    "+1 alan, DPS büyük artış"
+   ],
+   "maxZones": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "dps": [
+    10,
+    15,
+    20,
+    27,
+    36
+   ],
+   "radius": [
+    56,
+    62,
+    70,
+    78,
+    88
+   ],
+   "duration": 4,
+   "spawnCd": [
+    4.2,
+    3.5,
+    3.1,
+    2.7,
+    2.2
+   ]
+  },
+  "yildirim": {
+   "name": "Gök Gazabı",
+   "kind": "magic",
+   "class": "buyu",
+   "descNew": "Rastgele düşmanlara inen yakıcı yıldırımlar.",
+   "descUp": [
+    "Daha sık çakar",
+    "+1 hedef, hasar +",
+    "+1 hedef",
+    "+1 hedef, hasar büyük artış"
+   ],
+   "targets": [
+    2,
+    3,
+    3,
+    4,
+    5
+   ],
+   "dmg": [
+    26,
+    36,
+    48,
+    62,
+    82
+   ],
+   "cooldown": [
+    5.2,
+    4.5,
+    3.9,
+    3.3,
+    2.7
+   ],
+   "critBonus": 0.25
+  },
+  "ok": {
+   "name": "Ruh Oku",
+   "kind": "gun",
+   "class": "ruh",
+   "descNew": "En yakın düşmana kilitlenen, delip geçen hayalet ok.",
+   "descUp": [
+    "+1 delme, hasar +",
+    "Daha hızlı atış",
+    "+1 delme, hasar +",
+    "Çift ok fırlatır"
+   ],
+   "dmg": [
+    16,
+    22,
+    29,
+    38,
+    50
+   ],
+   "pierce": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "cooldown": [
+    1.35,
+    1.15,
+    1,
+    0.86,
+    0.68
+   ],
+   "speed": 520,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.14,
+   "bulletLife": 1.6,
+   "color": "#59e3c8",
+   "fireDelay": 0.38,
+   "arrow": true,
+   "bounce": 0
+  },
+  "yay": {
+   "name": "Ay Yayı",
+   "kind": "gun",
+   "class": "ruh",
+   "bowVisual": true,
+   "descNew": "Yanında süzülen ruh yayı — en yakın düşmana kilitlenir, delip geçer.",
+   "descUp": [
+    "+1 delme, hasar +",
+    "Daha hızlı gerilir",
+    "+1 delme, hasar +",
+    "Ay okuyla — hasar büyük artış"
+   ],
+   "dmg": [
+    26,
+    38,
+    53,
+    73,
+    101
+   ],
+   "pierce": [
+    2,
+    2,
+    3,
+    4,
+    5
+   ],
+   "cooldown": [
+    1.05,
+    0.95,
+    0.86,
+    0.77,
+    0.68
+   ],
+   "speed": 560,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "spread": 0.13,
+   "bulletLife": 1.7,
+   "color": "#7fd8ff",
+   "fireDelay": 0.3,
+   "arrow": true,
+   "bounce": 0,
+   "flame": 0,
+   "explode": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "rain": 0
+  },
+  "sapan": {
+   "name": "Kavlak Sapan",
+   "kind": "gun",
+   "class": "atesli",
+   "slingVisual": true,
+   "descNew": "Yanında süzülen deri sapan — yaklaşan düşmana taş savurur. Ustalaştıkça taş sekip ikinciyi de vurur.",
+   "descUp": [
+    "Hasar +, menzil +",
+    "+1 delme, TAŞ SEKMEYE BAŞLAR",
+    "Hasar +, daha sık savurur",
+    "Taş bir kez daha seker"
+   ],
+   "dmg": [
+    18,
+    23,
+    31,
+    48,
+    70
+   ],
+   "pierce": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "cooldown": [
+    0.55,
+    0.52,
+    0.5,
+    0.47,
+    0.42
+   ],
+   "range": [
+    360,
+    385,
+    410,
+    435,
+    470
+   ],
+   "speed": 420,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "spread": 0.1,
+   "bulletLife": 1.1,
+   "color": "#c9bfa8",
+   "r": 8,
+   "stone": true,
+   "bounceLv": [
+    0,
+    1,
+    1,
+    2,
+    2
+   ],
+   "bounce": 0,
+   "shatter": 0,
+   "rain": 0,
+   "knock": 1,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kure": {
+   "name": "Ay Küresi",
+   "kind": "gun",
+   "class": "buyu",
+   "orb": true,
+   "descNew": "Asasını savurup en yakın düşmana süzülen ay enerjisi küresi — delip geçer.",
+   "descUp": [
+    "Hasar +, +1 delme",
+    "Daha hızlı savurur",
+    "+1 delme, hasar +",
+    "Çift küre fırlatır"
+   ],
+   "dmg": [
+    22,
+    26,
+    31,
+    34,
+    37
+   ],
+   "pierce": [
+    1,
+    2,
+    2,
+    3,
+    4
+   ],
+   "cooldown": [
+    1.05,
+    0.92,
+    0.8,
+    0.68,
+    0.56
+   ],
+   "speed": 430,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.16,
+   "bulletLife": 1.7,
+   "color": "#c79bff",
+   "r": 11
+  },
+  "bomba": {
+   "name": "Kor Havanı",
+   "descNew": "Sürünün ortasına kor dolu fıçı fırlatır — alan patlaması.",
+   "descUp": [
+    "Daha sık fırlatır",
+    "Hasar ve alan artar",
+    "Daha da sık fırlatır",
+    "Devasa patlama"
+   ],
+   "dmg": [
+    42,
+    56,
+    74,
+    98,
+    132
+   ],
+   "radius": [
+    72,
+    80,
+    88,
+    98,
+    112
+   ],
+   "cooldown": [
+    3.4,
+    3,
+    2.7,
+    2.3,
+    1.9
+   ],
+   "fuse": 0.85
+  },
+  "tabanca": {
+   "name": "Kemik Tabanca",
+   "kind": "gun",
+   "class": "atesli",
+   "descNew": "En yakına hızlı tek kurşun sıkar — yüksek atış hızı.",
+   "descUp": [
+    "Hasar +, daha hızlı",
+    "+1 delme",
+    "Daha hızlı atış",
+    "Çift kurşun"
+   ],
+   "dmg": [
+    11,
+    14,
+    16,
+    19,
+    22
+   ],
+   "pierce": [
+    0,
+    0,
+    1,
+    1,
+    2
+   ],
+   "cooldown": [
+    0.55,
+    0.47,
+    0.4,
+    0.34,
+    0.28
+   ],
+   "speed": 620,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.05,
+   "bulletLife": 1.1,
+   "color": "#ffd08a"
+  },
+  "sacma": {
+   "name": "Saçma Namlu",
+   "kind": "gun",
+   "class": "atesli",
+   "descNew": "Yelpaze halinde saçma savurur — yakın mesafede yıkıcı.",
+   "descUp": [
+    "+1 saçma, hasar +",
+    "Daha geniş yelpaze",
+    "+2 saçma",
+    "Hasar büyük artış"
+   ],
+   "dmg": [
+    8,
+    9,
+    11,
+    12,
+    15
+   ],
+   "pierce": [
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "cooldown": [
+    1.15,
+    1.02,
+    0.9,
+    0.78,
+    0.64
+   ],
+   "speed": 480,
+   "volley": [
+    4,
+    5,
+    5,
+    7,
+    8
+   ],
+   "spread": 0.62,
+   "bulletLife": 0.42,
+   "color": "#ff8a3c"
+  },
+  "simsek": {
+   "name": "Şimşek Kırığı",
+   "kind": "magic",
+   "class": "buyu",
+   "descNew": "Şimşek’in yanında süzülen gökyüzü parçası — en yakın düşmana çarpar, yakındakilere zincirleme sıçrar.",
+   "descUp": [
+    "Hasar +, bir hedefe daha sıçrar",
+    "Daha çabuk çakar",
+    "Sıçrama menzili genişler, hasar +",
+    "Bir hedefe daha sıçrar, hasar büyük artış"
+   ],
+   "dmg": [
+    17,
+    23,
+    31,
+    40,
+    50
+   ],
+   "cooldown": [
+    0.92,
+    0.84,
+    0.77,
+    0.7,
+    0.62
+   ],
+   "range": [
+    330,
+    350,
+    370,
+    395,
+    425
+   ],
+   "chains": [
+    2,
+    3,
+    3,
+    4,
+    5
+   ],
+   "chainRange": [
+    150,
+    162,
+    175,
+    190,
+    208
+   ],
+   "chainFalloff": 0.8,
+   "chain": 0,
+   "shock": 0,
+   "knock": 0,
+   "storm": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  }
+ },
+ "WEAPON_CLASSES": {
+  "kesici": {
+   "name": "Kesici",
+   "color": "#e8e4d8"
+  },
+  "ruh": {
+   "name": "Ruh",
+   "color": "#59e3c8"
+  },
+  "atesli": {
+   "name": "Ateşli",
+   "color": "#b87351"
+  },
+  "buyu": {
+   "name": "Büyü",
+   "color": "#9b6cff"
+  }
+ },
+ "WEAPON_META": {
+  "kilic": {
+   "class": "kesici",
+   "unlock": 0,
+   "hero": [
+    "seher"
+   ]
+  },
+  "tackilic": {
+   "class": "kesici",
+   "unlock": 0,
+   "hero": [
+    "kralice"
+   ]
+  },
+  "topatar": {
+   "class": "atesli",
+   "unlock": 0,
+   "hero": [
+    "korsan"
+   ]
+  },
+  "pala": {
+   "class": "kesici",
+   "unlock": 0,
+   "hero": [
+    "savasci"
+   ]
+  },
+  "yemin": {
+   "class": "kesici",
+   "unlock": 0,
+   "hero": [
+    "sovalye"
+   ]
+  },
+  "ok": {
+   "class": "ruh",
+   "unlock": 0
+  },
+  "yay": {
+   "class": "ruh",
+   "unlock": 0,
+   "hero": [
+    "okcu"
+   ]
+  },
+  "kure": {
+   "class": "buyu",
+   "unlock": 0
+  },
+  "bicak": {
+   "class": "ruh",
+   "unlock": 0
+  },
+  "tabanca": {
+   "class": "atesli",
+   "unlock": 0
+  },
+  "sacma": {
+   "class": "atesli",
+   "unlock": 0
+  },
+  "kor": {
+   "class": "atesli",
+   "unlock": 0
+  },
+  "bomba": {
+   "class": "buyu",
+   "unlock": 0
+  },
+  "yildirim": {
+   "class": "buyu",
+   "unlock": 0
+  },
+  "simsek": {
+   "class": "buyu",
+   "unlock": 0,
+   "hero": [
+    "simsek"
+   ]
+  },
+  "alev": {
+   "class": "buyu",
+   "unlock": 0,
+   "hero": [
+    "gokalev"
+   ]
+  }
+ },
+ "WEAPON_SLOTS": {
+  "start": 3,
+  "max": 5,
+  "unlockPrice": [
+   180,
+   320
+  ]
+ },
+ "WEAPON_STATS": {
+  "kilic": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ],
+   [
+    "range",
+    "Menzil"
+   ]
+  ],
+  "tackilic": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ],
+   [
+    "range",
+    "Menzil"
+   ]
+  ],
+  "topatar": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "pala": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ],
+   [
+    "range",
+    "Menzil"
+   ]
+  ],
+  "bicak": [
+   [
+    "count",
+    "Bıçak"
+   ],
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "radius",
+    "Yörünge"
+   ]
+  ],
+  "kor": [
+   [
+    "dps",
+    "Alan DPS"
+   ],
+   [
+    "radius",
+    "Yarıçap"
+   ],
+   [
+    "maxZones",
+    "Alan"
+   ]
+  ],
+  "yildirim": [
+   [
+    "targets",
+    "Hedef"
+   ],
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "ok": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "yay": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "kure": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "alev": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "bomba": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "radius",
+    "Yarıçap"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "tabanca": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ],
+   [
+    "pierce",
+    "Delme"
+   ]
+  ],
+  "sacma": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "volley",
+    "Saçma"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ],
+  "simsek": [
+   [
+    "dmg",
+    "Hasar"
+   ],
+   [
+    "chains",
+    "Zincir"
+   ],
+   [
+    "cooldown",
+    "Bekleme",
+    "sn"
+   ]
+  ]
+ },
+ "accountJourneyMilestones": {
+  "__fn": "accountJourneyMilestones"
+ },
+ "accountLevelChest": {
+  "__fn": "accountLevelChest"
+ },
+ "accountXpToNext": {
+  "__fn": "accountXpToNext"
+ },
+ "charCardDrop": {
+  "__fn": "charCardDrop"
+ },
+ "charLevelMods": {
+  "__fn": "charLevelMods"
+ },
+ "gearLevelMods": {
+  "__fn": "gearLevelMods"
+ },
+ "onScreenCap": {
+  "__fn": "onScreenCap"
+ },
+ "pressureAt": {
+  "__fn": "pressureAt"
+ },
+ "rarityRoll": {
+  "__fn": "rarityRoll"
+ },
+ "rubyReward": {
+  "__fn": "rubyReward"
+ },
+ "signaturePower": {
+  "__fn": "signaturePower"
+ },
+ "signatureUnlocks": {
+  "__fn": "signatureUnlocks"
+ },
+ "spawnBatch": {
+  "__fn": "spawnBatch"
+ },
+ "spawnGap": {
+  "__fn": "spawnGap"
+ },
+ "waveBatch": {
+  "__fn": "waveBatch"
+ },
+ "waveDmgMul": {
+  "__fn": "waveDmgMul"
+ },
+ "waveHpMul": {
+  "__fn": "waveHpMul"
+ },
+ "waveInterval": {
+  "__fn": "waveInterval"
+ },
+ "waveTime": {
+  "__fn": "waveTime"
+ },
+ "waveWeights": {
+  "__fn": "waveWeights"
+ },
+ "xpToNext": {
+  "__fn": "xpToNext"
+ }
+}

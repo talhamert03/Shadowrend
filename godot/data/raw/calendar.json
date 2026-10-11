@@ -1,0 +1,114 @@
+{
+ "Calendar": {
+  "current": {
+   "__fn": "Calendar.current"
+  },
+  "goldMul": {
+   "__fn": "Calendar.goldMul"
+  },
+  "eliteMul": {
+   "__fn": "Calendar.eliteMul"
+  },
+  "seal": {
+   "__fn": "Calendar.seal"
+  },
+  "book": {
+   "__fn": "Calendar.book"
+  },
+  "score": {
+   "__fn": "Calendar.score"
+  },
+  "finish": {
+   "__fn": "Calendar.finish"
+  },
+  "applyWave": {
+   "__fn": "Calendar.applyWave"
+  }
+ },
+ "SEAL_RULES": [
+  {
+   "id": "cam",
+   "name": "CAM TOP",
+   "line": "Canın %60 · düşmanlar aynı"
+  },
+  {
+   "id": "elit",
+   "name": "ELİT SELİ",
+   "line": "Elit düşman üç kat sık"
+  },
+  {
+   "id": "hiz",
+   "name": "HIZLI GECE",
+   "line": "Düşmanlar %20 hızlı"
+  },
+  {
+   "id": "kuru",
+   "name": "KAN KURUSU",
+   "line": "Can yenilenmez · can çalma kapalı"
+  }
+ ],
+ "SEAL_TIERS": [
+  {
+   "id": "bronz",
+   "name": "BRONZ",
+   "need": 450,
+   "reward": {
+    "kind": "rubies",
+    "amount": 180
+   },
+   "col": "#c98a52"
+  },
+  {
+   "id": "gumus",
+   "name": "GÜMÜŞ",
+   "need": 950,
+   "reward": {
+    "kind": "stones",
+    "amount": 12
+   },
+   "col": "#cfd6e2"
+  },
+  {
+   "id": "altin",
+   "name": "ALTIN",
+   "need": 1500,
+   "reward": {
+    "kind": "stones",
+    "amount": 30
+   },
+   "col": "#f0c77a"
+  }
+ ],
+ "WEEK_EVENTS": [
+  {
+   "id": "kor",
+   "name": "KOR YAĞMURU",
+   "line": "Tüm görevlerde altın ×1,5",
+   "col": "#d8a284"
+  },
+  {
+   "id": "avci",
+   "name": "BOSS AVI",
+   "line": "Boss görevlerinde altın ×2",
+   "col": "#ff6a5a"
+  },
+  {
+   "id": "elit",
+   "name": "ELİT GECESİ",
+   "line": "Elit düşman ×1,6 sık · elit ganimeti artar",
+   "col": "#cfd6e2"
+  },
+  {
+   "id": "biyom",
+   "name": "BİYOM HAFTASI",
+   "line": "Seçili haritada altın ×2",
+   "col": "#9fb4c9"
+  }
+ ],
+ "weekIndex": {
+  "__fn": "weekIndex"
+ },
+ "weekLeft": {
+  "__fn": "weekLeft"
+ }
+}

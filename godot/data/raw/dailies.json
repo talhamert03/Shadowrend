@@ -1,0 +1,147 @@
+{
+ "DAILY_STREAK": [
+  {
+   "day": 1,
+   "reward": {
+    "kind": "rubies",
+    "amount": 90
+   }
+  },
+  {
+   "day": 2,
+   "reward": {
+    "kind": "stone",
+    "amount": 6
+   }
+  },
+  {
+   "day": 3,
+   "reward": {
+    "kind": "rubies",
+    "amount": 180
+   }
+  },
+  {
+   "day": 4,
+   "reward": {
+    "kind": "chest",
+    "chest": "yaygin"
+   }
+  },
+  {
+   "day": 5,
+   "reward": {
+    "kind": "rubies",
+    "amount": 320
+   }
+  },
+  {
+   "day": 6,
+   "reward": {
+    "kind": "stone",
+    "amount": 14
+   }
+  },
+  {
+   "day": 7,
+   "reward": {
+    "kind": "chest",
+    "chest": "kan"
+   }
+  }
+ ],
+ "Dailies": {
+  "__fn": "Dailies"
+ },
+ "WEEKLY_MAX_PTS": 60,
+ "WEEKLY_QUESTS": [
+  {
+   "id": "kills",
+   "label": "DÜŞMAN DEVİR",
+   "need": 400,
+   "pts": 12,
+   "reward": {
+    "kind": "rubies",
+    "amount": 260
+   }
+  },
+  {
+   "id": "missions",
+   "label": "GÖREV TAMAMLA",
+   "need": 6,
+   "pts": 12,
+   "reward": {
+    "kind": "rubies",
+    "amount": 300
+   }
+  },
+  {
+   "id": "boss",
+   "label": "BOSS DEVİR",
+   "need": 2,
+   "pts": 14,
+   "reward": {
+    "kind": "stone",
+    "amount": 16
+   }
+  },
+  {
+   "id": "objectives",
+   "label": "SAHA GÖREVİ BİTİR",
+   "need": 4,
+   "pts": 12,
+   "reward": {
+    "kind": "rubies",
+    "amount": 240
+   }
+  },
+  {
+   "id": "waves",
+   "label": "DALGA ATLAT",
+   "need": 40,
+   "pts": 10,
+   "reward": {
+    "kind": "rubies",
+    "amount": 200
+   }
+  }
+ ],
+ "WEEKLY_TIERS": [
+  {
+   "pts": 20,
+   "reward": {
+    "kind": "chest",
+    "chest": "kemik"
+   }
+  },
+  {
+   "pts": 40,
+   "reward": {
+    "kind": "stone",
+    "amount": 30
+   }
+  },
+  {
+   "pts": 60,
+   "reward": {
+    "kind": "chest",
+    "chest": "mistik"
+   }
+  }
+ ],
+ "dayGap": {
+  "__fn": "dayGap"
+ },
+ "dayKey": {
+  "__fn": "dayKey"
+ },
+ "normalizeQuests": {
+  "__fn": "normalizeQuests"
+ },
+ "weekKey": {
+  "__fn": "weekKey"
+ },
+ "weekLeftMs": {
+  "__fn": "weekLeftMs"
+ }
+}

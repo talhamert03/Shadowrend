@@ -1,0 +1,132 @@
+{
+ "ULT_ID": {
+  "okcu": {
+   "name": "AY YAĞMURU",
+   "col": "#cfe8ff",
+   "c2": "#7fb2ff",
+   "k": "moon",
+   "base": 16,
+   "hr": 70,
+   "desc": "Gökte hilal doğar; hilal uçlu ay okları yağar."
+  },
+  "simsek": {
+   "name": "GÖK ÖFKESİ",
+   "col": "#e6f6ff",
+   "c2": "#6cc8ff",
+   "k": "bolt",
+   "base": 10,
+   "hr": 90,
+   "desc": "Gök yarılır; düşmanların üstüne zikzak yıldırımlar iner."
+  },
+  "gokalev": {
+   "name": "MAVİ KIYAMET",
+   "col": "#bfe9ff",
+   "c2": "#2f8dff",
+   "k": "meteor",
+   "base": 8,
+   "hr": 115,
+   "desc": "Mavi alevli göktaşları çapraz düşer, geniş patlar."
+  },
+  "korsan": {
+   "name": "HAYALET BORDA",
+   "col": "#c8ffe6",
+   "c2": "#2fcf98",
+   "k": "cannon",
+   "base": 10,
+   "hr": 90,
+   "desc": "Arkada hayalet gemi belirir, borda ateşi yağar."
+  },
+  "sapanci": {
+   "name": "TAŞ FIRTINASI",
+   "col": "#f0dcb4",
+   "c2": "#a8804a",
+   "k": "stone",
+   "base": 13,
+   "hr": 70,
+   "desc": "Sapan fırtınası: seken taşlar kalabalığı döver."
+  },
+  "kralice": {
+   "name": "GECE HÜKMÜ",
+   "col": "#e8d4ff",
+   "c2": "#9a6aff",
+   "k": "slash",
+   "base": 14,
+   "hr": 80,
+   "desc": "Karanlıkta çapraz hilal kesikleri açılır."
+  },
+  "sovalye": {
+   "name": "AYAZ SURU",
+   "col": "#e6f8ff",
+   "c2": "#8fd6ff",
+   "k": "spike",
+   "base": 0,
+   "hr": 70,
+   "desc": "Buz surları dışa doğru üç halka hâlinde fışkırır."
+  },
+  "seher": {
+   "name": "SEHER GİRDABI",
+   "col": "#fff0c4",
+   "c2": "#ff9a4a",
+   "k": "vortex",
+   "base": 0,
+   "hr": 0,
+   "desc": "Üç güneş kılıcı dönerek genişler, her şeyi süpürür."
+  },
+  "savasci": {
+   "name": "KALE ÇIĞLIĞI",
+   "col": "#ffd8bf",
+   "c2": "#d8623a",
+   "k": "slam",
+   "base": 0,
+   "hr": 0,
+   "desc": "Kalkan yere iner; çatlaklı şok dalgası yayılır."
+  }
+ },
+ "ULT_NEED": 80,
+ "ULT_TIER": [
+  null,
+  {
+   "r": 250,
+   "norm": 0.6,
+   "elite": 0.22,
+   "boss": 0.03,
+   "inv": 1,
+   "heal": 0,
+   "n": 1,
+   "label": "ADİ"
+  },
+  {
+   "r": 290,
+   "norm": 0.8,
+   "elite": 0.32,
+   "boss": 0.04,
+   "inv": 1.2,
+   "heal": 0.05,
+   "n": 1.2,
+   "label": "NADİR"
+  },
+  {
+   "r": 330,
+   "norm": 1,
+   "elite": 0.45,
+   "boss": 0.05,
+   "inv": 1.5,
+   "heal": 0.1,
+   "n": 1.4,
+   "label": "DESTANSI"
+  },
+  {
+   "r": 380,
+   "norm": 1,
+   "elite": 0.6,
+   "boss": 0.06,
+   "inv": 1.8,
+   "heal": 0.15,
+   "n": 1.6,
+   "label": "EFSANE"
+  }
+ ],
+ "Ultimate": {
+  "__fn": "Ultimate"
+ }
+}

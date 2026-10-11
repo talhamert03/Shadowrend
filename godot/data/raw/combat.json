@@ -1,0 +1,26 @@
+{
+ "FEEL": {
+  "stopHit": 0.045,
+  "stopCrit": 0.085,
+  "stopBoss": 0.03,
+  "stopCd": 0.22,
+  "squashHit": 0.15,
+  "squashCrit": 0.21,
+  "mergeWin": 0.42,
+  "mergeMaxSize": 19,
+  "kickCrit": 2.6,
+  "kickHurt": 4.2
+ },
+ "applyHit": {
+  "__fn": "applyHit"
+ },
+ "damagePlayer": {
+  "__fn": "damagePlayer"
+ },
+ "resetFeel": {
+  "__fn": "resetFeel"
+ },
+ "rollDamage": {
+  "__fn": "rollDamage"
+ }
+}

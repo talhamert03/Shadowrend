@@ -1,0 +1,202 @@
+{
+ "BLESSINGS": [
+  {
+   "id": "cam",
+   "name": "CAM KILIÇ",
+   "plus": "Hasar +%12",
+   "minus": "Can −24",
+   "mods": {
+    "dmgPct": 0.12,
+    "maxHp": -24
+   },
+   "col": "#d8a284"
+  },
+  {
+   "id": "demir",
+   "name": "DEMİR DERİ",
+   "plus": "Can +24",
+   "minus": "Hasar −%12",
+   "mods": {
+    "maxHp": 24,
+    "dmgPct": -0.12
+   },
+   "col": "#cfd6e2"
+  },
+  {
+   "id": "ruzgar",
+   "name": "RÜZGÂR ADIMI",
+   "plus": "Hız +%10 · Mıknatıs +%30",
+   "minus": "Can −20",
+   "mods": {
+    "speedPct": 0.1,
+    "magnetPct": 0.3,
+    "maxHp": -20
+   },
+   "col": "#9fb4c9"
+  },
+  {
+   "id": "kan",
+   "name": "KAN ANDI",
+   "plus": "Can çalma +%3",
+   "minus": "Hasar −%6",
+   "mods": {
+    "lifeSteal": 0.03,
+    "dmgPct": -0.06
+   },
+   "col": "#c85a5a"
+  },
+  {
+   "id": "goz",
+   "name": "ŞAHİN GÖZÜ",
+   "plus": "Kritik +%6",
+   "minus": "Hasar −%6",
+   "mods": {
+    "critChance": 0.06,
+    "dmgPct": -0.06
+   },
+   "col": "#f0c77a"
+  },
+  {
+   "id": "hasat",
+   "name": "HASAT AYI",
+   "plus": "Tecrübe +%15",
+   "minus": "Hasar −%5",
+   "mods": {
+    "xpPct": 0.15,
+    "dmgPct": -0.05
+   },
+   "col": "#b5d68a"
+  }
+ ],
+ "DAILY_POOL": [
+  {
+   "id": "k150",
+   "t": "Bir koşuda 150 kıyım",
+   "ok": {
+    "__fn": "DAILY_POOL[0].ok"
+   }
+  },
+  {
+   "id": "win",
+   "t": "Bir görev kazan",
+   "ok": {
+    "__fn": "DAILY_POOL[1].ok"
+   }
+  },
+  {
+   "id": "lv12",
+   "t": "Koşuda seviye 12'ye ulaş",
+   "ok": {
+    "__fn": "DAILY_POOL[2].ok"
+   }
+  },
+  {
+   "id": "fc2",
+   "t": "Bir koşuda 2 saha sandığı aç",
+   "ok": {
+    "__fn": "DAILY_POOL[3].ok"
+   }
+  },
+  {
+   "id": "hp",
+   "t": "Canın yarıya inmeden kazan",
+   "ok": {
+    "__fn": "DAILY_POOL[4].ok"
+   }
+  },
+  {
+   "id": "el3",
+   "t": "Bir koşuda 3 elit öldür",
+   "ok": {
+    "__fn": "DAILY_POOL[5].ok"
+   }
+  },
+  {
+   "id": "evo",
+   "t": "Bir koşuda evrim aç",
+   "ok": {
+    "__fn": "DAILY_POOL[6].ok"
+   }
+  },
+  {
+   "id": "boss",
+   "t": "Bir boss devir",
+   "ok": {
+    "__fn": "DAILY_POOL[7].ok"
+   }
+  }
+ ],
+ "Daily": {
+  "book": {
+   "__fn": "Daily.book"
+  },
+  "list": {
+   "__fn": "Daily.list"
+  },
+  "left": {
+   "__fn": "Daily.left"
+  },
+  "onRun": {
+   "__fn": "Daily.onRun"
+  }
+ },
+ "Ghost": {
+  "best": null,
+  "t": 0,
+  "n": 0,
+  "key": "",
+  "begin": {
+   "__fn": "Ghost.begin"
+  },
+  "tick": {
+   "__fn": "Ghost.tick"
+  },
+  "delta": {
+   "__fn": "Ghost.delta"
+  },
+  "end": {
+   "__fn": "Ghost.end"
+  }
+ },
+ "Gift": {
+  "CAP_H": 8,
+  "collect": {
+   "__fn": "Gift.collect"
+  }
+ },
+ "SEASON": [
+  {
+   "n": "KIZIL AY DOĞAR",
+   "l": "Mezarlıkta ilk kor yandı. Hasat başlıyor."
+  },
+  {
+   "n": "KÜL YEMİNİ",
+   "l": "Küllerden kalkan tarikat seni arıyor."
+  },
+  {
+   "n": "BATAKTAKİ ÇAN",
+   "l": "Sisin içinde bir çan çalıyor, kimse çalmıyor."
+  },
+  {
+   "n": "CAM KATEDRAL",
+   "l": "Kırık vitraylarda başka bir göğün ışığı."
+  },
+  {
+   "n": "HİÇLİK KAPISI",
+   "l": "Kapı aralandı. Ötesi seni tanıyor."
+  },
+  {
+   "n": "KIZIL AY BATAR",
+   "l": "Son hasat. Ay batmadan tırpanı kaldır."
+  }
+ ],
+ "nextGoal": {
+  "__fn": "nextGoal"
+ },
+ "rollBlessings": {
+  "__fn": "rollBlessings"
+ },
+ "seasonWeek": {
+  "__fn": "seasonWeek"
+ }
+}

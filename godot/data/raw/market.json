@@ -1,0 +1,16 @@
+{
+ "Market": {
+  "book": {
+   "__fn": "Market.book"
+  },
+  "offers": {
+   "__fn": "Market.offers"
+  },
+  "buy": {
+   "__fn": "Market.buy"
+  },
+  "msLeft": {
+   "__fn": "Market.msLeft"
+  }
+ }
+}

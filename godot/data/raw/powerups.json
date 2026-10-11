@@ -1,0 +1,36 @@
+{
+ "MAGNET_MUL": 4.5,
+ "PU": {
+  "magnet": {
+   "col": "#5ad2ff",
+   "dim": "rgba(90,210,255,0.28)",
+   "glyph": "U",
+   "dur": 10,
+   "label": "MIKNATIS"
+  },
+  "heal": {
+   "col": "#ff5a72",
+   "dim": "rgba(255,90,114,0.28)",
+   "glyph": "+",
+   "dur": 0,
+   "label": "CAN"
+  },
+  "shield": {
+   "col": "#ffd45a",
+   "dim": "rgba(255,212,90,0.28)",
+   "glyph": "O",
+   "dur": 7,
+   "label": "KALKAN"
+  },
+  "freeze": {
+   "col": "#a8e8ff",
+   "dim": "rgba(168,232,255,0.28)",
+   "glyph": "*",
+   "dur": 3.6,
+   "label": "DONDURMA"
+  }
+ },
+ "PowerupManager": {
+  "__fn": "PowerupManager"
+ }
+}

@@ -1,0 +1,397 @@
+{
+ "CURSES": [
+  {
+   "id": "cam",
+   "name": "Cam Kemik",
+   "icon": "guc",
+   "desc": "Hasar +%30 · Azami can −25%.",
+   "mods": {
+    "dmgPct": 0.3,
+    "maxHp": -30
+   },
+   "noHealBan": true
+  },
+  {
+   "id": "kan",
+   "name": "Kan Anlaşması",
+   "icon": "guc",
+   "desc": "Can çalma +%4 · Zırh −2.",
+   "mods": {
+    "lifeSteal": 0.04,
+    "armor": -2
+   }
+  },
+  {
+   "id": "hirs",
+   "name": "Hırs Laneti",
+   "icon": "guc",
+   "desc": "Atış hızı +%25 · Hız −%10.",
+   "mods": {
+    "atkPct": 0.25,
+    "speedPct": -0.1
+   }
+  },
+  {
+   "id": "kumar",
+   "name": "Kumarbaz",
+   "icon": "guc",
+   "desc": "Kritik +%12 · Kaçınma yok olur.",
+   "mods": {
+    "critChance": 0.12,
+    "dodge": -0.6
+   }
+  },
+  {
+   "id": "aclik",
+   "name": "Açgözlü Ruh",
+   "icon": "guc",
+   "desc": "Tecrübe +%35 · Mıknatıs −%40.",
+   "mods": {
+    "xpPct": 0.35,
+    "magnetPct": -0.4
+   }
+  }
+ ],
+ "EVOLUTIONS": {
+  "okcu": {
+   "weapon": "yay",
+   "pas": "keskinlik",
+   "name": "Tutulma Yayı",
+   "desc": "Ay Yayı evrimleşir: oklar kritik yağmuruna döner.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "sapanci": {
+   "weapon": "sapan",
+   "pas": "gazap",
+   "name": "Göktaşı Sapanı",
+   "desc": "Sapan evrimleşir: taş her hedefte bir kez daha seker.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "bounceAdd": 1
+   }
+  },
+  "seher": {
+   "weapon": "kilic",
+   "pas": "cabukluk",
+   "name": "Şafak Kılıcı",
+   "desc": "Seher Kılıcı evrimleşir: savuruş daha geniş, daha sık.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "arc": 1.1
+   }
+  },
+  "simsek": {
+   "weapon": "simsek",
+   "pas": "gazap",
+   "name": "Gök Hükmü",
+   "desc": "Şimşek evrimleşir: zincir bir hedef daha sıçrar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "chainAdd": 1
+   }
+  },
+  "savasci": {
+   "weapon": "pala",
+   "pas": "zirh",
+   "name": "Sur Yıkan",
+   "desc": "Kale Palası evrimleşir: darbe geri iter, zırh +2.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "armorAdd": 2
+   }
+  },
+  "gokalev": {
+   "weapon": "alev",
+   "pas": "keskinlik",
+   "name": "Ak Alev",
+   "desc": "Mavi Alev evrimleşir: kor topu daha çok delip geçer.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "korsan": {
+   "weapon": "topatar",
+   "pas": "gazap",
+   "name": "Hayalet Filo",
+   "desc": "Kaptan Topu evrimleşir: gülle parçalanır.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "splitAdd": 1
+   }
+  },
+  "kralice": {
+   "weapon": "tackilic",
+   "pas": "cabukluk",
+   "name": "Ay Tacı",
+   "desc": "Taç Kılıcı evrimleşir: kesik daha uzağa uçar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "waveLife": 1.2
+   }
+  },
+  "sovalye": {
+   "weapon": "yemin",
+   "pas": "zirh",
+   "name": "Buzul Yemini",
+   "desc": "Yemin Kılıcı evrimleşir: zırh +2, darbe genişler.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "armorAdd": 2,
+    "arc": 1.08
+   }
+  }
+ },
+ "TAGS": {
+  "KOR": {
+   "col": "#ff8a4a",
+   "tiers": [
+    {
+     "n": 2,
+     "name": "Kor Kıvılcımı",
+     "desc": "Hasar +%5",
+     "mods": {
+      "dmgPct": 0.05
+     }
+    },
+    {
+     "n": 4,
+     "name": "Kor Patlaması",
+     "desc": "Patlama şansı +%8",
+     "mods": {
+      "explodeChance": 0.08
+     }
+    },
+    {
+     "n": 6,
+     "name": "Kızıl Kıyamet",
+     "desc": "Hasar +%10 · patlama hasarı +%25",
+     "mods": {
+      "dmgPct": 0.1,
+      "explodeDmgPct": 0.25
+     }
+    }
+   ]
+  },
+  "AYAZ": {
+   "col": "#8fd6ff",
+   "tiers": [
+    {
+     "n": 2,
+     "name": "Kırağı",
+     "desc": "Zırh +1",
+     "mods": {
+      "armor": 1
+     }
+    },
+    {
+     "n": 4,
+     "name": "Buz Keskisi",
+     "desc": "Kritik şansı +%6",
+     "mods": {
+      "critChance": 0.06
+     }
+    },
+    {
+     "n": 6,
+     "name": "Ebedî Kış",
+     "desc": "Kaçınma +%6 · can +20",
+     "mods": {
+      "dodge": 0.06,
+      "maxHp": 20
+     }
+    }
+   ]
+  },
+  "YILDIRIM": {
+   "col": "#d9f2ff",
+   "tiers": [
+    {
+     "n": 2,
+     "name": "Statik",
+     "desc": "Atış hızı +%6",
+     "mods": {
+      "atkPct": 0.06
+     }
+    },
+    {
+     "n": 4,
+     "name": "Şimşek Adımı",
+     "desc": "Hareket hızı +%6",
+     "mods": {
+      "speedPct": 0.06
+     }
+    },
+    {
+     "n": 6,
+     "name": "Gök Gürlemesi",
+     "desc": "Atış hızı +%10",
+     "mods": {
+      "atkPct": 0.1
+     }
+    }
+   ]
+  },
+  "RUH": {
+   "col": "#59e3c8",
+   "tiers": [
+    {
+     "n": 2,
+     "name": "Ruh Çekimi",
+     "desc": "Mıknatıs +%25",
+     "mods": {
+      "magnetPct": 0.25
+     }
+    },
+    {
+     "n": 4,
+     "name": "Ruh Hasadı",
+     "desc": "Tecrübe +%15",
+     "mods": {
+      "xpPct": 0.15
+     }
+    },
+    {
+     "n": 6,
+     "name": "Ruh Pınarı",
+     "desc": "Yenilenme +1,5 · can çalma +%2",
+     "mods": {
+      "regen": 1.5,
+      "lifeSteal": 0.02
+     }
+    }
+   ]
+  },
+  "CELIK": {
+   "name": "ÇELİK",
+   "col": "#cfd6e2",
+   "tiers": [
+    {
+     "n": 2,
+     "name": "Demir Deri",
+     "desc": "Can +15",
+     "mods": {
+      "maxHp": 15
+     }
+    },
+    {
+     "n": 4,
+     "name": "Kale Duvarı",
+     "desc": "Zırh +2",
+     "mods": {
+      "armor": 2
+     }
+    },
+    {
+     "n": 6,
+     "name": "Yıkılmaz",
+     "desc": "Can +30 · zırh +1",
+     "mods": {
+      "maxHp": 30,
+      "armor": 1
+     }
+    }
+   ]
+  }
+ },
+ "WEAPON_EVO": {
+  "bicak": {
+   "pas": "hayalet",
+   "name": "Kara Yelpaze",
+   "desc": "Gölge Bıçakları evrimleşir: bir bıçak daha, daha sık.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "count": 1
+   }
+  },
+  "kor": {
+   "pas": "kulkani",
+   "name": "Kıyamet Közü",
+   "desc": "Kor Çemberi evrimleşir: halka genişler, daha sert yakar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "radius": 1.15
+   }
+  },
+  "yildirim": {
+   "pas": "statik",
+   "name": "Fırtına Tacı",
+   "desc": "Gök Gazabı evrimleşir: bir hedefe daha düşer.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "targets": 1
+   }
+  },
+  "ok": {
+   "pas": "hasatrun",
+   "name": "Ruh Avcısı",
+   "desc": "Ruh Oku evrimleşir: oklar bir düşmanı daha deler.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "kure": {
+   "pas": "buzkalp",
+   "name": "Kutup Yörüngesi",
+   "desc": "Ay Küresi evrimleşir: bir küre daha döner.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "count": 1
+   }
+  },
+  "bomba": {
+   "pas": "gazap",
+   "name": "Volkan Havanı",
+   "desc": "Kor Havanı evrimleşir: patlama alanı büyür.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "radius": 1.15
+   }
+  },
+  "tabanca": {
+   "pas": "kanemici",
+   "name": "Kan Tabancası",
+   "desc": "Kemik Tabanca evrimleşir: mermi bir düşmanı daha deler.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "sacma": {
+   "pas": "demir",
+   "name": "Demir Fırtına",
+   "desc": "Saçma Namlu evrimleşir: saçma daha sık, daha sert.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
+  }
+ },
+ "WeaponManager": {
+  "__fn": "WeaponManager"
+ },
+ "tagName": {
+  "__fn": "tagName"
+ }
+}

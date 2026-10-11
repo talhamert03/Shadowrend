@@ -1,0 +1,59 @@
+{
+ "CHEST_REWARD": {
+  "magnet": {
+   "col": "#7cc8f0",
+   "hi": "#d8f1ff",
+   "mid": "#4f9fd6",
+   "lo": "#1d4f7e",
+   "label": "MIKNATIS"
+  },
+  "heal": {
+   "col": "#ff5a66",
+   "hi": "#ffc2c6",
+   "mid": "#ff3b4e",
+   "lo": "#7a1020",
+   "label": "CAN"
+  },
+  "shield": {
+   "col": "#f0cf78",
+   "hi": "#fff0c4",
+   "mid": "#d9a642",
+   "lo": "#6e4a14",
+   "label": "KALKAN"
+  },
+  "bomb": {
+   "col": "#ff8a3c",
+   "hi": "#ffd2a0",
+   "mid": "#e0662a",
+   "lo": "#5a1c10",
+   "label": "PATLANGAÇ"
+  },
+  "gold": {
+   "col": "#f5c044",
+   "hi": "#fff3c0",
+   "mid": "#e8a930",
+   "lo": "#7a4a0c",
+   "label": "ALTIN"
+  }
+ },
+ "FIELD_CHEST": {
+  "maxLive": 3,
+  "first": [
+   2,
+   18
+  ],
+  "respawn": [
+   35,
+   52
+  ],
+  "openR": 84,
+  "wakeR": 250,
+  "gap": 1000,
+  "fromPlayer": 640,
+  "bombR": 420,
+  "fuse": 0.8
+ },
+ "FieldChests": {
+  "__fn": "FieldChests"
+ }
+}

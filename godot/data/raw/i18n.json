@@ -1,0 +1,22 @@
+{
+ "LANG": "en",
+ "LANGS": [
+  "tr",
+  "en"
+ ],
+ "T": {
+  "__fn": "T"
+ },
+ "bootI18n": {
+  "__fn": "bootI18n"
+ },
+ "detectLang": {
+  "__fn": "detectLang"
+ },
+ "missing": {
+  "__set": []
+ },
+ "setLang": {
+  "__fn": "setLang"
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "Ftue": {
+  "cleared": {
+   "__fn": "Ftue.cleared"
+  },
+  "locked": {
+   "__fn": "Ftue.locked"
+  },
+  "lockMsg": {
+   "__fn": "Ftue.lockMsg"
+  },
+  "paintNav": {
+   "__fn": "Ftue.paintNav"
+  },
+  "visit": {
+   "__fn": "Ftue.visit"
+  },
+  "step": "",
+  "_d": 0,
+  "_px": 0,
+  "_py": 0,
+  "_k0": 0,
+  "_el": null,
+  "_t": 0,
+  "begin": {
+   "__fn": "Ftue.begin"
+  },
+  "update": {
+   "__fn": "Ftue.update"
+  },
+  "onLevelUp": {
+   "__fn": "Ftue.onLevelUp"
+  },
+  "onLevelPicked": {
+   "__fn": "Ftue.onLevelPicked"
+  },
+  "finish": {
+   "__fn": "Ftue.finish"
+  },
+  "_show": {
+   "__fn": "Ftue._show"
+  }
+ },
+ "TAB_REQ": {
+  "magaza": 0,
+  "cephane": 0,
+  "kahraman": 0,
+  "etkinlik": 0
+ }
+}

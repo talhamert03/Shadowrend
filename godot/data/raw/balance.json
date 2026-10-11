@@ -1,0 +1,75 @@
+{
+ "CAPS": {
+  "speedPct": 0.1,
+  "critChance": 0.08,
+  "lifeSteal": 0.08,
+  "armor": 2,
+  "dodge": 0.08
+ },
+ "CHALLENGE": {
+  "hp": 0.16,
+  "dmg": 0.09,
+  "bossHp": 0.1
+ },
+ "GEAR_BUDGET": [
+  0,
+  6,
+  11,
+  16,
+  23,
+  30
+ ],
+ "GEAR_RANK": {
+  "1": 1,
+  "2": 2,
+  "3": 4,
+  "4": 5,
+  "5": 3
+ },
+ "HERO_BUDGET": [
+  0,
+  10,
+  16,
+  24,
+  32
+ ],
+ "SLOT_K": {
+  "silah": 1,
+  "zirh": 0.75,
+  "eldiven": 0.75,
+  "cizme": 0.75
+ },
+ "W": {
+  "dmgPct": 100,
+  "atkPct": 90,
+  "critChance": 120,
+  "critMult": 40,
+  "lifeSteal": 140,
+  "maxHp": 0.5,
+  "armor": 4,
+  "speedPct": 40,
+  "dodge": 80,
+  "regen": 3
+ },
+ "expectedPower": {
+  "__fn": "expectedPower"
+ },
+ "fitMods": {
+  "__fn": "fitMods"
+ },
+ "gearBudget": {
+  "__fn": "gearBudget"
+ },
+ "heroBudget": {
+  "__fn": "heroBudget"
+ },
+ "modsLine": {
+  "__fn": "modsLine"
+ },
+ "powerOf": {
+  "__fn": "powerOf"
+ },
+ "worldCurve": {
+  "__fn": "worldCurve"
+ }
+}

@@ -1,0 +1,254 @@
+{
+ "CHESTS": {
+  "ahsap": {
+   "name": "TAHTA SANDIK",
+   "tier": 1,
+   "time": 3600,
+   "lock": "plate",
+   "color": "#8a5a28",
+   "rim": "#3a2409",
+   "metal": "#8a94a4",
+   "accent": "#d8a05c",
+   "glow": "rgba(230,170,100,0.45)",
+   "rubies": [
+    16,
+    30
+   ],
+   "gear": [
+    0,
+    1
+   ],
+   "gearChance": 0.5,
+   "rarityMax": 1,
+   "weaponChance": 0,
+   "charChance": 0.04,
+   "charRarityMax": 1,
+   "stoneChance": 0.1,
+   "stoneDrop": [
+    1,
+    1
+   ],
+   "price": 0,
+   "stonePrice": 8,
+   "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit."
+  },
+  "yaygin": {
+   "name": "GÜMÜŞ SANDIK",
+   "tier": 2,
+   "time": 5400,
+   "lock": "plate",
+   "color": "#a06a2e",
+   "rim": "#4a2f10",
+   "metal": "#d8e2ec",
+   "accent": "#eef4fa",
+   "glow": "rgba(210,225,240,0.5)",
+   "rubies": [
+    24,
+    42
+   ],
+   "gear": [
+    1,
+    1
+   ],
+   "gearChance": 0.75,
+   "rarityMax": 2,
+   "weaponChance": 0.04,
+   "charChance": 0.06,
+   "charRarityMax": 1,
+   "stoneChance": 0.18,
+   "stoneDrop": [
+    1,
+    2
+   ],
+   "price": 55,
+   "stonePrice": 14,
+   "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar."
+  },
+  "kemik": {
+   "name": "ALTIN SANDIK",
+   "tier": 3,
+   "time": 7200,
+   "lock": "shield",
+   "color": "#d8961d",
+   "rim": "#5f3c06",
+   "metal": "#ffd97a",
+   "accent": "#ffc94f",
+   "glow": "rgba(255,205,90,0.62)",
+   "rubies": [
+    34,
+    60
+   ],
+   "gear": [
+    1,
+    1
+   ],
+   "gearChance": 1,
+   "rarityMax": 2,
+   "weaponChance": 0.08,
+   "charChance": 0.08,
+   "charRarityMax": 2,
+   "stoneChance": 0.3,
+   "stoneDrop": [
+    1,
+    3
+   ],
+   "price": 90,
+   "stonePrice": 22,
+   "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür."
+  },
+  "kan": {
+   "name": "BÜYÜLÜ SANDIK",
+   "tier": 4,
+   "time": 10800,
+   "lock": "crystal",
+   "color": "#8a4ae8",
+   "rim": "#301468",
+   "metal": "#2c2842",
+   "accent": "#cf9aff",
+   "glow": "rgba(210,150,255,0.65)",
+   "rubies": [
+    70,
+    120
+   ],
+   "gear": [
+    1,
+    2
+   ],
+   "gearChance": 1,
+   "rarityMax": 3,
+   "weaponChance": 0.2,
+   "charChance": 0.13,
+   "charRarityMax": 3,
+   "stoneChance": 0.55,
+   "stoneDrop": [
+    2,
+    4
+   ],
+   "price": 220,
+   "stonePrice": 34,
+   "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner."
+  },
+  "kadim": {
+   "name": "BUZUL SANDIK",
+   "tier": 5,
+   "time": 14400,
+   "lock": "gem",
+   "color": "#31506a",
+   "rim": "#122435",
+   "metal": "#a8c4d8",
+   "accent": "#8fdcff",
+   "glow": "rgba(140,220,255,0.62)",
+   "rubies": [
+    140,
+    240
+   ],
+   "gear": [
+    2,
+    2
+   ],
+   "gearChance": 1,
+   "rarityMax": 4,
+   "weaponChance": 0.45,
+   "charChance": 0.22,
+   "charRarityMax": 4,
+   "stoneChance": 0.85,
+   "stoneDrop": [
+    2,
+    5
+   ],
+   "price": 450,
+   "stonePrice": 75,
+   "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar."
+  },
+  "mistik": {
+   "name": "MİSTİK SANDIK",
+   "tier": 6,
+   "time": 21600,
+   "lock": "eye",
+   "color": "#3a2454",
+   "rim": "#170c2c",
+   "metal": "#8a6bc0",
+   "accent": "#b465ff",
+   "glow": "rgba(180,101,255,0.62)",
+   "rubies": [
+    0,
+    0
+   ],
+   "gear": [
+    0,
+    0
+   ],
+   "gearChance": 0,
+   "rarityMax": 4,
+   "weaponChance": 0,
+   "charChance": 0,
+   "charRarityMax": 4,
+   "stoneChance": 0,
+   "stoneDrop": [
+    0,
+    0
+   ],
+   "price": 900,
+   "stonePrice": 150,
+   "pureLegendary": true,
+   "desc": "Karanlık büyüyle mühürlü kara ahşap; derzlerinden mor ışık sızar. İçinde TEK bir efsane uyur — garanti."
+  },
+  "ejderha": {
+   "name": "EJDERHA SANDIĞI",
+   "tier": 7,
+   "time": 28800,
+   "lock": "dragon",
+   "color": "#8a1e26",
+   "rim": "#360a10",
+   "metal": "#3a3440",
+   "accent": "#ff5a3c",
+   "glow": "rgba(255,90,60,0.65)",
+   "rubies": [
+    260,
+    420
+   ],
+   "gear": [
+    2,
+    3
+   ],
+   "gearChance": 1,
+   "rarityMax": 4,
+   "weaponChance": 0.6,
+   "charChance": 0.35,
+   "charRarityMax": 4,
+   "stoneChance": 1,
+   "stoneDrop": [
+    3,
+    5
+   ],
+   "minTop": 4,
+   "price": 1600,
+   "stonePrice": 260,
+   "desc": "Ejder yavrusunun sarıldığı kara demir sandık; pulları sıcak, gözleri hiç kapanmaz. İçinde efsane GARANTİ."
+  }
+ },
+ "CHEST_SLOTS": 4,
+ "ChestSystem": {
+  "__fn": "ChestSystem"
+ },
+ "FREE_CHEST_CD": 21600000,
+ "PITY_N": 40,
+ "fmtDur": {
+  "__fn": "fmtDur"
+ },
+ "rk": {
+  "__fn": "rk"
+ },
+ "rkOf": {
+  "__fn": "rkOf"
+ },
+ "rollBossChest": {
+  "__fn": "rollBossChest"
+ },
+ "rollMissionChest": {
+  "__fn": "rollMissionChest"
+ },
+ "skipCost": {
+  "__fn": "skipCost"
+ }
+}

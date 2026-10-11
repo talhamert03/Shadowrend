@@ -1,0 +1,51 @@
+{
+ "Ledger": {
+  "stars": {
+   "__fn": "Ledger.stars"
+  },
+  "totalStars": {
+   "__fn": "Ledger.totalStars"
+  },
+  "worldStars": {
+   "__fn": "Ledger.worldStars"
+  },
+  "mastery": {
+   "__fn": "Ledger.mastery"
+  },
+  "onRun": {
+   "__fn": "Ledger.onRun"
+  }
+ },
+ "MASTERY_MAX": 10,
+ "MASTERY_REQ": [
+  0,
+  0,
+  250,
+  700,
+  1400,
+  2400,
+  3800,
+  5600,
+  7900,
+  10800,
+  14400
+ ],
+ "STAR_GEM": 2,
+ "STAR_RULES": [
+  {
+   "id": "win",
+   "label": "ZAFER"
+  },
+  {
+   "id": "hp",
+   "label": "CAN %50 ÜSTÜ"
+  },
+  {
+   "id": "fc",
+   "label": "2 SAHA SANDIĞI"
+  }
+ ],
+ "masteryLevel": {
+  "__fn": "masteryLevel"
+ }
+}

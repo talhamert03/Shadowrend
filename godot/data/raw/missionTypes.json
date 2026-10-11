@@ -1,0 +1,26 @@
+{
+ "MTYPE": {
+  "survive": {
+   "name": "HAYATTA KAL",
+   "col": "#cfd6e2"
+  },
+  "defend": {
+   "name": "SAVUN",
+   "col": "#9ff2c4"
+  },
+  "hunt": {
+   "name": "AV",
+   "col": "#ff8a4a"
+  },
+  "escape": {
+   "name": "KAÇIŞ",
+   "col": "#9fd8ff"
+  }
+ },
+ "MissionMode": {
+  "__fn": "MissionMode"
+ },
+ "missionType": {
+  "__fn": "missionType"
+ }
+}

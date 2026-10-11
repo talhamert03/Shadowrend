@@ -1,0 +1,43 @@
+{
+ "Settings": {
+  "data": {
+   "gfx": "auto",
+   "sfx": 0.62,
+   "music": 0.5,
+   "haptics": true,
+   "shake": true,
+   "rm": false,
+   "batt": false,
+   "cb": false,
+   "big": false,
+   "hsoft": false
+  },
+  "autoTier": "mid",
+  "isMobile": false,
+  "_game": null,
+  "attach": {
+   "__fn": "Settings.attach"
+  },
+  "load": {
+   "__fn": "Settings.load"
+  },
+  "save": {
+   "__fn": "Settings.save"
+  },
+  "tier": {
+   "__fn": "Settings.tier"
+  },
+  "tierLabel": {
+   "__fn": "Settings.tierLabel"
+  },
+  "set": {
+   "__fn": "Settings.set"
+  },
+  "applyAll": {
+   "__fn": "Settings.applyAll"
+  },
+  "applyOne": {
+   "__fn": "Settings.applyOne"
+  }
+ }
+}

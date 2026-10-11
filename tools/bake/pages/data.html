@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>veri pişirme</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* Oyunun VERİ tablolarını (export edilen sabitler) JSON'a döker.
+   Fonksiyon değerleri atlanır ve yolları rapor edilir: onlar GDScript'e
+   elle taşınır. Sonsuz döngüye karşı ziyaret kümesi tutulur. */
+import { saveJSON, done } from './common.js';
+const V = '?v=20260930m';
+const MODS = (new URLSearchParams(location.search).get('mods') ||
+  'config,balance,worlds,weapons,missionTypes,chests,gearSets,dailies,achievements,calendar,journey,ledger,market,nightmare,tower,powerups,objectives,fieldChest,ultimate,worldEvents,i18n,legal,release,ftue,settings,combat,arenaProps,charLook').split(',');
+
+function ser(v, path, fns, seen) {
+  if (typeof v === 'function') { fns.push(path); return { __fn: path }; }
+  if (v === null || typeof v !== 'object') {
+    if (typeof v === 'number' && !Number.isFinite(v)) return { __num: String(v) };
+    return v;
+  }
+  if (seen.has(v)) return { __ref: seen.get(v) };
+  seen.set(v, path);
+  if (ArrayBuffer.isView(v)) return Array.from(v);
+  if (v instanceof Map) return { __map: [...v.entries()].map(([k, x], i) => [k, ser(x, path + '<' + k + '>', fns, seen)]) };
+  if (v instanceof Set) return { __set: [...v].map((x, i) => ser(x, path + '{' + i + '}', fns, seen)) };
+  if (v instanceof RegExp) return { __re: String(v) };
+  if (Array.isArray(v)) return v.map((x, i) => ser(x, path + '[' + i + ']', fns, seen));
+  const o = {};
+  for (const k of Object.keys(v)) {
+    let x; try { x = v[k]; } catch (e) { continue; }
+    o[k] = ser(x, path + '.' + k, fns, seen);
+  }
+  return o;
+}
+
+(async () => {
+  const report = {};
+  try {
+    for (const m of MODS) {
+      let mod;
+      try { mod = await import('/game/' + m + '.js' + V); }
+      catch (e) { report[m] = { error: String(e) }; console.log('YÜKLENEMEDİ', m, e); continue; }
+      const out = {}, fns = [];
+      for (const k of Object.keys(mod)) {
+        const seen = new Map();
+        out[k] = ser(mod[k], k, fns, seen);
+      }
+      await saveJSON('data/raw/' + m + '.json', out);
+      report[m] = { exports: Object.keys(mod), functions: fns };
+    }
+    await saveJSON('data/raw/_report.json', report);
+    done();
+  } catch (e) { done(e); }
+})();
+</script>

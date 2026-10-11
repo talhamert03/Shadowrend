@@ -1,0 +1,530 @@
+{
+ "config": {
+  "exports": [
+   "BASE_ROSTER",
+   "BATTLE_PASS",
+   "BATTLE_PASS_TIERS",
+   "BOSS",
+   "CHARACTERS",
+   "CHAR_CARD_REQ",
+   "CHAR_GOLD_COST",
+   "CHAR_MAX_LEVEL",
+   "CHAR_RARITIES",
+   "CLASS_SYNERGIES",
+   "COLORS",
+   "DEFAULT_CHAR",
+   "DRAGON",
+   "DYN",
+   "ENEMY_TYPES",
+   "EQUIPMENT",
+   "EQUIP_SLOTS",
+   "FX",
+   "GEAR_CARD_REQ",
+   "GEAR_GOLD_COST",
+   "GEAR_MAX_LEVEL",
+   "GEM_TIERS",
+   "HAZARD_CAP",
+   "ITEMS",
+   "MODS",
+   "PASSIVES",
+   "PLAYER",
+   "RAMP",
+   "RARITIES",
+   "RUBY_EXCHANGE",
+   "RUN",
+   "SHOP",
+   "SIGNATURES",
+   "SPECIAL_PERKS",
+   "STARTING_WEAPON",
+   "STONE_PACKS",
+   "SURVIVAL_MILESTONES",
+   "UNLOCK_ALL_CHARS",
+   "WAVES",
+   "WEAPONS",
+   "WEAPON_CLASSES",
+   "WEAPON_META",
+   "WEAPON_SLOTS",
+   "WEAPON_STATS",
+   "accountJourneyMilestones",
+   "accountLevelChest",
+   "accountXpToNext",
+   "charCardDrop",
+   "charLevelMods",
+   "gearLevelMods",
+   "onScreenCap",
+   "pressureAt",
+   "rarityRoll",
+   "rubyReward",
+   "signaturePower",
+   "signatureUnlocks",
+   "spawnBatch",
+   "spawnGap",
+   "waveBatch",
+   "waveDmgMul",
+   "waveHpMul",
+   "waveInterval",
+   "waveTime",
+   "waveWeights",
+   "xpToNext"
+  ],
+  "functions": [
+   "SHOP.priceMul",
+   "SHOP.rerollCost",
+   "accountJourneyMilestones",
+   "accountLevelChest",
+   "accountXpToNext",
+   "charCardDrop",
+   "charLevelMods",
+   "gearLevelMods",
+   "onScreenCap",
+   "pressureAt",
+   "rarityRoll",
+   "rubyReward",
+   "signaturePower",
+   "signatureUnlocks",
+   "spawnBatch",
+   "spawnGap",
+   "waveBatch",
+   "waveDmgMul",
+   "waveHpMul",
+   "waveInterval",
+   "waveTime",
+   "waveWeights",
+   "xpToNext"
+  ]
+ },
+ "balance": {
+  "exports": [
+   "CAPS",
+   "CHALLENGE",
+   "GEAR_BUDGET",
+   "GEAR_RANK",
+   "HERO_BUDGET",
+   "SLOT_K",
+   "W",
+   "expectedPower",
+   "fitMods",
+   "gearBudget",
+   "heroBudget",
+   "modsLine",
+   "powerOf",
+   "worldCurve"
+  ],
+  "functions": [
+   "expectedPower",
+   "fitMods",
+   "gearBudget",
+   "heroBudget",
+   "modsLine",
+   "powerOf",
+   "worldCurve"
+  ]
+ },
+ "worlds": {
+  "exports": [
+   "MISSIONS_PER_WORLD",
+   "WORLDS",
+   "loadProgress",
+   "missionDef",
+   "missionReward",
+   "missionUnlocked",
+   "nextMission",
+   "replayReward",
+   "saveProgress",
+   "worldCleared",
+   "worldUnlocked"
+  ],
+  "functions": [
+   "loadProgress",
+   "missionDef",
+   "missionReward",
+   "missionUnlocked",
+   "nextMission",
+   "replayReward",
+   "saveProgress",
+   "worldCleared",
+   "worldUnlocked"
+  ]
+ },
+ "weapons": {
+  "exports": [
+   "CURSES",
+   "EVOLUTIONS",
+   "TAGS",
+   "WEAPON_EVO",
+   "WeaponManager",
+   "tagName"
+  ],
+  "functions": [
+   "WeaponManager",
+   "tagName"
+  ]
+ },
+ "missionTypes": {
+  "exports": [
+   "MTYPE",
+   "MissionMode",
+   "missionType"
+  ],
+  "functions": [
+   "MissionMode",
+   "missionType"
+  ]
+ },
+ "chests": {
+  "exports": [
+   "CHESTS",
+   "CHEST_SLOTS",
+   "ChestSystem",
+   "FREE_CHEST_CD",
+   "PITY_N",
+   "fmtDur",
+   "rk",
+   "rkOf",
+   "rollBossChest",
+   "rollMissionChest",
+   "skipCost"
+  ],
+  "functions": [
+   "ChestSystem",
+   "fmtDur",
+   "rk",
+   "rkOf",
+   "rollBossChest",
+   "rollMissionChest",
+   "skipCost"
+  ]
+ },
+ "gearSets": {
+  "exports": [
+   "GEAR_SETS",
+   "RANK",
+   "activeSets",
+   "applySets"
+  ],
+  "functions": [
+   "activeSets",
+   "applySets"
+  ]
+ },
+ "dailies": {
+  "exports": [
+   "DAILY_STREAK",
+   "Dailies",
+   "WEEKLY_MAX_PTS",
+   "WEEKLY_QUESTS",
+   "WEEKLY_TIERS",
+   "dayGap",
+   "dayKey",
+   "normalizeQuests",
+   "weekKey",
+   "weekLeftMs"
+  ],
+  "functions": [
+   "Dailies",
+   "dayGap",
+   "dayKey",
+   "normalizeQuests",
+   "weekKey",
+   "weekLeftMs"
+  ]
+ },
+ "achievements": {
+  "exports": [
+   "ACH",
+   "Ach"
+  ],
+  "functions": [
+   "Ach.book",
+   "Ach.onRun",
+   "Ach.check",
+   "Ach.progress",
+   "Ach.count"
+  ]
+ },
+ "calendar": {
+  "exports": [
+   "Calendar",
+   "SEAL_RULES",
+   "SEAL_TIERS",
+   "WEEK_EVENTS",
+   "weekIndex",
+   "weekLeft"
+  ],
+  "functions": [
+   "Calendar.current",
+   "Calendar.goldMul",
+   "Calendar.eliteMul",
+   "Calendar.seal",
+   "Calendar.book",
+   "Calendar.score",
+   "Calendar.finish",
+   "Calendar.applyWave",
+   "weekIndex",
+   "weekLeft"
+  ]
+ },
+ "journey": {
+  "exports": [
+   "BLESSINGS",
+   "DAILY_POOL",
+   "Daily",
+   "Ghost",
+   "Gift",
+   "SEASON",
+   "nextGoal",
+   "rollBlessings",
+   "seasonWeek"
+  ],
+  "functions": [
+   "DAILY_POOL[0].ok",
+   "DAILY_POOL[1].ok",
+   "DAILY_POOL[2].ok",
+   "DAILY_POOL[3].ok",
+   "DAILY_POOL[4].ok",
+   "DAILY_POOL[5].ok",
+   "DAILY_POOL[6].ok",
+   "DAILY_POOL[7].ok",
+   "Daily.book",
+   "Daily.list",
+   "Daily.left",
+   "Daily.onRun",
+   "Ghost.begin",
+   "Ghost.tick",
+   "Ghost.delta",
+   "Ghost.end",
+   "Gift.collect",
+   "nextGoal",
+   "rollBlessings",
+   "seasonWeek"
+  ]
+ },
+ "ledger": {
+  "exports": [
+   "Ledger",
+   "MASTERY_MAX",
+   "MASTERY_REQ",
+   "STAR_GEM",
+   "STAR_RULES",
+   "masteryLevel"
+  ],
+  "functions": [
+   "Ledger.stars",
+   "Ledger.totalStars",
+   "Ledger.worldStars",
+   "Ledger.mastery",
+   "Ledger.onRun",
+   "masteryLevel"
+  ]
+ },
+ "market": {
+  "exports": [
+   "Market"
+  ],
+  "functions": [
+   "Market.book",
+   "Market.offers",
+   "Market.buy",
+   "Market.msLeft"
+  ]
+ },
+ "nightmare": {
+  "exports": [
+   "NM",
+   "Nightmare",
+   "nmBook"
+  ],
+  "functions": [
+   "Nightmare.open",
+   "Nightmare.hasFrame",
+   "Nightmare.applyWave",
+   "Nightmare.finish",
+   "nmBook"
+  ]
+ },
+ "tower": {
+  "exports": [
+   "TOWER",
+   "Tower",
+   "floorDef",
+   "towerBook"
+  ],
+  "functions": [
+   "Tower.applyWave",
+   "Tower.floorGold",
+   "Tower.finish",
+   "floorDef",
+   "towerBook"
+  ]
+ },
+ "powerups": {
+  "exports": [
+   "MAGNET_MUL",
+   "PU",
+   "PowerupManager"
+  ],
+  "functions": [
+   "PowerupManager"
+  ]
+ },
+ "objectives": {
+  "exports": [
+   "ObjectiveManager"
+  ],
+  "functions": [
+   "ObjectiveManager"
+  ]
+ },
+ "fieldChest": {
+  "exports": [
+   "CHEST_REWARD",
+   "FIELD_CHEST",
+   "FieldChests"
+  ],
+  "functions": [
+   "FieldChests"
+  ]
+ },
+ "ultimate": {
+  "exports": [
+   "ULT_ID",
+   "ULT_NEED",
+   "ULT_TIER",
+   "Ultimate"
+  ],
+  "functions": [
+   "Ultimate"
+  ]
+ },
+ "worldEvents": {
+  "exports": [
+   "WorldEvents"
+  ],
+  "functions": [
+   "WorldEvents"
+  ]
+ },
+ "i18n": {
+  "exports": [
+   "LANG",
+   "LANGS",
+   "T",
+   "bootI18n",
+   "detectLang",
+   "missing",
+   "setLang"
+  ],
+  "functions": [
+   "T",
+   "bootI18n",
+   "detectLang",
+   "setLang"
+  ]
+ },
+ "legal": {
+  "exports": [
+   "KVKK",
+   "LEGAL_UPDATED",
+   "PRIVACY",
+   "TERMS"
+  ],
+  "functions": []
+ },
+ "release": {
+  "exports": [
+   "APP",
+   "Notify",
+   "checkUpdate",
+   "isNative",
+   "lockPortrait",
+   "platform"
+  ],
+  "functions": [
+   "Notify.enabled",
+   "Notify.setEnabled",
+   "Notify.available",
+   "Notify.ask",
+   "Notify.cancelAll",
+   "Notify.schedule",
+   "checkUpdate",
+   "isNative",
+   "lockPortrait",
+   "platform"
+  ]
+ },
+ "ftue": {
+  "exports": [
+   "Ftue",
+   "TAB_REQ"
+  ],
+  "functions": [
+   "Ftue.cleared",
+   "Ftue.locked",
+   "Ftue.lockMsg",
+   "Ftue.paintNav",
+   "Ftue.visit",
+   "Ftue.begin",
+   "Ftue.update",
+   "Ftue.onLevelUp",
+   "Ftue.onLevelPicked",
+   "Ftue.finish",
+   "Ftue._show"
+  ]
+ },
+ "settings": {
+  "exports": [
+   "Settings"
+  ],
+  "functions": [
+   "Settings.attach",
+   "Settings.load",
+   "Settings.save",
+   "Settings.tier",
+   "Settings.tierLabel",
+   "Settings.set",
+   "Settings.applyAll",
+   "Settings.applyOne"
+  ]
+ },
+ "combat": {
+  "exports": [
+   "FEEL",
+   "applyHit",
+   "damagePlayer",
+   "resetFeel",
+   "rollDamage"
+  ],
+  "functions": [
+   "applyHit",
+   "damagePlayer",
+   "resetFeel",
+   "rollDamage"
+  ]
+ },
+ "arenaProps": {
+  "exports": [
+   "PROP_TYPES",
+   "PropField"
+  ],
+  "functions": [
+   "PropField"
+  ]
+ },
+ "charLook": {
+  "exports": [
+   "BOSS_SCALE",
+   "CHAR_SCALE",
+   "LOOK",
+   "applyCharLook",
+   "applyCharLookTo",
+   "punchAlbedo",
+   "scaleCharTable"
+  ],
+  "functions": [
+   "applyCharLook",
+   "applyCharLookTo",
+   "punchAlbedo",
+   "scaleCharTable"
+  ]
+ }
+}

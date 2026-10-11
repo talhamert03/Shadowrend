@@ -1,0 +1,159 @@
+{
+ "ACH": [
+  {
+   "id": "k1",
+   "name": "İLK KAN",
+   "desc": "Toplam 500 düşman kıy",
+   "st": "kills",
+   "n": 500,
+   "gold": 60
+  },
+  {
+   "id": "k2",
+   "name": "HASATÇI",
+   "desc": "Toplam 5 000 düşman kıy",
+   "st": "kills",
+   "n": 5000,
+   "gold": 150,
+   "gem": 5
+  },
+  {
+   "id": "k3",
+   "name": "KIZIL TIRPAN",
+   "desc": "Toplam 25 000 düşman kıy",
+   "st": "kills",
+   "n": 25000,
+   "gem": 20,
+   "title": "KIZIL TIRPAN"
+  },
+  {
+   "id": "w1",
+   "name": "İLK ZAFER",
+   "desc": "Bir görevi kazan",
+   "st": "wins",
+   "n": 1,
+   "gold": 50
+  },
+  {
+   "id": "w2",
+   "name": "SAVAŞ ALIŞKANLIĞI",
+   "desc": "25 görev kazan",
+   "st": "wins",
+   "n": 25,
+   "gold": 200,
+   "gem": 5
+  },
+  {
+   "id": "w3",
+   "name": "EFSANE YOLU",
+   "desc": "100 görev kazan",
+   "st": "wins",
+   "n": 100,
+   "gem": 25,
+   "title": "YOL ERİ"
+  },
+  {
+   "id": "b1",
+   "name": "DEV AVCISI",
+   "desc": "5 boss devir",
+   "st": "boss",
+   "n": 5,
+   "gold": 120
+  },
+  {
+   "id": "b2",
+   "name": "TAHT YIKAN",
+   "desc": "30 boss devir",
+   "st": "boss",
+   "n": 30,
+   "gem": 15,
+   "title": "TAHT YIKAN"
+  },
+  {
+   "id": "c1",
+   "name": "KATLİAM",
+   "desc": "Tek zincirde 30 kıyım",
+   "st": "combo",
+   "n": 30,
+   "gold": 80,
+   "max": true
+  },
+  {
+   "id": "c2",
+   "name": "KIZIL HASAT",
+   "desc": "Tek zincirde 60 kıyım",
+   "st": "combo",
+   "n": 60,
+   "gem": 10,
+   "title": "HASAT KIZILI",
+   "max": true
+  },
+  {
+   "id": "u1",
+   "name": "SÜPER GÜÇ",
+   "desc": "20 kez süper yetenek kullan",
+   "st": "ults",
+   "n": 20,
+   "gold": 80
+  },
+  {
+   "id": "u2",
+   "name": "FIRTINA ÇAĞIRAN",
+   "desc": "200 kez süper yetenek kullan",
+   "st": "ults",
+   "n": 200,
+   "gem": 10
+  },
+  {
+   "id": "l1",
+   "name": "GÜÇLENİŞ",
+   "desc": "Bir koşuda 20. seviyeye ulaş",
+   "st": "lvl",
+   "n": 20,
+   "gold": 70,
+   "max": true
+  },
+  {
+   "id": "nh",
+   "name": "DOKUNULMAZ",
+   "desc": "Canın hiç %50 altına düşmeden kazan",
+   "st": "clean",
+   "n": 1,
+   "gold": 100
+  },
+  {
+   "id": "r1",
+   "name": "SEBAT",
+   "desc": "50 koşu oyna",
+   "st": "runs",
+   "n": 50,
+   "gold": 150
+  },
+  {
+   "id": "h3",
+   "name": "KALABALIK KADRO",
+   "desc": "5 kahramana sahip ol",
+   "st": "heroes",
+   "n": 5,
+   "gem": 8,
+   "max": true
+  }
+ ],
+ "Ach": {
+  "book": {
+   "__fn": "Ach.book"
+  },
+  "onRun": {
+   "__fn": "Ach.onRun"
+  },
+  "check": {
+   "__fn": "Ach.check"
+  },
+  "progress": {
+   "__fn": "Ach.progress"
+  },
+  "count": {
+   "__fn": "Ach.count"
+  }
+ }
+}

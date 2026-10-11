@@ -1,0 +1,23 @@
+{
+ "BOSS_SCALE": 1.2,
+ "CHAR_SCALE": 1.2,
+ "LOOK": {
+  "rim": 0.42,
+  "rimPow": 3,
+  "rimHex": 16768180,
+  "roughMax": 0.48,
+  "aniso": 8
+ },
+ "applyCharLook": {
+  "__fn": "applyCharLook"
+ },
+ "applyCharLookTo": {
+  "__fn": "applyCharLookTo"
+ },
+ "punchAlbedo": {
+  "__fn": "punchAlbedo"
+ },
+ "scaleCharTable": {
+  "__fn": "scaleCharTable"
+ }
+}

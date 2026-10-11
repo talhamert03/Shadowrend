@@ -1,0 +1,25 @@
+{
+ "TOWER": {
+  "bossEvery": 5,
+  "checkpoint": 5,
+  "hpK": 0.07,
+  "dmgK": 0.04
+ },
+ "Tower": {
+  "applyWave": {
+   "__fn": "Tower.applyWave"
+  },
+  "floorGold": {
+   "__fn": "Tower.floorGold"
+  },
+  "finish": {
+   "__fn": "Tower.finish"
+  }
+ },
+ "floorDef": {
+  "__fn": "floorDef"
+ },
+ "towerBook": {
+  "__fn": "towerBook"
+ }
+}
