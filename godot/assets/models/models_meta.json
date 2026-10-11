@@ -1,0 +1,760 @@
+{
+ "heroes": {
+  "okcu": {
+   "file": "heroes/okcu.glb",
+   "height": 44.4,
+   "scale": 44.4,
+   "pos": [
+    0.009434998766744446,
+    -1.1064240771346849e-7,
+    -4.974172945759747e-8
+   ],
+   "topY": 0.7547996771869876,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": null,
+   "lift": 0,
+   "tris": 4254,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true
+  },
+  "seher": {
+   "file": "heroes/seher.glb",
+   "height": 91.2,
+   "scale": 91.2,
+   "pos": [
+    -0.06869337580191015,
+    44.6418668867901,
+    0.07977873665538304
+   ],
+   "topY": 89.26803219578815,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "kilic",
+   "lift": 0,
+   "tris": 44228,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "simsek": {
+   "file": "heroes/simsek.glb",
+   "height": 93.6,
+   "scale": 93.6,
+   "pos": [
+    0.004276032239658889,
+    -0.0012021747127950438,
+    0.1348519853360175
+   ],
+   "topY": 91.52480049510791,
+   "walkClip": "NlaTrack.001",
+   "walkRate": 1.5,
+   "floatingWeapon": "simsek",
+   "lift": 0,
+   "tris": 46558,
+   "clips": [
+    "NlaTrack",
+    "NlaTrack.001"
+   ],
+   "hasBones": true
+  },
+  "savasci": {
+   "file": "heroes/savasci.glb",
+   "height": 91.2,
+   "scale": 91.2,
+   "pos": [
+    0.0005354094721372604,
+    0.00007889137045865731,
+    -0.001210751607768401
+   ],
+   "topY": 91.02192711820817,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "pala",
+   "lift": 0,
+   "tris": 4886,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "gokalev": {
+   "file": "heroes/gokalev.glb",
+   "height": 91.2,
+   "scale": 91.2,
+   "pos": [
+    0.0012637008357607726,
+    -0.000008821216377945025,
+    0.00006237065085024085
+   ],
+   "topY": 91.0218928851506,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "alev",
+   "lift": 0,
+   "tris": 4682,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "korsan": {
+   "file": "heroes/korsan.glb",
+   "height": 96,
+   "scale": 96,
+   "pos": [
+    0.0617957461597296,
+    -0.021302509072203896,
+    -0.12727739310997954
+   ],
+   "topY": 93.93767318183288,
+   "walkClip": "NlaTrack",
+   "walkRate": 1.25,
+   "floatingWeapon": "topatar",
+   "lift": 0.8,
+   "tris": 38416,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "kralice": {
+   "file": "heroes/kralice.glb",
+   "height": 91.2,
+   "scale": 91.2,
+   "pos": [
+    -0.1868853972297284,
+    -0.10407419060893555,
+    -0.048546084517909094
+   ],
+   "topY": 90.97664587954641,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "tackilic",
+   "lift": 0.62,
+   "tris": 33135,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "sovalye": {
+   "file": "heroes/sovalye.glb",
+   "height": 91.2,
+   "scale": 91.2,
+   "pos": [
+    -0.06820463885447126,
+    -0.013679715553854416,
+    0.04367187221781599
+   ],
+   "topY": 89.32221766483438,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "yemin",
+   "lift": 0,
+   "tris": 36324,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  },
+  "sapanci": {
+   "file": "heroes/sapanci.glb",
+   "height": 88.8,
+   "scale": 88.8,
+   "pos": [
+    0.0000032124583793091688,
+    0.000060158843088019586,
+    -0.0000011517629490143122
+   ],
+   "topY": 88.62657130869074,
+   "walkClip": "NlaTrack",
+   "walkRate": 1,
+   "floatingWeapon": "sapan",
+   "lift": 0,
+   "tris": 4926,
+   "clips": [
+    "NlaTrack"
+   ],
+   "hasBones": true
+  }
+ },
+ "enemies": {
+  "hortlak": {
+   "floor": "mezarlik",
+   "file": "enemies/hortlak.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 91.2,
+   "baseScale": 55.74115955443103,
+   "rigPos": [
+    -0.004443391522028051,
+    0.041915606646569924,
+    0.1301257477060589
+   ],
+   "yawFix": 0,
+   "clip": "Running",
+   "clipDur": 0.6333333253860474,
+   "share": 0.54,
+   "shadowR": 13.2,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0.54,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3060
+  },
+  "muhafiz": {
+   "floor": "mezarlik",
+   "file": "enemies/muhafiz.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 124.8,
+   "baseScale": 71.77821942363545,
+   "rigPos": [
+    0.030473174574032313,
+    0.029985406491378243,
+    -0.06255501373701167
+   ],
+   "yawFix": 0,
+   "clip": "Walking",
+   "clipDur": 1.0333333015441895,
+   "share": 0.18,
+   "shadowR": 18,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.85,
+   "lift": 0.46,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3866
+  },
+  "buyucu": {
+   "floor": "mezarlik",
+   "file": "enemies/buyucu.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 98.39999999999999,
+   "baseScale": 102.06365467615565,
+   "rigPos": [
+    0.030910003742380898,
+    0.022770736303266495,
+    -0.053020597700223465
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.18,
+   "shadowR": 12,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "R_Upperarm",
+    "R_Forearm"
+   ],
+   "restT": 1.8802083333333333,
+   "tris": 4392
+  },
+  "iskelet_kral": {
+   "floor": "mezarlik",
+   "file": "enemies/iskelet_kral.glb",
+   "types": [
+    "kral"
+   ],
+   "height": 151.2,
+   "baseScale": 126.21490553189224,
+   "rigPos": [
+    0.020195460046130598,
+    0.19659384547580622,
+    -0.01851661798101567
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.1,
+   "shadowR": 25.2,
+   "stepRate": 0.62,
+   "stepMin": 0.42,
+   "stepMax": 0.62,
+   "idleRate": null,
+   "emissiveIntensity": 0.95,
+   "lift": 0.36,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6486
+  },
+  "alev_deli": {
+   "floor": "kul",
+   "file": "enemies/alev_deli.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 93.6,
+   "baseScale": 87.19986984681586,
+   "rigPos": [
+    0.002264150129972997,
+    0.09933573677454717,
+    -0.13215487374815582
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.58,
+   "shadowR": 13.2,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3145
+  },
+  "kor_lordu": {
+   "floor": "kul",
+   "file": "enemies/kor_lordu.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 134.4,
+   "baseScale": 122.25461858151947,
+   "rigPos": [
+    -0.02684187839633749,
+    0.08456173202414108,
+    -0.11232804859646295
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.22,
+   "shadowR": 19.2,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.58,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3903
+  },
+  "mum_buyucu": {
+   "floor": "kul",
+   "file": "enemies/mum_buyucu.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 103.2,
+   "baseScale": 101.9988725383201,
+   "rigPos": [
+    -0.016515059104815835,
+    0.007343415004330835,
+    0.028926732977552216
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.2,
+   "shadowR": 12,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "R_Upperarm",
+    "R_Forearm"
+   ],
+   "restT": 1.8802083333333333,
+   "tris": 3595
+  },
+  "batak_yaratigi": {
+   "floor": "bataklik",
+   "file": "enemies/batak_yaratigi.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 88.8,
+   "baseScale": 82.76621294948932,
+   "rigPos": [
+    0.07157646498237966,
+    0.2000595950188749,
+    -0.3676997709089629
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 1.2916666269302368,
+   "share": 0.62,
+   "shadowR": 14.399999999999999,
+   "stepRate": 0.66,
+   "stepMin": 0.5,
+   "stepMax": 0.9,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3116
+  },
+  "batak_devi": {
+   "floor": "bataklik",
+   "file": "enemies/batak_devi.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 127.19999999999999,
+   "baseScale": 127.09691862909698,
+   "rigPos": [
+    0.008111522254388465,
+    0.048491984062020634,
+    -0.17719210940215863
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 1,
+   "shadowR": 11,
+   "stepRate": 0.54,
+   "stepMin": 0.45,
+   "stepMax": 0.74,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.4,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 4930
+  },
+  "tuz_bocegi": {
+   "floor": "tuzla",
+   "file": "enemies/tuz_bocegi.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 55.199999999999996,
+   "baseScale": 62.47886821676046,
+   "rigPos": [
+    0.04497845340194992,
+    0.2023607728119318,
+    -0.048321160382242434
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.5999999046325684,
+   "share": 0.46,
+   "shadowR": 14.399999999999999,
+   "stepRate": 0.8,
+   "stepMin": 0.6,
+   "stepMax": 1.1,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0.56,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3067
+  },
+  "tuz_pencesi": {
+   "floor": "tuzla",
+   "file": "enemies/tuz_pencesi.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 110.39999999999999,
+   "baseScale": 123.69819748296003,
+   "rigPos": [
+    -0.11563296147040994,
+    0.05528083175411724,
+    -0.09091840205592919
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.24,
+   "shadowR": 18,
+   "stepRate": 0.56,
+   "stepMin": 0.45,
+   "stepMax": 0.78,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.4,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 4682
+  },
+  "kosucu": {
+   "floor": "tuzla",
+   "file": "enemies/kosucu.glb",
+   "types": [
+    "patlayici"
+   ],
+   "height": 79.2,
+   "baseScale": 75.47135751867796,
+   "rigPos": [
+    -0.047365829972519674,
+    0.2562276664074649,
+    -0.8170862812043386
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 1.2916666269302368,
+   "share": 0.3,
+   "shadowR": 13.2,
+   "stepRate": 0.95,
+   "stepMin": 0.7,
+   "stepMax": 1.3,
+   "idleRate": null,
+   "emissiveIntensity": 1.1,
+   "lift": 0.62,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3432
+  },
+  "buz_kurdu": {
+   "floor": "buzul",
+   "file": "enemies/buz_kurdu.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 62.4,
+   "baseScale": 73.5856000949219,
+   "rigPos": [
+    -0.017279885099957204,
+    0.013401265633910987,
+    0.023712203751801275
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.5999999046325684,
+   "share": 0.5,
+   "shadowR": 15.6,
+   "stepRate": 0.75,
+   "stepMin": 0.6,
+   "stepMax": 1.05,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 2782
+  },
+  "buz_ayisi": {
+   "floor": "buzul",
+   "file": "enemies/buz_ayisi.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 91.2,
+   "baseScale": 119.51225850850652,
+   "rigPos": [
+    0.006533019255091199,
+    0.09332813971060012,
+    -0.0006486235797340534
+   ],
+   "yawFix": 1.5707963267948966,
+   "clip": "NlaTrack",
+   "clipDur": 2.5999999046325684,
+   "share": 1,
+   "shadowR": 11,
+   "stepRate": 0.6,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.38,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 4268
+  },
+  "yeti": {
+   "floor": "buzul",
+   "file": "enemies/yeti.glb",
+   "types": [
+    "agir"
+   ],
+   "height": 141.6,
+   "baseScale": 140.3019089244619,
+   "rigPos": [
+    -0.006662109801125915,
+    0.014927118537320021,
+    -0.04395162121769289
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.375,
+   "share": 0.16,
+   "shadowR": 22.8,
+   "stepRate": 0.5,
+   "stepMin": 0.4,
+   "stepMax": 0.7,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.34,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 5306
+  },
+  "kar_tilkisi": {
+   "floor": "buzul",
+   "file": "enemies/kar_tilkisi.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 74.39999999999999,
+   "baseScale": 77.80418314384377,
+   "rigPos": [
+    -0.028779602998181303,
+    -0.42853704162204387,
+    -0.0067330737200839985
+   ],
+   "yawFix": 0,
+   "clip": "NlaTrack",
+   "clipDur": 2.5416667461395264,
+   "share": 0.16,
+   "shadowR": 14.399999999999999,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": 0.22,
+   "emissiveIntensity": 1,
+   "lift": 0.42,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3220
+  },
+  "void_biped": {
+   "floor": "hiclik",
+   "file": "enemies/void_biped.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 91.2,
+   "baseScale": 54.95076938812147,
+   "rigPos": [
+    -0.0026361724328230474,
+    0.06238648084192493,
+    0.0006019728832534765
+   ],
+   "yawFix": 0,
+   "clip": "Running",
+   "clipDur": 0.6333333253860474,
+   "share": 1,
+   "shadowR": 13.2,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 1,
+   "lift": 0,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 3021
+  }
+ },
+ "bosses": {
+  "lord": {
+   "file": "bosses/lord.glb",
+   "kind": "lord",
+   "height": 180,
+   "shadowR": 40.8,
+   "lift": 0.26,
+   "tris": 10460
+  },
+  "bataklik": {
+   "file": "bosses/bataklik.glb",
+   "kind": "ejder",
+   "height": 180,
+   "shadowR": 45.6,
+   "lift": 0.34,
+   "tris": 4894
+  }
+ },
+ "weapons": {
+  "yay": {
+   "file": "weapons/yay.glb"
+  },
+  "sapan": {
+   "file": "weapons/sapan.glb"
+  },
+  "kilic": {
+   "file": "weapons/kilic.glb",
+   "bladeLen": 74
+  },
+  "tackilic": {
+   "file": "weapons/tackilic.glb",
+   "bladeLen": 76
+  },
+  "yemin": {
+   "file": "weapons/yemin.glb",
+   "bladeLen": 75
+  },
+  "pala": {
+   "file": "weapons/pala.glb"
+  },
+  "alev": {
+   "file": "weapons/alev.glb",
+   "H": 42
+  },
+  "simsek": {
+   "file": "weapons/simsek.glb"
+  },
+  "topatar": {
+   "file": "weapons/topatar.glb",
+   "barrelLen": 46,
+   "LEN": 46
+  }
+ }
+}

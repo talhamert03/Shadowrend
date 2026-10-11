@@ -1,0 +1,179 @@
+{
+ "worlds": {
+  "1": {
+   "mapId": "mezarlik",
+   "detailSrc": "ai"
+  },
+  "2": {
+   "mapId": "kul",
+   "detailSrc": "ai"
+  },
+  "3": {
+   "mapId": "bataklik",
+   "detailSrc": "ai"
+  },
+  "4": {
+   "mapId": "katedral",
+   "detailSrc": "ai"
+  },
+  "5": {
+   "mapId": "hiclik",
+   "detailSrc": "ai"
+  },
+  "6": {
+   "mapId": "gokada",
+   "detailSrc": "ai"
+  },
+  "7": {
+   "mapId": "tuzla",
+   "detailSrc": "ai"
+  },
+  "8": {
+   "mapId": "buzul",
+   "detailSrc": "ai"
+  },
+  "9": {
+   "mapId": "kemikbahce",
+   "detailSrc": "ai"
+  },
+  "10": {
+   "mapId": "gokcark",
+   "detailSrc": "ai"
+  }
+ },
+ "propTypes": {
+  "kupa": {
+   "hx": 18,
+   "hz": 18,
+   "h": 32,
+   "hp": 14,
+   "pri": 2,
+   "drop": 0.55
+  },
+  "fener": {
+   "hx": 11,
+   "hz": 11,
+   "h": 129,
+   "hp": 0,
+   "pri": 1,
+   "lamp": true
+  },
+  "kazan": {
+   "hx": 24,
+   "hz": 24,
+   "h": 46,
+   "hp": 26,
+   "pri": 2,
+   "drop": 0.5,
+   "base": "scorch"
+  },
+  "plaka": {
+   "hx": 34,
+   "hz": 26,
+   "h": 26,
+   "hp": 70,
+   "pri": 2,
+   "drop": 0.2,
+   "base": "slab"
+  },
+  "kemik": {
+   "hx": 26,
+   "hz": 20,
+   "h": 18,
+   "hp": 10,
+   "pri": 2,
+   "drop": 0.34,
+   "base": "pale"
+  },
+  "tuzsutun": {
+   "hx": 24,
+   "hz": 24,
+   "h": 128,
+   "hp": 60,
+   "pri": 1,
+   "drop": 0.28,
+   "base": "pale"
+  },
+  "disli": {
+   "hx": 54,
+   "hz": 54,
+   "h": 58,
+   "hp": 120,
+   "pri": 1,
+   "drop": 0.35,
+   "base": "slab"
+  },
+  "kafatasi": {
+   "hx": 92,
+   "hz": 78,
+   "h": 130,
+   "hp": 0,
+   "pri": 0,
+   "base": "pale"
+  },
+  "totem": {
+   "hx": 14,
+   "hz": 14,
+   "h": 164,
+   "hp": 0,
+   "pri": 0,
+   "wood": true,
+   "base": "dirt"
+  },
+  "agac": {
+   "hx": 20,
+   "hz": 20,
+   "h": 196,
+   "hp": 0,
+   "pri": 1,
+   "wood": true,
+   "base": "dirt",
+   "tree": true,
+   "crown": 58
+  },
+  "fidan": {
+   "hx": 13,
+   "hz": 13,
+   "h": 118,
+   "hp": 0,
+   "pri": 2,
+   "wood": true,
+   "base": "dirt",
+   "tree": true,
+   "crown": 36
+  },
+  "yuva": {
+   "hx": 46,
+   "hz": 46,
+   "h": 86,
+   "hp": 340,
+   "pri": 0,
+   "drop": 1,
+   "quest": true
+  }
+ },
+ "decorSway": {
+  "ot": 1,
+  "cicek": 1,
+  "saz": 1,
+  "mantar": 1
+ },
+ "decorScale": {
+  "ot": 2.4,
+  "cicek": 2.3,
+  "tas": 2.1,
+  "mum": 1.9,
+  "mantar": 1.9,
+  "saz": 1.8,
+  "kazik": 1.35,
+  "kristal": 2.1,
+  "kor": 2,
+  "kemikP": 2,
+  "disliP": 1.9,
+  "yaprakP": 2.3,
+  "kar": 2.1,
+  "nilufer": 2.3
+ },
+ "shieldR": 132,
+ "gemY": 40
+}

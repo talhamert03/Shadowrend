@@ -1,0 +1,324 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>model pişirme</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* Web oyununun model boru hattını (render3d._fetchModel / _loadCharacterModel /
+   _loadModelGroup / _ensureBossModel / silah kurucuları) AYNEN çalıştırır ve
+   sonucu Godot'un açabildiği standart GLB'ye yazar. Oyunun çalışma anında
+   hesapladığı ölçek/konum değerleri models_meta.json'a gider. */
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { clone as skeletonClone } from 'three/addons/utils/SkeletonUtils.js';
+import { Quality, budgetTextures } from '/game/perf.js?v=20260930m';
+import { loadDecimatedHero, loadDecimatedProp, stripRootMotion } from '/game/heroModel.js?v=20260930m';
+import { CHAR_SCALE, BOSS_SCALE, scaleCharTable } from '/game/charLook.js?v=20260930m';
+import { alignLongAxisToX } from '/game/propAlign.js?v=20260930m';
+import { WORLD_ENEMY_MODELS } from '/game/render3d.js?v=20260930m';
+import { save, saveJSON, done } from './common.js';
+
+Quality.init('high', false);
+const HERO_TEX = Quality.budget('texHero');   // 1536
+const TEX = Quality.budget('tex');            // 1024
+const ONLY = new URLSearchParams(location.search).get('only');
+
+/* render3d.js CHARACTER_MODELS — birebir kopya (dışa aktarılmıyor) */
+const CHARACTER_MODELS = {
+  okcu: { glb: 'assets/okcu/okcu_walk.glb', height: 37 },
+  seher: { glb: 'assets/seher/seher.glb', height: 76, floatingWeapon: 'kilic',
+    decimate: { key: 'seher', targetTris: 34000, texSize: 1536, headFrom: 0.70 } },
+  simsek: { glb: 'assets/simsek/simsek.glb', height: 78, floatingWeapon: 'simsek', walkClipName: 'NlaTrack.001', walkRate: 1.5,
+    decimate: { key: 'simsek', targetTris: 34000, texSize: 1536, headFrom: 0.70 } },
+  savasci: { glb: 'assets/savasci/savasci.glb', height: 76, floatingWeapon: 'pala', stripRoot: true },
+  gokalev: { glb: 'assets/gokalev/gokalev.glb', height: 76, floatingWeapon: 'alev', walkClipName: 'NlaTrack', stripRoot: true },
+  korsan: { glb: 'assets/korsan/korsan.glb', height: 80, floatingWeapon: 'topatar', walkClipName: 'NlaTrack', walkRate: 1.25, lift: 0.80,
+    decimate: { key: 'korsan', targetTris: 30000, texSize: 1024, headFrom: 0.70 } },
+  kralice: { glb: 'assets/kralice/kralice.glb', height: 76, floatingWeapon: 'tackilic', walkClipName: 'NlaTrack', lift: 0.62,
+    decimate: { key: 'kralice', targetTris: 30000, texSize: 1024, headFrom: 0.72 } },
+  sovalye: { glb: 'assets/sovalye/sovalye.glb', height: 76, floatingWeapon: 'yemin', walkClipName: 'NlaTrack',
+    decimate: { key: 'sovalye', targetTris: 26000, texSize: 1024, headFrom: 0.72 } },
+  sapanci: { glb: 'assets/sapanci/sapanci.glb', height: 74, floatingWeapon: 'sapan', walkClipName: 'NlaTrack',
+    decimate: { key: 'sapanci', targetTris: 26000, texSize: 1024, headFrom: 0.72 } },
+};
+const BOSS_MODEL = { glb: 'assets/mezarlik/hasat_lordu.glb', height: 150, shadowR: 34, tex: 1024, lift: 0.26 };
+const BOSS_MODELS = { bataklik: { glb: 'assets/bataklik/batak_ejderi.glb', kind: 'ejder', height: 150, shadowR: 38,
+  prop: { targetTris: 6000, texSize: 768 }, decKey: 'batak_ejderi_a1', lift: 0.34, yawFix: Math.PI / 2 } };
+scaleCharTable(CHARACTER_MODELS, CHAR_SCALE);
+scaleCharTable(BOSS_MODEL, BOSS_SCALE);
+scaleCharTable(BOSS_MODELS, BOSS_SCALE);
+
+const A = (p) => '/game/' + p;
+const LOADERS = { GLTFLoader, DRACOLoader };
+const draco = new DRACOLoader();
+draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+async function loadGLB(p) {
+  const l = new GLTFLoader();
+  l.setDRACOLoader(draco);
+  return l.loadAsync(A(p));
+}
+async function exportGLB(rel, obj, clips) {
+  obj.updateMatrixWorld(true);
+  const ex = new GLTFExporter();
+  const buf = await ex.parseAsync(obj, { binary: true, animations: clips || [], onlyVisible: false, maxTextureSize: 4096 });
+  await save(rel, buf);
+}
+const triCount = (o) => { let t = 0; o.traverse((m) => { if (m.isMesh) t += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3; }); return t | 0; };
+const META = { heroes: {}, enemies: {}, bosses: {}, weapons: {} };
+const want = (id) => !ONLY || ONLY.split(',').includes(id);
+
+/* ── KAHRAMANLAR (render3d._fetchModel + _loadCharacterModel) ── */
+async function bakeHero(id, def) {
+  let model, animations;
+  if (def.decimate) {
+    const d = def.decimate;
+    const res = await loadDecimatedHero(THREE, LOADERS, A(def.glb), {
+      key: d.key, targetTris: d.targetTris, texSize: Math.min(d.texSize || 1024, HERO_TEX), headFrom: d.headFrom });
+    model = res.model; animations = res.animations;
+  } else {
+    const gltf = await loadGLB(def.glb);
+    model = gltf.scene; animations = gltf.animations;
+    if (def.stripRoot) {
+      const rootNames = new Set(def.rootBones || ['Root', 'Hip', 'Pelvis', 'Hips', 'Armature']);
+      for (const clip of animations || []) stripRootMotion(clip, rootNames);
+    }
+    budgetTextures(model, HERO_TEX);
+  }
+  const m = skeletonClone(model);
+  const box = new THREE.Box3().setFromObject(m);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const scale = def.height / Math.max(1, size.y);
+  m.scale.setScalar(scale);
+  const box2 = new THREE.Box3().setFromObject(m);
+  m.position.y -= box2.min.y;
+  m.position.x -= (box2.min.x + box2.max.x) / 2;
+  m.position.z -= (box2.min.z + box2.max.z) / 2;
+  const root = new THREE.Group(); root.name = 'hero_' + id; root.add(m);
+  const walkClip = (def.walkClipName && animations.find((a) => a.name === def.walkClipName))
+    || animations.find((a) => /walk/i.test(a.name)) || animations[0] || null;
+  META.heroes[id] = {
+    file: 'heroes/' + id + '.glb', height: def.height, scale, pos: m.position.toArray(),
+    topY: box2.max.y - box2.min.y, walkClip: walkClip ? walkClip.name : null, walkRate: def.walkRate || 1,
+    floatingWeapon: def.floatingWeapon || null, lift: def.lift || 0, tris: triCount(m),
+    clips: animations.map((a) => a.name), hasBones: !!m.getObjectByProperty('isBone', true),
+  };
+  await exportGLB('assets/models/heroes/' + id + '.glb', root, animations);
+}
+
+/* ── DÜŞMANLAR (render3d._loadModelGroup + _fitEnemyRig + restT) ── */
+function fitEnemyRig(rig, mixer, act, def, clip) {
+  const meshes = [];
+  rig.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  const box = new THREE.Box3(), tmp = new THREE.Box3();
+  box.makeEmpty();
+  rig.position.set(0, 0, 0);
+  const anim = !!(act && clip && clip.duration > 0);
+  const t0 = anim ? act.time : 0;
+  const N = anim ? 12 : 1;
+  for (let i = 0; i < N; i++) {
+    if (anim) { act.time = (i / N) * clip.duration; mixer.update(0); }
+    rig.updateMatrixWorld(true);
+    for (const m of meshes) {
+      if (m.isSkinnedMesh && m.computeBoundingBox) { m.computeBoundingBox(); if (!m.boundingBox) continue; tmp.copy(m.boundingBox); }
+      else { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); if (!m.geometry.boundingBox) continue; tmp.copy(m.geometry.boundingBox); }
+      tmp.applyMatrix4(m.matrixWorld);
+      box.union(tmp);
+    }
+  }
+  if (anim) { act.time = t0; mixer.update(0); }
+  if (box.isEmpty()) return null;
+  const h = box.max.y - box.min.y;
+  if (!(h > 0.0001)) return null;
+  return { scale: def.height / h, pos: new THREE.Vector3(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2) };
+}
+async function bakeEnemy(floor, def) {
+  let gltf;
+  if (def.decimate) {
+    const r = await loadDecimatedHero(THREE, LOADERS, A(def.glb), {
+      key: 'e_' + (def.decKey || def.id), targetTris: def.decimate.targetTris,
+      texSize: Math.min(def.decimate.texSize || 512, TEX),
+      headFrom: def.decimate.headFrom != null ? def.decimate.headFrom : 0.84, rootBones: def.rootBones });
+    gltf = { scene: r.model, animations: r.animations };
+  } else {
+    gltf = await loadGLB(def.glb);
+    budgetTextures(gltf.scene, TEX);
+  }
+  const src = gltf.scene;
+  const box = new THREE.Box3().setFromObject(src);
+  const baseScale = def.height / Math.max(0.001, box.max.y - box.min.y);
+  const clips = gltf.animations || [];
+  const rootNames = new Set(def.rootBones || ['Root', 'Hip', 'Pelvis', 'Hips', 'Armature']);
+  src.traverse((o) => { if (o.isBone && !(o.parent && o.parent.isBone)) rootNames.add(o.name); });
+  for (const c of clips) stripRootMotion(c, rootNames);
+  const clip = clips.find((c) => c.name === def.clip) || clips[0] || null;
+  const rig = skeletonClone(src);
+  rig.position.set(0, 0, 0);
+  if (def.yawFix) rig.rotation.y = def.yawFix;
+  const holder = new THREE.Group(); holder.name = 'enemy_' + def.id; holder.add(rig);
+  const mixer = new THREE.AnimationMixer(rig);
+  let act = null, restT = null;
+  if (clip) {
+    act = mixer.clipAction(clip); act.play(); act.time = 0; mixer.update(0);
+    if (def.cast) {
+      const feet = [];
+      rig.traverse((o) => { if (o.isBone && /foot/i.test(o.name)) feet.push(o); });
+      if (feet.length >= 2) {
+        const STEPS = 48; const hi = new Float32Array(STEPS), gp = new Float32Array(STEPS);
+        let minHi = 1e9, maxHi = -1e9;
+        for (let si = 0; si < STEPS; si++) {
+          act.time = (si / STEPS) * clip.duration; mixer.update(0); rig.updateMatrixWorld(true);
+          const A0 = feet[0].matrixWorld.elements, B0 = feet[1].matrixWorld.elements;
+          const fx = A0[12] - B0[12], fz = A0[14] - B0[14];
+          hi[si] = Math.max(A0[13], B0[13]); gp[si] = fx * fx + fz * fz;
+          if (hi[si] < minHi) minHi = hi[si]; if (hi[si] > maxHi) maxHi = hi[si];
+        }
+        const lim = minHi + 0.15 * (maxHi - minHi);
+        let best = 1e9, bestT = 0;
+        for (let si = 0; si < STEPS; si++) { if (hi[si] > lim || gp[si] >= best) continue; best = gp[si]; bestT = (si / STEPS) * clip.duration; }
+        restT = bestT;
+      } else restT = 0;
+      act.time = 0; mixer.update(0);
+    }
+  }
+  let fitScale = baseScale, pos = new THREE.Vector3();
+  const fit = fitEnemyRig(rig, mixer, act, def, clip);
+  if (fit) { fitScale = fit.scale; pos = fit.pos; }
+  if (act) { act.stop(); mixer.uncacheRoot(rig); }
+  rig.position.copy(pos);
+  const bones = [];
+  if (def.cast) rig.traverse((o) => { if (o.isBone && ['R_Upperarm', 'R_Forearm', 'Spine01', 'Head'].includes(o.name)) bones.push(o.name); });
+  META.enemies[def.id] = {
+    floor, file: 'enemies/' + def.id + '.glb', types: def.types, height: def.height, baseScale: fitScale,
+    rigPos: pos.toArray(), yawFix: def.yawFix || 0, clip: clip ? clip.name : null, clipDur: clip ? clip.duration : 0,
+    share: def.share != null ? def.share : 1, shadowR: def.shadowR || 11, stepRate: def.stepRate, stepMin: def.stepMin, stepMax: def.stepMax,
+    idleRate: def.idleRate != null ? def.idleRate : null, emissiveIntensity: def.emissiveIntensity, lift: def.lift || 0,
+    cast: def.cast || 0, castAxis: def.castAxis || 'z', castBones: bones, restT, tris: triCount(rig),
+  };
+  await exportGLB('assets/models/enemies/' + def.id + '.glb', holder, clip ? [clip] : []);
+}
+
+/* ── BOSS'LAR (render3d._ensureBossModel) ── */
+async function bakeBoss(key, def) {
+  let scene;
+  if (def.prop) {
+    const r = await loadDecimatedProp(THREE, LOADERS, A(def.glb), { key: 'e_' + (def.decKey || 'boss'),
+      targetTris: def.prop.targetTris, texSize: Math.min(def.prop.texSize, HERO_TEX) });
+    scene = new THREE.Group(); scene.add(r.model);
+  } else {
+    const g = await loadGLB(def.glb);
+    scene = g.scene;
+    budgetTextures(scene, Math.min(def.tex, HERO_TEX));
+  }
+  const box = new THREE.Box3().setFromObject(scene);
+  const modelH = Math.max(0.001, box.max.y - box.min.y);
+  const s = def.height / modelH;
+  scene.scale.setScalar(s);
+  scene.position.set(-((box.min.x + box.max.x) / 2) * s, -box.min.y * s, -((box.min.z + box.max.z) / 2) * s);
+  if (def.yawFix) scene.rotation.y += def.yawFix;
+  const rig = new THREE.Group(); rig.name = 'boss_' + key; rig.add(scene);
+  META.bosses[key] = { file: 'bosses/' + key + '.glb', kind: def.kind || 'lord', height: def.height, shadowR: def.shadowR, lift: def.lift || 0, tris: triCount(rig) };
+  await exportGLB('assets/models/bosses/' + key + '.glb', rig);
+}
+
+/* ── SÜZÜLEN SİLAHLAR (render3d _buildBow/_buildSling/_buildSword/_buildBlade/_buildFlame/_buildLightningShard/_buildCannon) ── */
+const box3 = (o) => new THREE.Box3().setFromObject(o);
+async function bakeWeapons() {
+  if (want('yay')) {   // _buildBow
+    const bow = (await loadGLB('assets/yay/yay.glb')).scene;
+    const sz = new THREE.Vector3(); box3(bow).getSize(sz);
+    bow.scale.setScalar(46 / Math.max(0.001, sz.y));
+    const c = new THREE.Vector3(); box3(bow).getCenter(c); bow.position.sub(c);
+    const g = new THREE.Group(); g.add(bow);
+    META.weapons.yay = { file: 'weapons/yay.glb' };
+    await exportGLB('assets/models/weapons/yay.glb', g);
+  }
+  if (want('sapan')) {   // _buildSling
+    const sling = (await loadGLB('assets/sapanci/sapan.glb')).scene;
+    alignLongAxisToX(THREE, sling, 44, { flip: false });
+    const g = new THREE.Group(); g.add(sling);
+    META.weapons.sapan = { file: 'weapons/sapan.glb' };
+    await exportGLB('assets/models/weapons/sapan.glb', g);
+  }
+  const SW = { kilic: ['assets/seher/kilic.glb', false, 74], tackilic: ['assets/kralice/tackilic.glb', true, 76], yemin: ['assets/sovalye/yeminkilic.glb', true, 75] };
+  for (const k in SW) {   // _buildSword
+    if (!want(k)) continue;
+    const [glb, flip, len] = SW[k];
+    const sword = (await loadGLB(glb)).scene;
+    budgetTextures(sword, Math.min(1024, HERO_TEX));
+    alignLongAxisToX(THREE, sword, len, { flip });
+    const b2 = box3(sword);
+    sword.position.x -= b2.min.x;
+    const g = new THREE.Group(); g.add(sword);
+    META.weapons[k] = { file: 'weapons/' + k + '.glb', bladeLen: b2.max.x - b2.min.x };
+    await exportGLB('assets/models/weapons/' + k + '.glb', g);
+  }
+  if (want('pala')) {   // _buildBlade
+    const res = await loadDecimatedProp(THREE, LOADERS, A('assets/savasci/pala.glb'), { key: 'pala', targetTris: 9000, texSize: 1024 });
+    const blade = res.model;
+    const sz0 = new THREE.Vector3(); box3(blade).getSize(sz0);
+    if (sz0.z >= sz0.x && sz0.z >= sz0.y) blade.rotation.y = Math.PI / 2;
+    else if (sz0.y >= sz0.x && sz0.y >= sz0.z) blade.rotation.z = Math.PI / 2;
+    blade.updateMatrixWorld(true);
+    const sz1 = new THREE.Vector3(); box3(blade).getSize(sz1);
+    blade.scale.setScalar(74 / Math.max(0.001, sz1.x));
+    blade.updateMatrixWorld(true);
+    const b2 = box3(blade);
+    blade.position.set(-b2.min.x, -(b2.min.y + b2.max.y) / 2, -(b2.min.z + b2.max.z) / 2);
+    const g = new THREE.Group(); g.add(blade);
+    META.weapons.pala = { file: 'weapons/pala.glb' };
+    await exportGLB('assets/models/weapons/pala.glb', g);
+  }
+  if (want('alev')) {   // _buildFlame
+    const H = 42;
+    const flame = (await loadGLB('assets/gokalev/mavialev.glb')).scene;
+    budgetTextures(flame, Math.min(1024, HERO_TEX));
+    const sz0 = new THREE.Vector3(); box3(flame).getSize(sz0);
+    flame.scale.setScalar(H / Math.max(0.001, sz0.y));
+    flame.updateMatrixWorld(true);
+    const b1 = box3(flame);
+    flame.position.set(-(b1.min.x + b1.max.x) / 2, -b1.min.y, -(b1.min.z + b1.max.z) / 2);
+    const g = new THREE.Group(); g.add(flame);
+    META.weapons.alev = { file: 'weapons/alev.glb', H };
+    await exportGLB('assets/models/weapons/alev.glb', g);
+  }
+  if (want('simsek')) {   // _buildLightningShard
+    const shard = (await loadGLB('assets/simsek/yildirim_parca.glb')).scene;
+    budgetTextures(shard, Math.min(1024, HERO_TEX));
+    const sz0 = new THREE.Vector3(); box3(shard).getSize(sz0);
+    shard.scale.setScalar(34 / Math.max(sz0.x, sz0.y, sz0.z, 0.001));
+    const c = new THREE.Vector3(); box3(shard).getCenter(c); shard.position.sub(c);
+    const g = new THREE.Group(); g.add(shard);
+    META.weapons.simsek = { file: 'weapons/simsek.glb' };
+    await exportGLB('assets/models/weapons/simsek.glb', g);
+  }
+  if (want('topatar')) {   // _buildCannon
+    const LEN = 46;
+    const res = await loadDecimatedProp(THREE, LOADERS, A('assets/korsan/topatar.glb'), { key: 'topatar', targetTris: 9000, texSize: 1024, metalness: 0.30, roughness: 0.48 });
+    const gun = res.model;
+    alignLongAxisToX(THREE, gun, LEN, { flip: true });
+    const b2 = box3(gun);
+    gun.position.x -= b2.min.x;
+    const g = new THREE.Group(); g.add(gun);
+    META.weapons.topatar = { file: 'weapons/topatar.glb', barrelLen: b2.max.x - b2.min.x, LEN };
+    await exportGLB('assets/models/weapons/topatar.glb', g);
+  }
+}
+
+(async () => {
+  try {
+    for (const id in CHARACTER_MODELS) if (want(id)) { console.log('kahraman', id); await bakeHero(id, CHARACTER_MODELS[id]); }
+    for (const floor in WORLD_ENEMY_MODELS) for (const def of WORLD_ENEMY_MODELS[floor]) if (want(def.id)) { console.log('düşman', def.id); await bakeEnemy(floor, def); }
+    if (want('lord')) { console.log('boss lord'); await bakeBoss('lord', BOSS_MODEL); }
+    for (const k in BOSS_MODELS) if (want(k)) { console.log('boss', k); await bakeBoss(k, BOSS_MODELS[k]); }
+    await bakeWeapons();
+    await saveJSON('assets/models/models_meta' + (ONLY ? '_' + ONLY.replace(/,/g, '_') : '') + '.json', META);
+    done();
+  } catch (e) { done(e); }
+})();
+</script>

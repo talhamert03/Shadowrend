@@ -1,0 +1,75 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>arena pişirme</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* main.bakeArena() ile AYNI çağrı: bakeArenaMap(worldMapId(w), {play:4000, border:140, world}).
+   Her dünya için: makro doku, döşenen detay dokusu, yerleşim JSON'u.
+   Her harita paleti için: engel (propGeometries) ve süs (decorGeometries) GLB'leri,
+   normal + düşük ("lite") ayrıntı. Ortak: insan (NPC), kalkan kaidesi/mücevheri. */
+import * as THREE from 'three';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { Quality } from '/game/perf.js?v=20260930m';
+import { bakeArenaMap, worldMapId } from '/game/arenaMaps.js?v=20260930m';
+import { preloadAiDetail } from '/game/aiDetail.js?v=20260930m';
+import { WORLDS } from '/game/worlds.js?v=20260930m';
+import { PROP_TYPES } from '/game/arenaProps.js?v=20260930m';
+import { propGeometries, setPropDetail, humanGeometry, shieldBaseGeometry, shieldGemGeometry, SHIELD_R, GEM_Y } from '/game/propModels.js?v=20260930m';
+import { decorGeometries, DECOR_SWAY, DECOR_SCALE } from '/game/decorModels.js?v=20260930m';
+import { save, saveJSON, canvasPNG, done } from './common.js';
+
+Quality.init('high', false);
+const ONLY = new URLSearchParams(location.search).get('only');
+
+async function exportGeos(rel, geos) {
+  const scene = new THREE.Scene();
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true });
+  for (const k in geos) {
+    const g = geos[k];
+    if (!g) continue;
+    const m = new THREE.Mesh(g, mat); m.name = k; scene.add(m);
+  }
+  const buf = await new GLTFExporter().parseAsync(scene, { binary: true });
+  await save(rel, buf);
+}
+
+(async () => {
+  try {
+    const meta = { worlds: {}, propTypes: PROP_TYPES, decorSway: DECOR_SWAY, decorScale: DECOR_SCALE, shieldR: SHIELD_R, gemY: GEM_Y };
+    const mapsDone = new Set();
+    for (const w of WORLDS) {
+      if (ONLY && !ONLY.split(',').includes(String(w.id))) continue;
+      const mapId = worldMapId(w.id);
+      console.log('dünya', w.id, mapId);
+      await preloadAiDetail(mapId);
+      const b = bakeArenaMap(mapId, { play: 4000, border: 140, world: w });
+      const dir = 'assets/arena/w' + w.id + '/';
+      await save(dir + 'macro.png', await canvasPNG(b.macro));
+      await save(dir + 'detail.png', await canvasPNG(b.detail));
+      await saveJSON(dir + 'layout.json', {
+        mapId, world: w.id, play: b.play, border: b.border, tile: b.tile, detailMid: b.detailMid, detailSrc: b.detailSrc,
+        macroSize: b.macro.width, detailSize: b.detail.width,
+        props: b.props, decor: b.decor, fx: b.fx, clears: b.clears, gates: b.gates, encRects: b.encRects,
+      });
+      meta.worlds[w.id] = { mapId, detailSrc: b.detailSrc };
+      if (!mapsDone.has(mapId)) {
+        mapsDone.add(mapId);
+        setPropDetail(false);
+        await exportGeos('assets/arena/props_' + mapId + '.glb', propGeometries(mapId));
+        setPropDetail(true);
+        await exportGeos('assets/arena/props_' + mapId + '_lite.glb', propGeometries(mapId));
+        setPropDetail(false);
+        await exportGeos('assets/arena/decor_' + mapId + '.glb', decorGeometries(mapId));
+      }
+    }
+    await exportGeos('assets/arena/objective.glb', { human: humanGeometry(), shieldBase: shieldBaseGeometry(), shieldGem: shieldGemGeometry() });
+    await saveJSON('assets/arena/arena_meta' + (ONLY ? '_' + ONLY.replace(/,/g, '_') : '') + '.json', meta);
+    done();
+  } catch (e) { done(e); }
+})();
+</script>

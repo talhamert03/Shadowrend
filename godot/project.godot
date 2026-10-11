@@ -1,0 +1,40 @@
+; Shadowrend — Godot 4 mobil sürümü
+config_version=5
+
+[application]
+
+config/name="Shadowrend"
+config/description="Mobil aksiyon RPG"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+boot_splash/bg_color=Color(0.031, 0.024, 0.039, 1)
+config/icon="res://icon.png"
+
+[display]
+
+window/size/viewport_width=390
+window/size/viewport_height=844
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+window/energy_saving/keep_screen_on=true
+window/vsync/vsync_mode=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+textures/canvas_textures/default_texture_filter=1
+anti_aliasing/quality/msaa_3d=0
+environment/defaults/default_clear_color=Color(0.027, 0.031, 0.051, 1)
+lights_and_shadows/directional_shadow/size=1024
+textures/default_filters/anisotropic_filtering_level=3
