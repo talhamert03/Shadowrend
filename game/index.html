@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="application-name" content="Shadowrend">
+<meta name="apple-mobile-web-app-title" content="Shadowrend">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="store/ikon-kurukafa-512.png">
+<link rel="apple-touch-icon" href="store/ikon-kurukafa-512.png">
+<meta name="theme-color" content="#0b0d13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Shadowrend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- three.js ve Draco çözücü de ağdan geliyor: el sıkışmayı (DNS+TLS) sayfa
+     ayrıştırılırken başlat, modül isteği geldiğinde bağlantı hazır olsun.
+     İlk açılışta ~150-350 ms kazanç; sonraki açılışlarda sw.js zaten
+     önbellekten servis ediyor. -->
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://unpkg.com/three@0.169.0/build/three.module.js" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- AÇILIŞ KADROSU: ilk boyanan piksel bu görseldir; keşfi ayrıştırıcıya
+     bırakmayız (tek istek, ölçülen 277 KB). -->
+<link rel="preload" as="image" href="assets/isles/kul_b.webp" fetchpriority="high">
+<link rel="stylesheet" href="style.css?v=20260930n">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════ AÇILIŞ EKRANI ═══════════
+     Logo bilerek YOK (v36 kullanıcı kararı). kadro.webp (v36) diskte geri
+     dönüş için duruyor; artık istenmiyor. -->
+<!-- v42 (2026-09-23): GÖK KALESİ — logo · kızıl ay · oyunun kendi AI adaları
+     (kul_b + mezarlik_3 + katedral_2 = 223 KB, menü zaten aynı dosyaları ister).
+     Gök, ay, bulut, logo CSS; animasyonlar YALNIZ transform (bkz. style.css v42). -->
+<section id="splash" data-screen-label="Açılış">
+  <div class="sp-sky" aria-hidden="true"><i class="sp-stars"></i><i class="sp-stars sp-stars-b"></i></div>
+  <h1 class="sp-logo" aria-label="Shadowrend"><span class="sp-l2" data-t="SHADOWREND">SHADOWREND</span><i class="sp-orn"><b></b></i></h1>
+  <div class="sp-world" aria-hidden="true">
+    <i class="sp-halo"></i><i class="sp-rays"></i><i class="sp-moon"></i>
+    <i class="sp-cloud sp-cloud-back"></i>
+    <div class="sp-isle sp-s1"><img src="assets/isles/mezarlik_3.webp" alt="" decoding="async"></div>
+    <div class="sp-isle sp-s2"><img src="assets/isles/katedral_2.webp" alt="" decoding="async"></div>
+    <div class="sp-isle sp-main"><img id="splash-art" src="assets/isles/kul_b.webp" alt="" fetchpriority="high" decoding="async"></div>
+    <i class="sp-fog sp-fog-a"></i><i class="sp-fog sp-fog-b"></i>
+    <i class="sp-cloud sp-cloud-front"></i>
+  </div>
+  <div class="sp-embers" aria-hidden="true">
+    <i style="--x:8%;--s:3px;--t:7.5s;--d:-1.2s;--dx:14px"></i>
+    <i style="--x:17%;--s:2px;--t:9s;--d:-5.1s;--dx:-10px"></i>
+    <i style="--x:26%;--s:4px;--t:8.2s;--d:-3.4s;--dx:18px"></i>
+    <i style="--x:34%;--s:2px;--t:10s;--d:-7.6s;--dx:-6px"></i>
+    <i style="--x:43%;--s:3px;--t:7s;--d:-2.2s;--dx:12px"></i>
+    <i style="--x:51%;--s:2px;--t:9.4s;--d:-8.8s;--dx:-16px"></i>
+    <i style="--x:58%;--s:4px;--t:8.6s;--d:-4.3s;--dx:8px"></i>
+    <i style="--x:66%;--s:2px;--t:7.8s;--d:-6.5s;--dx:-12px"></i>
+    <i style="--x:74%;--s:3px;--t:9.8s;--d:-0.6s;--dx:16px"></i>
+    <i style="--x:82%;--s:2px;--t:8s;--d:-3.9s;--dx:-8px"></i>
+    <i style="--x:90%;--s:3px;--t:10.6s;--d:-9.2s;--dx:-14px"></i>
+    <i style="--x:96%;--s:2px;--t:7.2s;--d:-5.7s;--dx:-18px"></i>
+  </div>
+  <div class="sp-ash" aria-hidden="true">
+    <i style="--x:5%;--s:2px;--t:11s;--d:-2s;--dx:30px"></i>
+    <i style="--x:14%;--s:3px;--t:14s;--d:-9s;--dx:-24px"></i>
+    <i style="--x:23%;--s:2px;--t:12s;--d:-5s;--dx:20px"></i>
+    <i style="--x:31%;--s:2px;--t:16s;--d:-12s;--dx:-30px"></i>
+    <i style="--x:40%;--s:3px;--t:13s;--d:-1s;--dx:26px"></i>
+    <i style="--x:49%;--s:2px;--t:15s;--d:-7s;--dx:-18px"></i>
+    <i style="--x:57%;--s:2px;--t:12s;--d:-10s;--dx:22px"></i>
+    <i style="--x:65%;--s:3px;--t:14s;--d:-4s;--dx:-26px"></i>
+    <i style="--x:73%;--s:2px;--t:11s;--d:-8s;--dx:18px"></i>
+    <i style="--x:81%;--s:2px;--t:16s;--d:-3s;--dx:-22px"></i>
+    <i style="--x:88%;--s:3px;--t:13s;--d:-11s;--dx:28px"></i>
+    <i style="--x:95%;--s:2px;--t:12s;--d:-6s;--dx:-20px"></i>
+  </div>
+  <div class="sp-vig" aria-hidden="true"></div>
+  <div class="sp-veil" aria-hidden="true"></div>
+  <script>
+    /* ARIZA yolu: yüklenemeyen ada kaldırılır, gök kalır. `.on` tezgah işareti. */
+    (function () {
+      var imgs = document.querySelectorAll('#splash img');
+      for (var i = 0; i < imgs.length; i++) (function (a) {
+        if (a.complete && a.naturalWidth) a.classList.add('on');
+        else {
+          a.addEventListener('load', function () { a.classList.add('on'); }, { once: true });
+          a.addEventListener('error', function () { a.remove(); }, { once: true });
+        }
+      })(imgs[i]);
+    })();
+  </script>
+  <!-- YÜKLEME BLOĞU (v26 bileşeni korunur): dibe sabit, akışı itmez.
+       Sıra ipucu → çubuk → durum satırı. -->
+  <div class="splash-load">
+    <span class="sp-tiptag">İPUCU</span>
+    <p id="splash-tip" class="sp-tip">Kızıl ay yükseliyor…</p>
+    <div class="sload-track" id="splash-bar" role="progressbar" aria-label="Yükleniyor"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <i class="sload-fill" id="splash-fill"></i>
+      <i class="sload-shine" aria-hidden="true"></i>
+      <span class="sload-pct" id="splash-pct">0%</span>
+    </div>
+    <p class="sload-step" id="splash-step">HAZIRLANIYOR…</p>
+  </div>
+</section>
+
+<!-- ═══════════ OYUN KATMANI ═══════════ -->
+<canvas id="game3d"></canvas>
+<canvas id="game"></canvas>
+
+<!-- Hasar aldığında kenarlardan parlayan kızıl vinyet -->
+<div id="hurt-vignette" aria-hidden="true"></div>
+<!-- Can %30'un altındayken nabız atan tehlike kenarı (v39) -->
+<div id="danger-vignette" aria-hidden="true"></div>
+<!-- v70 A6: yönlü hasar yayı (ui.hurtDir) -->
+<div id="hurt-dir" aria-hidden="true"><i class="hdr-arc"></i></div>
+
+<!-- ═══════════ HUD ═══════════ -->
+<header id="hud" class="hidden" data-screen-label="Oyun içi HUD">
+  <div id="xp-bar" role="progressbar" aria-label="Tecrübe">
+    <div id="xp-fill"></div>
+    <div id="xp-glint"></div>
+  </div>
+  <div class="hud-row">
+    <div class="hud-cell">
+      <span class="hud-label">SEVİYE</span>
+      <span id="hud-level" class="hud-value">1</span>
+    </div>
+    <div class="hud-mid">
+      <div id="hud-wave">DALGA 1</div>
+      <div id="hud-timer">00:20</div>
+    </div>
+    <div class="hud-cell right">
+      <span class="hud-label">MATERYAL</span>
+      <span id="hud-money" class="hud-value gold">0</span>
+    </div>
+  </div>
+  <button id="btn-ult" class="ult" type="button" aria-label="Süper yetenek"><i class="ult-ring"></i><i class="ult-core"><svg viewBox="0 0 24 24"><path d="M13 2 L5 13 h5 l-1 9 8-11 h-5 z"/></svg></i><b class="ult-lab">SÜPER</b></button>
+  <button id="btn-pause" aria-label="Duraklat">
+    <svg viewBox="0 0 24 24" width="20" height="20"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></svg>
+  </button>
+  <!-- GÖREV SEKMESİ YOK (2026-08-24, kullanıcı isteği).
+       Görev haritada bulunan bir YERDİR; oyuna girildiği anda tepede bir
+       sekme açmak onu keşif olmaktan çıkarıyordu. Yönlendirme artık dünya
+       uzayında: kalkan kubbesi · varış feneri · oyuncunun yanında duran
+       görev oku (main.renderObjectiveArrow). Mini harita v49'da kalktı. -->
+  <!-- ETKİN GÜÇLER: yalnız süreli olanlar (kalkan, dondurma, mıknatıs) -->
+  <div id="pu-row"></div>
+  <div id="boss-bar" class="hidden">
+    <span id="boss-name">KADİM HASATÇI</span>
+    <div class="boss-track"><div id="boss-fill"></div></div>
+  </div>
+</header>
+
+<!-- Dalga başlangıç pankartı -->
+<div id="banner" class="hidden" aria-hidden="true">
+  <span id="banner-main"></span>
+  <span id="banner-sub"></span>
+</div>
+
+<!-- ═══════════ ANA EKRAN (oyun evi) ═══════════ -->
+<section id="screen-menu" class="screen menu-shell" data-screen-label="Ana menü">
+  <div class="menu-sky" aria-hidden="true"></div>
+  <div class="motes" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+
+  <!-- Üst şerit v3: seviye + cüzdanlar / profil plaketi -->
+  <div class="topbar tbv3">
+    <div class="tb-row">
+      <button id="tb-level" class="tb-level" aria-label="Hesap Seviyesi">
+        <span class="tbl-star"><svg viewBox="0 0 24 24"><path d="M12 2 L19 5.2 V11.5 C19 16 16 19.6 12 21 C8 19.6 5 16 5 11.5 V5.2 Z" fill="currentColor"/><path d="M12 3.6 L17.6 6.2 V11.5 C17.6 15.2 15.2 18.3 12 19.5 C8.8 18.3 6.4 15.2 6.4 11.5 V6.2 Z" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/></svg><b id="tbl-num">1</b></span>
+        <span class="tbl-bar"><i id="tbl-fill"></i><em id="tbl-txt">0/2</em></span>
+      </button>
+      <button class="tb-cur"><span class="tbc-plus">+</span><span class="ruby"></span><b id="menu-ruby-val">0</b></button>
+      <button class="tb-cur"><span class="tbc-plus">+</span><span class="stone"></span><b id="menu-stone-val">0</b></button>
+      <!-- AYARLAR: GEMİN HEMEN SAĞINDA (v30, kullanıcı isteği). İkinci satır
+           artık savaş bileti + görevler İKİLİSİNE ayrıldı; dişli para
+           şeridinin sonuna geçti — cüzdan ve hesap işleri tek satırda. -->
+      <!-- v63 M1: bilet · görevler · günlük hedefler · mühür TEK çekmecede; tek rozet -->
+      <button id="tb-daily" class="tb-daily" aria-label="Günlük"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.2 H18 V20.8 L12 17.6 L6 20.8 Z"/><path d="M9.2 8.6 H14.8 M9.2 12.2 H13.2"/></svg><b>GÜNLÜK</b><i id="tb-daily-n" class="tbd-n hidden">0</i></button>
+      <button id="btn-settings" class="tb-gear" aria-label="Ayarlar">
+        <!-- GERÇEK DİŞLİ. Önceki sürüm daire + 8 ayrık radyal çizgiydi:
+             bu evrensel PARLAKLIK/güneş glifidir, cog değil — hem de
+             ayarlara giden tek giriş noktasında. Diş geometrisi gövdeye
+             TEMAS eden trapezlerle çizilir (boşluk ışın hissi verir). -->
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.9 1.8 h4.2 l.42 2.36 a8.3 8.3 0 0 1 1.86.78 l1.86-1.5 2.97 2.97 -1.5 1.86 a8.3 8.3 0 0 1 .78 1.86 l2.36.42 v4.2 l-2.36.42 a8.3 8.3 0 0 1-.78 1.86 l1.5 1.86 -2.97 2.97 -1.86-1.5 a8.3 8.3 0 0 1-1.86.78 l-.42 2.36 h-4.2 l-.42-2.36 a8.3 8.3 0 0 1-1.86-.78 l-1.86 1.5 -2.97-2.97 1.5-1.86 a8.3 8.3 0 0 1-.78-1.86 l-2.36-.42 v-4.2 l2.36-.42 a8.3 8.3 0 0 1 .78-1.86 l-1.5-1.86 2.97-2.97 1.86 1.5 a8.3 8.3 0 0 1 1.86-.78 Z M12 8.35 a3.65 3.65 0 1 0 0 7.3 a3.65 3.65 0 0 0 0-7.3 Z" fill-rule="evenodd"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- v63 M1 GÜNLÜK ÇEKMECESİ -->
+  <div id="daily-drawer" class="dd hidden" aria-hidden="true">
+    <i class="dd-dim" id="dd-dim"></i>
+    <div class="dd-sheet" role="dialog" aria-label="Günlük">
+      <div class="dd-head"><b>GÜNLÜK</b><button id="dd-close" class="dd-x" aria-label="Kapat">×</button></div>
+    <!-- İKİNCİ SATIR: SAVAŞ BİLETİ + GÖREVLER YAN YANA (v30).
+         İkisi de "biriken ilerleme" nesnesi, ikisi de aynı iskelet
+         (rozet · başlık · çubuk · alt satır) — yan yana durunca tek bir
+         dil okunur. Görevler eskiden etkinlik sayfasının tepesindeydi ve
+         orada sayfanın afişini eziyordu. -->
+    <div class="dd-duo">
+      <button id="bp-banner" class="bp-banner" aria-label="Savaş Bileti">
+        <span class="bpb-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2.8 H17.6 C18.5 2.8 19.2 3.5 19.2 4.4 V19.6 C19.2 20.5 18.5 21.2 17.6 21.2 H7 C5.8 21.2 4.8 20.2 4.8 19 V5 C4.8 3.8 5.8 2.8 7 2.8 Z"/><path d="M4.8 17.6 C5.3 17.1 6 16.8 7 16.8 H19.2"/></svg>
+          <b id="bpb-tier">1</b>
+        </span>
+        <span class="bpb-text">
+          <span class="bpb-title">SAVAŞ BİLETİ</span>
+          <span class="bpb-bar"><i id="bpb-fill"></i></span>
+          <span id="bpb-txt" class="bpb-sub">0/2</span>
+        </span>
+        <span class="bpb-cta">AÇ<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5 L16 12 L9 19"/></svg></span>
+      </button>
+      <!-- GÖREVLER: günlük giriş + haftalık kuşak. Rozet YALNIZ alınmayı
+           bekleyen bir şey varken görünür — sürekli yanan rozet iki günde
+           öğrenilir ve görünmez olur. -->
+      <button id="quest-open" class="tb-quest" aria-label="Görevler">
+        <span class="tq-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.2 H18 V20.8 L12 17.6 L6 20.8 Z"/><path d="M9.2 8.6 H14.8 M9.2 12.2 H13.2"/></svg>
+        </span>
+        <span class="tq-text">
+          <span class="tq-title">GÖREVLER</span>
+          <span class="tq-bar"><i id="quest-pts-fill"></i></span>
+          <span id="quest-teaser-sub" class="tq-sub">0/60 PUAN</span>
+        </span>
+        <span id="quest-teaser-badge" class="tq-dot hidden">!</span>
+      </button>
+    </div>
+      <button id="dd-events" class="dd-row"><span><b>GÜNLÜK HEDEFLER · MÜHÜR · KULE</b><em id="dd-ev-sub">Etkinlik sayfasında</em></span><i>›</i></button>
+    </div>
+  </div>
+
+  <!-- Sekmeler arası kaydırma için ortak görüntü alanı -->
+  <div class="page-viewport">
+  <!-- ── SAYFA: SAVAŞ (ana ev — CR düzeni, özgün undead) ── -->
+  <div id="page-savas" class="menu-page page-home" data-screen-label="Savaş sayfası">
+    <div class="home-col">
+
+      <!-- Ücretsiz + zafer sandığı (ana ekranın en üstü — kupa çubuğunun yerine) -->
+      <div class="chest-duo top">
+        <button id="free-chest" class="duo-card" style="--dc:#a8794a">
+          <span class="duo-glyph" id="free-chest-glyph"></span>
+          <span class="duo-t"><b>ÜCRETSİZ SANDIK</b><span id="free-chest-state" class="duo-state">—</span></span>
+        </button>
+        <button id="victory-chest" class="duo-card crown" style="--dc:#b87351">
+          <span class="duo-glyph" id="victory-chest-glyph"></span>
+          <span class="duo-t"><b>ZAFER SANDIĞI</b><span id="victory-chest-state" class="duo-state">0/5</span><i class="vc-track"><em id="vc-fill"></em></i></span>
+        </button>
+      </div>
+
+      <!-- HARİTA SAHNESİ: yan butonlar + kaideli diyorama -->
+      <div class="map-stage">
+        <button id="home-map" class="map-frame" style="--wc:#ff3b4e">
+          <span class="map-sheen" aria-hidden="true"></span>
+          <div class="map-float">
+            <canvas id="map-canvas-3d"></canvas>
+          </div>
+          <span class="map-hint">HARİTAYA DOKUN<span class="mh-chev">›</span></span>
+        </button>
+        <button id="map-pedestal" class="map-pedestal">
+          <span class="chp-medal">
+            <em class="chp-medal-tag">DÜNYA</em>
+            <b id="map-world-no" class="chp-medal-no">1</b>
+          </span>
+          <span class="chp-body">
+            <span id="map-world-name" class="chp-name">SOLGUN MEZARLIK</span>
+            <span class="chp-progress">
+              <span class="chp-track"><i id="map-world-fill" class="chp-fill"></i><em class="chp-ticks" aria-hidden="true"></em></span>
+              <span id="map-world-count" class="chp-count">0/10</span>
+            </span>
+          </span>
+          <span class="chp-go">
+            <em class="chp-go-tag">BÖLÜM</em>
+            <b id="map-mission-no" class="chp-go-no">1</b>
+            <svg class="chp-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5 L16 12 L9 19"/></svg>
+          </span>
+        </button>
+      </div>
+
+      <!-- Savaş rıhtımı: tek büyük savaş butonu -->
+      <button id="next-goal" class="next-goal hidden" type="button"><i class="ng-dot"></i><span id="next-goal-t"></span></button>
+      <div class="battle-dock solo">
+        <button id="btn-start" class="btn-battle">
+          <span class="bb-shine" aria-hidden="true"></span>
+          <span class="bb-blades" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="currentColor"><path d="M20.5 4.5 L11 14 L13 16 L22.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M23.5 3.5 L20.5 4.5 L22.5 6.5 L23.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M9.5 17.5 L7 20 M6.5 15.5 L10.5 19.5" stroke-width="2.2"/></g><g stroke="currentColor"><path d="M7.5 4.5 L17 14 L15 16 L5.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M4.5 3.5 L7.5 4.5 L5.5 6.5 L4.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M18.5 17.5 L21 20 M21.5 15.5 L17.5 19.5" stroke-width="2.2"/></g></svg>
+          </span>
+          <span class="bb-text">
+            <span class="bb-main">SAVAŞ</span>
+            <span class="bb-sub" id="battle-mission">GÖREV 1 · 4 DALGA HAYATTA KAL</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Sandık yuvaları -->
+      <div id="chest-row" class="chest-row"></div>
+    </div>
+  </div>
+
+  <!-- ── SAYFA: DÜNYALAR (haritaya dokununca açılır — dikey yolculuk) ── -->
+  <div id="page-dunyalar" class="menu-page page-journey hidden" data-screen-label="Dünyalar haritası">
+    <div class="journey-head">
+      <button id="journey-back" class="journey-back" aria-label="Geri">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg>
+      </button>
+      <span class="journey-title">SEFER HARİTASI</span>
+    </div>
+    <div id="journey" class="journey"></div>
+  </div>
+
+  <!-- ── SAYFA: KAHRAMANLAR ── -->
+  <div id="page-kahraman" class="menu-page hidden" data-screen-label="Kahramanlar">
+    <div class="armory-body">
+      <div id="char-grid" class="hero-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── SAYFA: ETKİNLİKLER (Hayatta Kalma Kupası) ── -->
+  <div id="page-etkinlik" class="menu-page hidden" data-screen-label="Etkinlikler">
+    <div class="armory-body event-body">
+      <!-- AFİŞ (v30): tek bir nesne — göz sırası eyebrow → ad → BÜYÜK SAYI
+           → ray. Eski sürüm mor bir panel + iki satır açıklama metniydi;
+           mor bu paletin GEM rengidir, etkinlik onu ödünç almaz. -->
+      <section class="ev-poster">
+        <span class="evp-embers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="evp-top">
+          <span class="evp-eyebrow">SÜREKLİ ETKİNLİK</span>
+          <span id="event-stage" class="evp-stage">AŞAMA 0 / 8</span>
+        </span>
+        <h2 class="evp-title">HAYATTA KALMA KUPASI</h2>
+        <p class="evp-line">Sahada geçen her dakika yolda bir adımdır.</p>
+        <div class="evp-meter">
+          <div class="evm-row">
+            <span class="evm-count"><b id="event-total">0</b><em>DAKİKA</em></span>
+            <span id="event-next" class="evm-next">Sonraki ödüle 2 dk</span>
+          </div>
+          <span class="evm-rail"><i id="event-bar-fill"></i></span>
+        </div>
+      </section>
+      <div class="ev-sec">
+        <span class="ev-sec-k">ÖDÜL YOLU</span>
+        <span id="event-ready" class="ev-sec-v">0 / 8 AÇILDI</span>
+      </div>
+      <div id="event-track" class="event-map"></div>
+      <div class="event-dock">
+        <button id="event-battle" class="btn-battle event-battle">
+          <span class="bb-shine" aria-hidden="true"></span>
+          <span class="bb-blades" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="currentColor"><path d="M20.5 4.5 L11 14 L13 16 L22.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M23.5 3.5 L20.5 4.5 L22.5 6.5 L23.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M9.5 17.5 L7 20 M6.5 15.5 L10.5 19.5" stroke-width="2.2"/></g><g stroke="currentColor"><path d="M7.5 4.5 L17 14 L15 16 L5.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M4.5 3.5 L7.5 4.5 L5.5 6.5 L4.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M18.5 17.5 L21 20 M21.5 15.5 L17.5 19.5" stroke-width="2.2"/></g></svg>
+          </span>
+          <span class="bb-text">
+            <span class="bb-main">HAYATTA KAL</span>
+            <span class="bb-sub" id="event-battle-sub">Süre biriktir · yolu aç</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SAYFA: CEPHANE (kuşanım — eşyaları karaktere giydir) ── -->
+  <div id="page-cephane" class="menu-page hidden" data-screen-label="Kuşanım">
+    <!-- v40: kahraman sahnesi (4 yuva kahramanı çevreler) + sekmeli çanta.
+         Yuvaya dokun → çanta o yuvaya süzülür · karta dokun → KUŞAN / İNCELE -->
+    <div class="armory-body kz">
+      <!-- v70 D4: kahraman başına 3 kayıtlı dizilim -->
+      <section id="kz-decks" class="kz-decks" aria-label="Dizilimler">
+        <div class="kz-head"><span class="kz-title">DİZİLİMLER</span><span id="kzd-hero" class="kz-count">—</span><span class="kzd-hint">dokun: geç · tekrar: adlandır</span></div>
+        <div id="kzd-row" class="kzd-row" role="tablist"></div>
+      </section>
+      <section id="kz-hero" class="kz-hero">
+        <div class="kz-head">
+          <span class="kz-title">KUŞANIM</span>
+          <span id="slot-count" class="kz-count">—</span>
+          <button id="kz-swap" class="kz-swap" type="button">KAHRAMAN ⇄</button>
+        </div>
+        <div class="kz-stage">
+          <div id="kz-col-l" class="kz-col"></div>
+          <div class="kz-portrait">
+            <span class="kz-aura" aria-hidden="true"></span>
+            <div class="kz-avatar">
+              <canvas id="loadout-portrait" width="150" height="150"></canvas>
+              <img id="loadout-portrait-img" class="hidden" alt="">
+            </div>
+            <span id="loadout-name" class="kz-name">HASATÇI</span>
+            <span class="kz-power"><b id="kz-power">0</b>GÜÇ</span>
+          </div>
+          <div id="kz-col-r" class="kz-col"></div>
+        </div>
+        <div id="kz-stats" class="kz-stats"></div>
+        <p class="kz-note">Eşyalar seçili kahramana giyilir · yuvaya dokun, çanta o yuvaya süzülsün</p>
+      </section>
+      <section id="kz-bag" class="kz-bag">
+        <div class="kz-head"><span class="kz-title">ÇANTA</span><span id="kz-bag-sub" class="kz-count">—</span></div>
+        <div id="kz-tabs" class="kz-tabs" role="tablist"></div>
+        <div id="armory-shop" class="kz-grid"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ── SAYFA: MAĞAZA (2026-08-31: SANDIK VİTRİNİ EN ÜSTTE) ──
+       Sıra kasıtlı: sandık oyunun en cazip nesnesidir, mağazanın ilk
+       ekranı o olmak zorunda. Gem paketleri ve bozdurma AŞAĞIDA yaşar —
+       oyuncu sandığı ister, gemi sandık için alır. Vitrin JS'te kurulur
+       (bkz. ui.renderMagaza): bir satırda EN FAZLA ÜÇ sandık. -->
+  <div id="page-magaza" class="menu-page hidden" data-screen-label="Mağaza">
+    <div class="magaza-col">
+      <div id="shop-chests" class="chest-vitrine"></div>
+      <div class="shop-sec"><b>KART PAZARI</b><em id="mkt-left">altınla · her gün yenilenir</em></div>
+      <div id="card-market" class="card-market"></div>
+      <div class="shop-sec"><b>GEM KESESİ</b><em>premium · anında</em></div>
+      <div id="stone-shop" class="stone-shop"></div>
+      <div class="shop-sec"><b>GEM BOZDUR</b><em>gem → altın</em></div>
+      <div id="ruby-exchange" class="ruby-exchange"></div>
+      <p class="panel-note center">Altın her görevin sonunda kazanılır — ölsen bile. Gem ise gerçek para ile alınır; efsane kahramanlar onunla açılır.</p>
+    </div>
+  </div>
+  </div><!-- /.page-viewport -->
+
+  <!-- v76 ALT DOK: gece siyahı levha, gümüş kıl çizgi, ortada kor SAVAŞ sikkesi; tek kayan gösterge (.dk-ind) -->
+  <nav class="dock" aria-label="Ana menü">
+    <button class="dk-tab" data-page="magaza">
+      <span class="dk-ico">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.2 C4 6 6.2 4 9 4 H15 C17.8 4 20 6 20 9.2 V10.2 H4 Z"/><path d="M4 11.8 H9.6 V12.6 A2.4 2.4 0 0 0 14.4 12.6 V11.8 H20 V17.6 A2.4 2.4 0 0 1 17.6 20 H6.4 A2.4 2.4 0 0 1 4 17.6 Z"/><circle cx="12" cy="12.4" r="1.15" fill="rgba(10,13,24,0.85)"/></svg>
+      </span>
+      <i class="dk-lab">MAĞAZA</i>
+    </button>
+    <button class="dk-tab" data-page="cephane">
+      <span class="dk-ico">
+        <svg viewBox="0 0 24 24"><path d="M9.4 3.2 C10.1 4.7 11 5.3 12 5.3 C13 5.3 13.9 4.7 14.6 3.2 L17.4 4.1 L20.4 6.4 L18.7 10.3 L17.4 9.7 V14.2 C17.4 17.7 15.1 20.1 12 21.2 C8.9 20.1 6.6 17.7 6.6 14.2 V9.7 L5.3 10.3 L3.6 6.4 L6.6 4.1 Z" fill="currentColor"/><path d="M12 7.6 V18.8 M8.7 11 C10.1 12.5 11.3 12.5 12 11.7 C12.7 12.5 13.9 12.5 15.3 11 M7.6 15.3 C10.2 16.3 13.8 16.3 16.4 15.3" fill="none" stroke="rgba(10,13,24,0.85)" stroke-width="1.35" stroke-linecap="round"/></svg>
+      </span>
+      <i class="dk-lab">KUŞANIM</i>
+    </button>
+    <button class="dk-tab dk-battle active" data-page="savas" aria-label="Savaş">
+      <span class="dk-medal">
+        <svg viewBox="0 0 28 28" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="currentColor"><path d="M20.5 4.5 L11 14 L13 16 L22.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M23.5 3.5 L20.5 4.5 L22.5 6.5 L23.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M9.5 17.5 L7 20 M6.5 15.5 L10.5 19.5" stroke-width="2.4"/></g><g stroke="currentColor"><path d="M7.5 4.5 L17 14 L15 16 L5.5 6.5 Z" fill="currentColor" stroke-width="1.4"/><path d="M4.5 3.5 L7.5 4.5 L5.5 6.5 L4.5 3.5 Z" fill="currentColor" stroke-width="1"/><path d="M18.5 17.5 L21 20 M21.5 15.5 L17.5 19.5" stroke-width="2.4"/></g></svg>
+      </span>
+      <i class="dk-lab">SAVAŞ</i>
+    </button>
+    <button class="dk-tab" data-page="kahraman">
+      <span class="dk-ico">
+        <svg viewBox="0 0 24 24"><path d="M12 2.6 C7.7 2.6 5.3 6.1 5.3 10.4 C5.3 12.6 5.9 14.4 7 15.7 L3.8 21.4 H20.2 L17 15.7 C18.1 14.4 18.7 12.6 18.7 10.4 C18.7 6.1 16.3 2.6 12 2.6 Z" fill="currentColor"/><path d="M12 7.1 C9.6 7.1 8.4 9.1 8.4 11.3 C8.4 13.3 10 14.7 12 15.5 C14 14.7 15.6 13.3 15.6 11.3 C15.6 9.1 14.4 7.1 12 7.1 Z" fill="rgba(10,13,24,0.88)"/><ellipse cx="10.5" cy="11.4" rx="0.95" ry="0.7" fill="currentColor"/><ellipse cx="13.5" cy="11.4" rx="0.95" ry="0.7" fill="currentColor"/><circle cx="12" cy="18.6" r="1.05" fill="rgba(10,13,24,0.85)"/></svg>
+      </span>
+      <i class="dk-lab">KAHRAMAN</i>
+    </button>
+    <button class="dk-tab" data-page="etkinlik">
+      <span class="dk-ico">
+        <svg viewBox="0 0 24 24"><path d="M6.6 5.2 H4.4 C4.4 8.3 5.5 10.2 7.6 10.8 M17.4 5.2 H19.6 C19.6 8.3 18.5 10.2 16.4 10.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.4 3.3 H17.6 V8 C17.6 11.4 15.3 13.7 12 13.9 C8.7 13.7 6.4 11.4 6.4 8 Z M10.7 13.6 H13.3 V16.8 H10.7 Z M7.6 17.3 H16.4 L17.4 21 H6.6 Z" fill="currentColor"/><path d="M12 5.7 L12.6 7.4 L14.3 7.5 L13 8.5 L13.4 10.1 L12 9.2 L10.6 10.1 L11 8.5 L9.7 7.5 L11.4 7.4 Z" fill="rgba(10,13,24,0.85)"/></svg>
+      </span>
+      <i class="dk-lab">ETKİNLİK</i>
+    </button>
+  </nav>
+</section>
+
+<!-- ═══════════ KARAKTER İNCELEME ═══════════ -->
+<section id="screen-chardetail" class="screen overlay hero-detail hidden" data-screen-label="Karakter inceleme">
+  <div class="hd-card">
+    <i class="hd-rim" aria-hidden="true"></i>
+    <div class="hd-inner">
+      <div class="hd-stage">
+        <i class="hd-rays" aria-hidden="true"></i>
+        <i id="cd-aura" class="hd-aura" aria-hidden="true"></i>
+        <canvas id="cd-hero" class="hd-hero" width="360" height="360"></canvas>
+        <img id="cd-hero-img" class="hd-hero-img hidden" alt="">
+        <i class="hd-foil" aria-hidden="true"></i>
+        <span class="hd-embers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="hd-lockmark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 10 V8 A5 5 0 0 1 17 8 V10 H18.4 A1.6 1.6 0 0 1 20 11.6 V20.4 A1.6 1.6 0 0 1 18.4 22 H5.6 A1.6 1.6 0 0 1 4 20.4 V11.6 A1.6 1.6 0 0 1 5.6 10 Z M9.4 10 H14.6 V8 A2.6 2.6 0 0 0 9.4 8 Z"/></svg></span>
+        <div class="hd-tags">
+          <span id="cd-rarity" class="hd-rar">EFSANE</span>
+          <span id="cd-class" class="hd-class">YAKIN</span>
+        </div>
+        <button id="cd-close" class="hd-close" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+        </button>
+      </div>
+      <div class="hd-title">
+        <span id="hd-lvl" class="hd-lvl"><small>SEVİYE</small><b>1</b></span>
+        <span class="hd-names">
+          <span id="cd-name" class="hd-name">HASATÇI</span>
+          <span id="cd-subtitle" class="hd-sub">Son Kılıç</span>
+        </span>
+      </div>
+      <div class="hd-sheet">
+        <div id="cd-stats" class="hd-stats"></div>
+        <p id="cd-lore" class="hd-lore">—</p>
+      </div>
+      <!-- aksiyon kaydırma kutusunun DIŞINDA (v20260727d dersi) -->
+      <div id="cd-action" class="hd-action"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EŞYA İNCELEME (kompakt, CR kart popup'ı) ═══════════ -->
+<section id="screen-geardetail" class="screen overlay gear-detail hidden" data-screen-label="Eşya inceleme">
+  <div class="gd-card">
+    <button id="gd-close" class="cd-close" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+    </button>
+    <div class="gd-stage">
+      <div class="gd-aura" aria-hidden="true"></div>
+      <span id="gd-glyph" class="gd-glyph"></span>
+      <span id="gd-lvl" class="gd-lvl-badge">Sv 1/6</span>
+    </div>
+    <div class="gd-sheet">
+      <div class="cd-head">
+        <div class="cd-title">
+          <span id="gd-name" class="cd-name">EŞYA</span>
+          <span id="gd-rarity" class="cd-subtitle">NADİR</span>
+        </div>
+        <div class="cd-chips">
+          <div class="cd-chip"><span class="cc-k">YUVA</span><span id="gd-slot" class="cc-v">ZIRH</span></div>
+        </div>
+      </div>
+      <div id="gd-stats" class="cd-stats"></div>
+      <p id="gd-lore" class="cd-lore">—</p>
+      <div id="gd-action" class="cd-action"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SANDIK AÇILIŞ TÖRENİ ═══════════ -->
+<section id="screen-chest" class="screen overlay chest-scene hidden" data-screen-label="Sandık açılışı">
+  <!-- Dekoratif katmanlar KIRPMA KABUĞUNUN İÇİNDE yaşar: 160vmax'lık ışın
+       yelpazesi doğrudan overlay'in çocuğu olduğunda overlay'in kaydırma
+       genişliğine sayılıyor ve tek yatay hareket açma/vazgeçme
+       butonlarını ekran dışına süpürüyordu (2026-09-01 doğrulaması). -->
+  <div class="chest-fx-clip" aria-hidden="true">
+    <div id="chest-rays"></div>
+    <div id="chest-beam"></div>
+  </div>
+  <div id="chest-flash" class="chest-flash" aria-hidden="true"></div>
+  <div id="chest-rarity-word" class="chest-rarity-word" aria-hidden="true"></div>
+  <!-- Sandık adı BAŞLIK OLARAK ÇİZİLMEZ (v19): sandığın kimliğini modelin
+       kendisi söyler; onay pop-up'ı adı zaten okumuştur. -->
+  <div class="chest-stage">
+    <canvas id="chest-canvas-3d" class="chest-canvas-3d"></canvas>
+    <canvas id="chest-canvas" width="300" height="270"></canvas>
+  </div>
+  <p id="chest-hint" class="chest-hint hidden">AÇMAK İÇİN DOKUN</p>
+  <div id="chest-rewards" class="chest-rewards"></div>
+</section>
+
+<!-- ═══════════ SANDIK SATIN ALMA POP-UP (mağaza · hızlı onay) ═══════════
+     Satın alma KARARI burada verilir, açılış töreninde değil: küçük kart,
+     150 ms giriş, tek kor buton. Tören artık yalnız AÇILIŞTIR. -->
+<section id="screen-chestbuy" class="screen overlay chest-inspect chest-buy hidden" data-screen-label="Sandık satın alma">
+  <div class="ci-card cb-card">
+    <button id="cb-close" class="cd-close" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+    </button>
+    <div class="ci-stage cb-stage">
+      <div class="ci-aura" id="cb-aura" aria-hidden="true"></div>
+      <div class="ci-chest cb-chest" id="cb-chest"></div>
+      <div class="ci-pedestal" aria-hidden="true"></div>
+    </div>
+    <div class="ci-sheet cb-sheet">
+      <span id="cb-tag" class="cb-tag hidden">%30 İNDİRİM</span>
+      <span id="cb-name" class="ci-name">SANDIK</span>
+      <p id="cb-desc" class="ci-desc">—</p>
+      <div id="cb-meta" class="chest-meta"></div>
+      <div id="cb-action" class="ci-action"></div>
+      <span id="cb-bal" class="cb-bal"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SANDIK İNCELEME (yuvaya dokununca — pop-up) ═══════════ -->
+<section id="screen-chestinspect" class="screen overlay chest-inspect hidden" data-screen-label="Sandık inceleme">
+  <div class="ci-card">
+    <button id="ci-close" class="cd-close" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+    </button>
+    <div class="ci-stage">
+      <div class="ci-aura" id="ci-aura" aria-hidden="true"></div>
+      <div class="ci-chest" id="ci-chest"></div>
+      <div class="ci-pedestal" aria-hidden="true"></div>
+    </div>
+    <div class="ci-sheet">
+      <span id="ci-name" class="ci-name">SANDIK</span>
+      <p id="ci-desc" class="ci-desc">—</p>
+      <div id="ci-meta" class="chest-meta"></div>
+      <div id="ci-state" class="ci-state"></div>
+      <div id="ci-action" class="ci-action"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ LEVEL UP: RÜN SEÇİMİ ═══════════ -->
+<section id="screen-levelup" class="screen overlay hidden" data-screen-label="Rün seçimi">
+  <p class="eyebrow gold">GÜÇ UYANDI</p>
+  <h2 class="screen-title">RÜNÜNÜ SEÇ</h2>
+  <div id="card-container"></div>
+  <!-- YENİDEN DAĞIT: koşu başına 3 ücretsiz hak (kart ekranı başına DEĞİL —
+       ekran başına olsaydı her seviyede istediği kartı garanti alan oyuncu
+       için seçim bir karar olmaktan çıkardı). -->
+  <button id="btn-reroll" class="reroll-btn">
+    <span class="rr-glyph" aria-hidden="true">↻</span>
+    <span class="rr-text">YENİDEN DAĞIT</span>
+    <span id="rr-count" class="rr-count">3</span>
+  </button>
+</section>
+
+<!-- ═══════════ HESAP SEVİYESİ: SEVİYE ATLAMA KUTLAMASI ═══════════ -->
+<div id="acc-levelup" class="alu-overlay hidden" data-screen-label="Hesap seviyesi yükseldi">
+  <div class="alu-card">
+    <p class="eyebrow gold">HESAP SEVİYESİ YÜKSELDİ</p>
+    <div class="alu-badge"><b id="alu-level">2</b></div>
+    <div class="alu-stats" id="alu-stats"></div>
+    <div class="alu-rewards hidden" id="alu-rewards"></div>
+    <button id="alu-close" class="btn-rune btn-primary">DEVAM ET</button>
+  </div>
+</div>
+
+<!-- ═══════════ HESAP YOLCULUĞU: seviye kilometre taşları ═══════════ -->
+<section id="screen-accjourney" class="screen overlay aj-scene hidden" data-screen-label="Hesap Yolculuğu">
+  <div class="bp-head">
+    <button id="aj-close" class="bp-close" aria-label="Kapat">✕</button>
+    <p class="eyebrow gold">HESAP YOLCULUĞU</p>
+    <h2 class="screen-title aj-title">SEVİYE ÖDÜLLERİ</h2>
+  </div>
+  <div class="aj-intro">
+    <div class="aj-intro-badge"><b id="aj-cur-level">1</b></div>
+    <p>Görev tamamladıkça hesap seviyen yükselir; her yükselişte can ve hasarın az da olsa güçlenir, belirli seviyelerde ise bir sandık kazanırsın.</p>
+  </div>
+  <div class="aj-scroll">
+    <div id="aj-rail" class="aj-rail"></div>
+  </div>
+</section>
+
+<!-- ═══════════ SAVAŞA GEÇİŞ (v56): SAVAŞ KAPISI — iki demir kanat + kor mühür + kutsama ═══════════ -->
+<section id="screen-loading" class="loading-screen hidden" data-screen-label="Savaş yükleme">
+  <div class="ld-dim" aria-hidden="true"></div>
+  <div class="ld-door left" aria-hidden="true"><i class="ld-rib"></i><i class="ld-rib r2"></i><i class="ld-seam"></i></div>
+  <div class="ld-door right" aria-hidden="true"><i class="ld-rib"></i><i class="ld-rib r2"></i><i class="ld-seam"></i></div>
+  <div class="ld-back" aria-hidden="true"><i class="ld-rays"></i><i class="ld-glow"></i><span class="ld-embers"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+  <div class="loading-center">
+    <p class="ld-eyebrow" id="loading-world">SOLGUN MEZARLIK</p>
+    <h2 class="ld-title" id="loading-mission">GÖREV 1</h2>
+    <p class="ld-obj" id="loading-obj"></p>
+    <div class="ld-seal" aria-hidden="true">
+      <i class="ld-orbit"></i><i class="ld-orbit o2"></i>
+      <i class="ld-ring" id="loading-fill"></i>
+      <i class="ld-core"><b id="loading-no">1</b></i>
+    </div>
+    <div class="ld-stars" id="loading-stars"></div>
+    <div class="ld-bless hidden" id="loading-bless"></div>
+    <div class="ld-prog"><span class="ld-bar"><i id="loading-bar"></i><em></em></span><span class="ld-row"><b id="loading-step">ARENA KURULUYOR</b><b id="loading-pct">0%</b></span></div>
+    <p class="ld-tip" id="loading-tip">Rünler savaş alanında seni bekliyor…</p>
+  </div>
+</section>
+
+<!-- ═══════════ DURAKLAT ═══════════ -->
+<section id="screen-pause" class="screen overlay hidden" data-screen-label="Duraklat">
+  <h2 class="screen-title">MÜHLET</h2>
+  <div id="pause-loadout" class="loadout"></div>
+  <div class="btn-col">
+    <button id="btn-resume" class="btn-rune btn-primary">DEVAM ET</button>
+    <button id="btn-pause-settings" class="btn-rune btn-ghost">AYARLAR</button>
+    <button id="btn-quit" class="btn-rune btn-ghost">MENÜYE DÖN</button>
+  </div>
+</section>
+
+<!-- ═══════════ AYARLAR (v55: üç sekme · tek satırlık ayar) ═══════════ -->
+<section id="screen-settings" class="screen overlay hidden" data-screen-label="Ayarlar">
+  <div class="set-sheet">
+    <div class="set-top">
+      <div class="set-head">
+        <h2 class="screen-title">AYARLAR</h2>
+        <button id="set-close" class="set-x" aria-label="Kapat" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+        </button>
+      </div>
+      <div class="set-tabs" id="set-tabs" role="tablist">
+        <button class="set-tab on" data-tab="oyun" role="tab" aria-selected="true" type="button">OYUN</button>
+        <button class="set-tab" data-tab="erisim" role="tab" aria-selected="false" type="button">ERİŞİM</button>
+        <button class="set-tab" data-tab="hesap" role="tab" aria-selected="false" type="button">HESAP</button>
+      </div>
+    </div>
+
+    <div class="set-pane" data-pane="oyun">
+      <p class="set-cap">SES</p>
+      <div class="set-card">
+        <div class="set-row set-row-sl"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9a4 4 0 0 1 0 6"/></svg></span><span class="set-txt"><b>EFEKTLER</b></span><span id="set-sfx-now" class="set-num">62</span><input id="set-sfx" class="set-range" type="range" min="0" max="100" step="1" value="62" style="--p:62%" aria-label="Efekt sesi"></div>
+        <div class="set-row set-row-sl"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span><span class="set-txt"><b>MÜZİK</b></span><span id="set-music-now" class="set-num">50</span><input id="set-music" class="set-range" type="range" min="0" max="100" step="1" value="50" style="--p:50%" aria-label="Müzik sesi"></div>
+      </div>
+      <p class="set-cap">GÖRÜNTÜ</p>
+      <div class="set-card">
+        <div class="set-row set-row-col">
+          <span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-4 4 3 3-2 6 4"/></svg></span><span class="set-txt"><b>KALİTE</b><small id="set-gfx-now">OTOMATİK</small></span>
+          <div class="set-seg set-seg4" id="set-gfx">
+            <button class="set-seg-b" data-gfx="auto" type="button">OTO</button>
+            <button class="set-seg-b" data-gfx="low" type="button">DÜŞÜK</button>
+            <button class="set-seg-b" data-gfx="mid" type="button">ORTA</button>
+            <button class="set-seg-b" data-gfx="high" type="button">YÜKSEK</button>
+          </div>
+        </div>
+        <div class="set-row"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="16" height="8" rx="2"/><path d="M21 11v2M6.5 11v2M9.5 11v2"/></svg></span><span class="set-txt"><b>PİL MODU</b><small>30 FPS · daha az ısınma</small></span><button id="set-batt" class="set-toggle" role="switch" aria-checked="false" type="button"><i></i></button></div>
+      </div>
+      <p class="set-cap">HİS</p>
+      <div class="set-card">
+        <div class="set-row set-row-col">
+          <span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8"/></svg></span><span class="set-txt"><b>TİTREŞİM</b></span>
+          <div class="set-seg set-seg3" id="set-hap3">
+            <button class="set-seg-b" data-hap="off" type="button">KAPALI</button>
+            <button class="set-seg-b" data-hap="soft" type="button">HAFİF</button>
+            <button class="set-seg-b" data-hap="full" type="button">TAM</button>
+          </div>
+        </div>
+        <div class="set-row"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-5 3 10 2-6 2 3h6"/></svg></span><span class="set-txt"><b>EKRAN SARSINTISI</b><small>Darbe tekmesi ve yakınlaşma</small></span><button id="set-shake" class="set-toggle" role="switch" aria-checked="true" type="button"><i></i></button></div>
+      </div>
+      <p class="set-cap">DİL</p>
+      <div class="set-card">
+        <div class="set-row set-row-col">
+          <span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></span><span class="set-txt"><b>OYUN DİLİ</b></span>
+          <div class="set-seg" id="set-lang">
+            <button class="set-seg-b" data-lang="tr" type="button">TÜRKÇE</button>
+            <button class="set-seg-b" data-lang="en" type="button">ENGLISH</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-pane off" data-pane="erisim">
+      <div class="set-card">
+        <div class="set-row"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h14M4 12h10M4 17h6"/></svg></span><span class="set-txt"><b>HAREKETİ AZALT</b><small>Menü döngüleri durur</small></span><button id="set-rm" class="set-toggle" role="switch" aria-checked="false" type="button"><i></i></button></div>
+        <div class="set-row"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="set-txt"><b>RENK KÖRLÜĞÜ</b><small>Elit renkleri güvenli palete geçer</small></span><button id="set-cb" class="set-toggle" role="switch" aria-checked="false" type="button"><i></i></button></div>
+        <div class="set-row"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18L8 6l5 12M5 14h6M14 18l3.5-7 3.5 7M15 16h5"/></svg></span><span class="set-txt"><b>BÜYÜK YAZI</b><small>Açıklamalar ve hasar sayıları büyür</small></span><button id="set-big" class="set-toggle" role="switch" aria-checked="false" type="button"><i></i></button></div>
+      </div>
+    </div>
+
+    <div class="set-pane off" data-pane="hesap">
+      <div class="set-card">
+        <div class="set-row" id="set-notif-grp"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></span><span class="set-txt"><b>BİLDİRİMLER</b><small>Sandık hazır · günlük ödül</small></span><button id="set-notif" class="set-toggle" role="switch" aria-checked="true" type="button"><i></i></button></div>
+      </div>
+      <p class="set-cap">YASAL VE DESTEK</p>
+      <div class="set-card set-card-list">
+        <button class="set-link" id="set-support" type="button"><span>DESTEK</span><svg class="set-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="set-link" id="set-privacy" type="button"><span>GİZLİLİK</span><svg class="set-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="set-link" id="set-kvkk" type="button"><span>KVKK</span><svg class="set-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="set-link" id="set-terms" type="button"><span>KOŞULLAR</span><svg class="set-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <p class="set-cap">KAYIT</p>
+      <div class="set-card set-card-kv">
+        <div class="set-kv"><span>OYUNCU KİMLİĞİ</span><b id="set-pid">—</b></div>
+        <div class="set-kv"><span>SÜRÜM</span><b id="set-ver">—</b></div>
+      </div>
+      <details class="set-adv">
+        <summary><span>GELİŞMİŞ</span><svg class="set-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></summary>
+        <div class="set-card">
+          <div class="set-row set-row-col">
+            <span class="set-txt"><b>PERFORMANS RAPORU</b><small>Son 30 koşu · yalnız bu cihazda</small></span>
+            <div class="set-seg">
+              <button class="set-seg-b" id="set-perf" type="button">GÖSTER</button>
+              <button class="set-seg-b" id="set-perf-copy" type="button">KOPYALA</button>
+            </div>
+            <div id="set-perf-box" class="perf-box hidden"></div>
+          </div>
+          <div class="set-row set-row-col">
+            <span class="set-txt"><b>HATA KAYDI · <em id="set-err-n">0</em></b><small>Destek için kopyalayıp gönder</small></span>
+            <div class="set-seg">
+              <button class="set-seg-b" id="set-err-copy" type="button">KOPYALA</button>
+              <button class="set-seg-b" id="set-err-clear" type="button">TEMİZLE</button>
+            </div>
+          </div>
+        </div>
+      </details>
+      <button id="set-wipe" class="set-danger" type="button">TÜM VERİLERİ SİL</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ GÖREV SONU (zafer / düşüş) ═══════════ -->
+<section id="screen-missionend" class="screen overlay hidden" data-screen-label="Görev sonu">
+  <div id="me-card" class="me-card">
+    <div class="me-head">
+      <p id="me-eyebrow" class="eyebrow gold">GÖREV TAMAMLANDI</p>
+      <h2 id="me-title" class="me-title">GÖREV TAMAMLANDI</h2>
+    </div>
+    <div class="me-orn"><i></i></div>
+    <div id="me-stats" class="me-stats"></div>
+    <p id="me-wave" class="me-wave"></p>
+    <div id="me-loot" class="me-loot"></div>
+    <div id="me-rewards" class="me-rewards"></div>
+    <div class="btn-col me-actions">
+      <button id="btn-me-menu" class="btn-rune btn-primary">ANA MENÜYE DÖN</button>
+      <button id="btn-me-revive" class="btn-rune btn-revive hidden">
+        <span class="revive-ico"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+        <span class="revive-txt"><b>REKLAM İZLE, YENİDEN DOĞ</b><span>Kaldığın dalgadan devam et</span></span>
+      </button>
+      <button id="btn-me-next" class="btn-rune btn-ghost">SONRAKİ GÖREV</button>
+      <button id="btn-me-retry" class="btn-rune btn-ghost">TEKRAR OYNA</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ REKLAM İZLEME (simülasyon) ═══════════ -->
+<section id="screen-adwatch" class="screen overlay ad-watch hidden" data-screen-label="Reklam">
+  <div class="ad-watch-ring">
+    <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="4"/><circle id="ad-watch-arc" class="ad-watch-arc" cx="22" cy="22" r="19" fill="none" stroke="#8ce85a" stroke-width="4" stroke-linecap="round"/></svg>
+    <span id="ad-watch-num" class="ad-watch-num">3</span>
+  </div>
+  <p class="eyebrow gold">REKLAM</p>
+  <h2 class="screen-title ad-watch-title">OYNATILIYOR…</h2>
+</section>
+
+<!-- ═══════════ GÖREVLER: günlük giriş + haftalık kuşak ═══════════ -->
+<!-- v76 GÖREVLER 2.0: kuşak afişi (puan · yenilenme · 3 kademe) → günlük giriş → görev defteri. Eski .q-* katmanlarından bağımsız (.qx-*). -->
+<section id="screen-quests" class="screen overlay qx hidden" data-screen-label="Görevler">
+  <div class="qx-sheet">
+    <header class="qx-head">
+      <div class="qx-head-t">
+        <span class="qx-eyebrow">SEZON I · HAFTALIK</span>
+        <h2 class="qx-title">GÖREVLER</h2>
+      </div>
+      <button id="q-close" class="qx-x" aria-label="Kapat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+    </header>
+    <div class="qx-body">
+      <section class="qx-hero">
+        <div class="qx-hero-top">
+          <div class="qx-pts"><b id="q-pts">0</b><span id="q-pts-max">/60</span><em>HAFTA PUANI</em></div>
+          <div class="qx-timer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15 14"/></svg><span id="q-timer-v">—</span></div>
+        </div>
+        <div class="qx-vit" id="q-vit"></div>
+      </section>
+      <section class="qx-sec">
+        <header class="qx-sec-h"><span class="qx-sec-t">GÜNLÜK GİRİŞ</span><span class="qx-sec-s" id="q-streak-txt">—</span></header>
+        <div class="qx-cal" id="q-cal"></div>
+        <div class="qx-daily-foot">
+          <span class="qx-makeup" id="q-makeup"></span>
+          <button id="q-claim-daily" class="qx-claim">ÖDÜLÜ AL</button>
+        </div>
+      </section>
+      <section class="qx-sec">
+        <header class="qx-sec-h"><span class="qx-sec-t">GÖREV DEFTERİ</span><span class="qx-sec-s" id="q-done-txt">—</span></header>
+        <div class="qx-list" id="q-list"></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SAVAŞ GEÇİŞİ (Battle Pass) — Büyülü Kitap ═══════════ -->
+<section id="screen-battlepass" class="screen overlay bp-scene hidden" data-screen-label="Savaş Bileti">
+  <div class="bp-stage">
+    <div class="bpk-aura" aria-hidden="true"></div>
+    <div class="bp-book" id="bp-book">
+      <div class="bpk-spread">
+        <span class="bpk-spine" aria-hidden="true"></span>
+        <div class="bp-head">
+          <button id="bp-close" class="bp-close" aria-label="Kapat">✕</button>
+          <p class="eyebrow gold" id="bp-season">SEZON I</p>
+          <h2 class="screen-title bp-title">SAVAŞ BİLETİ</h2>
+          <div class="bp-meta">
+            <div class="bp-tier-badge"><b id="bp-tier-num">1</b><span>/50</span></div>
+            <div class="bp-xpcol">
+              <div class="bp-xpbar"><i id="bp-xpfill"></i></div>
+              <p class="bp-xptxt" id="bp-xptxt">0/120 GEÇİŞ XP</p>
+            </div>
+          </div>
+        </div>
+        <div id="bp-premium-cta" class="bp-premium-cta">
+          <div class="bp-pc-text">
+            <b>PREMİUM GEÇİŞ</b>
+            <span>Sağ sayfada özel kahramanlar ve sandıklar</span>
+          </div>
+          <button id="bp-buy-premium" class="btn-rune btn-primary bp-buy">
+            <span class="stone"></span><span id="bp-premium-price">280</span>
+          </button>
+        </div>
+        <div class="bp-pages" id="bp-pages">
+          <div id="bp-track" class="bp-track"></div>
+        </div>
+      </div>
+      <div class="bpk-cover" id="bpk-cover" aria-hidden="true">
+        <div class="bpk-cover-front">
+          <span class="bpk-spinefront" aria-hidden="true"></span>
+          <span class="bpk-frame" aria-hidden="true"></span>
+          <span class="bpk-corner tl" aria-hidden="true"></span><span class="bpk-corner tr" aria-hidden="true"></span>
+          <span class="bpk-corner bl" aria-hidden="true"></span><span class="bpk-corner br" aria-hidden="true"></span>
+          <div class="bpk-emblem">
+            <span class="bpk-ring" aria-hidden="true"></span>
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 12 C20 8.5 14 7.5 8 8.5 V36 C14 35 20 36 24 39.5 C28 36 34 35 40 36 V8.5 C34 7.5 28 8.5 24 12 Z"/><path d="M24 12 V39.5"/><path d="M13 15.5 C16 15 19 15.6 21 17 M13 21.5 C16 21 19 21.6 21 23 M27 17 C29 15.6 32 15 35 15.5 M27 23 C29 21.6 32 21 35 21.5"/></svg>
+          </div>
+          <p class="bpk-season">SEZON I — KIZIL AY</p>
+          <h3 class="bpk-title">SAVAŞ BİLETİ</h3>
+          <p class="bpk-sub">GRİMUAR AÇILIYOR</p>
+          <span class="bpk-clasp" aria-hidden="true"></span>
+        </div>
+        <div class="bpk-cover-back"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ORTAK SAYFA (v44): yasal · olasılık · yaş · güncelleme ═══════════ -->
+<section id="screen-sheet" class="screen overlay sheet-scene hidden" data-screen-label="Sayfa">
+  <div class="sh-card" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+    <div class="sh-head">
+      <div class="sh-titles">
+        <p id="sh-eyebrow" class="eyebrow gold"></p>
+        <h2 id="sh-title" class="sh-title"></h2>
+      </div>
+      <button id="sh-close" class="set-x" type="button" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+      </button>
+    </div>
+    <div id="sh-body" class="sh-body"></div>
+    <div id="sh-actions" class="sh-actions"></div>
+  </div>
+</section>
+
+<!-- YALNIZ DİKEY: pakette yön kilitli; tarayıcıda kilit tutmazsa bu perde. -->
+<div id="rotate-guard" aria-hidden="true">
+  <i class="rg-phone"></i>
+  <p>CİHAZINI DİKEY TUT</p>
+</div>
+
+</div><!-- /#app -->
+<!-- ÇEVRİMDIŞI ÖNBELLEK: ilk açılıştan sonra oyun ağa hiç dokunmadan
+     (uçak modunda da) açılır; satıcı dosyaları kalıcı önbellekten gelir.
+     Kayıt başarısız olursa (sandbox/file://) oyun normal çalışır. -->
+<script>
+  /* Uygulama paketinde (Capacitor) dosyalar zaten cihazda: işçi gereksiz. */
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.Capacitor) {
+    addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* önemsiz */ });
+    });
+  }
+</script>
+<script type="module" src="main.js?v=20260930m"></script>
+</body>
+</html>

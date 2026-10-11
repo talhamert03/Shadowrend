@@ -1,0 +1,50 @@
+# Shadowrend — bulutta APK derleme (GitHub Actions)
+# Kullanım: projeyi GitHub'a yükle → Actions sekmesi → "APK derle" → Run workflow.
+# ~6-8 dk sonra aynı sayfanın altındaki "Artifacts" bölümünden shadowrend-apk indirilir.
+name: APK derle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Bağımlılıklar
+        run: npm install --no-audit --no-fund
+
+      - name: Web paketi (dist/)
+        run: npm run build
+
+      - name: Android projesi
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+          # yalnız dikey
+          sed -i 's/<activity/<activity android:screenOrientation="portrait"/' android/app/src/main/AndroidManifest.xml || true
+
+      - name: APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shadowrend-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

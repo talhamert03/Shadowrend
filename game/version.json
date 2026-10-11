@@ -1,0 +1,8 @@
+{
+  "latest": "1.0.0",
+  "min": "1.0.0",
+  "store": {
+    "android": "https://play.google.com/store/apps/details?id=com.alphagames.shadowrend",
+    "ios": ""
+  }
+}

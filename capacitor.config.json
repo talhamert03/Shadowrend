@@ -1,0 +1,22 @@
+{
+  "appId": "game.shadowrend",
+  "appName": "Shadowrend",
+  "webDir": "dist",
+  "backgroundColor": "#08060a",
+  "server": { "androidScheme": "https" },
+  "android": {
+    "backgroundColor": "#08060a",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "backgroundColor": "#08060a",
+    "contentInset": "never",
+    "scrollEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 0, "backgroundColor": "#08060a", "showSpinner": false },
+    "LocalNotifications": { "smallIcon": "ic_stat_sr", "iconColor": "#b06a49" },
+    "StatusBar": { "overlaysWebView": true, "style": "DARK", "backgroundColor": "#00000000" }
+  }
+}

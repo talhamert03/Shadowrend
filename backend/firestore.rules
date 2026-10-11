@@ -1,0 +1,7 @@
+rules_version = '2';
+// İstemci Firestore'a DOĞRUDAN hiç erişmez; her şey Cloud Functions üzerinden.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /{doc=**} { allow read, write: if false; }
+  }
+}

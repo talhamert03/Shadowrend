@@ -1,0 +1,205 @@
+import groovy.json.JsonSlurper
+import javax.inject.Inject
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'game.shadowrend'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.alphagames.shadowrend'
+        minSdk 24
+        targetSdk 36
+        // Her Play yüklemesinde versionCode +1 (game/release.js APP.version ile versionName birlikte)
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            debuggable false
+        }
+    }
+
+    buildFeatures { buildConfig true }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // .glb / .wasm / .webp zaten sıkışık; tekrar sıkıştırma açılışı yavaşlatır
+    androidResources {
+        noCompress += ['glb', 'wasm', 'webp', 'jpg', 'png', 'woff2', 'fbx', 'mp3', 'ogg']
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.activity:activity:1.10.1'
+}
+
+/* ═══ WEB PAKETİ ═══════════════════════════════════════════════
+   ① srVendor: three.js 0.169.0 + Draco çözücü + Cinzel / Chakra Petch
+      npm kayıt defterinden BİR KEZ indirilir → vendor-cache/ (sonra ağ gerekmez).
+   ② srWeb: ../game klasörü + vendor → APK assets/public/.
+      index.html'deki unpkg / Google Fonts adresleri yerel yola çevrilir →
+      oyun cihazda %100 çevrimdışı açılır. game/ klasörü DEĞİŞMEZ.
+   ═════════════════════════════════════════════════════════════ */
+
+abstract class SrVendorTask extends DefaultTask {
+    @Input abstract Property<String> getThreeVersion()
+    @OutputDirectory abstract DirectoryProperty getOutputDir()
+    @Inject abstract FileSystemOperations getFs()
+    @Inject abstract ArchiveOperations getArchives()
+
+    static final String LAT = 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
+    static final String EXT = 'U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF'
+
+    static void fetch(String url, File dst) {
+        dst.parentFile.mkdirs()
+        def c = new URL(url).openConnection()
+        c.setRequestProperty('User-Agent', 'shadowrend-android-build')
+        c.connectTimeout = 20000
+        c.readTimeout = 120000
+        c.inputStream.withCloseable { i -> dst.withOutputStream { o -> o << i } }
+    }
+
+    static String tarball(String pkg, String ver) {
+        def meta = new JsonSlurper().parse(new URL("https://registry.npmjs.org/${pkg}/${ver}"))
+        return meta.dist.tarball
+    }
+
+    @TaskAction
+    void run() {
+        File out = outputDir.get().asFile
+        File ok = new File(out, '.ok-' + threeVersion.get())
+        if (ok.exists()) return
+        fs.delete { it.delete(out) }
+        out.mkdirs()
+        File tmp = new File(temporaryDir, 'dl'); tmp.mkdirs()
+        try {
+            File t = new File(tmp, 'three.tgz')
+            fetch(tarball('three', threeVersion.get()), t)
+            fs.copy { s ->
+                s.from(archives.tarTree(archives.gzip(t))) { c ->
+                    c.include 'package/build/three.module.js'
+                    c.include 'package/examples/jsm/loaders/GLTFLoader.js'
+                    c.include 'package/examples/jsm/loaders/FBXLoader.js'
+                    c.include 'package/examples/jsm/loaders/DRACOLoader.js'
+                    c.include 'package/examples/jsm/utils/**'
+                    c.include 'package/examples/jsm/curves/**'
+                    c.include 'package/examples/jsm/libs/fflate.module.js'
+                    c.include 'package/examples/jsm/libs/draco/draco_decoder.js'
+                    c.include 'package/examples/jsm/libs/draco/draco_decoder.wasm'
+                    c.include 'package/examples/jsm/libs/draco/draco_wasm_wrapper.js'
+                    c.eachFile { d -> d.path = d.path.replaceFirst('^package/', 'three/') }
+                    c.includeEmptyDirs = false
+                }
+                s.into(out)
+            }
+
+            def fonts = [
+                ['@fontsource/cinzel', 'cinzel', 'Cinzel', [600, 800]],
+                ['@fontsource/chakra-petch', 'chakra-petch', 'Chakra Petch', [400, 600, 700]],
+            ]
+            StringBuilder css = new StringBuilder()
+            fonts.each { f ->
+                String pkg = f[0], base = f[1], fam = f[2]
+                File ft = new File(tmp, base + '.tgz')
+                fetch(tarball(pkg, 'latest'), ft)
+                List<Integer> ws = f[3]
+                fs.copy { s ->
+                    s.from(archives.tarTree(archives.gzip(ft))) { c ->
+                        ws.each { w ->
+                            c.include "package/files/${base}-latin-${w}-normal.woff2"
+                            c.include "package/files/${base}-latin-ext-${w}-normal.woff2"
+                        }
+                        c.eachFile { d -> d.path = 'fonts/' + d.name }
+                        c.includeEmptyDirs = false
+                    }
+                    s.into(out)
+                }
+                ws.each { w ->
+                    [["${base}-latin-${w}-normal.woff2", LAT], ["${base}-latin-ext-${w}-normal.woff2", EXT]].each { p ->
+                        css << "@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};font-display:swap;src:url(${p[0]}) format('woff2');unicode-range:${p[1]}}\n"
+                    }
+                }
+            }
+            new File(out, 'fonts/fonts.css').setText(css.toString(), 'UTF-8')
+
+            ['three/build/three.module.js', 'three/examples/jsm/loaders/GLTFLoader.js',
+             'three/examples/jsm/libs/draco/draco_decoder.wasm', 'fonts/cinzel-latin-600-normal.woff2'].each {
+                if (!new File(out, it).exists()) throw new GradleException('Eksik vendor dosyası: ' + it)
+            }
+            ok.text = 'ok'
+        } catch (Exception e) {
+            throw new GradleException('Shadowrend: three.js / font indirilemedi (ilk derleme internet ister). ' + e.message, e)
+        }
+    }
+}
+
+abstract class SrWebTask extends DefaultTask {
+    @InputDirectory abstract DirectoryProperty getGameDir()
+    @InputDirectory abstract DirectoryProperty getVendorDir()
+    @OutputDirectory abstract DirectoryProperty getOutputDir()
+    @Inject abstract FileSystemOperations getFs()
+
+    static String rewrite(String l) {
+        if (l.contains('rel="preconnect"')) return null
+        if (l.contains('fonts.googleapis.com/css2')) return '<link rel="stylesheet" href="vendor/fonts/fonts.css">'
+        l = l.replace('https://unpkg.com/three@0.169.0/build/three.module.js', './vendor/three/build/three.module.js')
+             .replace('https://unpkg.com/three@0.169.0/examples/jsm/', './vendor/three/examples/jsm/')
+             .replace('!window.Capacitor)', '!window.__SR_NATIVE)')
+        if (l.trim() == '<title>Shadowrend</title>') {
+            l += '\n<script>window.__SR_NATIVE=1;window.__SR_DRACO="./vendor/three/examples/jsm/libs/draco/";</script>'
+        }
+        return l
+    }
+
+    @TaskAction
+    void run() {
+        File out = outputDir.get().asFile
+        fs.delete { it.delete(out) }
+        File pub = new File(out, 'public')
+        fs.copy { s ->
+            s.from(gameDir) { c ->
+                c.exclude '**/_*', '**/.*', '**/*.md', 'sw.js', 'mobil.html', 'index.html'
+            }
+            s.from(gameDir) { c ->
+                c.include 'index.html'
+                c.filteringCharset = 'UTF-8'
+                c.filter { String line -> SrWebTask.rewrite(line) }
+            }
+            s.from(vendorDir) { c ->
+                c.exclude '.ok-*'
+                c.into 'vendor'
+            }
+            s.into(pub)
+        }
+        File idx = new File(pub, 'index.html')
+        String html = idx.getText('UTF-8')
+        if (html.contains('unpkg.com') || html.contains('fonts.googleapis.com'))
+            throw new GradleException('index.html hâlâ dış adres içeriyor — rewrite kurallarını güncelle.')
+    }
+}
+
+def srVendor = tasks.register('srVendor', SrVendorTask) {
+    threeVersion = '0.169.0'
+    outputDir = rootProject.layout.projectDirectory.dir('vendor-cache')
+}
+
+def srWeb = tasks.register('srWeb', SrWebTask) {
+    gameDir = rootProject.layout.projectDirectory.dir('../game')
+    vendorDir = srVendor.flatMap { it.outputDir }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(srWeb, { SrWebTask t -> t.outputDir })
+    }
+}

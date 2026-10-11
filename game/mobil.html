@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grimfall — Mobil Önizleme</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: #14161f;
+    display: flex; flex-direction: column; align-items: stretch;
+    gap: 10px; font-family: system-ui, sans-serif;
+    padding: 12px;
+    overflow: hidden;
+  }
+  .controls {
+    flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    max-width: 100%;
+  }
+  .stage {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .bar {
+    display: flex; gap: 6px; align-items: center; justify-content: center;
+    flex-wrap: wrap; max-width: 92vw;
+  }
+  .bar button {
+    padding: 7px 14px; border-radius: 999px; border: 1px solid #3a4257;
+    background: #1c2130; color: #c8ccd8; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; cursor: pointer; white-space: nowrap;
+  }
+  .bar button.on { background: #2a3247; color: #fff; border-color: #59a8ff; }
+  .bar button.rot {
+    background: #1c2130; border-color: #59a8ff33;
+  }
+  .custom-row {
+    display: none;
+    gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center;
+    padding: 8px 12px; border-radius: 12px; background: #1a1e2b; border: 1px solid #2a3142;
+  }
+  .custom-row.show { display: flex; }
+  .custom-row label {
+    display: flex; flex-direction: column; gap: 3px;
+    font-size: 9px; color: #7a8098; letter-spacing: 0.05em; font-weight: 700;
+  }
+  .custom-row input[type="number"] {
+    width: 64px; padding: 5px 7px; border-radius: 6px; border: 1px solid #3a4257;
+    background: #0e1119; color: #e8eaf0; font-size: 12px;
+  }
+  .custom-row select {
+    padding: 5px 7px; border-radius: 6px; border: 1px solid #3a4257;
+    background: #0e1119; color: #e8eaf0; font-size: 11px;
+  }
+  .frame {
+    position: relative;
+    flex-shrink: 0;
+    background: #05060a;
+    border-radius: 38px;
+    padding: 10px;
+    box-shadow: 0 24px 80px -20px rgba(0,0,0,0.9), inset 0 0 0 2px #262b3a;
+    transition: border-radius 200ms;
+  }
+  .cutout {
+    position: absolute; z-index: 3; background: #05060a; pointer-events: none;
+  }
+  .cutout.notch { border-radius: 0 0 14px 14px; }
+  .cutout.island { border-radius: 999px; }
+  .cutout.punch { border-radius: 50%; }
+  .home-indicator {
+    position: absolute; z-index: 3; background: rgba(255,255,255,0.55);
+    border-radius: 999px; pointer-events: none;
+  }
+  iframe {
+    border: 0; border-radius: 28px; background: #000;
+    width: 100%; height: 100%; display: block;
+  }
+  .hint { flex-shrink: 0; color: #5a6178; font-size: 11px; letter-spacing: 0.04em; text-align: center; max-width: 480px; margin: 0 auto; }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <div class="bar" id="presetBar"></div>
+    <div class="bar">
+      <button id="rotateBtn" class="rot">↻ Yatay/Dikey çevir</button>
+    </div>
+    <div class="custom-row" id="customRow">
+      <label>Genişlik<input type="number" id="cW" value="390" min="240" max="1600"></label>
+      <label>Yükseklik<input type="number" id="cH" value="844" min="380" max="2000"></label>
+      <label>Üst çentik<input type="number" id="cTop" value="47" min="0" max="80"></label>
+      <label>Alt boşluk<input type="number" id="cBottom" value="34" min="0" max="60"></label>
+      <label>Çentik tipi
+        <select id="cNotch">
+          <option value="island">Dynamic Island</option>
+          <option value="notch">Klasik çentik</option>
+          <option value="punch">Delik kamera</option>
+          <option value="none">Yok (düz)</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="frame" id="frame" style="width:410px;height:864px">
+      <div class="cutout" id="cutout"></div>
+      <div class="home-indicator" id="homeInd"></div>
+      <iframe id="game" src="index.html" allow="autoplay"></iframe>
+    </div>
+  </div>
+  <p class="hint">Gerçek cihaz çözünürlüğünde ve çentik/güvenli-alan boşluklarıyla çalışır — dokunmatik yerine fare ile oyna. Menü artık her cihazda çentiğin/kamera deliğinin altında kalmıyor.</p>
+
+<script>
+  // ── Cihaz ön ayarları: gerçek çözünürlük + güvenli alan (safe-area) değerleri ──
+  const DEVICES = [
+    { id: 'iphone-pro',  label: 'iPhone Pro 390×844',    w: 390, h: 844,  top: 59, bottom: 34, radius: 54, notch: 'island' },
+    { id: 'iphone-max',  label: 'iPhone Pro Max 430×932', w: 430, h: 932,  top: 59, bottom: 34, radius: 58, notch: 'island' },
+    { id: 'iphone-cls',  label: 'iPhone Çentikli 375×812', w: 375, h: 812, top: 47, bottom: 34, radius: 44, notch: 'notch' },
+    { id: 'iphone-se',   label: 'iPhone SE 375×667',      w: 375, h: 667,  top: 20, bottom: 0,  radius: 20, notch: 'none' },
+    { id: 'android',     label: 'Android 360×780',        w: 360, h: 780,  top: 28, bottom: 0,  radius: 30, notch: 'punch' },
+    { id: 'android-lg',  label: 'Android Büyük 412×915',  w: 412, h: 915,  top: 32, bottom: 0,  radius: 32, notch: 'punch' },
+    { id: 'tablet',      label: 'Tablet 820×1180',        w: 820, h: 1180, top: 24, bottom: 20, radius: 28, notch: 'none' },
+    { id: 'tablet-sm',   label: 'Küçük Tablet 768×1024',  w: 768, h: 1024, top: 24, bottom: 20, radius: 24, notch: 'none' },
+    { id: 'custom',      label: 'Özel…',                  w: 390, h: 844,  top: 47, bottom: 34, radius: 44, notch: 'island' },
+  ];
+
+  let current = { ...DEVICES[0] };
+  let landscape = false;
+
+  const frame = document.getElementById('frame');
+  const cutout = document.getElementById('cutout');
+  const homeInd = document.getElementById('homeInd');
+  const iframe = document.getElementById('game');
+  const presetBar = document.getElementById('presetBar');
+  const customRow = document.getElementById('customRow');
+
+  // build preset buttons
+  DEVICES.forEach(d => {
+    const b = document.createElement('button');
+    b.textContent = d.label;
+    b.dataset.id = d.id;
+    if (d.id === current.id) b.classList.add('on');
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#presetBar button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      current = { ...DEVICES.find(x => x.id === d.id) };
+      customRow.classList.toggle('show', current.id === 'custom');
+      if (current.id === 'custom') readCustomInputs();
+      apply();
+    });
+    presetBar.appendChild(b);
+  });
+
+  function readCustomInputs() {
+    current.w = +document.getElementById('cW').value || 390;
+    current.h = +document.getElementById('cH').value || 844;
+    current.top = +document.getElementById('cTop').value || 0;
+    current.bottom = +document.getElementById('cBottom').value || 0;
+    current.notch = document.getElementById('cNotch').value;
+    current.radius = current.notch === 'none' ? 20 : 44;
+  }
+  ['cW','cH','cTop','cBottom'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      if (current.id !== 'custom') return;
+      readCustomInputs();
+      apply();
+    });
+  });
+  document.getElementById('cNotch').addEventListener('change', () => {
+    if (current.id !== 'custom') return;
+    readCustomInputs();
+    apply();
+  });
+
+  document.getElementById('rotateBtn').addEventListener('click', () => {
+    landscape = !landscape;
+    apply();
+  });
+
+  // Compute effective (possibly rotated) geometry
+  function effective() {
+    let { w, h, top, bottom, notch, radius } = current;
+    if (!landscape) return { w, h, top, bottom, left: 0, right: 0, notch, radius };
+    // rotate 90°: width/height swap; notch inset moves to the side edges
+    return { w: h, h: w, top: 0, bottom, left: top, right: top, notch: (notch === 'none' ? 'none' : notch), radius };
+  }
+
+  function drawCutout(eff) {
+    cutout.className = 'cutout';
+    homeInd.style.display = eff.bottom > 0 && !landscape ? 'block' : 'none';
+    if (eff.bottom > 0 && !landscape) {
+      const pillW = Math.max(90, eff.w * 0.32);
+      homeInd.style.width = pillW + 'px';
+      homeInd.style.height = '5px';
+      homeInd.style.left = '50%';
+      homeInd.style.bottom = Math.max(6, eff.bottom * 0.28) + 'px';
+      homeInd.style.transform = 'translateX(-50%)';
+    }
+
+    if (landscape || eff.notch === 'none') {
+      cutout.style.display = 'none';
+      return;
+    }
+    cutout.style.display = 'block';
+
+    if (eff.notch === 'island') {
+      cutout.classList.add('island');
+      const w = Math.max(88, eff.w * 0.29);
+      const h = Math.max(24, eff.top * 0.52);
+      cutout.style.width = w + 'px';
+      cutout.style.height = h + 'px';
+      cutout.style.left = '50%';
+      cutout.style.top = Math.max(8, eff.top * 0.2) + 'px';
+      cutout.style.transform = 'translateX(-50%)';
+    } else if (eff.notch === 'notch') {
+      cutout.classList.add('notch');
+      const w = Math.max(96, eff.w * 0.34);
+      const h = Math.max(20, eff.top * 0.55);
+      cutout.style.width = w + 'px';
+      cutout.style.height = h + 'px';
+      cutout.style.left = '50%';
+      cutout.style.top = '0px';
+      cutout.style.transform = 'translateX(-50%)';
+    } else if (eff.notch === 'punch') {
+      cutout.classList.add('punch');
+      const d = Math.max(10, eff.top * 0.34);
+      cutout.style.width = d + 'px';
+      cutout.style.height = d + 'px';
+      cutout.style.left = '50%';
+      cutout.style.top = Math.max(8, eff.top * 0.32) + 'px';
+      cutout.style.transform = 'translateX(-50%)';
+    }
+  }
+
+  // Push the real safe-area values into the game iframe (same-origin), since
+  // env(safe-area-inset-*) never reflects a *simulated* device inside an iframe —
+  // it only reflects the browser chrome of the actual outer window. Without this,
+  // the game's HUD never reserves space for the notch we're drawing, and it
+  // renders underneath it.
+  function pushSafeArea(eff) {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc || !doc.documentElement) return;
+      const root = doc.documentElement.style;
+      root.setProperty('--sat', eff.top + 'px');
+      root.setProperty('--sab', eff.bottom + 'px');
+      root.setProperty('--sal', eff.left + 'px');
+      root.setProperty('--sar', eff.right + 'px');
+    } catch (e) { /* cross-origin — ignore */ }
+  }
+
+  const stage = document.getElementById('stage');
+  function fit() {
+    const eff = effective();
+    const w = eff.w + 20, h = eff.h + 20;
+    const avail = stage.getBoundingClientRect();
+    const kw = (avail.width - 16) / w, kh = (avail.height - 16) / h;
+    /* ALT KELEPÇE: ilk karede #stage henüz yerleşmemişse getBoundingClientRect
+       ~0 (hatta 16'dan küçük) döner; kw/kh sıfıra yakın ya da NEGATİF olur ve
+       çerçeve bir an 16px'lik bir noktaya çöküyordu (görünür sıçrama).
+       fit() açılışta parse anında bir kez çalışır ve o an #stage yükseklikliği
+       henüz ≤ 40'tır. Sadece `return` demek ölçeğin HİÇ uygulanmaması demekti:
+       410×864 çerçeve 368px'lik alanda kırpılıyor, köşeler kare kalıyordu.
+       Vazgeçmek yerine bir sonraki karede TEKRAR DENE. */
+    if (!(avail.width > 40 && avail.height > 40)) { requestAnimationFrame(fit); return; }
+    const k = Math.max(0.05, Math.min(1, kw, kh));
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+    frame.style.borderRadius = eff.radius + 'px';
+    frame.style.transform = 'scale(' + k + ')';
+    frame.style.transformOrigin = 'center center';
+  }
+
+  function apply() {
+    const eff = effective();
+    fit();
+    drawCutout(eff);
+    pushSafeArea(eff);
+  }
+
+  iframe.addEventListener('load', () => { pushSafeArea(effective()); fit(); });
+  addEventListener('resize', fit);
+  /* #stage'i de izle: panel/kenar çubuğu değişimleri pencere resize olayı
+     tetiklemez ama sahnenin ölçüsünü değiştirir. */
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+  apply();
+</script>
+</body>
+</html>

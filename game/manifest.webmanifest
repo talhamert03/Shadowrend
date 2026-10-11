@@ -1,0 +1,17 @@
+{
+  "name": "Shadowrend",
+  "short_name": "Shadowrend",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#08060a",
+  "theme_color": "#08060a",
+  "lang": "tr",
+  "categories": ["games"],
+  "icons": [
+    { "src": "store/ikon-kurukafa-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "store/ikon-kurukafa-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
