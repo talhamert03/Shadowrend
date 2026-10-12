@@ -92,18 +92,47 @@ static func col(c) -> Color:
 			out = Color.html("#" + h)
 		elif h.length() == 8:
 			out = Color.html("#" + h)
-	elif t.begins_with("rgb"):
+	elif t.begins_with("rgb") or t.begins_with("color(") or t.begins_with("oklab") or t.begins_with("oklch"):
 		var a := t.find("(")
 		var b := t.rfind(")")
-		var parts := t.substr(a + 1, b - a - 1).split(",")
-		var r := parts[0].strip_edges().to_float() / 255.0
-		var gg := parts[1].strip_edges().to_float() / 255.0
-		var bb := parts[2].strip_edges().to_float() / 255.0
+		var body := t.substr(a + 1, b - a - 1).replace(",", " ").replace("/", " / ")
 		var al := 1.0
-		if parts.size() > 3: al = parts[3].strip_edges().to_float()
-		out = Color(r, gg, bb, al)
+		var sl := body.find(" / ")
+		if sl >= 0:
+			var av := body.substr(sl + 3).strip_edges()
+			al = av.to_float() / 100.0 if av.ends_with("%") else av.to_float()
+			body = body.substr(0, sl)
+		var P := body.split(" ", false)
+		if t.begins_with("rgb"):
+			if P.size() > 3 and sl < 0: al = P[3].to_float()
+			out = Color(P[0].to_float() / 255.0, P[1].to_float() / 255.0, P[2].to_float() / 255.0, al)
+		elif t.begins_with("color("):
+			# color(srgb r g b / a) — 0..1
+			out = Color(P[1].to_float(), P[2].to_float(), P[3].to_float(), al)
+		else:
+			var L := P[0].to_float() / (100.0 if P[0].ends_with("%") else 1.0)
+			var A := P[1].to_float()
+			var B := P[2].to_float()
+			if t.begins_with("oklch"):
+				var h := deg_to_rad(P[2].to_float())
+				A = P[1].to_float() * cos(h)
+				B = P[1].to_float() * sin(h)
+			out = oklab(L, A, B, al)
 	_col_cache[k] = out
 	return out
+
+## OKLab → sRGB (CSS color-mix in oklab çıktıları)
+static func oklab(L: float, A: float, B: float, al := 1.0) -> Color:
+	var l_ := pow(L + 0.3963377774 * A + 0.2158037573 * B, 3.0)
+	var m_ := pow(L - 0.1055613458 * A - 0.0638541728 * B, 3.0)
+	var s_ := pow(L - 0.0894841775 * A - 1.2914855480 * B, 3.0)
+	var r := 4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_
+	var g := -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_
+	var b := -0.0041960863 * l_ - 0.7034186147 * m_ + 1.7076147010 * s_
+	var enc := func(x: float) -> float:
+		x = clampf(x, 0, 1)
+		return 12.92 * x if x <= 0.0031308 else 1.055 * pow(x, 1.0 / 2.4) - 0.055
+	return Color(enc.call(r), enc.call(g), enc.call(b), al)
 
 ## '#rrggbb' → 0xRRGGBB tamsayı (three.js hex dili).
 static func hexi(c) -> int:

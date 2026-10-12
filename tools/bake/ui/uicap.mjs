@@ -9,6 +9,7 @@
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { captureLayers } from './layers.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PW || '/usr/local/lib/node_modules/playwright');
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -26,6 +27,8 @@ const HOST = '192.0.2.2', port = server.address().port;
 const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: HOST } : undefined;
 const b = await chromium.launch({ proxy, args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: DPR, ignoreHTTPSErrors: true, locale: scenario.locale || 'tr-TR' });
+/* yaş kapısı yalnız onu yakalayan senaryoda görünsün */
+if (!scenario.ageGate) await ctx.addInitScript(() => { try { localStorage.setItem('kh_age', JSON.stringify({ band: '18+', at: 0, v: 1 })); } catch (e) {} });
 const p = await ctx.newPage();
 p.on('pageerror', (e) => console.log('[pageerror]', e.message.slice(0, 200)));
 await p.goto(`http://${HOST}:${port}/game/index.html`, { waitUntil: 'load', timeout: 90000 });
@@ -46,6 +49,8 @@ const api = {
   page: p,
   wait: (ms) => p.waitForTimeout(ms),
   eval: (fn, arg) => p.evaluate(fn, arg),
+  /* katman yakalama → godot/assets/ui/lyr/<name>.json + <name>/*.png */
+  layers: (o) => captureLayers({ page: p }, { out: path.join(OUT, 'lyr'), ...o }),
   /* hedef yakala: { sel, name, mode: shell|full|text, pad, keepText, children:[sel...] (shell'de görünür kalacak alt elemanlar) } */
   async cap(o) {
     const pad = o.pad == null ? 16 : o.pad;

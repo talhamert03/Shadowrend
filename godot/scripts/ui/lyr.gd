@@ -1,0 +1,461 @@
+class_name Lyr
+extends Node2D
+## Katman sahnesi — tools/bake/ui/layers.mjs ile yakalanmış bir DOM bileşenini
+## (res://assets/ui/lyr/<ad>.json + img/*.png) Node2D ağacı olarak yeniden kurar ve
+## CSS animasyonlarını (transform fonksiyon listesi + opaklık, kare başı
+## zamanlama eğrisi, gecikme/tekrar/yön/dolgu) gerçek zamanda oynatır.
+## Düğüm sırası CSS boyama sırasına yakındır: kendi görüntüsü, ::before,
+## çocuklar (z-index'e göre), ::after. overflow:hidden → clip_children maskesi.
+## Metinler UIText ile çizilir (içerik çalışma anında değiştirilebilir).
+
+const BASE := "res://assets/ui/lyr/"
+static var _cache := {}
+
+class N:
+	var d: Dictionary            # yakalanan düğüm verisi
+	var node: Node2D             # dönüşüm düğümü (kutunun sol üstü)
+	var host: Node2D             # çocukların asıldığı yer (kırpma maskesi olabilir)
+	var img: CanvasItem
+	var txt: UIText
+	var kids: Array = []
+	var anims: Array = []
+	var base_tf: Array = []
+	var base_op := 1.0
+	var origin := Vector2.ZERO
+	var pos := Vector2.ZERO
+	var size := Vector2.ZERO
+	var dyn := false             # animasyonlu → her kare
+	var hidden := false
+	var op_mul := 1.0            # betikten ek opaklık
+	var extra := Transform2D.IDENTITY   # betikten ek dönüşüm (origin etrafında)
+	var clip_rect: Array = []
+	var clip_rad: Array = []
+	var mats := {}               # kırpan düğüm: {false: normal, true: toplamsal}
+
+var data: Dictionary
+var nodes: Array = []            # N
+var by_id := {}
+var t := 0.0
+var playing := true
+var _dyn: Array = []
+var _clips: Array = []
+static var _sh_clip: Shader
+static var _sh_clip_add: Shader
+static var _mat_add: CanvasItemMaterial
+
+static func load_json(name: String) -> Dictionary:
+	if _cache.has(name): return _cache[name]
+	var f := FileAccess.open(BASE + name + ".json", FileAccess.READ)
+	var J: Dictionary = JSON.parse_string(f.get_as_text()) if f else {}
+	_cache[name] = J
+	return J
+
+static func make(name: String, skip_keys: Array = []) -> Lyr:
+	var L := Lyr.new()
+	L.build(load_json(name), skip_keys)
+	return L
+
+func _init() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+
+## skip_keys: anahtarı bu parçalardan birini içeren düğümler (ve alt ağaçları) kurulmaz
+func build(J: Dictionary, skip_keys: Array = []) -> void:
+	data = J
+	var list: Array = J.get("nodes", [])
+	var kids := {}
+	for d in list:
+		var p = d.get("parent")
+		var k: String = str(p) if p != null else ""
+		if not kids.has(k): kids[k] = []
+		kids[k].append(d)
+	for d in list:
+		if d.get("parent") == null:
+			_build_node(d, self, kids, skip_keys, null)
+			break
+
+func _skip(d: Dictionary, skip_keys: Array) -> bool:
+	var k: String = d.get("key", "")
+	for s in skip_keys:
+		if k.contains(s): return true
+	return false
+
+func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Array, clip_owner: N) -> N:
+	var n := N.new()
+	n.d = d
+	nodes.append(n)
+	by_id[str(d.id)] = n
+	var box: Array = d.box
+	n.pos = Vector2(box[0], box[1])
+	n.size = Vector2(box[2], box[3])
+	var o: Array = d.get("origin", [0, 0])
+	n.origin = Vector2(o[0], o[1])
+	n.base_tf = d.get("tf", [])
+	n.base_op = float(d.get("opacity", 1.0))
+	n.node = Node2D.new()
+	n.node.name = _safe_name(str(d.get("key", "n")))
+	parent.add_child(n.node)
+	var bl: String = d.get("blend", "")
+	var add := bl in ["screen", "plus-lighter", "lighten", "color-dodge", "overlay", "soft-light", "hard-light"]
+	# çocuklar: ::before önce, sonra elemanlar (z), ::after sonra
+	var ch: Array = kids.get(str(d.id), [])
+	var before: Array = []
+	var after: Array = []
+	var els: Array = []
+	for c in ch:
+		if _skip(c, skip_keys): continue
+		match c.get("kind", "el"):
+			"before": before.append(c)
+			"after": after.append(c)
+			_: els.append(c)
+	var neg: Array = []
+	var pos_: Array = []
+	var seq := before + els + after
+	# kararlı sıralama: (z-index, DOM sırası) — sort_custom kararlı değil
+	var order := {}
+	for i in seq.size(): order[seq[i]] = i
+	for c in seq:
+		if int(c.get("z", 0)) < 0: neg.append(c)
+		else: pos_.append(c)
+	var cmp := func(a, b): return int(a.get("z", 0)) < int(b.get("z", 0)) or (int(a.get("z", 0)) == int(b.get("z", 0)) and order[a] < order[b])
+	neg.sort_custom(cmp)
+	pos_.sort_custom(cmp)
+	# kendi görüntüsü
+	for c in neg: n.kids.append(_build_node(c, n.node, kids, skip_keys, clip_owner))
+	var im = d.get("img")
+	if im is Dictionary:
+		var s := Sprite2D.new()
+		s.centered = false
+		s.texture = load(BASE + "img/" + im.file)
+		var dpr: float = im.get("dpr", 3)
+		s.position = Vector2(im.ox, im.oy)
+		s.scale = Vector2.ONE / dpr
+		n.node.add_child(s)
+		n.img = s
+		s.material = _mat(clip_owner, add)
+	# metin
+	var tx = d.get("text")
+	if tx is Dictionary:
+		n.txt = _make_text(tx, n)
+		n.node.add_child(n.txt)
+		n.txt.material = _mat(clip_owner, add)
+	# kırpma (overflow:hidden) → alt ağaçtaki çizimler bu düğümün yuvarlak kutusuyla maskelenir
+	n.host = n.node
+	var co := clip_owner
+	var cl = d.get("clip")
+	if cl is Array and (els.size() + before.size() + after.size()) > 0:
+		co = n
+		n.clip_rect = d.get("clipBox", [0, 0, n.size.x, n.size.y])
+		n.clip_rad = cl
+		_clips.append(n)
+	for c in pos_: n.kids.append(_build_node(c, n.host, kids, skip_keys, co))
+	# animasyonlar
+	for A in d.get("anims", []):
+		var props: Array = A.get("props", [])
+		if props.has("transform") or props.has("indiv") or props.has("opacity"):
+			n.anims.append(A)
+	n.dyn = n.anims.size() > 0
+	if n.dyn: _dyn.append(n)
+	_apply(n, 0.0)
+	return n
+
+static func _safe_name(s: String) -> String:
+	return s.replace(".", "_").replace(":", "_").replace("#", "").replace("/", "_").left(40)
+
+func _mat(co: N, add: bool) -> Material:
+	if OS.get_environment("LYR_NOCLIP") != "": co = null
+	if co == null:
+		if not add: return null
+		if _mat_add == null:
+			_mat_add = CanvasItemMaterial.new()
+			_mat_add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		return _mat_add
+	if co.mats.has(add): return co.mats[add]
+	if _sh_clip == null:
+		_sh_clip = load("res://shaders/ui/lyr_clip.gdshader")
+		_sh_clip_add = load("res://shaders/ui/lyr_clip_add.gdshader")
+	var m := ShaderMaterial.new()
+	m.shader = _sh_clip_add if add else _sh_clip
+	var r: Array = co.clip_rect
+	m.set_shader_parameter("crect", Vector4(r[0], r[1], r[2], r[3]))
+	var q: Array = co.clip_rad
+	m.set_shader_parameter("rad", Vector4(q[0], q[1], q[2], q[3]))
+	co.mats[add] = m
+	return m
+
+## kırpan düğümlerin tuval→yerel ters dönüşümü (her kare; az sayıda)
+func _update_clips() -> void:
+	for n: N in _clips:
+		if n.mats.is_empty(): continue
+		var inv: Transform2D = n.node.get_global_transform().affine_inverse()
+		for m in n.mats.values():
+			m.set_shader_parameter("ix", inv.x)
+			m.set_shader_parameter("iy", inv.y)
+			m.set_shader_parameter("io", inv.origin)
+
+# ═══════════ METİN ═══════════
+
+static func tr_upper(s: String) -> String:
+	return s.replace("i", "İ").replace("ı", "I").to_upper()
+
+func _make_text(tx: Dictionary, n: N) -> UIText:
+	var l := UIText.new()
+	var disp := String(tx.get("font", "")).begins_with("Cinzel")
+	var sz: float = tx.get("size", 12)
+	l.style(disp, int(tx.get("weight", 400)), sz, float(tx.get("ls", 0)), tx.get("color", "#fff"), tx.get("shadow", "none"))
+	var lh: float = tx.get("lh", 0)
+	if lh <= 0: lh = roundf(sz * (1.36 if disp else 1.3))
+	l.line_h = lh
+	var str_: String = tx.get("str", "")
+	if tx.get("tt", "none") == "uppercase": str_ = tr_upper(str_)
+	var cb: Array = tx.get("content", [0, 0, n.size.x, n.size.y])
+	var box: Array = n.d.box
+	# içerik kutusu: düğüm kutusuna göre (yakalamada kökte mutlak verildi)
+	var lines: Array = tx.get("lines", [])
+	var al: String = tx.get("align", "start")
+	l.align = 0.5 if al == "center" else (1.0 if al in ["right", "end"] else 0.0)
+	var abs0 := _abs_of(n)
+	l.position = Vector2(cb[0], cb[1]) - abs0
+	l.wrap_w = cb[2]
+	l.box_h = cb[3]
+	l.lines_hint = lines.size()
+	# tek satır yakalanmışsa sarma (yazı tipi ölçü farkı satırı bölmesin)
+	l.nowrap = lines.size() <= 1 or String(tx.get("ws", "")) in ["nowrap", "pre"]
+	var clamp_ = String(tx.get("clamp", "none"))
+	if clamp_.is_valid_int(): l.max_lines = int(clamp_)
+	if lines.size() > 0:
+		# ilk satırın üstü (satır kutusu) → dikey hizalama yakalanandan
+		var ly: float = lines[0][1] - abs0.y
+		var lh_box: float = lines[0][3]
+		l.position.y = ly - maxf(0, (lh - lh_box) * 0.5)
+	l.text = str_
+	return l
+
+## düğümün kök koordinatındaki sol üstü (kutular ebeveyne göre saklı)
+func _abs_of(n: N) -> Vector2:
+	var p := Vector2.ZERO
+	var d := n.d
+	while d != null:
+		var b: Array = d.box
+		p += Vector2(b[0], b[1])
+		var par = d.get("parent")
+		if par == null: break
+		var pn: N = by_id.get(str(par))
+		d = pn.d if pn else null
+	return p
+
+# ═══════════ ANİMASYON ═══════════
+
+func _process(dt: float) -> void:
+	if not playing or not is_visible_in_tree(): return
+	t += dt
+	for n in _dyn: _apply(n, t)
+	_update_clips()
+
+func restart() -> void:
+	t = 0.0
+	for n in nodes: _apply(n, 0.0)
+	_update_clips()
+
+static func _fn_tf(f: Array) -> Transform2D:
+	match String(f[0]):
+		"translate": return Transform2D(0, Vector2(f[1], f[2]))
+		"scale": return Transform2D(Vector2(f[1], 0), Vector2(0, f[2]), Vector2.ZERO)
+		"rotate": return Transform2D(float(f[1]), Vector2.ZERO)
+		"skew": return Transform2D(Vector2(1, tan(f[2])), Vector2(tan(f[1]), 1), Vector2.ZERO)
+		"matrix": return Transform2D(Vector2(f[1], f[2]), Vector2(f[3], f[4]), Vector2(f[5], f[6]))
+		"flipx": return Transform2D(Vector2(cos(f[1]), 0), Vector2(0, 1), Vector2.ZERO)
+		"flipy": return Transform2D(Vector2(1, 0), Vector2(0, cos(f[1])), Vector2.ZERO)
+	return Transform2D.IDENTITY
+
+static func list_tf(L: Array) -> Transform2D:
+	var m := Transform2D.IDENTITY
+	for f in L: m = m * _fn_tf(f)
+	return m
+
+static func _ident_like(f: Array) -> Array:
+	match String(f[0]):
+		"translate": return ["translate", 0.0, 0.0]
+		"scale": return ["scale", 1.0, 1.0]
+		"rotate": return ["rotate", 0.0]
+		"skew": return ["skew", 0.0, 0.0]
+		"flipx": return ["flipx", 0.0]
+		"flipy": return ["flipy", 0.0]
+		"matrix": return ["matrix", 1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+	return f
+
+## CSS transform ara değeri: aynı fonksiyon listesi → argüman bazında; değilse matris ayrıştırma
+static func lerp_list(a: Array, b: Array, k: float) -> Transform2D:
+	if a.is_empty() and b.is_empty(): return Transform2D.IDENTITY
+	if a.is_empty():
+		a = []
+		for f in b: a.append(_ident_like(f))
+	if b.is_empty():
+		b = []
+		for f in a: b.append(_ident_like(f))
+	var same := a.size() == b.size()
+	if same:
+		for i in a.size():
+			if String(a[i][0]) != String(b[i][0]) or (a[i] as Array).size() != (b[i] as Array).size():
+				same = false
+				break
+	if same:
+		var m := Transform2D.IDENTITY
+		for i in a.size():
+			var fa: Array = a[i]
+			var fb: Array = b[i]
+			var f := [fa[0]]
+			for j in range(1, fa.size()): f.append(lerpf(float(fa[j]), float(fb[j]), k))
+			m = m * _fn_tf(f)
+		return m
+	var A := list_tf(a)
+	var B := list_tf(b)
+	return Transform2D(lerp_angle(A.get_rotation(), B.get_rotation(), k), A.get_scale().lerp(B.get_scale(), k), lerpf(A.get_skew(), B.get_skew(), k), A.origin.lerp(B.origin, k))
+
+## CSS zamanlama eğrisi dizesi
+static func ease_css(e: String, x: float) -> float:
+	match e:
+		"linear", "": return x
+		"ease": return UIK.ez(UIK.EASE, x)
+		"ease-in": return UIK.ez(UIK.EASE_IN, x)
+		"ease-out": return UIK.ez(UIK.EASE_OUT, x)
+		"ease-in-out": return UIK.ez(UIK.EASE_IN_OUT, x)
+		"step-start": return 1.0 if x > 0 else 0.0
+		"step-end": return 1.0 if x >= 1 else 0.0
+	if e.begins_with("cubic-bezier("):
+		var a := e.substr(13, e.length() - 14).split(",")
+		return UIK.bez(float(a[0]), float(a[1]), float(a[2]), float(a[3]), x)
+	if e.begins_with("steps("):
+		var a2 := e.substr(6, e.length() - 7).split(",")
+		var n := maxi(1, int(a2[0]))
+		var pos := String(a2[1]).strip_edges() if a2.size() > 1 else "end"
+		if pos in ["start", "jump-start"]: return minf(1.0, ceilf(x * n) / n)
+		if pos == "jump-both": return clampf(floorf(x * n + 1) / (n + 1), 0, 1)
+		if pos == "jump-none": return clampf(floorf(x * n) / maxf(1, n - 1), 0, 1)
+		return floorf(x * n) / n
+	return x
+
+## animasyonun bu andaki ilerlemesi (0..1) — yoksa -1 (etkisiz)
+static func progress(A: Dictionary, t_ms: float) -> float:
+	var dur: float = A.get("dur", 0)
+	var delay: float = A.get("delay", 0)
+	var it: float = A.get("iter", 1)
+	var fill: String = A.get("fill", "none")
+	var dir: String = A.get("dir", "normal")
+	var lt := t_ms - delay
+	var active := INF if it < 0 else dur * it
+	var iter_p := 0.0
+	var idx := 0.0
+	if lt < 0:
+		if not (fill in ["backwards", "both"]): return -1.0
+		iter_p = 0.0
+		idx = 0
+	elif lt >= active:
+		if not (fill in ["forwards", "both"]): return -1.0
+		if dur <= 0:
+			iter_p = 1.0; idx = it - 1
+		else:
+			var fi := it
+			idx = floorf(fi)
+			iter_p = fi - idx
+			if iter_p == 0.0 and fi > 0:
+				iter_p = 1.0; idx = fi - 1
+	else:
+		if dur <= 0: return 1.0
+		idx = floorf(lt / dur)
+		iter_p = fmod(lt, dur) / dur
+	var rev := dir == "reverse"
+	if dir == "alternate": rev = int(idx) % 2 == 1
+	elif dir == "alternate-reverse": rev = int(idx) % 2 == 0
+	if rev: iter_p = 1.0 - iter_p
+	var eg: String = A.get("easing", "linear")
+	if eg != "linear": iter_p = ease_css(eg, iter_p)
+	return iter_p
+
+## özellik için kare listesi (eksik 0/1 uçları taban değerle)
+static func _prop_frames(A: Dictionary, key: String, base) -> Array:
+	var out := []
+	for k in A.kfs:
+		if k.has(key): out.append([float(k.off), k[key], String(k.get("ease", "linear"))])
+	if out.is_empty(): return out
+	if out[0][0] > 0.0: out.push_front([0.0, base, "linear" if out.size() == 0 else "ease"])
+	if out[out.size() - 1][0] < 1.0: out.append([1.0, base, "linear"])
+	return out
+
+static func _seg(fr: Array, p: float) -> Array:
+	# → [a, b, k]
+	if p <= fr[0][0]: return [fr[0][1], fr[0][1], 0.0]
+	for i in range(1, fr.size()):
+		if p <= fr[i][0]:
+			var a: Array = fr[i - 1]
+			var b: Array = fr[i]
+			var span: float = b[0] - a[0]
+			var k: float = 1.0 if span <= 0 else (p - a[0]) / span
+			return [a[1], b[1], ease_css(a[2], k)]
+	var l = fr[fr.size() - 1][1]
+	return [l, l, 0.0]
+
+func _apply(n: N, tt: float) -> void:
+	var tf_list_t := Transform2D.IDENTITY
+	var have_tf := false
+	var indiv_t := Transform2D.IDENTITY
+	var op := n.base_op
+	var tms := tt * 1000.0
+	for A in n.anims:
+		var p := progress(A, tms)
+		if p < 0: continue
+		var props: Array = A.props
+		if props.has("transform"):
+			var fr := _prop_frames(A, "tf", n.base_tf)
+			if fr.size():
+				var s := _seg(fr, p)
+				tf_list_t = lerp_list(s[0], s[1], s[2])
+				have_tf = true
+		if props.has("indiv"):
+			var fr2 := _prop_frames(A, "tfi", [])
+			if fr2.size():
+				var s2 := _seg(fr2, p)
+				indiv_t = lerp_list(s2[0], s2[1], s2[2])
+		if props.has("opacity"):
+			var fr3 := _prop_frames(A, "op", n.base_op)
+			if fr3.size():
+				var s3 := _seg(fr3, p)
+				op = lerpf(float(s3[0]), float(s3[1]), s3[2])
+	var M := indiv_t * (tf_list_t if have_tf else list_tf(n.base_tf))
+	M = n.extra * M
+	var o := n.origin
+	n.node.transform = Transform2D(0, n.pos) * Transform2D(0, o) * M * Transform2D(0, -o)
+	var a := clampf(op, 0, 1) * n.op_mul
+	n.node.modulate.a = a
+	n.node.visible = not n.hidden and a > 0.001
+
+# ═══════════ BETİK ARAYÜZÜ ═══════════
+
+## anahtarı `key` parçasını içeren düğümler (DOM sırası)
+func find_all(key: String) -> Array:
+	var out := []
+	for n in nodes:
+		if String(n.d.get("key", "")).contains(key): out.append(n)
+	return out
+
+func find(key: String, idx := 0) -> N:
+	var a := find_all(key)
+	return a[idx] if idx < a.size() else null
+
+func set_text(n: N, s: String) -> void:
+	if n == null or n.txt == null: return
+	var tx: Dictionary = n.d.text
+	n.txt.text = tr_upper(s) if tx.get("tt", "none") == "uppercase" else s
+
+func set_hidden(n: N, h: bool) -> void:
+	if n == null: return
+	n.hidden = h
+	_apply(n, t)
+
+func set_dyn(n: N) -> void:
+	if n and not _dyn.has(n):
+		n.dyn = true
+		_dyn.append(n)
+
+## düğümün kök koordinatındaki dikdörtgeni (dönüşümsüz)
+func rect_of(n: N) -> Rect2:
+	return Rect2(_abs_of(n), n.size)
