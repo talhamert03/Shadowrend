@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>doku pişirme</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* Oyunun çalışma anında kanvasla ürettiği dokuları (render3d efekt dokuları,
+   saha sandığı madalyonları, kalkan rün halkası) web kodunun KENDİSİYLE
+   üretip PNG olarak yazar. */
+import * as THREE from 'three';
+import { Quality } from '/game/perf.js?v=20260930m';
+import { Renderer3D } from '/game/render3d.js?v=20260930m';
+import { save, canvasPNG, done, importPatched } from './common.js';
+
+Quality.init('high', false);
+const R = Renderer3D.prototype;
+const fake = { renderer: { capabilities: { getMaxAnisotropy: () => 8 } } };
+const put = async (name, tex) => {
+  const cv = tex.image || tex.source && tex.source.data;
+  await save('assets/fx/' + name + '.png', await canvasPNG(cv));
+};
+(async () => {
+  try {
+    await put('prop_grain', R._propTexture.call(fake));
+    await put('soft_blob', R._softBlobTexture.call(fake));
+    await put('glow', R._glowTexture.call(fake));
+    await put('flame_sprite', R._flameSpriteTexture.call(fake));
+    await put('shock', R._shockTexture.call(fake));
+    await put('slash', R._slashTexture.call(fake));
+    await put('beam', R._beamTexture.call(fake));
+    for (const s of [1, 2, 3]) await put('bolt_' + s, R._boltZigzagTexture.call(fake, s));
+    /* hale (gem/heart havuzları) — _buildGemPool içindeki satır içi kanvas */
+    {
+      const glowCanvas = document.createElement('canvas');
+      glowCanvas.width = glowCanvas.height = 128;
+      const gctx = glowCanvas.getContext('2d');
+      const grad = gctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+      grad.addColorStop(0.22, 'rgba(255,255,255,0.42)');
+      grad.addColorStop(0.55, 'rgba(255,255,255,0.13)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      gctx.fillStyle = grad;
+      gctx.fillRect(0, 0, 128, 128);
+      await save('assets/fx/soft_glow.png', await canvasPNG(glowCanvas));
+    }
+    const FC = await importPatched('/game/fieldChest.js?v=20260930m', ['medal', 'bombBody']);
+    for (const k of ['magnet', 'heal', 'shield', 'gold']) await save('assets/art/fieldchest/medal_' + k + '.png', await canvasPNG(FC.medal(k)));
+    for (const h of [0, 1]) await save('assets/art/fieldchest/bomb_' + h + '.png', await canvasPNG(FC.bombBody(h)));
+    const SD = await importPatched('/game/shieldDome.js?v=20260930m', ['runeTexture']);
+    await put('shield_rune', SD.runeTexture());
+    done();
+  } catch (e) { done(e); }
+})();
+</script>

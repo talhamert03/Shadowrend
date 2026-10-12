@@ -21,3 +21,15 @@ export function done(err) {
   if (err) { window.__err = String(err && err.stack || err); console.error(window.__err); }
   window.__done = true;
 }
+/* Dışa aktarılmayan iç fonksiyonlara ulaşmak için: modül kaynağını getirir,
+   göreli içe aktarmaları mutlak yola çevirir, sonuna `export { ... }` ekler
+   ve Blob URL'den içe aktarır. Aynı ?v sorgusu korunduğu için bağımlılıklar
+   oyunun kendi modül örnekleriyle PAYLAŞILIR. */
+export async function importPatched(path, names) {
+  let src = await (await fetch(path)).text();
+  const base = path.slice(0, path.lastIndexOf('/') + 1);
+  src = src.replace(/from\s+'\.\/([^']+)'/g, (_, p) => "from '" + location.origin + base + p + "'");
+  src += '\nexport { ' + names.join(', ') + ' };\n';
+  const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+  return import(url);
+}
