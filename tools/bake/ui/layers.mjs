@@ -143,7 +143,7 @@ window.__lyr = (() => {
       for (const ps of ['', '::before', '::after']) {
         const cs = getComputedStyle(e, ps || null);
         if (ps && (cs.content === 'none' || cs.content === 'normal' || cs.display === 'none')) continue;
-        statics.set(e.getAttribute('data-lyr') + ps, { color: cs.color, tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
+        statics.set(e.getAttribute('data-lyr') + ps, { trProp: cs.transitionProperty, trDur: cs.transitionDuration, trDelay: cs.transitionDelay, trEase: cs.transitionTimingFunction, color: cs.color, tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
       }
     }
     /* ③ dönüşümsüz yerleşim */

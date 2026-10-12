@@ -30,6 +30,7 @@ class N:
 	var op_mul := 1.0            # betikten ek opaklık
 	var extra := Transform2D.IDENTITY   # betikten ek dönüşüm (origin etrafında)
 	var t0 := 0.0                # animasyon başlangıcı (sahne saatine göre, sn)
+	var trs := {}                # CSS geçişleri: "tf"/"op" → [başla, bitir, t0, süre sn, gecikme sn, eğri]
 	var clip_rect: Array = []
 	var clip_rad: Array = []
 	var mats := {}               # kırpan düğüm: {false: normal, true: toplamsal}
@@ -446,13 +447,116 @@ func _apply(n: N, tt: float) -> void:
 			if fr3.size():
 				var s3 := _seg(fr3, p)
 				op = lerpf(float(s3[0]), float(s3[1]), s3[2])
-	var M := indiv_t * (tf_list_t if have_tf else list_tf(n.base_tf))
+	var base_t := list_tf(n.base_tf)
+	if n.trs.has("tf"):
+		var R: Array = n.trs.tf
+		var k := clampf((tt - float(R[2]) - float(R[4])) / maxf(0.001, float(R[3])), 0.0, 1.0)
+		base_t = lerp_list(R[0], R[1], ease_css(R[5], k))
+		if k >= 1.0: n.trs.erase("tf")
+	if n.trs.has("op"):
+		var R2: Array = n.trs.op
+		var k2 := clampf((tt - float(R2[2]) - float(R2[4])) / maxf(0.001, float(R2[3])), 0.0, 1.0)
+		var o2 := lerpf(float(R2[0]), float(R2[1]), ease_css(R2[5], k2))
+		if not _has_op_anim(n): op = o2
+		if k2 >= 1.0: n.trs.erase("op")
+	var M := indiv_t * (tf_list_t if have_tf else base_t)
 	M = n.extra * M
 	var o := n.origin
 	n.node.transform = Transform2D(0, n.pos) * Transform2D(0, o) * M * Transform2D(0, -o)
 	var a := clampf(op, 0, 1) * n.op_mul
 	n.node.modulate.a = a
 	n.node.visible = not n.hidden and a > 0.001
+
+static func _has_op_anim(n: N) -> bool:
+	for A in n.anims:
+		if (A.get("props", []) as Array).has("opacity"): return true
+	return false
+
+## CSS virgüllü liste (parantez içi virgüllere dokunmadan)
+static func _csv(s: String) -> PackedStringArray:
+	var out := PackedStringArray()
+	var depth := 0
+	var cur := ""
+	for ch in s:
+		if ch == "(": depth += 1
+		elif ch == ")": depth -= 1
+		if ch == "," and depth == 0:
+			out.append(cur.strip_edges()); cur = ""
+		else: cur += ch
+	if cur.strip_edges() != "": out.append(cur.strip_edges())
+	return out
+
+static func _secs(v: String) -> float:
+	v = v.strip_edges()
+	if v.ends_with("ms"): return v.to_float() / 1000.0
+	return v.to_float()
+
+## düğümün yeni durumdaki geçişi (özellik için) → [süre, gecikme, eğri] ya da boş
+static func _trans_for(st: Dictionary, prop: String) -> Array:
+	var props := _csv(str(st.get("trProp", "")))
+	var durs := _csv(str(st.get("trDur", "0s")))
+	var dels := _csv(str(st.get("trDelay", "0s")))
+	var eas := _csv(str(st.get("trEase", "ease")))
+	for i in props.size():
+		var p: String = props[i]
+		if p == prop or p == "all" or (prop == "transform" and p in ["translate", "scale", "rotate"]):
+			var d := _secs(durs[i % durs.size()]) if durs.size() else 0.0
+			if d <= 0.0: return []
+			return [d, _secs(dels[i % dels.size()]) if dels.size() else 0.0, eas[i % eas.size()] if eas.size() else "ease"]
+	return []
+
+## CSS sınıf durumu değişimi: başka bir yakalamadaki (aynı yapı) durağan dönüşüm/opaklık,
+## görüntü, görünürlük ve animasyonlara geç; geçiş tanımlıysa (transition) yumuşakça.
+func to_state(name: String) -> void:
+	var J2 := load_json(name)
+	for d2 in J2.get("nodes", []):
+		var n: N = by_id.get(str(d2.id))
+		if n == null: continue
+		var st2: Dictionary = d2.get("static", {})
+		# görünürlük
+		var hid := String(st2.get("display", "")) == "none" or String(st2.get("vis", "")) == "hidden"
+		# dönüşüm
+		var new_tf: Array = d2.get("tf", [])
+		if JSON.stringify(new_tf) != JSON.stringify(n.base_tf):
+			var tr := _trans_for(st2, "transform")
+			if tr.size():
+				var cur := list_tf(n.base_tf)
+				if n.trs.has("tf"):
+					var R: Array = n.trs.tf
+					cur = lerp_list(R[0], R[1], ease_css(R[5], clampf((t - float(R[2]) - float(R[4])) / maxf(0.001, float(R[3])), 0, 1)))
+				n.trs["tf"] = [[["matrix", cur.x.x, cur.x.y, cur.y.x, cur.y.y, cur.origin.x, cur.origin.y]], new_tf, t, tr[0], tr[1], tr[2]]
+			n.base_tf = new_tf
+		# opaklık
+		var new_op := float(d2.get("opacity", 1.0))
+		if absf(new_op - n.base_op) > 0.001:
+			var tr2 := _trans_for(st2, "opacity")
+			if tr2.size(): n.trs["op"] = [n.base_op, new_op, t, tr2[0], tr2[1], tr2[2]]
+			n.base_op = new_op
+		# görüntü
+		var im = d2.get("img")
+		if im is Dictionary and n.img is Sprite2D:
+			var spr := n.img as Sprite2D
+			var tex: Texture2D = load(BASE + "img/" + im.file)
+			if spr.texture != tex:
+				spr.texture = tex
+				spr.position = Vector2(im.ox, im.oy)
+				spr.scale = Vector2.ONE / float(im.get("dpr", 3))
+		if n.img: n.img.visible = im is Dictionary
+		# animasyonlar: ad kümesi değiştiyse yeniden başlar (CSS kuralı)
+		var new_an := []
+		for A in d2.get("anims", []):
+			var pr: Array = A.get("props", [])
+			if pr.has("transform") or pr.has("indiv") or pr.has("opacity"): new_an.append(A.duplicate(true))
+		var names_old := []
+		for A in n.anims: names_old.append(str(A.get("name", "")))
+		var names_new := []
+		for A in new_an: names_new.append(str(A.get("name", "")))
+		if names_old != names_new:
+			n.anims = new_an
+			n.t0 = t
+		n.hidden = hid
+		set_dyn(n)
+		_apply(n, t)
 
 # ═══════════ BETİK ARAYÜZÜ ═══════════
 

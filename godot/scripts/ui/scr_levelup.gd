@@ -200,7 +200,7 @@ func _fill(L: Lyr, c: Dictionary, K: Dictionary, top: bool) -> void:
 	# glif: bütün svg düğümleri (madalyon + kahraman filigranı)
 	var gf := glyph_file(c)
 	for nn in L.find_all("svg"):
-		_glyph(L, nn, gf)
+		glyph_into(L, nn, gf)
 	# etiket rozeti → içerik yükseklik farkı (rozet yok / eşik rozeti daha uzun)
 	var st = c.get("stag")
 	var sr := _stag_rect(L)
@@ -269,7 +269,7 @@ func _chip(L: Lyr, tag: String, n: int) -> Lyr:
 	if it and nx != null: C.set_text(it, str(nx.name))
 	return C
 
-func _glyph(L: Lyr, nn: Lyr.N, gf: String) -> void:
+static func glyph_into(L: Lyr, nn: Lyr.N, gf: String) -> void:
 	if not (nn.img is Sprite2D): return
 	var spr := nn.img as Sprite2D
 	var tex: Texture2D = load(GLYPH_DIR + gf + ".png") if ResourceLoader.exists(GLYPH_DIR + gf + ".png") else null

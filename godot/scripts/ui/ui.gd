@@ -16,6 +16,10 @@ var levelup: ScrLevelUp
 var bless: ScrBless
 var pause: ScrPause
 var missionend: ScrMissionEnd
+var gate: ScrGate
+var adwatch: ScrAdWatch
+var evo: ScrEvo
+var ach: AchToast
 
 func _init(a = null) -> void:
 	g = a
@@ -37,6 +41,14 @@ func _ready() -> void:
 	layer.add_child(pause)
 	missionend = ScrMissionEnd.new(g)
 	layer.add_child(missionend)
+	gate = ScrGate.new(g)
+	layer.add_child(gate)
+	adwatch = ScrAdWatch.new(g)
+	layer.add_child(adwatch)
+	evo = ScrEvo.new(g)
+	layer.add_child(evo)
+	ach = AchToast.new(g)
+	layer.add_child(ach)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -94,9 +106,13 @@ func _process(_dt: float) -> void:
 		_shot = ""
 		if _arg("quit") != "": get_tree().quit()
 
-func play_battle_intro(_info, mid: Callable, end: Callable) -> void:
-	mid.call()
-	end.call()
+func play_battle_intro(info, mid: Callable, end: Callable) -> void:
+	missionend.hide_end()
+	if _arg("autorun") != "" and _arg("gate") == "":
+		mid.call()
+		end.call()
+		return
+	gate.play(info if info is Dictionary else {}, mid, end)
 
 func show_bless_pick(list, cb: Callable, opt = null) -> void:
 	if _arg("autopick") != "" or _arg("autorun") != "" and _arg("bless") == "":
@@ -129,13 +145,18 @@ func show_mission_end(won, info) -> void:
 	levelup.hide_screen()
 	pause.hide_pause()
 	missionend.show_end(bool(won), info if info is Dictionary else {})
-func show_ad_watch(_n, _cb) -> void: pass
+	var na = g._achNew
+	g._achNew = []
+	if na is Array and na.size(): ach.push(na, 2.3)
+func show_ad_watch(n, cb) -> void:
+	missionend.hide_end()
+	adwatch.show_ad(int(n), cb)
 func show_boss_bar(b) -> void: hud.show_boss_bar(b)
 func hide_boss_bar() -> void: hud.hide_boss_bar()
 func boss_moment(k, b) -> void: hud.boss_moment(str(k), b)
 func banner(a, b = "", _c = null) -> void: hud.banner_show(str(a), b)
 func event_banner(a, b = "", c = null) -> void: hud.event_banner(str(a), str(b), c if c != null else "#f0c77a")
-func evo_cinema(_e, cb: Callable) -> void: cb.call()
+func evo_cinema(e, cb: Callable) -> void: evo.play(e if e is Dictionary else {}, cb)
 func ftue_show(_k, _t) -> void: pass
 func hurt_dir(a) -> void: hud.hurt_dir(float(a))
 func hurt_flash() -> void: hud.hurt_flash()
@@ -170,6 +191,11 @@ func _hud_test(hv: String) -> void:
 			g.enter_level_up()
 		"6":
 			g.pause_game()
+		"9":
+			evo_cinema({"icon": "kilic", "from": "SEHER KILICI", "to": "ŞAFAK KILICI"}, func(): pass)
+		"10":
+			show_ad_watch(3, func(): pass)
+			ach.push([{"name": "DOKUNULMAZ", "gold": 100}])
 		"7":
 			g.kills = 187
 			g.mission_complete()
