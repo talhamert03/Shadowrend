@@ -12,6 +12,8 @@ var _logT := 0.0
 var _hudDone := false
 var layer: CanvasLayer
 var hud: HUD
+var levelup: ScrLevelUp
+var bless: ScrBless
 
 func _init(a = null) -> void:
 	g = a
@@ -25,6 +27,10 @@ func _ready() -> void:
 	add_child(layer)
 	hud = HUD.new(g)
 	layer.add_child(hud)
+	levelup = ScrLevelUp.new(g)
+	layer.add_child(levelup)
+	bless = ScrBless.new(g)
+	layer.add_child(bless)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -86,11 +92,18 @@ func play_battle_intro(_info, mid: Callable, end: Callable) -> void:
 	mid.call()
 	end.call()
 
-func show_bless_pick(list, cb: Callable) -> void:
-	if list is Array and list.size(): cb.call(list[0])
+func show_bless_pick(list, cb: Callable, opt = null) -> void:
+	if _arg("autopick") != "" or _arg("autorun") != "" and _arg("bless") == "":
+		if list is Array and list.size(): cb.call(list[0])
+		return
+	bless.show_pick(list, cb, opt)
 func show_level_up(choices) -> void:
-	if choices is Array and choices.size(): g.call_deferred("pick_upgrade", choices[0])
-func hide_level_up() -> void: pass
+	if _arg("autopick") != "" and choices is Array and choices.size():
+		g.call_deferred("pick_upgrade", choices[0])
+		return
+	hud.banner.visible = false
+	levelup.show_choices(choices)
+func hide_level_up() -> void: levelup.hide_screen()
 func show_game() -> void: hud.show_game()
 func show_menu() -> void: hud.hide_hud()
 func show_pause() -> void: pass
@@ -136,3 +149,14 @@ func _hud_test(hv: String) -> void:
 			banner("DALGA 2 / 5", "SOLGUN MEZARLIK")
 		"3":
 			boss_moment("intro", "KADİM HASATÇI")
+		"4":
+			g.enter_level_up()
+		"5":
+			g.state = "levelup"
+			var mk := func(o: Dictionary) -> Dictionary:
+				var c := {"tag": "X", "name": "Kadim Yürek", "desc": "Azami can +22 — aldığın an dolar.", "stats": [], "stag": "CELIK", "stagN": 0}
+				c.merge(o, true)
+				return c
+			show_level_up([mk.call({"kind": "passive", "id": "kalp", "level": 1, "max": 4, "name": "Kadim Yürek"}),
+				mk.call({"kind": "special", "sig": true, "myth": true, "seher": true, "id": "ikiz", "icon": "kilic", "tier": 2, "level": 1, "max": 5, "name": "İkiz Savuruş", "desc": "Aynı hedefe ters yönden ikinci kesik.", "stag": "KOR", "stagN": 1}),
+				mk.call({"kind": "special", "id": "perkx", "icon": "yay", "level": 0, "max": 1, "name": "Uzun Kavis", "desc": "Menzil +%8, hasar +%10.", "stag": "RUH", "stagN": 3})])

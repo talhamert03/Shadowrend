@@ -30,6 +30,7 @@ window.__lyr = (() => {
     'html.lyr-clear, html.lyr-clear body { background: transparent !important; }',
     'html.lyr-clear canvas { visibility: hidden !important; }',
     '.lyr-out { visibility: hidden !important; }',
+    '.lyr-bgbox { -webkit-background-clip: border-box !important; background-clip: border-box !important; -webkit-text-fill-color: transparent !important; }',
   ].join('\n');
   document.head.appendChild(CSS);
   const ATOMIC = new Set(['svg', 'img', 'canvas', 'video', 'input', 'select', 'textarea']);
@@ -142,7 +143,7 @@ window.__lyr = (() => {
       for (const ps of ['', '::before', '::after']) {
         const cs = getComputedStyle(e, ps || null);
         if (ps && (cs.content === 'none' || cs.content === 'normal' || cs.display === 'none')) continue;
-        statics.set(e.getAttribute('data-lyr') + ps, { tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
+        statics.set(e.getAttribute('data-lyr') + ps, { color: cs.color, tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
       }
     }
     /* ③ dönüşümsüz yerleşim */
@@ -168,6 +169,7 @@ window.__lyr = (() => {
         n.text = { str: tn.map((t) => t.textContent).join(''), inner: e.innerText, font: cs.fontFamily, weight: +cs.fontWeight || 400, size: num(cs.fontSize), color: cs.color, ls: cs.letterSpacing === 'normal' ? 0 : num(cs.letterSpacing), tt: cs.textTransform, shadow: cs.textShadow, align: cs.textAlign, lh: cs.lineHeight === 'normal' ? 0 : num(cs.lineHeight), ws: cs.whiteSpace, stroke: [num(cs.webkitTextStrokeWidth), cs.webkitTextStrokeColor], fill: cs.webkitTextFillColor, bgclip: cs.webkitBackgroundClip || cs.backgroundClip, bgimg: cs.backgroundImage, style: cs.fontStyle, clamp: cs.webkitLineClamp, lines,
           content: [box[0] + n.border.bl + num(cs.paddingLeft), box[1] + n.border.bt + num(cs.paddingTop), box[2] - n.border.bl - n.border.br - num(cs.paddingLeft) - num(cs.paddingRight), box[3] - n.border.bt - n.border.bb - num(cs.paddingTop) - num(cs.paddingBottom)] };
       }
+      if (n.text && /text/.test(n.text.bgclip || "")) n.fill = true;
       nodes.push(n); byId[lid] = n;
       /* sözde elemanlar */
       for (const ps of ['::before', '::after']) {
@@ -192,6 +194,21 @@ window.__lyr = (() => {
           clip: null, anims: anims.get(lid + ps) || [], inflow: !(pc.position === 'absolute' || pc.position === 'fixed') };
         if (pc.content && pc.content !== 'none' && pc.content !== '""' && pc.content !== "''" && !pc.content.startsWith('url(')) pn.ptext = pc.content;
         nodes.push(pn); byId[pn.id] = pn;
+      }
+    }
+    /* ③b esneme çıkarımı: kök d px uzatılınca (min-height) her düğümün mutlak kayması/büyümesi
+       (birim başına) → Godot'da yükseklik değişince aynı flex/konum davranışı */
+    if (opt.stretch) {
+      const d = opt.stretch;
+      const before = measureAll(els, R0);
+      const old = root.style.minHeight;
+      root.style.setProperty('min-height', (R0.height + d) + 'px', 'important');
+      const after = measureAll(els, root.getBoundingClientRect());
+      root.style.minHeight = old;
+      for (const n of nodes) {
+        const a = before[n.id], b = after[n.id]; if (!a || !b) continue;
+        n.vy = Math.round((b[1] - a[1]) / d * 1000) / 1000;
+        n.vh = Math.round((b[3] - a[3]) / d * 1000) / 1000;
       }
     }
     /* ④ dönüşüm/animasyon değerlerini çöz */
@@ -224,6 +241,32 @@ window.__lyr = (() => {
     return { root: keyOf(root), rect: [R0.left, R0.top, R0.width, R0.height], vw: innerWidth, vh: innerHeight, nodes };
   }
 
+  /* tüm düğümlerin (sözde dahil) köke göre mutlak dönüşümsüz kutuları */
+  function measureAll(els, R0) {
+    const out = {};
+    for (const e of els) {
+      const lid = e.getAttribute('data-lyr');
+      const r = e.getBoundingClientRect();
+      const box = [r.left - R0.left, r.top - R0.top, r.width, r.height];
+      out[lid] = box;
+      for (const ps of ['::before', '::after']) {
+        const pc = getComputedStyle(e, ps);
+        if (pc.content === 'none' || pc.content === 'normal' || pc.display === 'none') continue;
+        if (pc.position === 'absolute') {
+          let cb = e;
+          while (cb && cb !== document.documentElement && getComputedStyle(cb).position === 'static' && getComputedStyle(cb).transform === 'none') cb = cb.parentElement;
+          const q = cb.getBoundingClientRect(), c2 = getComputedStyle(cb);
+          const cr = [q.left - R0.left + num(c2.borderLeftWidth), q.top - R0.top + num(c2.borderTopWidth), q.width - num(c2.borderLeftWidth) - num(c2.borderRightWidth), q.height - num(c2.borderTopWidth) - num(c2.borderBottomWidth)];
+          const w = num(pc.width), h = num(pc.height);
+          const L = pc.left !== 'auto' ? num(pc.left) + num(pc.marginLeft) : cr[2] - num(pc.right) - w - num(pc.marginRight);
+          const T = pc.top !== 'auto' ? num(pc.top) + num(pc.marginTop) : cr[3] - num(pc.bottom) - h - num(pc.marginBottom);
+          out[lid + ps] = [cr[0] + L, cr[1] + T, w, h];
+        } else out[lid + ps] = [box[0], box[1], num(pc.width) || box[2], num(pc.height) || box[3]];
+      }
+    }
+    return out;
+  }
+
   /* ⑤ tek düğümü yalıt (yalnız kendi boyaması) */
   function isolate(nid) {
     const n = byId[nid];
@@ -244,6 +287,8 @@ window.__lyr = (() => {
     }
     el.classList.add('lyr-show', 'lyr-nob', 'lyr-noa');
     if (!atomic) el.classList.add('lyr-notext');
+    /* metin içi gradyan (background-clip:text): dolgu kutusunu yakala, metin Godot'da maskeler */
+    if (n.kind === 'el' && n.fill) el.classList.add('lyr-bgbox');
     if (n.kind === 'el') { if (!byId[nid].atomic) for (const c of el.children) c.classList.add('lyr-hid'); }
     else {
       el.classList.add('lyr-ownoff');
@@ -256,7 +301,7 @@ window.__lyr = (() => {
   }
   function reset() {
     document.documentElement.classList.remove('lyr-clear');
-    for (const c of ['lyr-out', 'lyr-hid', 'lyr-anc', 'lyr-show', 'lyr-nob', 'lyr-noa', 'lyr-notext', 'lyr-ownoff', 'lyr-pb', 'lyr-pa', 'lyr-flat']) for (const x of document.querySelectorAll('.' + c)) x.classList.remove(c);
+    for (const c of ['lyr-bgbox', 'lyr-out', 'lyr-hid', 'lyr-anc', 'lyr-show', 'lyr-nob', 'lyr-noa', 'lyr-notext', 'lyr-ownoff', 'lyr-pb', 'lyr-pa', 'lyr-flat']) for (const x of document.querySelectorAll('.' + c)) x.classList.remove(c);
     if (root) for (let a = root.parentElement; a; a = a.parentElement) a.classList.add('lyr-anc');
   }
   function done() {
@@ -286,7 +331,7 @@ export async function captureLayers(A, o) {
   const p = A.page;
   const pad = o.pad == null ? 40 : o.pad;
   if (!(await p.evaluate(() => !!window.__lyr))) await p.addScriptTag({ content: BROWSER });
-  const S = await p.evaluate(([sel]) => window.__lyr.scan(sel), [o.sel]);
+  const S = await p.evaluate(([sel, opt]) => window.__lyr.scan(sel, opt), [o.sel, { stretch: o.stretch || 0 }]);
   if (!S) { console.log('KATMAN: kök yok', o.sel); return null; }
   const dir = path.join(o.out, 'img');
   fs.mkdirSync(dir, { recursive: true });

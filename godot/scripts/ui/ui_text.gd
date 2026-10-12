@@ -37,6 +37,8 @@ var nowrap := false
 var max_lines := 0
 var box_h := 0.0
 var lines_hint := 0
+var shadow_only := false     # yalnız gölgeleri çiz (dolgulu metnin alt katmanı)
+var no_shadow := false
 
 ## Tek çağrıda CSS stili: (Cinzel mi, ağırlık, boyut, letter-spacing px, renk, text-shadow dizesi)
 func style(display: bool, w: int, sz: float, spacing: float, col, shadow := "", lh := 0.0) -> UIText:
@@ -68,13 +70,13 @@ func text_width(s = null) -> float:
 func lines() -> PackedStringArray:
 	var out := PackedStringArray()
 	for para in text.split("\n"):
-		if wrap_w <= 0 or nowrap or text_width(para) <= wrap_w + 0.5:
+		if wrap_w <= 0 or nowrap or text_width(para) <= wrap_w * 1.03 + 0.5:
 			out.append(para)
 			continue
 		var cur := ""
 		for w in para.split(" ", false):
 			var tryc := w if cur == "" else cur + " " + w
-			if cur != "" and text_width(tryc) > wrap_w + 0.5:
+			if cur != "" and text_width(tryc) > wrap_w * 1.03 + 0.5:
 				out.append(cur)
 				cur = w
 			else:
@@ -112,6 +114,7 @@ func _line(f: Font, fs: int, s: String, x: float, y: float) -> void:
 	var k := _k()
 	# gölgeler: CSS'te ilk gölge en üstte — sondan başa çiz
 	for i in range(shadow_list.size() - 1, -1, -1):
+		if no_shadow: break
 		var sh: Array = shadow_list[i]
 		var c: Color = sh[0]
 		var dx: float = sh[1] / k
@@ -128,4 +131,4 @@ func _line(f: Font, fs: int, s: String, x: float, y: float) -> void:
 			var sz := int(round(bl * j * 0.5))
 			draw_string_outline(f, Vector2(x + dx, y + dy), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, sz, Color(c.r, c.g, c.b, a))
 		draw_string(f, Vector2(x + dx, y + dy), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(c.r, c.g, c.b, a))
-	draw_string(f, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
+	if not shadow_only: draw_string(f, Vector2(x, y), s, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)

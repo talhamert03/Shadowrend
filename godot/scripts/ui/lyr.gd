@@ -17,6 +17,7 @@ class N:
 	var host: Node2D             # çocukların asıldığı yer (kırpma maskesi olabilir)
 	var img: CanvasItem
 	var txt: UIText
+	var txt_shadow: UIText
 	var kids: Array = []
 	var anims: Array = []
 	var base_tf: Array = []
@@ -28,6 +29,7 @@ class N:
 	var hidden := false
 	var op_mul := 1.0            # betikten ek opaklık
 	var extra := Transform2D.IDENTITY   # betikten ek dönüşüm (origin etrafında)
+	var t0 := 0.0                # animasyon başlangıcı (sahne saatine göre, sn)
 	var clip_rect: Array = []
 	var clip_rad: Array = []
 	var mats := {}               # kırpan düğüm: {false: normal, true: toplamsal}
@@ -52,10 +54,11 @@ static func load_json(name: String) -> Dictionary:
 
 static func make(name: String, skip_keys: Array = []) -> Lyr:
 	var L := Lyr.new()
-	L.build(load_json(name), skip_keys)
+	L.build(load_json(name).duplicate(true), skip_keys)
 	return L
 
 func _init() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS   # arayüz oyun duraklatılınca da canlanır
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 
 ## skip_keys: anahtarı bu parçalardan birini içeren düğümler (ve alt ağaçları) kurulmaz
@@ -74,6 +77,7 @@ func build(J: Dictionary, skip_keys: Array = []) -> void:
 			break
 
 func _skip(d: Dictionary, skip_keys: Array) -> bool:
+	if String(d.get("static", {}).get("display", "")) == "none": return true
 	var k: String = d.get("key", "")
 	for s in skip_keys:
 		if k.contains(s): return true
@@ -122,7 +126,9 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 	# kendi görüntüsü
 	for c in neg: n.kids.append(_build_node(c, n.node, kids, skip_keys, clip_owner))
 	var im = d.get("img")
-	if im is Dictionary:
+	var tx = d.get("text")
+	var fill := bool(d.get("fill", false)) and tx is Dictionary
+	if im is Dictionary and not fill:
 		var s := Sprite2D.new()
 		s.centered = false
 		s.texture = load(BASE + "img/" + im.file)
@@ -133,11 +139,25 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 		n.img = s
 		s.material = _mat(clip_owner, add)
 	# metin
-	var tx = d.get("text")
 	if tx is Dictionary:
 		n.txt = _make_text(tx, n)
+		if fill:
+			# background-clip:text: gölgeler normal, glif yakalanan gradyanla dolar
+			var sh := _make_text(tx, n)
+			sh.shadow_only = true
+			sh.material = _mat(clip_owner, add)
+			n.node.add_child(sh)
+			n.txt_shadow = sh
+			n.txt.no_shadow = true
+			if im is Dictionary:
+				var fm := ShaderMaterial.new()
+				fm.shader = load("res://shaders/ui/text_fill.gdshader")
+				fm.set_shader_parameter("fill", load(BASE + "img/" + im.file))
+				fm.set_shader_parameter("frect", Vector4(float(im.ox) - n.txt.position.x, float(im.oy) - n.txt.position.y, im.w, im.h))
+				n.txt.material = fm
+		else:
+			n.txt.material = _mat(clip_owner, add)
 		n.node.add_child(n.txt)
-		n.txt.material = _mat(clip_owner, add)
 	# kırpma (overflow:hidden) → alt ağaçtaki çizimler bu düğümün yuvarlak kutusuyla maskelenir
 	n.host = n.node
 	var co := clip_owner
@@ -399,7 +419,7 @@ func _apply(n: N, tt: float) -> void:
 	var have_tf := false
 	var indiv_t := Transform2D.IDENTITY
 	var op := n.base_op
-	var tms := tt * 1000.0
+	var tms := (tt - n.t0) * 1000.0
 	for A in n.anims:
 		var p := progress(A, tms)
 		if p < 0: continue
@@ -441,10 +461,20 @@ func find(key: String, idx := 0) -> N:
 	var a := find_all(key)
 	return a[idx] if idx < a.size() else null
 
+## anahtarı tam eşleşen düğüm (etiket adı gibi kısa anahtarlar için)
+func find_exact(key: String, idx := 0) -> N:
+	var k := 0
+	for n in nodes:
+		if String(n.d.get("key", "")) == key:
+			if k == idx: return n
+			k += 1
+	return null
+
 func set_text(n: N, s: String) -> void:
 	if n == null or n.txt == null: return
 	var tx: Dictionary = n.d.text
 	n.txt.text = tr_upper(s) if tx.get("tt", "none") == "uppercase" else s
+	if n.txt_shadow: n.txt_shadow.text = n.txt.text
 
 func set_hidden(n: N, h: bool) -> void:
 	if n == null: return
@@ -459,3 +489,117 @@ func set_dyn(n: N) -> void:
 ## düğümün kök koordinatındaki dikdörtgeni (dönüşümsüz)
 func rect_of(n: N) -> Rect2:
 	return Rect2(_abs_of(n), n.size)
+
+## Hap/kutu genişliğini değiştir (metin değişince): görüntü dokuz parçalı olarak
+## yatayda esner; köşe payı = taşma payı + min(yükseklik/2, 14). Metin kutusu da genişler.
+func _to_nine(n: N) -> NinePatchRect:
+	if n.img is NinePatchRect: return n.img
+	var im: Dictionary = n.d.img
+	var dpr: float = im.get("dpr", 3)
+	var spr := n.img as Sprite2D
+	var np := NinePatchRect.new()
+	np.texture = spr.texture
+	np.material = spr.material
+	np.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mx := int(round((-float(im.ox) + minf(n.size.y * 0.5, 18.0)) * dpr))
+	var my := int(round((-float(im.oy) + minf(n.size.y * 0.5, 18.0)) * dpr))
+	mx = clampi(mx, 1, int(np.texture.get_width() / 2) - 1)
+	my = clampi(my, 1, int(np.texture.get_height() / 2) - 1)
+	np.patch_margin_left = mx
+	np.patch_margin_right = mx
+	np.patch_margin_top = my
+	np.patch_margin_bottom = my
+	np.position = spr.position
+	np.scale = spr.scale
+	np.size = np.texture.get_size()
+	spr.replace_by(np)
+	spr.queue_free()
+	n.img = np
+	return np
+
+## görüntüyü kutu boyu değişimine göre dokuz parçalı esnet
+func _resize_img(n: N) -> void:
+	if not (n.d.get("img") is Dictionary) or n.img == null: return
+	var w0: float = n.d.get("_w0", n.size.x)
+	var h0: float = n.d.get("_h0", n.size.y)
+	if absf(n.size.x - w0) < 0.25 and absf(n.size.y - h0) < 0.25 and not (n.img is NinePatchRect): return
+	var np := _to_nine(n)
+	var im: Dictionary = n.d.img
+	var dpr: float = im.get("dpr", 3)
+	np.size = Vector2((float(im.w) + n.size.x - w0) * dpr, (float(im.h) + n.size.y - h0) * dpr)
+
+## Hap/kutu genişliğini değiştir (metin değişince); yatay ortası korunur (flex ortalı)
+func fit_width(n: N, w: float, keep_center := true) -> void:
+	if n == null: return
+	if not n.d.has("_w0"): n.d["_w0"] = n.size.x
+	if not n.d.has("_h0"): n.d["_h0"] = n.size.y
+	var dw := w - n.size.x
+	if absf(dw) < 0.25: return
+	n.size.x = w
+	if keep_center: n.pos.x -= dw * 0.5
+	_resize_img(n)
+	if n.txt and n.txt.wrap_w > 0: n.txt.wrap_w += dw
+	_apply(n, t)
+
+## Kökü dh kadar uzat (yakalamadaki esneme çıkarımı: vy kayma, vh büyüme / px)
+func stretch_h(dh: float) -> void:
+	for n in nodes:
+		if not n.d.has("_y0"):
+			n.d["_y0"] = n.pos.y
+			n.d["_h0"] = n.size.y
+			n.d["_w0"] = n.d.get("_w0", n.size.x)
+		var vy := float(n.d.get("vy", 0.0))
+		var par = n.d.get("parent")
+		var pvy := 0.0
+		if par != null and by_id.has(str(par)): pvy = float(by_id[str(par)].d.get("vy", 0.0))
+		n.pos.y = float(n.d["_y0"]) + (vy - pvy) * dh
+		n.size.y = float(n.d["_h0"]) + float(n.d.get("vh", 0.0)) * dh
+		_resize_img(n)
+		if n.clip_rect.size() == 4:
+			for m in n.mats.values():
+				m.set_shader_parameter("crect", Vector4(n.clip_rect[0], n.clip_rect[1], n.clip_rect[2], float(n.clip_rect[3]) + float(n.d.get("vh", 0.0)) * dh))
+		_apply(n, t)
+
+## yatay ortadaki bir düğümü yeni genişliğe göre ebeveyn içinde yeniden ortala
+func center_x(n: N, parent_w: float) -> void:
+	n.pos.x = (parent_w - n.size.x) * 0.5
+	_apply(n, t)
+
+func move(n: N, p: Vector2) -> void:
+	n.pos = p
+	_apply(n, t)
+
+## metin satır sayısı değişince içerik kutusunda dikey ortala (flex align-items:center)
+func v_center_text(n: N) -> void:
+	if n == null or n.txt == null: return
+	var tx: Dictionary = n.d.text
+	var cb: Array = tx.get("content", [0, 0, n.size.x, n.size.y])
+	var top := float(cb[1]) - _abs_of(n).y
+	var h := float(cb[3])
+	var lines := n.txt.line_count()
+	n.txt.position.y = top + (h - lines * n.txt.line_h) * 0.5
+	if n.txt_shadow: n.txt_shadow.position.y = n.txt.position.y
+
+## düğümde yeni animasyon(lar) başlat (CSS sınıfı değişince başlayan animasyon gibi)
+func play(n: N, anims: Array) -> void:
+	if n == null: return
+	n.anims = []
+	for A in anims.duplicate(true):
+		var pr: Array = A.get("props", [])
+		if pr.has("transform") or pr.has("indiv") or pr.has("opacity"): n.anims.append(A)
+	n.t0 = t
+	set_dyn(n)
+	_apply(n, t)
+
+## başka bir katman verisindeki aynı anahtarlı düğümün animasyonları
+static func anims_of(name: String, key: String) -> Array:
+	for d in load_json(name).get("nodes", []):
+		if String(d.get("key", "")) == key or String(d.get("key", "")).begins_with(key):
+			return d.get("anims", [])
+	return []
+
+## animasyon gecikmesini değiştir (ad parçası eşleşen)
+func set_anim_delay(n: N, name_part: String, delay_ms: float) -> void:
+	if n == null: return
+	for A in n.anims:
+		if String(A.get("name", "")).contains(name_part): A["delay"] = delay_ms

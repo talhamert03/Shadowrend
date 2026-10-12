@@ -43,9 +43,22 @@ def run(base, name):
         h, bb, f = r
         n['img'] = {'file': h, 'ox': im['ox'] + bb[0] / dpr, 'oy': im['oy'] + bb[1] / dpr, 'w': (bb[2] - bb[0]) / dpr, 'h': (bb[3] - bb[1]) / dpr, 'dpr': dpr * f}
         used.add(h)
-    for f in orig - used:
-        if os.path.exists(os.path.join(d, f)): os.remove(os.path.join(d, f))
     json.dump(J, open(jp, 'w'), ensure_ascii=False, separators=(',', ':'))
     print(name, len(used), 'görüntü')
 
 for nm in sys.argv[2:]: run(sys.argv[1], nm)
+# ham döşemeler (t_*) birden çok yakalamada paylaşılabilir → hepsi işlendikten sonra sil
+imgd = os.path.join(sys.argv[1], 'img')
+for f in os.listdir(imgd):
+    if f.startswith('t_'): os.remove(os.path.join(imgd, f))
+# çöp toplama: klasördeki hiçbir JSON'un başvurmadığı görüntüleri sil
+refs = set()
+for f in os.listdir(sys.argv[1]):
+    if f.endswith('.json'):
+        try:
+            for n in json.load(open(os.path.join(sys.argv[1], f))).get('nodes', []):
+                if n.get('img') and n['img'].get('file'): refs.add(n['img']['file'])
+        except Exception:
+            pass
+for f in os.listdir(imgd):
+    if f.endswith('.png') and f not in refs: os.remove(os.path.join(imgd, f))
