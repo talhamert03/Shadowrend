@@ -24,6 +24,8 @@ var ach: AchToast
 var ftue: FtueHint
 var ceremony: ScrCeremony      # sandık açılış töreni
 var chestinspect: ScrChestInspect
+var chardetail: ScrCharDetail
+var geardetail: ScrGearDetail
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -62,6 +64,10 @@ func _ready() -> void:
 	layer.add_child(chestinspect)
 	ceremony = ScrCeremony.new(g)
 	layer.add_child(ceremony)
+	chardetail = ScrCharDetail.new(g)
+	layer.add_child(chardetail)
+	geardetail = ScrGearDetail.new(g)
+	layer.add_child(geardetail)
 	settings = ScrSettings.new(g)
 	layer.add_child(settings)
 
@@ -234,6 +240,16 @@ func set_pick(w, m) -> void:
 	_pick = {"w": int(w), "m": int(m)}
 func stored_pick(): return _pick
 func toast(s) -> void: hud.toast(str(s))
+
+## eşya inceleme ekranı
+func open_gear_detail(id: String) -> void:
+	if geardetail: geardetail.open(id)
+	else: toast("YAKINDA")
+
+## kahraman detay ekranı
+func open_char_detail(id: String) -> void:
+	if chardetail: chardetail.open(id)
+	else: toast("YAKINDA")
 
 ## sandık inceleme pop-up'ı (yuva i)
 func chest_inspect(i: int) -> void:

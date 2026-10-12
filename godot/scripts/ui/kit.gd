@@ -192,3 +192,11 @@ static func round_image(tex: Texture2D, w: float, h: float, radius: float, opos 
 	m.set_shader_parameter("bg1", bg1)
 	r.material = m
 	return r
+
+
+## Dolum çubuğu (CSS width:%): genişliği orana göre ayarla; 0'da gizle (dokuz parçalı uç görünmesin)
+static func set_fill(L: Lyr, fill: Lyr.N, full_w: float, frac: float) -> void:
+	if fill == null: return
+	frac = clampf(frac, 0.0, 1.0)
+	L.set_hidden(fill, frac <= 0.001)
+	if frac > 0.001: L.fit_width(fill, maxf(0.001, full_w * frac), false)

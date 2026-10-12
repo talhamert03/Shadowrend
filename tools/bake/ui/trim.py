@@ -49,11 +49,13 @@ def run(base, name):
     json.dump(J, open(jp, 'w'), ensure_ascii=False, separators=(',', ':'))
     print(name, len(used), 'görüntü')
 
-for nm in sys.argv[2:]: run(sys.argv[1], nm)
+KEEP = '--keep-tiles' in sys.argv          # başka yakalama sürerken: ham döşemelere dokunma
+names = [a for a in sys.argv[2:] if not a.startswith('--')]
+for nm in names: run(sys.argv[1], nm)
 # ham döşemeler (t_*) birden çok yakalamada paylaşılabilir → hepsi işlendikten sonra sil
 imgd = os.path.join(sys.argv[1], 'img')
 for f in os.listdir(imgd):
-    if f.startswith('t_'): os.remove(os.path.join(imgd, f))
+    if f.startswith('t_') and not KEEP: os.remove(os.path.join(imgd, f))
 # çöp toplama: klasördeki hiçbir JSON'un başvurmadığı görüntüleri sil
 refs = set()
 for f in os.listdir(sys.argv[1]):
@@ -64,7 +66,7 @@ for f in os.listdir(sys.argv[1]):
         except Exception:
             pass
 for f in os.listdir(imgd):
-    if f.endswith('.png') and f not in refs: os.remove(os.path.join(imgd, f))
+    if f.endswith('.png') and f not in refs and not f.startswith('t_'): os.remove(os.path.join(imgd, f))
 # büyük katmanlar: çözünürlük bütçesi
 import subprocess
 subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'shrink.py'), sys.argv[1]])

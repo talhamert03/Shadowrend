@@ -68,6 +68,8 @@ func _build() -> void:
 	for c in shell.find_all(".tb-cur"):
 		btn(shell, c, func(): g.audio.play("click"); set_page("magaza"))
 	var tabs := shell.find_all(".dk-tab")
+	# yakalama sırası z'ye göre (SAVAŞ öne alınmış olabilir) — soldan sağa diz
+	tabs.sort_custom(func(a, b): return a.pos.x < b.pos.x)
 	for i in mini(tabs.size(), DOCK.size()):
 		var pg: String = DOCK[i]
 		btn(shell, tabs[i], func(): _tap(pg), 0.94)
@@ -105,6 +107,16 @@ func set_page(p: String, instant := false) -> void:
 func _page(p: String) -> Node2D:
 	if pages.has(p): return pages[p]
 	if not FileAccess.file_exists(Lyr.BASE + "pg_" + p + ".json"): return null
+	if p == "cephane":
+		var Ap := ArmoryPage.new(self)
+		_page_host().add_child(Ap)
+		pages[p] = Ap
+		return Ap
+	if p == "kahraman":
+		var Hp := HeroesPage.new(self)
+		_page_host().add_child(Hp)
+		pages[p] = Hp
+		return Hp
 	if p == "dunyalar":
 		var J := JourneyPage.new(self)
 		_page_host().add_child(J)
@@ -236,6 +248,8 @@ func _bind_home(L: Lyr) -> void:
 func _render(p: String) -> void:
 	if p == "savas": _render_home()
 	elif p == "dunyalar": (pages[p] as JourneyPage).open_worlds()
+	elif p == "kahraman": (pages[p] as HeroesPage).render()
+	elif p == "cephane": (pages[p] as ArmoryPage).render()
 
 func _fill(L: Lyr, id: String, frac: float) -> void:
 	var n := L.find_id(id)

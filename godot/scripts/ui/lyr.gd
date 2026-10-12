@@ -128,8 +128,12 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 	var cmp := func(a, b): return int(a.get("z", 0)) < int(b.get("z", 0)) or (int(a.get("z", 0)) == int(b.get("z", 0)) and order[a] < order[b])
 	neg.sort_custom(cmp)
 	pos_.sort_custom(cmp)
-	# kendi görüntüsü
-	for c in neg: n.kids.append(_build_node(c, n.node, kids, skip_keys, clip_owner))
+	# CSS boyama sırası: yığın bağlamı kuran öğede (konumlu + z-index ≠ auto, opaklık < 1,
+	# dönüşüm) negatif z çocuklar KENDİ ARKA PLANININ ÜSTÜNDE, içeriğinin altında çizilir;
+	# değilse arka planın altında (üst bağlamın negatif katmanı).
+	var stack_ctx := (bool(d.get("positioned", false)) and int(d.get("z", 0)) != 0) or float(d.get("opacity", 1.0)) < 0.999 or (d.get("tf", []) as Array).size() > 0
+	if not stack_ctx:
+		for c in neg: n.kids.append(_build_node(c, n.node, kids, skip_keys, clip_owner))
 	var im = d.get("img")
 	var tx = d.get("text")
 	var fill := bool(d.get("fill", false)) and tx is Dictionary
@@ -143,6 +147,8 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 		n.node.add_child(s)
 		n.img = s
 		s.material = _mat(clip_owner, add)
+	if stack_ctx:
+		for c in neg: n.kids.append(_build_node(c, n.node, kids, skip_keys, clip_owner))
 	# metin
 	if tx is Dictionary:
 		n.txt = _make_text(tx, n)
@@ -601,8 +607,12 @@ func to_state(name: String, under: N = null) -> void:
 ## anahtarı `key` parçasını içeren düğümler (DOM sırası)
 func find_all(key: String) -> Array:
 	var out := []
+	var pseudo := key.contains("::")
 	for n in nodes:
-		if String(n.d.get("key", "")).contains(key): out.append(n)
+		var k := String(n.d.get("key", ""))
+		# sözde öğeler (::before/::after) ancak açıkça istenirse
+		if not pseudo and k.contains("::"): continue
+		if k.contains(key): out.append(n)
 	return out
 
 func find(key: String, idx := 0) -> N:
@@ -613,6 +623,7 @@ func find(key: String, idx := 0) -> N:
 func find_id(id: String) -> N:
 	for n in nodes:
 		var k := String(n.d.get("key", ""))
+		if k.contains("::") and not id.contains("::"): continue
 		if k == id or k.begins_with(id + "."): return n
 	return null
 
