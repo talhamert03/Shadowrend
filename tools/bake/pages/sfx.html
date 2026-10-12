@@ -1,0 +1,86 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ses pişirme</title>
+<script type="module">
+/* audio.js "v73b SES BANKASI" yönteminin AYNISI: her ses (ve varyantı) oyunun
+   kendi sentez koduyla, AYNI konvolüsyon yankısıyla OfflineAudioContext'te
+   tampona pişer. Godot tarafı bu tamponları çalar; canlı zincirin DC
+   filtresi + limiter + ses düzeyi Godot ses veriyolunda uygulanır.
+   Farklar (bilinçli): süre tavanı 2,4 sn değil 8 sn (fanfarlar da pişer),
+   arayüz sesleri ve durum okuyan sesler de (gem merdiveni, süper/katliam
+   kademeleri) her durum için ayrı dosyaya pişer. */
+import { AudioFX } from '/game/audio.js?v=20260930m';
+import { save, done } from './common.js';
+
+function wav(buf) {
+  const d = buf.getChannelData(0), n = d.length, sr = buf.sampleRate;
+  const out = new DataView(new ArrayBuffer(44 + n * 2));
+  const W = (o, s) => { for (let i = 0; i < s.length; i++) out.setUint8(o + i, s.charCodeAt(i)); };
+  W(0, 'RIFF'); out.setUint32(4, 36 + n * 2, true); W(8, 'WAVE'); W(12, 'fmt ');
+  out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true);
+  out.setUint32(24, sr, true); out.setUint32(28, sr * 2, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true);
+  W(36, 'data'); out.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, d[i])); out.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
+  return new Uint8Array(out.buffer);
+}
+
+(async () => {
+  try {
+    const fx = new AudioFX();
+    fx.unlock();
+    fx._prebake = () => {};
+    const SR = fx.ctx.sampleRate;
+    const parts = String(fx._synth).split(/\n\s*case '/);
+    const names = [], usesK = {};
+    for (let i = 1; i < parts.length; i++) {
+      const m = parts[i].match(/^([a-z0-9_]+)'/);
+      if (!m) continue;
+      names.push(m[1]);
+      usesK[m[1]] = /\bk\b/.test(parts[i]) || !/\bbreak\b/.test(parts[i]);
+    }
+    const ULT_K = ['bolt', 'cannon', 'meteor', 'moon', 'slam', 'slash', 'spike', 'stone', 'vortex'];
+    const jobs = [];
+    for (const nm of names) {
+      if (nm === 'gem') { for (let s = 0; s < 16; s++) jobs.push({ nm, k: 0, file: 'gem_' + s, gem: s }); continue; }
+      if (nm === 'ulthit') { for (const uk of ULT_K) for (let k = 0; k < 3; k++) jobs.push({ nm, k, file: 'ulthit_' + uk + '_' + k, uk }); continue; }
+      if (nm === 'ultfire') { for (const uk of ULT_K) for (let r = 1; r <= 4; r++) jobs.push({ nm, k: 0, file: 'ultfire_' + uk + '_' + r, uk, ut: r }); continue; }
+      if (nm === 'combo') { for (let t = 0; t <= 3; t++) jobs.push({ nm, k: 0, file: 'combo_' + t, ct: t }); continue; }
+      const nk = usesK[nm] ? 3 : 1;
+      for (let k = 0; k < nk; k++) jobs.push({ nm, k, file: nm + '_' + k });
+    }
+    const meta = { sampleRate: SR, minGap: fx.minGap, variants: {}, files: [] };
+    const live = { ctx: fx.ctx, dry: fx.dry, send: fx.send };
+    for (const job of jobs) {
+      const off = new OfflineAudioContext(1, Math.round(SR * 8), SR);
+      const dry = off.createGain(), send = off.createGain();
+      dry.connect(off.destination);
+      const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 260;
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7200;
+      const cv = off.createConvolver(); cv.normalize = true; cv.buffer = fx._ir;
+      const ro = off.createGain(); ro.gain.value = 0.9;
+      send.connect(hp); hp.connect(lp); lp.connect(cv); cv.connect(ro); ro.connect(off.destination);
+      fx.ctx = off; fx.dry = dry; fx.send = send;
+      fx.ultKind = job.uk || ''; fx.ultTier = job.ut || 0; fx.comboTier = job.ct || 0;
+      if (job.gem != null) { fx.gemStep = job.gem; fx.gemLastT = 0; }
+      try { fx._synth(job.nm, job.k, 0, 0); } catch (e) { console.log('sentez hatası', job.file, e.message); fx.ctx = live.ctx; fx.dry = live.dry; fx.send = live.send; continue; }
+      fx.ctx = live.ctx; fx.dry = live.dry; fx.send = live.send;
+      const buf = await off.startRendering();
+      /* kuyruk kırpma: −72 dB altı sessizlik atılır (bank ile aynı ölçüt) */
+      const d = buf.getChannelData(0);
+      let e = d.length - 1;
+      while (e > 0 && d[e] < 2.5e-4 && d[e] > -2.5e-4) e--;
+      const m = Math.min(d.length, e + Math.round(SR * 0.01));
+      if (m < 64) { console.log('boş', job.file); continue; }
+      const cut = new AudioBuffer({ length: m, numberOfChannels: 1, sampleRate: SR });
+      cut.copyToChannel(d.subarray(0, m), 0);
+      await save('assets/audio/sfx/' + job.file + '.wav', wav(cut));
+      meta.files.push(job.file);
+      meta.variants[job.nm] = Math.max(meta.variants[job.nm] || 0, job.nm === 'gem' ? 16 : (usesK[job.nm] ? 3 : 1));
+    }
+    meta.uiSounds = ['click', 'buy', 'error', 'pick', 'reroll', 'start', 'victory', 'levelup', 'heroup', 'panel', 'unlockstart', 'equip', 'select', 'copy', 'star', 'bless', 'claim', 'tierclaim', 'gemspend', 'walletin', 'collect', 'tally', 'boot', 'gateclose', 'gatelock', 'revive', 'stonebuy', 'adreward', 'cta', 'tab', 'reveal', 'evocine'];
+    await save('assets/audio/sfx/sfx_meta.json', JSON.stringify(meta, null, 1));
+    /* yankı dürtü yanıtı: Godot canlı çalmada kullanmaz (pişmiş kuyruk içerir) ama kayıt dursun */
+    done();
+  } catch (e) { done(e); }
+})();
+</script>

@@ -61,6 +61,10 @@ r3_player={"type": "vec2", "value": Vector2(0, 0)}
 
 [importer_defaults]
 
+wav={
+"compress/mode": 2
+}
+
 texture={
 "mipmaps/generate": true
 }
