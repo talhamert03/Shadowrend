@@ -34,6 +34,7 @@ class N:
 	var clip_rect: Array = []
 	var clip_rad: Array = []
 	var mats := {}               # kırpan düğüm: {false: normal, true: toplamsal}
+	var co: N                    # en içteki kırpan ata (yoksa null)
 	var scroller: Node2D         # kaydırma kapsayıcısında çocukların taşıyıcısı
 	var scroll_y := 0.0
 
@@ -89,6 +90,7 @@ func _skip(d: Dictionary, skip_keys: Array) -> bool:
 func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Array, clip_owner: N) -> N:
 	var n := N.new()
 	n.d = d
+	n.co = clip_owner
 	nodes.append(n)
 	by_id[str(d.id)] = n
 	var box: Array = d.box
@@ -210,6 +212,11 @@ func _mat(co: N, add: bool) -> Material:
 	m.set_shader_parameter("rad", Vector4(q[0], q[1], q[2], q[3]))
 	co.mats[add] = m
 	return m
+
+## betikle eklenen çizimler için: düğümün alt ağacındaki kırpma malzemesi
+## (n kendisi kırpıyorsa kendi kutusu, değilse atasının)
+func clip_mat(n: N, add := false) -> Material:
+	return _mat(n if n.clip_rect.size() == 4 else n.co, add)
 
 ## kırpan düğümlerin tuval→yerel ters dönüşümü (her kare; az sayıda)
 func _update_clips() -> void:

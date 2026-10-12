@@ -334,8 +334,10 @@ window.__lyr = (() => {
     if (!shiftCss) { shiftCss = document.createElement('style'); document.head.appendChild(shiftCss); }
     if (dx == null) { shiftCss.textContent = ''; el.style.removeProperty('transform'); return; }
     const tf = 'translate(' + dx + 'px,' + dy + 'px)';
-    if (n.kind === 'el') el.style.setProperty('transform', tf, 'important');
-    else shiftCss.textContent = '[data-lyr="' + elId + '"]::' + n.kind + ' { transform: ' + tf + ' !important; }';
+    /* sözde öğe: SAHİBİ kaydırılır (kendi boyaması lyr-ownoff ile gizli) — sözdeyi kendi
+       translate'iyle kaydırmak, sahibin overflow:hidden kırpmasından dışarı iterdi (köşe perçinleri) */
+    el.style.setProperty('transform', tf, 'important');
+    shiftCss.textContent = n.kind === 'el' ? '' : '[data-lyr="' + elId + '"]::' + n.kind + ' { transform: none !important; translate: none !important; rotate: none !important; scale: none !important; }';
   }
   return { scan, isolate, reset, done, shift };
 })();

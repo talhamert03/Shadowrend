@@ -4,7 +4,7 @@ olarak içe aktar: APK boyutu. Editör içe aktarımından SONRA çalıştırıl
 import os, re, sys
 ROOT = os.path.join(os.path.dirname(__file__), '../../../godot/assets/ui')
 n = 0
-for sub in ['lyr/img', 'lyr/glyph', 'art/icon', 'art/gear', 'art/chest']:
+for sub in ['lyr/img', 'lyr/glyph', 'art/icon', 'art/gear', 'art/chest'] + ['climb/w%d' % i for i in range(1, 11)]:
     d = os.path.join(ROOT, sub)
     if not os.path.isdir(d): continue
     for f in os.listdir(d):

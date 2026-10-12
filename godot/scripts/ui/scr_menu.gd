@@ -17,6 +17,8 @@ var _ruby := 0.0
 var _stone := 0.0
 var _tw := {}                # düğüm anahtarı → [from, to, t0]
 var home: Lyr
+var _map: ClimbArt
+var _mapN: Lyr.N
 
 func _init(game) -> void:
 	super(game)
@@ -194,6 +196,12 @@ func _bind_home(L: Lyr) -> void:
 	btn(L, L.find_id("#map-pedestal"), func(): g.audio.play("click"); _tap("dunyalar"), 0.985)
 	btn(L, L.find_id("#free-chest"), func(): _free_chest())
 	btn(L, L.find_id("#victory-chest"), func(): _victory_chest())
+	# gök tırmanışı önizlemesi (#map-canvas-3d'nin yerine, .map-float içinde)
+	_mapN = L.find(".map-float")
+	if _mapN:
+		_map = ClimbArt.new()
+		_map.set_clip(L.clip_mat(_mapN), L.clip_mat(_mapN, true))
+		_mapN.node.add_child(_map)
 
 func _render(p: String) -> void:
 	if p == "savas": _render_home()
@@ -211,6 +219,7 @@ func _render_home() -> void:
 	var nm := home_target()
 	var wd: Dictionary = D.WORLDS[int(nm.w) - 1]
 	var cleared := int(g.progress.get(int(nm.w), 0))
+	if _map: _map.paint(wd, cleared, _mapN.size.x, _mapN.size.y)
 	L.set_text(L.find_id("#map-world-no"), str(nm.w))
 	L.set_text(L.find_id("#map-world-name"), str(wd.name))
 	_fill(L, "#map-world-fill", float(cleared) / D.MISSIONS_PER_WORLD)
