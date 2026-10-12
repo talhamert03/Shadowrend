@@ -113,6 +113,9 @@ func boot() -> void:
 		if _arg("page") != "":
 			menu.set_page(_arg("page"), true)
 			var pg = menu.pages.get(_arg("page"))
+			if pg and _arg("evtab") != "" and "tab" in pg:
+				pg.tab = _arg("evtab")
+				pg.render()
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
@@ -241,7 +244,8 @@ func hurt_dir(a) -> void: hud.hurt_dir(float(a))
 func hurt_flash() -> void: hud.hurt_flash()
 func powerup_flash(_k) -> void: hud._puKey = ""
 func refresh_wallet() -> void: menu.refresh_wallet()
-func render_events() -> void: pass
+func render_events() -> void:
+	if menu and menu.pages.has("etkinlik") and menu.pages["etkinlik"].is_visible_in_tree(): menu.pages["etkinlik"].render()
 func set_danger(on) -> void: hud.set_danger(bool(on))
 func set_dying(on) -> void: hud.set_dying(bool(on))
 func set_nm_frame(_on) -> void: pass

@@ -117,6 +117,11 @@ func _page(p: String) -> Node2D:
 		_page_host().add_child(Hp)
 		pages[p] = Hp
 		return Hp
+	if p == "etkinlik":
+		var Ep := EventsPage.new(self)
+		_page_host().add_child(Ep)
+		pages[p] = Ep
+		return Ep
 	if p == "magaza":
 		var Sp := ShopPage.new(self)
 		_page_host().add_child(Sp)
@@ -256,6 +261,7 @@ func _render(p: String) -> void:
 	elif p == "kahraman": (pages[p] as HeroesPage).render()
 	elif p == "cephane": (pages[p] as ArmoryPage).render()
 	elif p == "magaza": (pages[p] as ShopPage).render()
+	elif p == "etkinlik": (pages[p] as EventsPage).render()
 
 func _fill(L: Lyr, id: String, frac: float) -> void:
 	var n := L.find_id(id)
