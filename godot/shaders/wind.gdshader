@@ -2,9 +2,10 @@
 // Örnek matrisinden SONRA dünya uzayında sallanır; genlik yükseklik².
 shader_type spatial;
 render_mode unshaded, cull_back, specular_disabled, skip_vertex_transform;
+#include "res://shaders/three_lit.gdshaderinc"
 global uniform float r3_time;
 global uniform vec2 r3_player;
-uniform sampler2D map : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D map : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform float sway = 0.0;
 uniform float push = 0.0;
 uniform float fade = 0.0;
@@ -39,5 +40,5 @@ void fragment() {
 			if (khBy < khK * fade * 0.72) discard;
 		}
 	}
-	ALBEDO = texture(map, UV).rgb * COLOR.rgb;
+	ALBEDO = r3_srgb(r3_lin(texture(map, UV).rgb) * COLOR.rgb);
 }

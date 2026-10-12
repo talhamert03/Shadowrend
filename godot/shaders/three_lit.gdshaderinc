@@ -13,6 +13,12 @@ global uniform vec3 r3_rim_col;
 
 const float R3_PI = 3.141592653589793;
 
+// Compatibility renderer sRGB uzayında çizer (giriş çözülmez, çıkış kodlanmaz).
+// three.js doğrusal iş akışı burada elle kurulur: sRGB girdiler çözülür,
+// sonuç sonda sRGB'ye kodlanır (three: linearToOutputTexel → sRGBTransferOETF).
+vec3 r3_lin(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c)); }
+vec3 r3_srgb(vec3 c) { c = max(c, vec3(0.0)); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c)); }
+
 float r3_pow2(float x) { return x * x; }
 
 vec3 r3_F_Schlick(vec3 f0, float f90, float dotVH) {

@@ -24,11 +24,11 @@ static func basic_shader(o: Dictionary) -> Shader:
 	if not o.get("zwrite", true): rm.append("depth_draw_never")
 	elif o.get("alpha", false) or o.get("add", false): rm.append("depth_draw_always")
 	if not o.get("ztest", true): rm.append("depth_test_disabled")
-	var c := "shader_type spatial;\nrender_mode " + ", ".join(rm) + ";\n"
-	c += "uniform vec4 color : source_color = vec4(1.0);\nuniform float opacity = 1.0;\n"
+	var c := "shader_type spatial;\nrender_mode " + ", ".join(rm) + ";\n#include \"res://shaders/three_lit.gdshaderinc\"\n"
+	c += "uniform vec4 color = vec4(1.0);\nuniform float opacity = 1.0;\n"
 	var m: String = o.get("map", "")
 	var rep := ", repeat_enable" if o.get("repeat", false) else ", repeat_disable"
-	if m == "srgb": c += "uniform sampler2D map : source_color, filter_linear_mipmap" + rep + ";\n"
+	if m == "srgb": c += "uniform sampler2D map : filter_linear_mipmap" + rep + ";\n"
 	elif m == "raw": c += "uniform sampler2D map : filter_linear_mipmap" + rep + ";\n"
 	c += "uniform vec2 uv_rep = vec2(1.0);\nuniform vec2 uv_off = vec2(0.0);\n"
 	if o.get("billboard", "") == "spin":
@@ -36,11 +36,12 @@ static func basic_shader(o: Dictionary) -> Shader:
 		c += "void vertex() {\n\tvec3 p = VERTEX;\n\tfloat a = INSTANCE_CUSTOM.x;\n\tp.xy = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * p.xy;\n"
 		c += "\tvec3 sx = vec3(length(MODEL_MATRIX[0].xyz), length(MODEL_MATRIX[1].xyz), 1.0);\n"
 		c += "\tMODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);\n\tVERTEX = vec3(p.x * sx.x, p.y * sx.y, 0.0);\n}\n"
-	c += "void fragment() {\n\tvec4 d = color;\n"
-	if m != "": c += "\td *= texture(map, UV * uv_rep + uv_off);\n"
+	c += "void fragment() {\n\tvec4 d = vec4(r3_lin(color.rgb), color.a);\n"
+	if m == "srgb": c += "\tvec4 tx = texture(map, UV * uv_rep + uv_off);\n\td *= vec4(r3_lin(tx.rgb), tx.a);\n"
+	elif m == "raw": c += "\td *= texture(map, UV * uv_rep + uv_off);\n"
 	c += "\td.rgb *= COLOR.rgb;\n"
 	if o.get("vcol_alpha", false): c += "\td.a *= COLOR.a;\n"
-	c += "\tALBEDO = d.rgb;\n"
+	c += "\tALBEDO = r3_srgb(d.rgb);\n"
 	if o.get("alpha", false) or o.get("add", false): c += "\tALPHA = d.a * opacity;\n"
 	c += "}\n"
 	var s := Shader.new()
@@ -71,15 +72,15 @@ static func lit_shader(o: Dictionary) -> Shader:
 	if o.get("add", false): rm.append("blend_add")
 	if o.get("alpha", false) or o.get("add", false): rm.append("depth_draw_always")
 	var c := "shader_type spatial;\nrender_mode " + ", ".join(rm) + ";\n#include \"res://shaders/three_lit.gdshaderinc\"\n"
-	c += "uniform vec4 color : source_color = vec4(1.0);\nuniform float roughness = 1.0;\nuniform float metalness = 0.0;\n"
-	c += "uniform vec4 emissive : source_color = vec4(0.0, 0.0, 0.0, 1.0);\nuniform float emissive_k = 1.0;\nuniform float opacity = 1.0;\n"
+	c += "uniform vec4 color = vec4(1.0);\nuniform float roughness = 1.0;\nuniform float metalness = 0.0;\n"
+	c += "uniform vec4 emissive = vec4(0.0, 0.0, 0.0, 1.0);\nuniform float emissive_k = 1.0;\nuniform float opacity = 1.0;\n"
 	c += "uniform float rim_s = 0.42;\nuniform float rim_p = 3.0;\nuniform vec3 rim_c = vec3(1.0, 0.716, 0.456);\n"
-	if o.get("map", false): c += "uniform sampler2D map : source_color, filter_linear_mipmap_anisotropic;\n"
+	if o.get("map", false): c += "uniform sampler2D map : filter_linear_mipmap_anisotropic;\n"
 	if o.get("mr", false): c += "uniform sampler2D mr_map : filter_linear_mipmap_anisotropic;\n"
 	if o.get("nmap", false): c += "uniform sampler2D normal_map : hint_normal, filter_linear_mipmap_anisotropic;\n"
-	if o.get("emap", false): c += "uniform sampler2D emissive_map : source_color, filter_linear_mipmap_anisotropic;\n"
-	c += "void fragment() {\n\tvec4 d = color;\n"
-	if o.get("map", false): c += "\tvec4 tx = texture(map, UV);\n\td *= tx;\n"
+	if o.get("emap", false): c += "uniform sampler2D emissive_map : filter_linear_mipmap_anisotropic;\n"
+	c += "void fragment() {\n\tvec4 d = vec4(r3_lin(color.rgb), color.a);\n\tvec3 em = r3_lin(emissive.rgb);\n"
+	if o.get("map", false): c += "\tvec4 tx = texture(map, UV);\n\ttx.rgb = r3_lin(tx.rgb);\n\td *= tx;\n"
 	c += "\td.rgb *= COLOR.rgb;\n\tvec3 N = normalize(NORMAL);\n\tvec3 V = normalize(VIEW);\n"
 	c += "\tfloat rgh = roughness;\n\tfloat mtl = metalness;\n"
 	if o.get("mr", false): c += "\tvec4 mr = texture(mr_map, UV);\n\trgh *= mr.g;\n\tmtl *= mr.b;\n"
@@ -87,11 +88,11 @@ static func lit_shader(o: Dictionary) -> Shader:
 		c += "\tvec3 nm = texture(normal_map, UV).xyz * 2.0 - 1.0;\n"
 		c += "\tN = normalize(TANGENT * nm.x + BINORMAL * nm.y + N * nm.z);\n"
 	c += "\tvec3 o = r3_standard(d.rgb, mtl, rgh, N, V, VIEW_MATRIX);\n"
-	if o.get("emap", false): c += "\to += emissive.rgb * texture(emissive_map, UV).rgb * emissive_k;\n"
-	elif o.get("lift", false) and o.get("map", false): c += "\to += emissive.rgb * tx.rgb * emissive_k;\n"
-	else: c += "\to += emissive.rgb * emissive_k;\n"
+	if o.get("emap", false): c += "\to += em * r3_lin(texture(emissive_map, UV).rgb) * emissive_k;\n"
+	elif o.get("lift", false) and o.get("map", false): c += "\to += em * tx.rgb * emissive_k;\n"
+	else: c += "\to += em * emissive_k;\n"
 	if o.get("rim", true): c += "\to += r3_rim(N, V, rim_s, rim_p, rim_c);\n"
-	c += "\tALBEDO = o;\n"
+	c += "\tALBEDO = r3_srgb(o);\n"
 	if o.get("alpha", false) or o.get("add", false): c += "\tALPHA = d.a * opacity;\n"
 	c += "}\n"
 	var s := Shader.new()

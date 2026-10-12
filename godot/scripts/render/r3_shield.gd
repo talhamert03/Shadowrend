@@ -10,8 +10,9 @@ extends RefCounted
 const DOME_SHADER := """
 shader_type spatial;
 render_mode unshaded, blend_add, depth_draw_never, %s;
+#include "res://shaders/three_lit.gdshaderinc"
 uniform float opacity = 1.0;
-void fragment() { ALBEDO = COLOR.rgb * 2.0; ALPHA = opacity; }
+void fragment() { ALBEDO = r3_srgb(COLOR.rgb * 2.0); ALPHA = opacity; }
 """
 
 var group: Node3D

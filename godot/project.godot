@@ -58,3 +58,9 @@ r3_rim_dir={"type": "vec3", "value": Vector3(0, 1, 0)}
 r3_rim_col={"type": "vec3", "value": Vector3(0, 0, 0)}
 r3_time={"type": "float", "value": 0.0}
 r3_player={"type": "vec2", "value": Vector2(0, 0)}
+
+[importer_defaults]
+
+texture={
+"mipmaps/generate": true
+}

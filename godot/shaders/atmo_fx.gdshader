@@ -1,8 +1,7 @@
 // render3d FX_VS/FX_FS — hale · ateşböceği · kor · sandık parıltısı · toz.
 // Hareket tamamen köşe gölgelendiricisinde. Örnek verisi MultiMesh dönüşümüne
 // paketlenir: origin = aA.xyz · sütun0 = (aA.w, aB.x, aB.y) · sütun1 = (aB.z, aB.w, -) · COLOR = aC.
-// three ShaderMaterial çıktıyı KODLAMAZ (ekran uzayında ham toplama) → burada
-// doğrusala çevrilip yazılır, Godot'nun sRGB çıkışı ham değeri geri verir.
+// three ShaderMaterial çıktıyı KODLAMAZ (ekran uzayında ham toplama).
 shader_type spatial;
 render_mode unshaded, blend_add, depth_draw_never, cull_disabled, skip_vertex_transform;
 global uniform float r3_time;
@@ -30,7 +29,7 @@ void fragment() {
 	float d = length(v_uv) * 2.0;
 	float k = exp(-d * d * 3.0) * (1.0 - smoothstep(0.8, 1.0, d));
 	vec3 raw = v_col * k;
-	// ham değer → doğrusal (Godot çıkışta sRGB'ye geri kodlar)
-	ALBEDO = mix(raw / 12.92, pow((raw + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), raw));
+	// three ShaderMaterial ham değeri yazar; Compatibility de kodlamaz → aynen
+	ALBEDO = raw;
 	ALPHA = 1.0;
 }

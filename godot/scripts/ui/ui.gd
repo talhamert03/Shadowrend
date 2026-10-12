@@ -22,16 +22,27 @@ func _arg(k: String, d: String = "") -> String:
 func boot() -> void:
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
-		if ch != "":
-			g.meta.selectedChar = ch
-			if not g.meta.chars.has(ch): g.meta.chars[ch] = {"lvl": 1}
-		g.meta.ftue = 1
 		_shot = _arg("shot", "")
 		_shotT = float(_arg("shot_t", "6"))
 		_t0 = Time.get_ticks_msec() / 1000.0
+		if ch != "":
+			if not g.meta.charsOwned.has(ch): g.meta.charsOwned.append(ch)
+			g.meta.selectedChar = ch
+		g.meta.ftue = 1
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
+		var hide := _arg("hide", "")
+		if hide != "":
+			var r3 = g.renderer3d
+			for k in hide.split(","):
+				match k:
+					"ground": r3.ground.queue_free(); r3.ground = MeshInstance3D.new()
+					"void": r3.voidGround.visible = false; r3.voidGround.position.y = -9999
+					"props": r3.propGroup.visible = false
+					"decor": r3.decorGroup.visible = false
+					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
 
 func _process(_dt: float) -> void:
+	if _arg("quit") != "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
 	if _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(_shot)

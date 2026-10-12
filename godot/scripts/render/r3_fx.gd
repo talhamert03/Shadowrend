@@ -129,7 +129,7 @@ func _init(r) -> void:
 	var pm := ArrayMesh.new()
 	pm.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, pa)
 	var ps := Shader.new()
-	ps.code = "shader_type spatial;\nrender_mode unshaded, blend_add, depth_draw_never, cull_disabled;\nuniform float psize = 1688.0;\nvoid vertex() { POINT_SIZE = psize / max(1.0, -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z); }\nvoid fragment() { ALBEDO = COLOR.rgb; ALPHA = 0.9; }\n"
+	ps.code = "shader_type spatial;\nrender_mode unshaded, blend_add, depth_draw_never, cull_disabled;\n#include \"res://shaders/three_lit.gdshaderinc\"\nuniform float psize = 1688.0;\nvoid vertex() { POINT_SIZE = psize / max(1.0, -(MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).z); }\nvoid fragment() { ALBEDO = r3_srgb(COLOR.rgb); ALPHA = 0.9; }\n"
 	_pMat = ShaderMaterial.new()
 	_pMat.shader = ps
 	particles = IMesh.new(pm, _pMat, MAX_PARTICLES)
