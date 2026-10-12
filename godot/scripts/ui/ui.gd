@@ -65,6 +65,15 @@ func _arg(k: String, d: String = "") -> String:
 		if a.begins_with(k + "="): return a.substr(k.length() + 1)
 	return d
 
+## geliştirici: 3B sandık sahnesi (chesttest=<kademe> open=<0..1> seam=<0..1>)
+func _chest_test() -> void:
+	var st := ChestStage.new()
+	layer.add_child(st)
+	st.position = Vector2(20, 200)
+	st.setup(350, 300)
+	st.set_tier(int(_arg("chesttest", "1")))
+	st.p = {"open": float(_arg("open", "0")), "seam": float(_arg("seam", "0"))}
+
 func boot() -> void:
 	# cihazda (geliştirici bayrağı yoksa) ana menüyle açılır
 	if _arg("menu") != "":
@@ -75,6 +84,7 @@ func boot() -> void:
 		g.state = "menu"
 		if g.music: g.music.set_state("menu")
 		show_menu()
+		if _arg("chesttest") != "": _chest_test()
 		return
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
