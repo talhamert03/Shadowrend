@@ -18,9 +18,9 @@ dest_files=["res://.godot/imported/buz_ayisi_0.png-37b9292c8604af9c53a2c938c3db6
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.86
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

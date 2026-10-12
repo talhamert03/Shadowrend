@@ -22,6 +22,13 @@ func _arg(k: String, d: String = "") -> String:
 	return d
 
 func boot() -> void:
+	# GEÇİCİ TEST AKIŞI: arayüz taşınana kadar cihazda doğrudan savaşa girilir.
+	if _arg("autorun") == "" and not OS.has_feature("editor"):
+		g.meta.ftue = 1
+		if not g.meta.charsOwned.has("seher"): g.meta.charsOwned.append("seher")
+		g.meta.selectedChar = "seher"
+		g.start_run(1, 1)
+		return
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
 		_shot = _arg("shot", "")
@@ -74,7 +81,9 @@ func show_menu() -> void: pass
 func show_pause() -> void: pass
 func hide_pause() -> void: pass
 func show_armory() -> void: pass
-func show_mission_end(_won, _info) -> void: pass
+func show_mission_end(_won, _info) -> void:
+	# GEÇİCİ: 3 sn sonra aynı görevi yeniden başlat (test akışı)
+	get_tree().create_timer(3.0).timeout.connect(func(): g.start_run(1, 1))
 func show_ad_watch(_n, _cb) -> void: pass
 func show_boss_bar(_b) -> void: pass
 func hide_boss_bar() -> void: pass

@@ -18,9 +18,9 @@ dest_files=["res://.godot/imported/tuz_bocegi_0.jpg-8c51034da33a8a8cae0c723355fb
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.86
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

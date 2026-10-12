@@ -18,9 +18,9 @@ dest_files=["res://.godot/imported/yay_2.jpg-fd3501b8d3ca25c6bbadb6e2babd1eb6.ct
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.86
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
