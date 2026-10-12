@@ -20,6 +20,8 @@ var gate: ScrGate
 var adwatch: ScrAdWatch
 var evo: ScrEvo
 var ach: AchToast
+var ftue: FtueHint
+var settings: ScrSettings
 
 func _init(a = null) -> void:
 	g = a
@@ -49,6 +51,10 @@ func _ready() -> void:
 	layer.add_child(evo)
 	ach = AchToast.new(g)
 	layer.add_child(ach)
+	ftue = FtueHint.new()
+	layer.add_child(ftue)
+	settings = ScrSettings.new(g)
+	layer.add_child(settings)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -138,7 +144,12 @@ func show_menu() -> void:
 	if _arg("autorun") == "": get_tree().create_timer(0.6).timeout.connect(func(): g.start_run(1, 1))
 func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
-func show_settings() -> void: toast("AYARLAR YAKINDA")
+func show_settings() -> void: settings.show_settings(pause.visible)
+func hide_settings() -> void: settings.hide_settings()
+func settings_open() -> bool: return settings.visible
+## yasal belge / destek sayfası (sheet) — GEÇİCİ: menü sayfaları taşınınca tam sayfa
+func open_doc(kind: String) -> void: toast({"support": "DESTEK", "privacy": "GİZLİLİK", "kvkk": "KVKK", "terms": "KOŞULLAR"}.get(kind, kind) + " YAKINDA")
+func confirm_wipe() -> void: toast("VERİ SİLME YAKINDA")
 func show_armory() -> void: pass
 func show_mission_end(won, info) -> void:
 	hud.hide_hud()
@@ -157,7 +168,7 @@ func boss_moment(k, b) -> void: hud.boss_moment(str(k), b)
 func banner(a, b = "", _c = null) -> void: hud.banner_show(str(a), b)
 func event_banner(a, b = "", c = null) -> void: hud.event_banner(str(a), str(b), c if c != null else "#f0c77a")
 func evo_cinema(e, cb: Callable) -> void: evo.play(e if e is Dictionary else {}, cb)
-func ftue_show(_k, _t) -> void: pass
+func ftue_show(k, _t = null) -> void: ftue.show_kind(str(k) if k != null else "")
 func hurt_dir(a) -> void: hud.hurt_dir(float(a))
 func hurt_flash() -> void: hud.hurt_flash()
 func powerup_flash(_k) -> void: hud._puKey = ""
@@ -191,6 +202,10 @@ func _hud_test(hv: String) -> void:
 			g.enter_level_up()
 		"6":
 			g.pause_game()
+		"11", "12", "13":
+			g.pause_game()
+			show_settings()
+			settings._set_tab({"11": "oyun", "12": "erisim", "13": "hesap"}[hv])
 		"9":
 			evo_cinema({"icon": "kilic", "from": "SEHER KILICI", "to": "ŞAFAK KILICI"}, func(): pass)
 		"10":

@@ -34,6 +34,8 @@ class N:
 	var clip_rect: Array = []
 	var clip_rad: Array = []
 	var mats := {}               # kırpan düğüm: {false: normal, true: toplamsal}
+	var scroller: Node2D         # kaydırma kapsayıcısında çocukların taşıyıcısı
+	var scroll_y := 0.0
 
 var data: Dictionary
 var nodes: Array = []            # N
@@ -168,6 +170,12 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 		n.clip_rect = d.get("clipBox", [0, 0, n.size.x, n.size.y])
 		n.clip_rad = cl
 		_clips.append(n)
+	# kaydırma kapsayıcısı (overflow-y:auto): çocuklar kaydırılan taşıyıcıda
+	if d.get("scroll") is Dictionary:
+		n.scroller = Node2D.new()
+		n.scroller.name = "scroll"
+		n.node.add_child(n.scroller)
+		n.host = n.scroller
 	for c in pos_: n.kids.append(_build_node(c, n.host, kids, skip_keys, co))
 	# animasyonlar
 	for A in d.get("anims", []):
@@ -257,18 +265,31 @@ func _make_text(tx: Dictionary, n: N) -> UIText:
 	l.text = str_
 	return l
 
-## düğümün kök koordinatındaki sol üstü (kutular ebeveyne göre saklı)
+## düğümün kök koordinatındaki sol üstü (kutular ebeveyne göre saklı; kaydırma dahil)
 func _abs_of(n: N) -> Vector2:
 	var p := Vector2.ZERO
 	var d := n.d
+	var first := true
 	while d != null:
 		var b: Array = d.box
 		p += Vector2(b[0], b[1])
 		var par = d.get("parent")
 		if par == null: break
 		var pn: N = by_id.get(str(par))
+		if pn and pn.scroller and String(d.get("pos", "")) != "sticky": p.y -= pn.scroll_y
 		d = pn.d if pn else null
 	return p
+
+## kaydırma kapsayıcıları içinde görünen dikdörtgen (dokunma testi için)
+func visible_rect_of(n: N) -> Rect2:
+	var r := rect_of(n)
+	var par = n.d.get("parent")
+	while par != null:
+		var pn: N = by_id.get(str(par))
+		if pn == null: break
+		if pn.scroller: r = r.intersection(rect_of(pn))
+		par = pn.d.get("parent")
+	return r
 
 # ═══════════ ANİMASYON ═══════════
 
@@ -467,6 +488,13 @@ func _apply(n: N, tt: float) -> void:
 	n.node.modulate.a = a
 	n.node.visible = not n.hidden and a > 0.001
 
+func _desc_of(n: N) -> Array:
+	var out := []
+	for k in n.kids:
+		out.append(k)
+		out.append_array(_desc_of(k))
+	return out
+
 static func _has_op_anim(n: N) -> bool:
 	for A in n.anims:
 		if (A.get("props", []) as Array).has("opacity"): return true
@@ -507,11 +535,15 @@ static func _trans_for(st: Dictionary, prop: String) -> Array:
 
 ## CSS sınıf durumu değişimi: başka bir yakalamadaki (aynı yapı) durağan dönüşüm/opaklık,
 ## görüntü, görünürlük ve animasyonlara geç; geçiş tanımlıysa (transition) yumuşakça.
-func to_state(name: String) -> void:
+func to_state(name: String, under: N = null) -> void:
 	var J2 := load_json(name)
+	var only := {}
+	if under:
+		for x in [under] + _desc_of(under): only[str(x.d.id)] = true
 	for d2 in J2.get("nodes", []):
 		var n: N = by_id.get(str(d2.id))
 		if n == null: continue
+		if under and not only.has(str(d2.id)): continue
 		var st2: Dictionary = d2.get("static", {})
 		# görünürlük
 		var hid := String(st2.get("display", "")) == "none" or String(st2.get("vis", "")) == "hidden"
@@ -570,6 +602,13 @@ func find_all(key: String) -> Array:
 func find(key: String, idx := 0) -> N:
 	var a := find_all(key)
 	return a[idx] if idx < a.size() else null
+
+## kimliğe göre (#id) — "#set-sfx" ile "#set-sfx-now" karışmaz
+func find_id(id: String) -> N:
+	for n in nodes:
+		var k := String(n.d.get("key", ""))
+		if k == id or k.begins_with(id + "."): return n
+	return null
 
 ## anahtarı tam eşleşen düğüm (etiket adı gibi kısa anahtarlar için)
 func find_exact(key: String, idx := 0) -> N:
@@ -730,6 +769,21 @@ func set_anim_delay(n: N, name_part: String, delay_ms: float) -> void:
 	if n == null: return
 	for A in n.anims:
 		if String(A.get("name", "")).contains(name_part): A["delay"] = delay_ms
+
+## kaydırma: 0 … (içerik − görünür); position:sticky çocuklar yerinde kalır
+func scroll_max(n: N) -> float:
+	var S = n.d.get("scroll")
+	if not (S is Dictionary): return 0.0
+	return maxf(0.0, float(S.h) - float(S.ch) + float(n.d.get("_scroll_extra", 0.0)))
+
+func set_scroll(n: N, y: float) -> void:
+	if n == null or n.scroller == null: return
+	n.scroll_y = y
+	n.scroller.position.y = -y
+	for k in n.kids:
+		if String(k.d.get("pos", "")) == "sticky":
+			k.extra = Transform2D(0, Vector2(0, maxf(0.0, y)))
+			_apply(k, t)
 
 ## Dikey flex sütunu yeniden diz: görünür çocuklar, yakalanan boşlukları (önceki
 ## kardeşin altından bu öğenin üstüne) koruyarak alt alta; kapsayıcının alt payı da

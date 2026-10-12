@@ -143,7 +143,10 @@ window.__lyr = (() => {
       for (const ps of ['', '::before', '::after']) {
         const cs = getComputedStyle(e, ps || null);
         if (ps && (cs.content === 'none' || cs.content === 'normal' || cs.display === 'none')) continue;
-        statics.set(e.getAttribute('data-lyr') + ps, { trProp: cs.transitionProperty, trDur: cs.transitionDuration, trDelay: cs.transitionDelay, trEase: cs.transitionTimingFunction, color: cs.color, tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
+        /* kapalı <details>: summary dışındaki içerik görünmez */
+        const det = e.closest('details');
+        const closedDet = det && det !== e && !det.open && !e.closest('summary');
+        statics.set(e.getAttribute('data-lyr') + ps, { closedDet, trProp: cs.transitionProperty, trDur: cs.transitionDuration, trDelay: cs.transitionDelay, trEase: cs.transitionTimingFunction, color: cs.color, tf: cs.transform, tr: cs.translate, ro: cs.rotate, sc: cs.scale, origin: cs.transformOrigin, opacity: num(cs.opacity), blend: cs.mixBlendMode, vis: cs.visibility, display: cs.display, filter: cs.filter, clipPath: cs.clipPath, mask: cs.webkitMaskImage || cs.maskImage });
       }
     }
     /* ③ dönüşümsüz yerleşim */
@@ -156,11 +159,14 @@ window.__lyr = (() => {
       const st = statics.get(lid);
       const pe = e === root ? null : e.parentElement.getAttribute('data-lyr');
       const box = rectOf(e);
+      if (st.closedDet) st.display = 'none';
       const n = { id: lid, parent: pe, kind: 'el', tag: e.tagName.toLowerCase(), key: keyOf(e), abs: box, w: box[2], h: box[3],
         paint: paints(e, cs, false) && st.vis !== 'hidden' && st.display !== 'none', static: st, z: cs.zIndex === 'auto' ? 0 : +cs.zIndex,
         positioned: cs.position !== 'static', pos: cs.position, clip: (cs.overflow !== 'visible' || cs.overflowX !== 'visible') && cs.overflow !== 'clip visible' ? radii(cs, box[2], box[3]) : null,
         border: sideOf(cs), anims: anims.get(lid) || [], atomic: ATOMIC.has(e.tagName.toLowerCase()) };
       if (n.clip) n.clipBox = [n.border.bl, n.border.bt, box[2] - n.border.bl - n.border.br, box[3] - n.border.bt - n.border.bb];
+      /* kaydırma kapsayıcısı: içerik yüksekliği / görünür yükseklik */
+      if (/(auto|scroll)/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 1) n.scroll = { h: e.scrollHeight, ch: e.clientHeight, top: e.scrollTop };
       /* doğrudan metin */
       const tn = [...e.childNodes].filter((c) => c.nodeType === 3 && c.textContent.trim());
       if (tn.length && !n.atomic) {

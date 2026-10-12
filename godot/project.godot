@@ -4,6 +4,8 @@ config_version=5
 [application]
 
 config/name="Shadowrend"
+config/version="1.0.0"
+config/build=44
 config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
