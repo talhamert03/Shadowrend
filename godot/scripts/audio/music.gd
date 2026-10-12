@@ -5,7 +5,7 @@ var audio
 var playing := false
 func _init(a = null) -> void: audio = a
 func accent(_a = null) -> void: pass
-func duck(_ms = 0) -> void: pass
+func duck(_amount = null, _dur = null) -> void: pass
 func fade_out(_ms = 0) -> void: pass
 func set_danger(_on) -> void: pass
 func set_intensity(_v) -> void: pass

@@ -7,6 +7,8 @@ var _ldHold := false
 var _shot := ""
 var _shotT := 6.0
 var _t0 := 0.0
+var _god := false
+var _logT := 0.0
 
 func _init(a = null) -> void:
 	g = a
@@ -29,6 +31,8 @@ func boot() -> void:
 			if not g.meta.charsOwned.has(ch): g.meta.charsOwned.append(ch)
 			g.meta.selectedChar = ch
 		g.meta.ftue = 1
+		g.devSpeed = int(_arg("speed", "1"))
+		_god = _arg("god") != ""
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
 		var hide := _arg("hide", "")
 		if hide != "":
@@ -42,6 +46,12 @@ func boot() -> void:
 					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
 
 func _process(_dt: float) -> void:
+	if _t0 > 0 and g.state == "playing":
+		if _god and g.player.hp < g.player.maxHp * 0.5: g.player.hp = g.player.maxHp
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _logT > 3.0:
+			_logT = now
+			print("T=", snappedf(g.time, 0.1), " wave=", g.wave, " lvl=", g.player.level, " kills=", g.kills, " hp=", snappedf(g.player.hp, 1), " en=", g.enemies.pool.active.size(), " fps=", Engine.get_frames_per_second(), " w=", g.weapons.slots.keys())
 	if _arg("quit") != "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
 	if _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT:
 		var img := get_viewport().get_texture().get_image()

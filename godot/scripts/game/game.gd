@@ -11,6 +11,8 @@ extends Node
 
 const STEP := 1.0 / 60.0
 const MAX_STEPS := 5
+## Geliştirme: hızlandırılmış simülasyon (yalnız -- speed=N ile)
+var devSpeed := 1
 const CULL_MARGIN := 72.0
 const RUBY_KEY := "kh_rubies"
 const STONE_KEY := "kh_bloodstone"
@@ -1583,13 +1585,13 @@ func _process(_delta: float) -> void:
 			if _dying <= 0:
 				_dying = -1
 				game_over()
-		acc += rdt * 0.3 if _bossOutro > 0 else (rdt * 0.25 if _dying > 0 else rdt)
+		acc += (rdt * 0.3 if _bossOutro > 0 else (rdt * 0.25 if _dying > 0 else rdt)) * devSpeed
 		var steps := 0
-		while acc >= STEP and steps < MAX_STEPS:
+		while acc >= STEP and steps < MAX_STEPS * devSpeed:
 			update(STEP)
 			acc -= STEP
 			steps += 1
-		if steps == MAX_STEPS: acc = 0
+		if steps == MAX_STEPS * devSpeed: acc = 0
 	render_frame()
 
 func update(dt: float) -> void:
