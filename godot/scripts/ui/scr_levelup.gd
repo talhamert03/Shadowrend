@@ -161,9 +161,9 @@ func _fill(L: Lyr, c: Dictionary, K: Dictionary, top: bool) -> void:
 	# etiket
 	var tag := L.find(".lv-tag")
 	if tag:
-		L.set_text(tag, K.tag)
 		var tx: UIText = tag.txt
 		var pad: float = tag.size.x - (tx.wrap_w if tx.wrap_w > 0 else tag.size.x)
+		L.set_text(tag, K.tag)
 		var nw := tx.text_width() + pad
 		L.fit_width(tag, nw)
 	# kademe noktaları

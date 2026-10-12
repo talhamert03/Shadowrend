@@ -15,6 +15,7 @@ var hud: HUD
 var levelup: ScrLevelUp
 var bless: ScrBless
 var pause: ScrPause
+var missionend: ScrMissionEnd
 
 func _init(a = null) -> void:
 	g = a
@@ -34,6 +35,8 @@ func _ready() -> void:
 	layer.add_child(bless)
 	pause = ScrPause.new(g)
 	layer.add_child(pause)
+	missionend = ScrMissionEnd.new(g)
+	layer.add_child(missionend)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -107,9 +110,12 @@ func show_level_up(choices) -> void:
 	hud.banner.visible = false
 	levelup.show_choices(choices)
 func hide_level_up() -> void: levelup.hide_screen()
-func show_game() -> void: hud.show_game()
+func show_game() -> void:
+	missionend.hide_end()
+	hud.show_game()
 func show_menu() -> void:
 	hud.hide_hud()
+	missionend.hide_end()
 	pause.hide_pause()
 	levelup.hide_screen()
 	# GEÇİCİ: menüler taşınana kadar menüye dönüş yeni bir test koşusu başlatır
@@ -118,9 +124,11 @@ func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
 func show_settings() -> void: toast("AYARLAR YAKINDA")
 func show_armory() -> void: pass
-func show_mission_end(_won, _info) -> void:
-	# GEÇİCİ: 3 sn sonra aynı görevi yeniden başlat (test akışı)
-	get_tree().create_timer(3.0).timeout.connect(func(): g.start_run(1, 1))
+func show_mission_end(won, info) -> void:
+	hud.hide_hud()
+	levelup.hide_screen()
+	pause.hide_pause()
+	missionend.show_end(bool(won), info if info is Dictionary else {})
 func show_ad_watch(_n, _cb) -> void: pass
 func show_boss_bar(b) -> void: hud.show_boss_bar(b)
 func hide_boss_bar() -> void: hud.hide_boss_bar()
@@ -162,6 +170,13 @@ func _hud_test(hv: String) -> void:
 			g.enter_level_up()
 		"6":
 			g.pause_game()
+		"7":
+			g.kills = 187
+			g.mission_complete()
+		"8":
+			g.kills = 42
+			g.player.hp = 0
+			g.game_over()
 		"5":
 			g.state = "levelup"
 			var mk := func(o: Dictionary) -> Dictionary:

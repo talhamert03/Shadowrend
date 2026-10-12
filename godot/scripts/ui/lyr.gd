@@ -247,6 +247,12 @@ func _make_text(tx: Dictionary, n: N) -> UIText:
 		var ly: float = lines[0][1] - abs0.y
 		var lh_box: float = lines[0][3]
 		l.position.y = ly - maxf(0, (lh - lh_box) * 0.5)
+		# tek satır: yatayda gerçek satır kutusu (satır içi ikon/kardeşlerden sonra başlar)
+		if lines.size() == 1:
+			var lx: float = lines[0][0] - abs0.x
+			var lw: float = lines[0][2]
+			l.position.x = lx
+			l.wrap_w = lw
 	l.text = str_
 	return l
 
@@ -473,8 +479,18 @@ func find_exact(key: String, idx := 0) -> N:
 func set_text(n: N, s: String) -> void:
 	if n == null or n.txt == null: return
 	var tx: Dictionary = n.d.text
+	var old_w := n.txt.text_width() if n.txt.lines_hint == 1 else 0.0
 	n.txt.text = tr_upper(s) if tx.get("tt", "none") == "uppercase" else s
-	if n.txt_shadow: n.txt_shadow.text = n.txt.text
+	# tek satır: hizalama noktası sabit kalır (sol/orta/sağ), kutu metne göre
+	if n.txt.lines_hint == 1:
+		var nw := n.txt.text_width()
+		var ax := n.txt.position.x + n.txt.wrap_w * n.txt.align
+		n.txt.wrap_w = maxf(n.txt.wrap_w + (nw - old_w), nw)
+		n.txt.position.x = ax - n.txt.wrap_w * n.txt.align
+	if n.txt_shadow:
+		n.txt_shadow.text = n.txt.text
+		n.txt_shadow.position = n.txt.position
+		n.txt_shadow.wrap_w = n.txt.wrap_w
 
 func set_hidden(n: N, h: bool) -> void:
 	if n == null: return
@@ -538,7 +554,14 @@ func fit_width(n: N, w: float, keep_center := true) -> void:
 	n.size.x = w
 	if keep_center: n.pos.x -= dw * 0.5
 	_resize_img(n)
-	if n.txt and n.txt.wrap_w > 0: n.txt.wrap_w += dw
+	if n.txt:
+		if n.txt.lines_hint == 1:
+			# yalnız metin taşıyan hap: metin yeni kutuda aynı hizada (orta → dw/2)
+			var only_text := true
+			for k in n.kids:
+				if String(k.d.get("kind", "el")) == "el": only_text = false
+			if only_text: n.txt.position.x += dw * n.txt.align
+		elif n.txt.wrap_w > 0: n.txt.wrap_w += dw
 	_apply(n, t)
 
 ## Kökü dh kadar uzat (yakalamadaki esneme çıkarımı: vy kayma, vh büyüme / px)
@@ -603,3 +626,53 @@ func set_anim_delay(n: N, name_part: String, delay_ms: float) -> void:
 	if n == null: return
 	for A in n.anims:
 		if String(A.get("name", "")).contains(name_part): A["delay"] = delay_ms
+
+## Dikey flex sütunu yeniden diz: görünür çocuklar, yakalanan boşlukları (önceki
+## kardeşin altından bu öğenin üstüne) koruyarak alt alta; kapsayıcının alt payı da
+## korunur. Dönüş: kapsayıcı yükseklik farkı (yakalanana göre).
+func relayout_col(container: N, items: Array) -> float:
+	var cap := []
+	for it in items: cap.append([float(it.d.get("_y0", it.d.box[1])), float(it.d.get("_h0", it.d.box[3]))])
+	if items.is_empty(): return 0.0
+	var top: float = cap[0][0]
+	var cbottom: float = cap[cap.size() - 1][0] + cap[cap.size() - 1][1]
+	var pad_b := float(container.d.get("_h0", container.d.box[3])) - cbottom
+	var y := top
+	var first := true
+	var last_bottom := top
+	for i in items.size():
+		var n: N = items[i]
+		if n.hidden: continue
+		var gap: float = 0.0 if i == 0 else cap[i][0] - (cap[i - 1][0] + cap[i - 1][1])
+		y = (top if first else last_bottom + gap)
+		n.pos.y = y
+		_apply(n, t)
+		last_bottom = y + n.size.y
+		first = false
+	var new_h := last_bottom + pad_b
+	return new_h - float(container.d.get("_h0", container.d.box[3]))
+
+## Düğüm yüksekliğini değiştir: görüntü dokuz parçalı esner; neredeyse tam boy mutlak
+## çocuklar (çerçeve ::before vb.) da birlikte esner; kırpma kutusu güncellenir.
+func resize_h(n: N, h: float) -> void:
+	if not n.d.has("_h0"): n.d["_h0"] = n.size.y
+	if not n.d.has("_w0"): n.d["_w0"] = n.size.x
+	var h0: float = n.d["_h0"]
+	n.size.y = h
+	_resize_img(n)
+	for k in n.kids:
+		if not k.d.has("_h0"): k.d["_h0"] = k.size.y
+		if not k.d.has("_w0"): k.d["_w0"] = k.size.x
+		if float(k.d["_h0"]) >= h0 * 0.8 and String(k.d.get("pos", "")) in ["absolute", "fixed"]:
+			k.size.y = float(k.d["_h0"]) + (h - h0)
+			_resize_img(k)
+	if n.clip_rect.size() == 4:
+		for m in n.mats.values():
+			m.set_shader_parameter("crect", Vector4(n.clip_rect[0], n.clip_rect[1], n.clip_rect[2], float(n.clip_rect[3]) + (h - h0)))
+	_apply(n, t)
+
+## düğümün animasyonlarını bitmiş hâline getir (dokununca töreni atla)
+func finish_anims(n: N) -> void:
+	if n == null: return
+	n.t0 = t - 999.0
+	_apply(n, t)
