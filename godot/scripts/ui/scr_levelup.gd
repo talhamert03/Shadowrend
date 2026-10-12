@@ -102,6 +102,7 @@ func show_choices(choices: Array) -> void:
 		_reroll = shell.find("#btn-reroll")
 	else:
 		shell.restart()
+	shell.stretch_h(Scr.dh_of(self))
 	visible = true
 	g.audio.play("levelup")
 	var cc := shell.find("#card-container")

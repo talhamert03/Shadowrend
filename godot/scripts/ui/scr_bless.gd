@@ -42,6 +42,7 @@ func show_pick(l: Array, on_pick: Callable, o = null) -> void:
 	var altar := String(opt.get("cls", "")).contains("altar")
 	shell = Lyr.make("bp_altar" if altar else "bp_screen", [".bp2-card"])
 	add_child(shell)
+	shell.stretch_h(Scr.dh_of(self))
 	_txt(".bp2-k", opt.get("k", "SAVAŞTAN ÖNCE"))
 	_txt(".bp2-t", opt.get("t", "BİR KUTSAMA SEÇ"))
 	_txt(".bp2-s", opt.get("s", "Bu koşu boyunca geçerli · bir güç, bir bedel"))

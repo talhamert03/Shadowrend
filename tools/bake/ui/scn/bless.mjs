@@ -16,10 +16,10 @@ export default {
     }, [col, opt]);
     await show(COLS[0]);
     await A.wait(60);
-    await A.layers({ sel: '#bless-pick', name: 'bp_screen', skip: ['.bp2-card'] });
+    await A.layers({ sel: '#bless-pick', name: 'bp_screen', skip: ['.bp2-card'], stretch: 100 });
     await show(COLS[0], { k: 'SUNAK', t: 'BİR YOL SEÇ', s: 'Sunak üç bedel sunar · biri seçilir', stamp: 'KABUL', cls: 'bp2-altar', label: 'Sunak seçimi', endSnd: 'altar' });
     await A.wait(60);
-    await A.layers({ sel: '#bless-pick', name: 'bp_altar', skip: ['.bp2-card'] });
+    await A.layers({ sel: '#bless-pick', name: 'bp_altar', skip: ['.bp2-card'], stretch: 100 });
     /* seçilmiş durum: mühür animasyonu */
     await show(COLS[0]);
     await A.wait(1500);

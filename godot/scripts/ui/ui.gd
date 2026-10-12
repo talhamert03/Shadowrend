@@ -14,6 +14,7 @@ var layer: CanvasLayer
 var hud: HUD
 var levelup: ScrLevelUp
 var bless: ScrBless
+var pause: ScrPause
 
 func _init(a = null) -> void:
 	g = a
@@ -31,6 +32,8 @@ func _ready() -> void:
 	layer.add_child(levelup)
 	bless = ScrBless.new(g)
 	layer.add_child(bless)
+	pause = ScrPause.new(g)
+	layer.add_child(pause)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -105,9 +108,15 @@ func show_level_up(choices) -> void:
 	levelup.show_choices(choices)
 func hide_level_up() -> void: levelup.hide_screen()
 func show_game() -> void: hud.show_game()
-func show_menu() -> void: hud.hide_hud()
-func show_pause() -> void: pass
-func hide_pause() -> void: pass
+func show_menu() -> void:
+	hud.hide_hud()
+	pause.hide_pause()
+	levelup.hide_screen()
+	# GEÇİCİ: menüler taşınana kadar menüye dönüş yeni bir test koşusu başlatır
+	if _arg("autorun") == "": get_tree().create_timer(0.6).timeout.connect(func(): g.start_run(1, 1))
+func show_pause() -> void: pause.show_pause()
+func hide_pause() -> void: pause.hide_pause()
+func show_settings() -> void: toast("AYARLAR YAKINDA")
 func show_armory() -> void: pass
 func show_mission_end(_won, _info) -> void:
 	# GEÇİCİ: 3 sn sonra aynı görevi yeniden başlat (test akışı)
@@ -151,6 +160,8 @@ func _hud_test(hv: String) -> void:
 			boss_moment("intro", "KADİM HASATÇI")
 		"4":
 			g.enter_level_up()
+		"6":
+			g.pause_game()
 		"5":
 			g.state = "levelup"
 			var mk := func(o: Dictionary) -> Dictionary:

@@ -115,7 +115,7 @@ const api = {
     await p.screenshot({ path: path.join(OUT, name + '.png'), clip: { x: 0, y: 0, width: w, height: h }, omitBackground: true });
     await p.evaluate(() => { const d = document.getElementById('uicap-svg'); if (d) d.remove(); });
     await this.reset();
-    if (!name.startsWith('lyr/')) meta[name] = { svg: true, w, h, img: name + '.png', dpr: DPR };
+    if (!name.includes('/')) meta[name] = { svg: true, w, h, img: name + '.png', dpr: DPR };
   },
 };
 try { await scenario.run(api); } catch (e) { console.log('HATA', e.stack); }

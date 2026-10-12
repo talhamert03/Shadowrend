@@ -15,7 +15,7 @@ export default {
     await A.eval(() => window.__game.enterLevelUp());
     await A.wait(80);
     /* ① kabuk (kartlar ve evrim şeridi dinamik) */
-    await A.layers({ sel: '#screen-levelup', name: 'lv_screen', skip: ['.lv-card', '.lv-evo-hint'] });
+    await A.layers({ sel: '#screen-levelup', name: 'lv_screen', skip: ['.lv-card', '.lv-evo-hint'], stretch: 100 });
     await A.layers({ sel: '.lv-evo-hint', name: 'lv_evo' });
 
     /* ② kart türleri */
