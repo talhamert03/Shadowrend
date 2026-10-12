@@ -1,0 +1,125 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>sandık pişirme</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+/* chestModel3d.buildChestModel → 7 kademe GLB (godot/assets/chest/t<k>.glb) + chest.json.
+   GLTF'in taşıyamadıkları Godot'da adla yeniden kurulur:
+   • mürekkep kabuğu (ShaderMaterial, inkN itmesi) → konum önceden itilir, malzeme "INK"
+   • toplamsal karışım → malzeme adı "ADD_…"; normal saydam "ALP_…"; ışımasız (Basic) "UNL_…"
+   • flatShading → geometri indekssiz + yüz normalleri
+   • nabızlar (opaklık / ışıma şiddeti), süzülen kıymıklar, göz bebeği, parıltı taraması → chest.json
+   Sahne efektleri (huzme, kıvılcım, rün halkası, ağız…) chestScene3d'den Godot'da yerel. */
+import * as THREE from 'three';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { Quality } from '/game/perf.js?v=20260930m';
+import { save, saveJSON, done } from './common.js';
+
+Quality.init('high', false);
+
+async function patched(path) {
+  let src = await (await fetch(path)).text();
+  const base = path.slice(0, path.lastIndexOf('/') + 1);
+  src = src.replace(/from\s+'\.\/([^']+)'/g, (_, p) => "from '" + location.origin + base + p + "'");
+  /* iç durum dışarı: nabızlar, kıymıklar, mühür, parıltı, palet */
+  src = src.replace('group: g, lidPivot, haloPos, haloR, anim,', 'group: g, lidPivot, haloPos, haloR, anim, pulses, bobbers, seal, sheen: P.sheen, P,');
+  if (!src.includes('pulses, bobbers, seal')) throw new Error('chestModel3d dönüş kalıbı değişti');
+  return import(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+}
+
+function radialTex() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const g = cv.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.4, 'rgba(255,255,255,0.3)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(cv);
+}
+
+try {
+  const M = await patched('/game/chestModel3d.js?v=20260930m');
+  const { CHESTS } = await import('/game/chests.js?v=20260930m');
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const renderer = new THREE.WebGLRenderer({ canvas: cv });
+  const ink = M.makeInkMat();
+  const fx = { glowTex: radialTex(), quad: new THREE.PlaneGeometry(1, 1) };
+  const meta = { dim: M.CHEST_DIM, tiers: {}, types: {} };
+  for (const k in CHESTS) meta.types[k] = { tier: CHESTS[k].tier, color: CHESTS[k].color, glow: CHESTS[k].glow, accent: CHESTS[k].accent || CHESTS[k].color, name: CHESTS[k].name };
+  for (let tier = 1; tier <= 7; tier++) {
+    const C = Object.values(CHESTS).find((c) => c.tier === tier) || { tier };
+    const m = M.buildChestModel(renderer, C, ink, fx);
+    const root = m.group;
+    root.name = 'CHEST';
+    m.lidPivot.name = 'LID';
+    const T = { glow: M.CHEST_GLOW(tier), haloPos: m.haloPos.toArray(), haloR: m.haloR, mats: {}, pulses: [], bobbers: [], sheen: m.sheen || null };
+    /* malzemeleri adlandır + mürekkebi çöz */
+    const names = new Map();
+    let mi = 0, oi = 0;
+    const nameOf = (mat) => {
+      if (names.has(mat)) return names.get(mat);
+      let pre = 'STD_';
+      if (mat.isMeshBasicMaterial) pre = mat.blending === THREE.AdditiveBlending ? 'ADD_' : (mat.transparent ? 'ALP_' : 'UNL_');
+      const n = pre + (mi++);
+      names.set(mat, n);
+      mat.name = n;
+      T.mats[n] = {
+        emissive: mat.emissive ? '#' + mat.emissive.getHexString() : null,
+        ei: mat.emissiveIntensity != null ? mat.emissiveIntensity : 0,
+        opacity: mat.opacity, depthWrite: mat.depthWrite, side: mat.side, po: !!mat.polygonOffset,
+        flat: !!mat.flatShading, vc: !!mat.vertexColors, env: mat.envMapIntensity != null ? mat.envMapIntensity : 1,
+        color: mat.color ? '#' + mat.color.getHexString() : null, metal: mat.metalness, rough: mat.roughness,
+      };
+      return n;
+    };
+    const swaps = [];
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      if (!o.name) o.name = 'o' + (oi++);
+      if (o.material && o.material.isShaderMaterial) {
+        /* mürekkep kabuğu: konum + inkN·uT */
+        const geo = o.geometry, p = geo.attributes.position, n = geo.attributes.inkN, uT = o.material.uniforms.uT.value;
+        const pos = new Float32Array(p.count * 3);
+        for (let i = 0; i < p.count; i++) { pos[i * 3] = p.getX(i) + n.getX(i) * uT; pos[i * 3 + 1] = p.getY(i) + n.getY(i) * uT; pos[i * 3 + 2] = p.getZ(i) + n.getZ(i) * uT; }
+        const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g2.computeVertexNormals();
+        const c = o.material.uniforms.uC.value;
+        const im = new THREE.MeshBasicMaterial({ color: new THREE.Color(c.x, c.y, c.z) }); im.name = 'INK';
+        swaps.push([o, g2, im]);
+        o.name = 'INK_' + o.name;
+        return;
+      }
+      if (o.material && o.material.flatShading) {
+        let g2 = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+        g2.deleteAttribute('normal'); g2.computeVertexNormals();
+        swaps.push([o, g2, null]);
+      }
+      if (o.geometry === fx.quad) swaps.push([o, fx.quad.clone(), null]);
+      nameOf(o.material);
+    });
+    for (const [o, g2, mat] of swaps) { o.geometry = g2; if (mat) o.material = mat; }
+    for (const [mat, prop, a, b, dur, beg] of m.pulses) T.pulses.push([nameOf(mat), prop, a, b, dur, beg]);
+    for (const [mesh, y0, amp, dur, beg] of m.bobbers) { mesh.name = 'BOB' + T.bobbers.length; T.bobbers.push([mesh.name, y0, amp, dur, beg]); }
+    if (m.seal && m.seal.pupil) m.seal.pupil.name = 'PUPIL';
+    root.traverse((o) => { if (o.isMesh) o.userData = {}; });
+    root.updateMatrixWorld(true);
+    const buf = await new GLTFExporter().parseAsync(root, { binary: true, onlyVisible: false, maxTextureSize: 2048 });
+    await save('assets/chest/t' + tier + '.glb', buf);
+    meta.tiers[tier] = T;
+    m.dispose();
+  }
+  /* sahne efekt dokuları (chestScene3d) */
+  const { ChestScene3D } = await import('/game/chestScene3d.js?v=20260930m');
+  const cv2 = document.createElement('canvas'); cv2.width = cv2.height = 64;
+  const S = new ChestScene3D(cv2);
+  for (const [n, t] of [['glow', S.glowTex], ['star', S.starTexM], ['beam', S.beamTex], ['rune', S.runeMat.map], ['mouth', S._mouthTex()]]) {
+    const c = t.image;
+    const b = await new Promise((r) => c.toBlob(r, 'image/png'));
+    await save('assets/chest/fx_' + n + '.png', b);
+  }
+  await saveJSON('assets/chest/chest.json', meta);
+  done();
+} catch (e) { done(e); }
+</script>

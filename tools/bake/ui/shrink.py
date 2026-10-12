@@ -6,6 +6,7 @@ from PIL import Image
 base = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../../godot/assets/ui/lyr')
 d = os.path.join(base, 'img')
 J = {f: json.load(open(os.path.join(base, f))) for f in os.listdir(base) if f.endswith('.json')}
+J = {f: v for f, v in J.items() if isinstance(v, dict) and 'nodes' in v}   # yan dosyalar (lv_made…) değil
 # tutarlılık: dosyanın gerçek piksel genişliği / mantıksal genişlik = dpr
 real = {}
 for name, J1 in J.items():

@@ -24,7 +24,7 @@ window.__lyr = (() => {
     '.lyr-show { visibility: visible !important; opacity: 1 !important; }',
     '.lyr-notext { text-shadow: none !important; -webkit-text-stroke: 0 !important; -webkit-text-fill-color: transparent !important; text-decoration-color: transparent !important; caret-color: transparent !important; }',
     '.lyr-nob::before { visibility: hidden !important; } .lyr-noa::after { visibility: hidden !important; }',
-    '.lyr-ownoff { background: none !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; }',
+    '.lyr-ownoff { background: none !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; overflow: visible !important; clip-path: none !important; }',
     '.lyr-ownoff > svg, .lyr-ownoff > img { visibility: hidden !important; }',
     '.lyr-pb::before, .lyr-pa::after { opacity: 1 !important; visibility: visible !important; }',
     'html.lyr-clear, html.lyr-clear body { background: transparent !important; }',

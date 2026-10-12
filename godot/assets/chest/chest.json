@@ -1,0 +1,1551 @@
+{
+ "dim": {
+  "mouthY": 27.200000000000003,
+  "bandHW": 24,
+  "lidHD": 16.423739431315806,
+  "hingeY": 26.000000000000004,
+  "plateZ": 20.799999999999997
+ },
+ "tiers": {
+  "1": {
+   "glow": "#ffbe5a",
+   "haloPos": [
+    0,
+    23.200000000000003,
+    18.7
+   ],
+   "haloR": 17,
+   "mats": {
+    "ALP_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff9a3c"
+    },
+    "ADD_1": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.6,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff9a3c"
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#737c8d",
+     "metal": 0.7,
+     "rough": 0.42
+    },
+    "STD_4": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#616b7e",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_5": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#d8e0ea",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_6": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14161e",
+     "metal": 0.7,
+     "rough": 0.35
+    },
+    "STD_7": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14100c",
+     "metal": 0,
+     "rough": 0.9
+    },
+    "STD_8": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#eef2f8",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_9": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_10": {
+     "emissive": "#ffbe5a",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "ALP_0",
+     "opacity",
+     0.45,
+     1,
+     2.6,
+     0
+    ],
+    [
+     "ADD_1",
+     "opacity",
+     0.25,
+     0.7,
+     2.6,
+     0
+    ]
+   ],
+   "bobbers": [],
+   "sheen": null
+  },
+  "2": {
+   "glow": "#dce8f2",
+   "haloPos": [
+    0,
+    23.200000000000003,
+    18.7
+   ],
+   "haloR": 17,
+   "mats": {
+    "ALP_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#bcd8ee"
+    },
+    "ADD_1": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.6,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#bcd8ee"
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#e5ecf3",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_4": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#a2afbf",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_5": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#f5c044",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_6": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14161e",
+     "metal": 0.7,
+     "rough": 0.35
+    },
+    "STD_7": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14100c",
+     "metal": 0,
+     "rough": 0.9
+    },
+    "STD_8": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#e8f0f8",
+     "metal": 0.9,
+     "rough": 0.2
+    },
+    "STD_9": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#ffe9a8",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_10": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_11": {
+     "emissive": "#dce8f2",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "ALP_0",
+     "opacity",
+     0.45,
+     1,
+     2.6,
+     0
+    ],
+    [
+     "ADD_1",
+     "opacity",
+     0.25,
+     0.7,
+     2.6,
+     0
+    ]
+   ],
+   "bobbers": [],
+   "sheen": [
+    16777215,
+    0.22,
+    4.4,
+    0.5
+   ]
+  },
+  "3": {
+   "glow": "#ff788c",
+   "haloPos": [
+    0,
+    22.200000000000003,
+    18.7
+   ],
+   "haloR": 18,
+   "mats": {
+    "ALP_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_1": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.2,
+     "color": "#ffffff",
+     "metal": 0.9,
+     "rough": 0.3
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#f7d079",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#9d6c1f",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_4": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#7a4e08",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_5": {
+     "emissive": "#ff2440",
+     "ei": 0.55,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": false,
+     "env": 2.2,
+     "color": "#ff2440",
+     "metal": 0.15,
+     "rough": 0.1
+    },
+    "ADD_6": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_7": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#ffd8dd",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_8": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.2,
+     "color": "#ffffff",
+     "metal": 0.9,
+     "rough": 0.3
+    },
+    "STD_9": {
+     "emissive": "#ff788c",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "STD_5",
+     "emissiveIntensity",
+     0.45,
+     1,
+     2.6,
+     0
+    ],
+    [
+     "ADD_6",
+     "opacity",
+     0.2,
+     0.8,
+     3,
+     0
+    ]
+   ],
+   "bobbers": [],
+   "sheen": [
+    16774872,
+    0.32,
+    3.8,
+    0.42
+   ]
+  },
+  "4": {
+   "glow": "#d79bff",
+   "haloPos": [
+    0,
+    22.200000000000003,
+    18.7
+   ],
+   "haloR": 20,
+   "mats": {
+    "ADD_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_1": {
+     "emissive": "#b47af8",
+     "ei": 0.6,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": true,
+     "env": 2.2,
+     "color": "#ffffff",
+     "metal": 0.15,
+     "rough": 0.1
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#615689",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_4": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#403561",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_5": {
+     "emissive": "#cf9aff",
+     "ei": 0.55,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#cf9aff",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_6": {
+     "emissive": "#b47af8",
+     "ei": 0.75,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": true,
+     "env": 2.2,
+     "color": "#ffffff",
+     "metal": 0.15,
+     "rough": 0.1
+    },
+    "ADD_7": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.45,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#d79bff"
+    },
+    "STD_8": {
+     "emissive": "#efe0ff",
+     "ei": 0.45,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#efe0ff",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_9": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_10": {
+     "emissive": "#d79bff",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "STD_6",
+     "emissiveIntensity",
+     0.55,
+     1.1,
+     1.6,
+     0
+    ],
+    [
+     "ADD_0",
+     "opacity",
+     0.15,
+     0.9,
+     3.4,
+     0
+    ]
+   ],
+   "bobbers": [
+    [
+     "BOB0",
+     21.800000000000004,
+     3,
+     3.2,
+     -0.6
+    ],
+    [
+     "BOB1",
+     27.000000000000004,
+     2.6,
+     4,
+     -1.8
+    ]
+   ],
+   "sheen": null
+  },
+  "5": {
+   "glow": "#96e1ff",
+   "haloPos": [
+    0,
+    21.700000000000003,
+    18.7
+   ],
+   "haloR": 17,
+   "mats": {
+    "ADD_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.3,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#96e1ff"
+    },
+    "ADD_1": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff",
+     "metal": 0.55,
+     "rough": 0.36
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#cedfec",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_4": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#809ab0",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_5": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#e8f6fc",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_6": {
+     "emissive": "#8fd8ff",
+     "ei": 0.5,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": true,
+     "env": 2.2,
+     "color": "#ffffff",
+     "metal": 0.15,
+     "rough": 0.06
+    },
+    "ADD_7": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_8": {
+     "emissive": "#000000",
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#ffffff",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_9": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff",
+     "metal": 0.55,
+     "rough": 0.36
+    },
+    "STD_10": {
+     "emissive": "#96e1ff",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "STD_6",
+     "emissiveIntensity",
+     0.35,
+     0.85,
+     2.4,
+     0
+    ],
+    [
+     "ADD_7",
+     "opacity",
+     0.3,
+     0.9,
+     3,
+     0
+    ],
+    [
+     "ADD_1",
+     "opacity",
+     0.25,
+     0.7,
+     3.2,
+     -1.2
+    ]
+   ],
+   "bobbers": [],
+   "sheen": null
+  },
+  "6": {
+   "glow": "#b465ff",
+   "haloPos": [
+    0,
+    22.200000000000003,
+    18.7
+   ],
+   "haloR": 20,
+   "mats": {
+    "STD_0": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#180826",
+     "metal": 0.2,
+     "rough": 0.3
+    },
+    "ALP_1": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.9,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "ADD_2": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.3,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#c98fff"
+    },
+    "ADD_3": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.4,
+     "depthWrite": false,
+     "side": 2,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#b465ff"
+    },
+    "ADD_4": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_5": {
+     "emissive": "#b465ff",
+     "ei": 0.6,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": true,
+     "env": 2.2,
+     "color": "#ffffff",
+     "metal": 0.15,
+     "rough": 0.1
+    },
+    "STD_6": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_7": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#463c52",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_8": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#2f283b",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_9": {
+     "emissive": "#b465ff",
+     "ei": 0.55,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#b465ff",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_10": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14161e",
+     "metal": 0.7,
+     "rough": 0.35
+    },
+    "STD_11": {
+     "emissive": "#ffffff",
+     "ei": 0.8,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.6,
+     "color": "#ffffff",
+     "metal": 0.1,
+     "rough": 0.15
+    },
+    "ADD_12": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": false,
+     "side": 0,
+     "po": true,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ffffff"
+    },
+    "STD_13": {
+     "emissive": "#e6ccff",
+     "ei": 0.45,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#e6ccff",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_14": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_15": {
+     "emissive": "#b465ff",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    }
+   },
+   "pulses": [
+    [
+     "STD_11",
+     "emissiveIntensity",
+     0.6,
+     1.1,
+     2.8,
+     0
+    ],
+    [
+     "ADD_2",
+     "opacity",
+     0.12,
+     0.55,
+     3,
+     0
+    ],
+    [
+     "ADD_3",
+     "opacity",
+     0.15,
+     0.55,
+     4,
+     0
+    ],
+    [
+     "ADD_4",
+     "opacity",
+     0.2,
+     0.85,
+     2.6,
+     0
+    ],
+    [
+     "ADD_12",
+     "opacity",
+     0.12,
+     0.7,
+     3.2,
+     -0.6
+    ]
+   ],
+   "bobbers": [
+    [
+     "BOB0",
+     24.800000000000004,
+     2.8,
+     3.6,
+     -0.9
+    ],
+    [
+     "BOB1",
+     19,
+     2.4,
+     4.2,
+     -2.2
+    ]
+   ],
+   "sheen": null
+  },
+  "7": {
+   "glow": "#ff7846",
+   "haloPos": [
+    0,
+    22.700000000000003,
+    18.7
+   ],
+   "haloR": 15,
+   "mats": {
+    "ADD_0": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.28,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff7846"
+    },
+    "STD_1": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_2": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.15,
+     "color": "#4f4958",
+     "metal": 0.7,
+     "rough": 0.3
+    },
+    "STD_3": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.1,
+     "color": "#35303b",
+     "metal": 0.7,
+     "rough": 0.38
+    },
+    "STD_4": {
+     "emissive": "#c8323a",
+     "ei": 0.55,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.4,
+     "color": "#c8323a",
+     "metal": 0.5,
+     "rough": 0.28
+    },
+    "STD_5": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#14161e",
+     "metal": 0.7,
+     "rough": 0.35
+    },
+    "STD_6": {
+     "emissive": "#ff5a3c",
+     "ei": 0.9,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": false,
+     "env": 2.2,
+     "color": "#ff5a3c",
+     "metal": 0.15,
+     "rough": 0.1
+    },
+    "STD_7": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": true,
+     "vc": true,
+     "env": 1.2,
+     "color": "#ffffff",
+     "metal": 0.6,
+     "rough": 0.34
+    },
+    "ADD_8": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.85,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff5a3c"
+    },
+    "ADD_9": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 0.85,
+     "depthWrite": false,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff5a3c"
+    },
+    "STD_10": {
+     "emissive": "#ff7a5c",
+     "ei": 0.45,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1.5,
+     "color": "#ff7a5c",
+     "metal": 0.45,
+     "rough": 0.26
+    },
+    "STD_11": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.55,
+     "color": "#ffffff",
+     "metal": 0.02,
+     "rough": 0.64
+    },
+    "STD_12": {
+     "emissive": "#ff7846",
+     "ei": 0.04,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#241c22",
+     "metal": 0,
+     "rough": 0.95
+    },
+    "STD_13": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 0.8,
+     "color": "#a9353b",
+     "metal": 0.12,
+     "rough": 0.46
+    },
+    "STD_14": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#3a0a10",
+     "metal": 0.2,
+     "rough": 0.5
+    },
+    "STD_15": {
+     "emissive": "#000000",
+     "ei": 1,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#e8e4d8",
+     "metal": 0,
+     "rough": 0.4
+    },
+    "UNL_16": {
+     "emissive": null,
+     "ei": 0,
+     "opacity": 1,
+     "depthWrite": true,
+     "side": 0,
+     "po": false,
+     "flat": false,
+     "vc": false,
+     "env": 1,
+     "color": "#ff5a3c"
+    }
+   },
+   "pulses": [
+    [
+     "STD_6",
+     "emissiveIntensity",
+     0.7,
+     1.3,
+     2,
+     0
+    ],
+    [
+     "ADD_8",
+     "opacity",
+     0.6,
+     1,
+     2.4,
+     0
+    ],
+    [
+     "ADD_9",
+     "opacity",
+     0.6,
+     1,
+     2.4,
+     -1.2
+    ]
+   ],
+   "bobbers": [],
+   "sheen": null
+  }
+ },
+ "types": {
+  "ahsap": {
+   "tier": 1,
+   "color": "#8a5a28",
+   "glow": "rgba(230,170,100,0.45)",
+   "accent": "#d8a05c",
+   "name": "TAHTA SANDIK"
+  },
+  "yaygin": {
+   "tier": 2,
+   "color": "#a06a2e",
+   "glow": "rgba(210,225,240,0.5)",
+   "accent": "#eef4fa",
+   "name": "GÜMÜŞ SANDIK"
+  },
+  "kemik": {
+   "tier": 3,
+   "color": "#d8961d",
+   "glow": "rgba(255,205,90,0.62)",
+   "accent": "#ffc94f",
+   "name": "ALTIN SANDIK"
+  },
+  "kan": {
+   "tier": 4,
+   "color": "#8a4ae8",
+   "glow": "rgba(210,150,255,0.65)",
+   "accent": "#cf9aff",
+   "name": "BÜYÜLÜ SANDIK"
+  },
+  "kadim": {
+   "tier": 5,
+   "color": "#31506a",
+   "glow": "rgba(140,220,255,0.62)",
+   "accent": "#8fdcff",
+   "name": "BUZUL SANDIK"
+  },
+  "mistik": {
+   "tier": 6,
+   "color": "#3a2454",
+   "glow": "rgba(180,101,255,0.62)",
+   "accent": "#b465ff",
+   "name": "MİSTİK SANDIK"
+  },
+  "ejderha": {
+   "tier": 7,
+   "color": "#8a1e26",
+   "glow": "rgba(255,90,60,0.65)",
+   "accent": "#ff5a3c",
+   "name": "EJDERHA SANDIĞI"
+  }
+ }
+}
