@@ -1,0 +1,100 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>müzik pişirme</title>
+<script type="module">
+/* music.js ADAPTİF PROSEDÜREL MÜZİK — oyunun kendi partisyon kodu (_scheduleBar,
+   temalar, varyasyon, çalgılar) OfflineAudioContext'te çalıştırılır. Her
+   (durum × yoğunluk kademesi) için 16 barlık KESİNTİSİZ DÖNGÜ pişer: son
+   barların kuyruğu (yankı, uzun pad/drone) döngü başına katlanır, böylece
+   döngü noktası duyulmaz. Ayrıca: tehlike tritonu (bar başına pad) ve
+   vurgular (boss/dalga) ayrı dosya. Godot tarafı bar sınırında geçiş yapar. */
+import { AudioFX } from '/game/audio.js?v=20260930m';
+import { save, saveJSON, done, importPatched } from './common.js';
+
+function wav2(buf) {
+  const L = buf.getChannelData(0), R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : L, n = L.length, sr = buf.sampleRate;
+  const out = new DataView(new ArrayBuffer(44 + n * 4));
+  const W = (o, s) => { for (let i = 0; i < s.length; i++) out.setUint8(o + i, s.charCodeAt(i)); };
+  W(0, 'RIFF'); out.setUint32(4, 36 + n * 4, true); W(8, 'WAVE'); W(12, 'fmt ');
+  out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true);
+  out.setUint32(24, sr, true); out.setUint32(28, sr * 4, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true);
+  W(36, 'data'); out.setUint32(40, n * 4, true);
+  const q = (v) => { v = Math.max(-1, Math.min(1, v)); return v < 0 ? v * 0x8000 : v * 0x7fff; };
+  for (let i = 0; i < n; i++) { out.setInt16(44 + i * 4, q(L[i]), true); out.setInt16(46 + i * 4, q(R[i]), true); }
+  return new Uint8Array(out.buffer);
+}
+
+(async () => {
+  try {
+    const fx = new AudioFX(); fx.unlock(); fx._prebake = () => {};
+    const M = await importPatched('/game/music.js?v=20260930m', ['STATES', 'newSeq']);
+    const SR = fx.ctx.sampleRate, NB = 16, TAIL = 9;
+    const LEVELS = [0, 0.25, 0.5, 0.75, 1];
+    const meta = { sampleRate: SR, bars: NB, levels: LEVELS, bakeGain: 0.5, states: {} };
+    /* çevrimdışı müzik veriyolu: vol ─┬─▶ dry ─▶ çıkış ; └─▶ send(0,3) ─▶ yankı (fx ile aynı) */
+    const mkBus = (len) => {
+      const off = new OfflineAudioContext(2, Math.round(SR * len), SR);
+      const dry = off.createGain(); dry.connect(off.destination);
+      const fsend = off.createGain();
+      const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 260;
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7200;
+      const cv = off.createConvolver(); cv.normalize = true; cv.buffer = fx._ir;
+      const ro = off.createGain(); ro.gain.value = 0.9;
+      fsend.connect(hp); hp.connect(lp); lp.connect(cv); cv.connect(ro); ro.connect(off.destination);
+      const vol = off.createGain(); vol.gain.value = 0.5;   /* pay: pişirmede kırpma olmasın (çalışma anında ×2) */
+      const send = off.createGain(); send.gain.value = 0.3;
+      vol.connect(dry); vol.connect(send); send.connect(fsend);
+      const noise = off.createBuffer(1, SR * 2, SR);
+      const nd = noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+      return { off, bus: { ctx: off, vol, sg: Object.create(null), offline: true, noise } };
+    };
+    const fold = (buf, loopLen) => {
+      const n = Math.round(loopLen * SR);
+      const out = new AudioBuffer({ length: n, numberOfChannels: 2, sampleRate: SR });
+      for (let ch = 0; ch < 2; ch++) {
+        const s = buf.getChannelData(ch), d = new Float32Array(n);
+        for (let i = 0; i < s.length; i++) d[i % n] += s[i];
+        out.copyToChannel(d, ch);
+      }
+      return out;
+    };
+    for (const name of ['menu', 'battle', 'boss', 'victory']) {
+      const cfg = M.STATES[name];
+      meta.states[name] = { bpm: cfg.bpm, bpmInt: cfg.bpmInt || 0, xfade: cfg.xfade, files: [], barDur: [] };
+      for (let li = 0; li < LEVELS.length; li++) {
+        const inten = LEVELS[li];
+        const barDur = (60 / (cfg.bpm + (cfg.bpmInt || 0) * inten)) * 4;
+        const { off, bus } = mkBus(NB * barDur + TAIL);
+        const mu = new M.Music(fx);
+        mu.bus = bus; mu.thin = false;
+        const sg = mu._stGain(bus, name); sg.gain.value = 1;
+        const seq = M.newSeq(null);
+        for (let b = 0; b < NB; b++) mu._scheduleBar(bus, seq, b, 0.02 + b * barDur, cfg, inten, false);
+        const buf = await off.startRendering();
+        const file = 'mu_' + name + '_' + li;
+        await save('assets/audio/music/' + file + '.wav', wav2(fold(buf, NB * barDur)));
+        meta.states[name].files.push(file); meta.states[name].barDur.push(barDur);
+        /* tehlike tritonu: iki bar, döngü */
+        const D = mkBus(2 * barDur + TAIL);
+        const md = new M.Music(fx); md.bus = D.bus;
+        const sg2 = md._stGain(D.bus, name); sg2.gain.value = 1;
+        const sq2 = M.newSeq(null);
+        for (let b = 0; b < 2; b++) { sq2.barNotes = 0; md._pad(D.bus, sg2, sq2, [6], 0, 0.02 + b * barDur, barDur * 1.1, 0.028 * (cfg.trim || 1), 0.34); }
+        const db = await D.off.startRendering();
+        await save('assets/audio/music/' + file + '_danger.wav', wav2(fold(db, 2 * barDur)));
+      }
+      /* vurgular: accent('boss') ve accent(diğer) — durumun kendi kanalından */
+      for (const kind of ['boss', 'wave']) {
+        const A = mkBus(4.5);
+        const ma = new M.Music(fx); ma.bus = A.bus; ma.playing = true; ma.state = name;
+        ma._stGain(A.bus, name).gain.value = 1;
+        ma.accent(kind);
+        const ab = await A.off.startRendering();
+        await save('assets/audio/music/acc_' + name + '_' + kind + '.wav', wav2(ab));
+      }
+    }
+    await saveJSON('assets/audio/music/music_meta.json', meta);
+    done();
+  } catch (e) { done(e); }
+})();
+</script>
