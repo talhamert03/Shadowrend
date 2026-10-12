@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import { Quality } from '/game/perf.js?v=20260930m';
 import { Renderer3D } from '/game/render3d.js?v=20260930m';
 import { save, canvasPNG, done, importPatched } from './common.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
 Quality.init('high', false);
 const R = Renderer3D.prototype;
@@ -52,6 +53,31 @@ const put = async (name, tex) => {
     for (const h of [0, 1]) await save('assets/art/fieldchest/bomb_' + h + '.png', await canvasPNG(FC.bombBody(h)));
     const SD = await importPatched('/game/shieldDome.js?v=20260930m', ['runeTexture']);
     await put('shield_rune', SD.runeTexture());
+    /* kalkan kubbesi: panel kafesinin pişmiş verisi + perde/disk köşe renkleri */
+    {
+      const { ShieldDome } = await import('/game/shieldDome.js?v=20260930m');
+      const PM = await import('/game/propModels.js?v=20260930m');
+      const d = new ShieldDome(new THREE.MeshBasicMaterial());
+      const geo = (g) => ({ pos: Array.from(g.attributes.position.array), col: Array.from(g.attributes.color ? g.attributes.color.array : []),
+        idx: g.index ? Array.from(g.index.array) : null });
+      const out = { R: PM.SHIELD_R, GEM_Y: PM.GEM_Y, gemY: d._gemY, SQ: 0.84,
+        base0: Array.from(d.base0), cent: Array.from(d.cent), bl: Array.from(d.bl), bw: Array.from(d.bw), hy: Array.from(d.hy),
+        ph: Array.from(d.ph), sp: Array.from(d.sp), veil: geo(d.veil.geometry), disk: geo(d.disk.geometry) };
+      await save('assets/arena/shield_dome.json', JSON.stringify(out));
+    }
+    /* KAN KALBİ geometrisi (_buildHeartPool: ExtrudeGeometry + center) */
+    {
+      const sh = new THREE.Shape();
+      sh.moveTo(0, -1.0);
+      sh.bezierCurveTo(-1.32, 0.12, -0.86, 1.18, 0, 0.5);
+      sh.bezierCurveTo(0.86, 1.18, 1.32, 0.12, 0, -1.0);
+      const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.5, bevelEnabled: true, bevelThickness: 0.16, bevelSize: 0.16, bevelSegments: 2, curveSegments: 10 });
+      geo.center();
+      const g = new THREE.Group();
+      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial()); m.name = 'heart'; g.add(m);
+      const buf = await new GLTFExporter().parseAsync(g, { binary: true });
+      await save('assets/fx/fx_geo.glb', buf);
+    }
     done();
   } catch (e) { done(e); }
 })();

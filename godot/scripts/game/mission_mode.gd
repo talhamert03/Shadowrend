@@ -233,3 +233,78 @@ func arrow_target():
 	if esc.on: return esc
 	if over and prey and prey.hp > 0: return prey
 	return null
+
+# ═══════════ ÇİZİM (2B üst katman, dünya uzayı) ═══════════
+
+func render(ctx: Ctx2D) -> void:
+	var g = game
+	var t: float = g.time
+	# v63 İ2 telegraf: lordun hücum hazırlığında yön şeridi
+	for b in g.enemies.pool.active:
+		if not b.isBoss or b.state != "windup" or b.bossKind == "ejder": continue
+		var L := 520.0
+		var k := clampf(1 - b.stateT / 0.62, 0, 1)
+		ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(atan2(b.diry, b.dirx))
+		ctx.set_fill(Color(1, 59 / 255.0, 78 / 255.0, snappedf(0.12 + 0.18 * k, 0.001))); ctx.fill_rect(0, -b.radius * 0.7, L, b.radius * 1.4)
+		ctx.set_fill("rgba(255,59,78,0.55)"); ctx.fill_rect(0, -2, L * k, 4)
+		ctx.restore()
+	var T := totem
+	if T.get("on"):
+		ctx.save(); ctx.translate(T.x, T.y)
+		ctx.save(); ctx.scale(1, 0.62)
+		ctx.set_stroke("rgba(159,242,196,0.55)"); ctx.line_width = 3; ctx.line_dash = [10, 8]; ctx.line_dash_offset = -t * 20
+		ctx.begin_path(); ctx.arc(0, 0, TOTEM_R, 0, TAU); ctx.stroke(); ctx.line_dash = []; ctx.restore()
+		var sh: float = sin(t * 60) * 2 if T.hit > 0 else 0.0
+		ctx.set_fill("#2a2230"); ctx.set_stroke("#0b0910"); ctx.line_width = 3
+		ctx.begin_path(); ctx.move_to(-16 + sh, 4); ctx.line_to(16 + sh, 4); ctx.line_to(10 + sh, -58); ctx.line_to(-10 + sh, -58); ctx.close_path(); ctx.fill(); ctx.stroke()
+		ctx.set_fill("#9ff2c4"); ctx.begin_path(); ctx.arc(sh, -40, 6 + sin(t * 3) * 1.5, 0, TAU); ctx.fill()
+		var k := maxf(0.0, T.hp / TOTEM_HP)
+		ctx.set_fill("rgba(11,9,16,0.85)"); ctx.fill_rect(-30, -78, 60, 7)
+		ctx.set_fill("#9ff2c4" if k > 0.35 else "#ff4d5e"); ctx.fill_rect(-29, -77, 58 * k, 5)
+		ctx.restore()
+	var e = prey
+	if e and e.hp > 0:
+		ctx.save(); ctx.translate(e.x, e.y); ctx.scale(1, 0.62)
+		ctx.set_stroke(MTYPE.hunt.col); ctx.line_width = 3; ctx.global_alpha = 0.6 + 0.4 * sin(t * 6)
+		ctx.begin_path(); ctx.arc(0, 0, e.radius + 14, 0, TAU); ctx.stroke()
+		ctx.restore()
+	var Q := siege
+	if Q.get("on"):
+		ctx.save(); ctx.translate(Q.x, Q.y); ctx.scale(1, 0.62)
+		ctx.set_stroke("rgba(20,6,10,0.75)"); ctx.line_width = 12
+		ctx.begin_path(); ctx.arc(0, 0, Q.r, 0, TAU); ctx.stroke()
+		ctx.set_stroke(SIEGE_COL); ctx.line_width = 4; ctx.global_alpha = 0.75 + 0.25 * sin(t * 5)
+		ctx.line_dash = [22, 12]; ctx.line_dash_offset = t * 40
+		ctx.begin_path(); ctx.arc(0, 0, Q.r, 0, TAU); ctx.stroke()
+		ctx.line_dash = []; ctx.global_alpha = 0.16; ctx.line_width = 30
+		ctx.begin_path(); ctx.arc(0, 0, Q.r + 18, 0, TAU); ctx.stroke()
+		ctx.restore()
+	var S := esc
+	if S.get("on"):
+		ctx.save(); ctx.translate(S.x, S.y)
+		ctx.save(); ctx.scale(1, 0.62)
+		ctx.set_stroke("rgba(159,216,255,0.8)"); ctx.line_width = 6
+		ctx.begin_path(); ctx.arc(0, 0, S.r, 0, TAU); ctx.stroke()
+		ctx.set_fill("rgba(159,216,255,0.18)"); ctx.begin_path(); ctx.arc(0, 0, 80, 0, TAU); ctx.fill()
+		ctx.restore()
+		ctx.set_fill("#9fd8ff"); ctx.global_alpha = 0.5 + 0.3 * sin(t * 4)
+		ctx.fill_rect(-6, -110, 12, 110)
+		ctx.restore()
+
+## yön oku: kaçış çıkışı (her zaman) · av (yalnız uzatmada)
+func arrow(ctx: Ctx2D) -> void:
+	var q = arrow_target()
+	var p = game.player
+	if q == null or p == null: return
+	var dx: float = q.x - p.x
+	var dy: float = q.y - p.y
+	var d := sqrt(dx * dx + dy * dy)
+	if d < 220: return
+	var a := atan2(dy, dx)
+	var R := 104.0
+	ctx.save()
+	ctx.translate(p.x + cos(a) * R, p.y + 14 + sin(a) * R)
+	ctx.rotate(a)
+	ctx.set_fill(MTYPE.escape.col if esc.get("on") else MTYPE.hunt.col); ctx.set_stroke("rgba(11,9,16,0.85)"); ctx.line_width = 3
+	ctx.begin_path(); ctx.move_to(16, 0); ctx.line_to(-9, -10); ctx.line_to(-3, 0); ctx.line_to(-9, 10); ctx.close_path(); ctx.stroke(); ctx.fill()
+	ctx.restore()

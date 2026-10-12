@@ -58,10 +58,13 @@ static func basic(o: Dictionary = {}) -> ShaderMaterial:
 	if o.has("order"): mat.render_priority = clampi(int(o.order), -128, 127)
 	return mat
 
-## o: {map:bool, inst:bool, lift:float, rim:bool, emissive:Color, emi_k:float}
+## o: {map, mr, nmap, emap, lift, rim, cull, alpha, add}
+## map: albedo · mr: glTF metallicRoughness (G=pürüz, B=metal) · nmap: normal
+## (teğet uzayı, OpenGL) · emap: emissiveMap · lift: emissiveMap = map
 static func lit_shader(o: Dictionary) -> Shader:
-	var key := "l|" + str(o.get("map", false)) + "|" + str(o.get("lift", false)) + "|" + str(o.get("rim", true)) \
-		+ "|" + str(o.get("cull", "back")) + "|" + str(o.get("alpha", false)) + "|" + str(o.get("add", false))
+	var key := "l"
+	for k in ["map", "mr", "nmap", "emap", "lift", "rim", "alpha", "add"]: key += "|" + str(o.get(k, k == "rim"))
+	key += "|" + str(o.get("cull", "back"))
 	if _cache.has(key): return _cache[key]
 	var rm := ["unshaded"]
 	rm.append("cull_back" if o.get("cull", "back") == "back" else "cull_disabled")
@@ -72,11 +75,20 @@ static func lit_shader(o: Dictionary) -> Shader:
 	c += "uniform vec4 emissive : source_color = vec4(0.0, 0.0, 0.0, 1.0);\nuniform float emissive_k = 1.0;\nuniform float opacity = 1.0;\n"
 	c += "uniform float rim_s = 0.42;\nuniform float rim_p = 3.0;\nuniform vec3 rim_c = vec3(1.0, 0.716, 0.456);\n"
 	if o.get("map", false): c += "uniform sampler2D map : source_color, filter_linear_mipmap_anisotropic;\n"
+	if o.get("mr", false): c += "uniform sampler2D mr_map : filter_linear_mipmap_anisotropic;\n"
+	if o.get("nmap", false): c += "uniform sampler2D normal_map : hint_normal, filter_linear_mipmap_anisotropic;\n"
+	if o.get("emap", false): c += "uniform sampler2D emissive_map : source_color, filter_linear_mipmap_anisotropic;\n"
 	c += "void fragment() {\n\tvec4 d = color;\n"
 	if o.get("map", false): c += "\tvec4 tx = texture(map, UV);\n\td *= tx;\n"
 	c += "\td.rgb *= COLOR.rgb;\n\tvec3 N = normalize(NORMAL);\n\tvec3 V = normalize(VIEW);\n"
-	c += "\tvec3 o = r3_standard(d.rgb, metalness, roughness, N, V, VIEW_MATRIX);\n"
-	if o.get("lift", false) and o.get("map", false): c += "\to += emissive.rgb * tx.rgb * emissive_k;\n"
+	c += "\tfloat rgh = roughness;\n\tfloat mtl = metalness;\n"
+	if o.get("mr", false): c += "\tvec4 mr = texture(mr_map, UV);\n\trgh *= mr.g;\n\tmtl *= mr.b;\n"
+	if o.get("nmap", false):
+		c += "\tvec3 nm = texture(normal_map, UV).xyz * 2.0 - 1.0;\n"
+		c += "\tN = normalize(TANGENT * nm.x + BINORMAL * nm.y + N * nm.z);\n"
+	c += "\tvec3 o = r3_standard(d.rgb, mtl, rgh, N, V, VIEW_MATRIX);\n"
+	if o.get("emap", false): c += "\to += emissive.rgb * texture(emissive_map, UV).rgb * emissive_k;\n"
+	elif o.get("lift", false) and o.get("map", false): c += "\to += emissive.rgb * tx.rgb * emissive_k;\n"
 	else: c += "\to += emissive.rgb * emissive_k;\n"
 	if o.get("rim", true): c += "\to += r3_rim(N, V, rim_s, rim_p, rim_c);\n"
 	c += "\tALBEDO = o;\n"
@@ -96,8 +108,64 @@ static func lit(o: Dictionary = {}) -> ShaderMaterial:
 	if o.has("emissive"): mat.set_shader_parameter("emissive", JS.col(o.emissive) if o.emissive is String else (o.emissive if o.emissive is Color else JS.hexc(o.emissive)))
 	if o.has("emissive_k"): mat.set_shader_parameter("emissive_k", float(o.emissive_k))
 	if o.has("tex"): mat.set_shader_parameter("map", o.tex)
-	if not o.get("rim", true): pass
 	return mat
+
+## İçe aktarılmış glTF malzemesini three MeshStandard karşılığına çevirir.
+## o: rough (sabit) · rough_max · metal (sabit) · metal_min/metal_max ·
+##    lift (emissiveMap = map, emissive beyaz) · emissive (Color, sRGB) ·
+##    emissive_k · rim (charLook kenar ışığı) · keep_emap (GLB'nin kendi ışıma dokusu)
+static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
+	var f := {"rim": o.get("rim", true)}
+	var tx: Texture2D = src.albedo_texture if src else null
+	var mr: Texture2D = src.roughness_texture if src else null
+	var nm: Texture2D = src.normal_texture if src and src.normal_enabled else null
+	var em: Texture2D = src.emission_texture if src and src.emission_enabled else null
+	var lift: float = o.get("lift", 0.0)
+	f.map = tx != null
+	f.mr = mr != null
+	f.nmap = nm != null
+	f.emap = em != null and o.get("keep_emap", true) and lift <= 0
+	f.lift = lift > 0 and not f.emap
+	var m := ShaderMaterial.new()
+	m.shader = lit_shader(f)
+	if tx: m.set_shader_parameter("map", tx)
+	if mr: m.set_shader_parameter("mr_map", mr)
+	if nm: m.set_shader_parameter("normal_map", nm)
+	if f.emap: m.set_shader_parameter("emissive_map", em)
+	m.set_shader_parameter("color", src.albedo_color if src else Color(1, 1, 1))
+	var r: float = o.get("rough", src.roughness if src else 1.0)
+	if o.has("rough_max"): r = minf(r, o.rough_max)
+	var mt: float = o.get("metal", src.metallic if src else 0.0)
+	if o.has("metal_min"): mt = maxf(o.metal_min, mt)
+	if o.has("metal_max"): mt = minf(o.metal_max, mt)
+	m.set_shader_parameter("roughness", r)
+	m.set_shader_parameter("metalness", mt)
+	if f.lift:
+		m.set_shader_parameter("emissive", Color(1, 1, 1))
+		m.set_shader_parameter("emissive_k", lift * float(o.get("emissive_k", 1.0)))
+	elif f.emap:
+		m.set_shader_parameter("emissive", src.emission)
+		m.set_shader_parameter("emissive_k", float(o.get("emissive_k", 1.0)) * src.emission_energy_multiplier)
+	elif o.has("emissive"):
+		m.set_shader_parameter("emissive", o.emissive)
+		m.set_shader_parameter("emissive_k", float(o.get("emissive_k", 1.0)))
+	else:
+		m.set_shader_parameter("emissive_k", 0.0)
+	return m
+
+## Bir düğüm ağacındaki tüm yüzeyleri çevirir; malzeme listesini döndürür.
+static func convert_tree(root: Node, o: Dictionary) -> Array:
+	var mats := []
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.extra_cull_margin = 16384.0
+		for si in mi.mesh.get_surface_count():
+			var src := mi.get_active_material(si) as BaseMaterial3D
+			var m := from_gltf(src, o)
+			mi.set_surface_override_material(si, m)
+			mats.append(m)
+	return mats
 
 ## sRGB hex → doğrusal Vector3 (three'nin Color.setHex + ColorManagement'i)
 static func lin3(c: Color, k: float = 1.0) -> Vector3:

@@ -93,15 +93,30 @@ func sample() -> void:
 	else:
 		mx = ax; my = ay
 
-## Ekran-uzayı joystick çizimi (yalnız aktifken). ci: CanvasItem.
-func draw(ci: CanvasItem) -> void:
+## Ekran-uzayı joystick çizimi (yalnız aktifken) — input.js render(ctx).
+func render(ctx: Ctx2D) -> void:
 	if not active or game.state != "playing": return
-	var o := Vector2(ox, oy)
-	ci.draw_arc(o, RADIUS, 0, TAU, 64, Color(0.91, 0.894, 0.847, 0.28), 2.0, true)
-	var c2 := Color(0.91, 0.894, 0.847, 0.2)
+	var R := RADIUS
+	ctx.global_alpha = 0.28
+	ctx.set_stroke("#e8e4d8")
+	ctx.line_width = 2
+	ctx.begin_path()
+	ctx.arc(ox, oy, R, 0, TAU)
+	ctx.stroke()
+	ctx.global_alpha = 0.2
+	ctx.begin_path()
 	for i in 4:
 		var a := i * PI / 2 + PI / 4
-		ci.draw_line(o + Vector2(cos(a), sin(a)) * (RADIUS - 7), o + Vector2(cos(a), sin(a)) * (RADIUS + 1), c2, 2.0, true)
-	var k := Vector2(kx, ky)
-	ci.draw_circle(k, 17, Color(0.961, 0.753, 0.267, 0.5), true, -1.0, true)
-	ci.draw_arc(k, 17, 0, TAU, 40, Color(1.0, 0.914, 0.659, 0.85), 1.5, true)
+		ctx.move_to(ox + cos(a) * (R - 7), oy + sin(a) * (R - 7))
+		ctx.line_to(ox + cos(a) * (R + 1), oy + sin(a) * (R + 1))
+	ctx.stroke()
+	ctx.global_alpha = 0.5
+	ctx.set_fill("#f5c044")
+	ctx.begin_path()
+	ctx.arc(kx, ky, 17, 0, TAU)
+	ctx.fill()
+	ctx.global_alpha = 0.85
+	ctx.set_stroke("#ffe9a8")
+	ctx.line_width = 1.5
+	ctx.stroke()
+	ctx.global_alpha = 1
