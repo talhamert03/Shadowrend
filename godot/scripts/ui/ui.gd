@@ -9,11 +9,22 @@ var _shotT := 6.0
 var _t0 := 0.0
 var _god := false
 var _logT := 0.0
+var _hudDone := false
+var layer: CanvasLayer
+var hud: HUD
 
 func _init(a = null) -> void:
 	g = a
 	name = "UI"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _ready() -> void:
+	# arayüz katmanı: 3B (−10) ve dünya yazıları (1) üstünde
+	layer = CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	hud = HUD.new(g)
+	layer.add_child(hud)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -60,6 +71,10 @@ func _process(_dt: float) -> void:
 			_logT = now
 			print("T=", snappedf(g.time, 0.1), " wave=", g.wave, " lvl=", g.player.level, " kills=", g.kills, " hp=", snappedf(g.player.hp, 1), " en=", g.enemies.pool.active.size(), " fps=", Engine.get_frames_per_second(), " w=", g.weapons.slots.keys())
 	if _arg("quit") != "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
+	var hv := _arg("hudv", "")
+	if hv != "" and not _hudDone and _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT - float(_arg("hudw", "1")):
+		_hudDone = true
+		_hud_test(hv)
 	if _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(_shot)
@@ -76,8 +91,8 @@ func show_bless_pick(list, cb: Callable) -> void:
 func show_level_up(choices) -> void:
 	if choices is Array and choices.size(): g.call_deferred("pick_upgrade", choices[0])
 func hide_level_up() -> void: pass
-func show_game() -> void: pass
-func show_menu() -> void: pass
+func show_game() -> void: hud.show_game()
+func show_menu() -> void: hud.hide_hud()
 func show_pause() -> void: pass
 func hide_pause() -> void: pass
 func show_armory() -> void: pass
@@ -85,23 +100,39 @@ func show_mission_end(_won, _info) -> void:
 	# GEÇİCİ: 3 sn sonra aynı görevi yeniden başlat (test akışı)
 	get_tree().create_timer(3.0).timeout.connect(func(): g.start_run(1, 1))
 func show_ad_watch(_n, _cb) -> void: pass
-func show_boss_bar(_b) -> void: pass
-func hide_boss_bar() -> void: pass
-func boss_moment(_k, _b) -> void: pass
-func banner(_a, _b = "", _c = null) -> void: pass
-func event_banner(_a, _b = "", _c = null) -> void: pass
+func show_boss_bar(b) -> void: hud.show_boss_bar(b)
+func hide_boss_bar() -> void: hud.hide_boss_bar()
+func boss_moment(k, b) -> void: hud.boss_moment(str(k), b)
+func banner(a, b = "", _c = null) -> void: hud.banner_show(str(a), b)
+func event_banner(a, b = "", c = null) -> void: hud.event_banner(str(a), str(b), c if c != null else "#f0c77a")
 func evo_cinema(_e, cb: Callable) -> void: cb.call()
 func ftue_show(_k, _t) -> void: pass
-func hurt_dir(_a) -> void: pass
-func hurt_flash() -> void: pass
-func powerup_flash(_k) -> void: pass
+func hurt_dir(a) -> void: hud.hurt_dir(float(a))
+func hurt_flash() -> void: hud.hurt_flash()
+func powerup_flash(_k) -> void: hud._puKey = ""
 func refresh_wallet() -> void: pass
 func render_events() -> void: pass
-func set_danger(_on) -> void: pass
-func set_dying(_on) -> void: pass
+func set_danger(on) -> void: hud.set_danger(bool(on))
+func set_dying(on) -> void: hud.set_dying(bool(on))
 func set_nm_frame(_on) -> void: pass
-func set_nm_run(_on) -> void: pass
+func set_nm_run(on) -> void: hud.set_nm_run(bool(on))
 func set_pick(_a, _b) -> void: pass
-func toast(_s) -> void: pass
-func ult_flash(_c, _r) -> void: pass
-func update_hud() -> void: pass
+func toast(s) -> void: hud.toast(str(s))
+func ult_flash(c, r) -> void: hud.ult_flash(c, int(r))
+func update_hud() -> void: hud.update_hud()
+
+## Geliştirici: HUD durum testi (web tools webhud.mjs ile aynı durumlar)
+func _hud_test(hv: String) -> void:
+	match hv:
+		"1":
+			g.powerups.shieldT = 5; g.powerups.freezeT = 1.5; g.powerups.magnetT = 4
+			g._cbN = 12; g._cbT = g.time; g._cbTier = 2
+			g.ult.charge = 80; g.ult.ready = true
+			show_boss_bar("KADİM HASATÇI")
+			event_banner("KUŞATMA", "Halka kapanıyor — kaçış yok", "#ff6a3d")
+			toast("HENÜZ HAZIR DEĞİL")
+		"2":
+			g.ult.charge = 40
+			banner("DALGA 2 / 5", "SOLGUN MEZARLIK")
+		"3":
+			boss_moment("intro", "KADİM HASATÇI")

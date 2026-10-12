@@ -58,7 +58,7 @@ static func font(weight: int = 700, display: bool = false) -> Font:
 		var base: FontFile = load(FONT_DISPLAY)
 		var fv := FontVariation.new()
 		fv.base_font = base
-		fv.variation_opentype = {"wght": clampi(weight, 400, 900)}
+		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): clampi(weight, 400, 900)}
 		f = fv
 	else:
 		var w := 400
