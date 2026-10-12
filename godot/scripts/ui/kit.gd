@@ -200,3 +200,32 @@ static func set_fill(L: Lyr, fill: Lyr.N, full_w: float, frac: float) -> void:
 	frac = clampf(frac, 0.0, 1.0)
 	L.set_hidden(fill, frac <= 0.001)
 	if frac > 0.001: L.fit_width(fill, maxf(0.001, full_w * frac), false)
+
+
+## Yatay degrade dolum (CSS linear-gradient(90deg, …) + border-radius) — yakalamada
+## genişliği 0 olan dolum (boyası yok) için: ör. .pity-bar em
+static func grad_fill(w: float, h: float, cols: Array, radius: float) -> ColorRect:
+	var gr := Gradient.new()
+	var offs := PackedFloat32Array()
+	var cs := PackedColorArray()
+	for i in cols.size():
+		offs.append(float(i) / maxf(1.0, cols.size() - 1.0))
+		cs.append(cols[i] if cols[i] is Color else Color(str(cols[i])))
+	gr.offsets = offs
+	gr.colors = cs
+	var tx := GradientTexture2D.new()
+	tx.gradient = gr
+	tx.width = maxi(2, int(ceil(w * 2.0)))
+	tx.height = 2
+	return round_image(tx, w, h, radius, Vector2(0.5, 0.5))
+
+## efsane garantisi çubuğu (.pity-bar em): degrade dolum, oran kadar
+static func pity_fill(bar: Lyr.N, frac: float) -> void:
+	if bar == null: return
+	for c in bar.node.get_children():
+		if c.has_meta("pity_fill"): c.queue_free()
+	var w := bar.size.x * clampf(frac, 0.0, 1.0)
+	if w < 0.5: return
+	var r := grad_fill(w, bar.size.y, ["#7f4130", "#c98a52", "#ffd29a"], bar.size.y * 0.5)
+	r.set_meta("pity_fill", true)
+	bar.node.add_child(r)

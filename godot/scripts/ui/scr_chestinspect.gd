@@ -75,10 +75,7 @@ func _texts() -> void:
 	var pv := L.find(".pity-v")
 	if pv: L.set_text(pv, str(n) + "/" + str(ChestSystem.PITY_N))
 	var pb := L.find(".pity-bar")
-	if pb:
-		for k in pb.kids:
-			if String(k.d.get("kind", "el")) == "el":
-				L.fit_width(k, maxf(0.001, pb.size.x * float(n) / ChestSystem.PITY_N), false)
+	if pb: UIK.pity_fill(pb, float(n) / ChestSystem.PITY_N)
 	var now := Clock.now()
 	if c.st == "unlocking":
 		var tm := L.find(".ci-timer")

@@ -117,6 +117,11 @@ func _page(p: String) -> Node2D:
 		_page_host().add_child(Hp)
 		pages[p] = Hp
 		return Hp
+	if p == "magaza":
+		var Sp := ShopPage.new(self)
+		_page_host().add_child(Sp)
+		pages[p] = Sp
+		return Sp
 	if p == "dunyalar":
 		var J := JourneyPage.new(self)
 		_page_host().add_child(J)
@@ -250,6 +255,7 @@ func _render(p: String) -> void:
 	elif p == "dunyalar": (pages[p] as JourneyPage).open_worlds()
 	elif p == "kahraman": (pages[p] as HeroesPage).render()
 	elif p == "cephane": (pages[p] as ArmoryPage).render()
+	elif p == "magaza": (pages[p] as ShopPage).render()
 
 func _fill(L: Lyr, id: String, frac: float) -> void:
 	var n := L.find_id(id)

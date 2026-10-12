@@ -9,6 +9,8 @@ uniform float bw = 0.0;                    // kenarlık px
 uniform vec4 bcol : source_color = vec4(0.0);
 uniform vec4 bg0 : source_color = vec4(0.0);
 uniform vec4 bg1 : source_color = vec4(0.0);
+uniform float bri = 1.0;                  // filter: brightness()
+uniform float sat = 1.0;                  // filter: saturate()
 float sd(vec2 p, vec2 hs, float r) {
 	vec2 q = abs(p) - hs + r;
 	return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
@@ -20,6 +22,8 @@ void fragment() {
 	vec2 off = (box - dsz) * opos;
 	vec2 uv = (p - off) / dsz;
 	vec4 im = texture(img, uv);
+	float lum = dot(im.rgb, vec3(0.2126, 0.7152, 0.0722));
+	im.rgb = mix(vec3(lum), im.rgb, sat) * bri;
 	// zemin: radial-gradient(circle at 50% 38%, bg0, bg1 78%)
 	float rr = length(p - box * vec2(0.5, 0.38)) / (0.78 * length(box * vec2(0.5, 0.62)));
 	vec4 bg = mix(bg0, bg1, clamp(rr, 0.0, 1.0));

@@ -26,6 +26,7 @@ var ceremony: ScrCeremony      # sandık açılış töreni
 var chestinspect: ScrChestInspect
 var chardetail: ScrCharDetail
 var geardetail: ScrGearDetail
+var chestbuy: ScrChestBuy
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -68,6 +69,8 @@ func _ready() -> void:
 	layer.add_child(chardetail)
 	geardetail = ScrGearDetail.new(g)
 	layer.add_child(geardetail)
+	chestbuy = ScrChestBuy.new(g)
+	layer.add_child(chestbuy)
 	settings = ScrSettings.new(g)
 	layer.add_child(settings)
 
@@ -104,6 +107,14 @@ func boot() -> void:
 				var xy := pp[1].split("x")
 				at = Vector2(float(xy[0]), float(xy[1]))
 			_taps.append([float(pp[0]), at])
+		if _arg("stones") != "":
+			g.add_stones(float(_arg("stones")))
+			menu.refresh_wallet(true)
+		if _arg("page") != "":
+			menu.set_page(_arg("page"), true)
+			var pg = menu.pages.get(_arg("page"))
+			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
+				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
 		# geliştirici: yuvaları doldur — slots=ahsap:locked,kan:unlocking,kadim:ready
 		if _arg("slots") != "":
@@ -250,6 +261,10 @@ func open_gear_detail(id: String) -> void:
 func open_char_detail(id: String) -> void:
 	if chardetail: chardetail.open(id)
 	else: toast("YAKINDA")
+
+## sandık satın alma pop-up'ı (mağaza vitrini / günün fırsatı)
+func chest_buy(t: String, o: Dictionary) -> void:
+	chestbuy.open(t, o)
 
 ## sandık inceleme pop-up'ı (yuva i)
 func chest_inspect(i: int) -> void:
