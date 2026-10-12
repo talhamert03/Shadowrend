@@ -13,6 +13,9 @@ def run(base, name):
     for n in J['nodes']:
         im = n.get('img')
         if not im: continue
+        if not im.get('tiles'):
+            used.add(im['file'])   # zaten kırpılmış (yeniden kırpma dpr/ölçüyü bozardı)
+            continue
         tiles = im.get('tiles') or [{'file': im['file'], 'x': 0, 'y': 0}]
         key = '|'.join(t['file'] + '@' + str(t['x']) + ',' + str(t['y']) for t in tiles)
         for t in tiles: orig.add(t['file'])

@@ -64,12 +64,32 @@ static func layout(ar: float) -> Array:
 		out.append({"x": lerpf(S[i][0], T[i][0], t), "y": lerpf(S[i][1], T[i][1], t), "r": lerpf(S[i][2], T[i][2], t), "boss": i == 3})
 	return out
 
-static func _done_at(i: int, count: int, cleared: int) -> bool:
+## climbLayout(total, 'tall', _, pad) — görev 1 altta, boss tepede (düz zikzak)
+static func layout_tall(total: int, pt: float, pb: float) -> Array:
+	var out := []
+	var yBot := 0.945 - pb
+	var yTop := 0.110 + pt
+	for i in total:
+		var t := 1.0 if total < 2 else float(i) / (total - 1)
+		var boss := i == total - 1
+		var amp: float = [0.20, 0.15, 0.22, 0.17][i % 4]
+		out.append({"x": 0.5 if boss else 0.5 + (amp if i % 2 else -amp), "y": yBot - t * (yBot - yTop),
+			"r": 0.30 if boss else 0.185 + (0.018 if i % 3 == 1 else 0.0), "boss": boss})
+	return out
+
+var tall := false
+var pad_t := 0.0
+
+func _done_at(i: int, count: int, cleared: int) -> bool:
 	if i < 0: return true
+	if tall: return i < cleared
 	return cleared >= int(floor((i + 1) * (10.0 / count) + 0.5))
 
-func paint(wd: Dictionary, cleared: int, w: float, h: float) -> void:
-	var key := str(wd.id) + ":" + str(cleared) + ":" + str(w) + "x" + str(h)
+## mode_tall: bölüm seçimi (10 ada); pad = {t, b} örtülü paylar (kesir)
+func paint(wd: Dictionary, cleared: int, w: float, h: float, mode_tall := false, pad := {}) -> void:
+	var key := str(wd.id) + ":" + str(cleared) + ":" + str(w) + "x" + str(h) + (":T" if mode_tall else "")
+	tall = mode_tall
+	pad_t = float(pad.get("t", 0.0))
 	if key == _key: return
 	_key = key
 	W = w
@@ -84,10 +104,10 @@ func paint(wd: Dictionary, cleared: int, w: float, h: float) -> void:
 	var dir := BASE + "w" + str(wid) + "/"
 	var glow := JS.col(wd.glow)
 	var gl := Color(glow.r, glow.g, glow.b, 1.0)
-	var nodes := layout(H / W)
+	var nodes := layout_tall(10, pad_t, float(pad.get("b", 0.0))) if tall else layout(H / W)
 	var cur := _seg(false)
-	# ── arka: biyom gök + ufuk ──
-	var back := _sized(dir, "back")
+	# ── arka: biyom gök + ufuk (dikeyde: gece göğü, ay, uzak siluetler, bulutlar) ──
+	var back := _tex(dir + "tall_back.png") if tall else _sized(dir, "back")
 	if back: cur.ops.append(func(ci: CanvasItem): ci.draw_texture_rect(back, Rect2(0, 0, W, H), false))
 	# ── yol: adalar arası ışık taşları ──
 	for i in nodes.size() - 1:
@@ -120,10 +140,10 @@ func paint(wd: Dictionary, cleared: int, w: float, h: float) -> void:
 		var p := Vector2(x, y)
 		cur.ops.append(func(ci: CanvasItem): _soft(ci, p + Vector2(0, rx * 0.7), rx * 1.3, gl, 0.11 if done else 0.07))
 		# drawIsle: oda payı (room = y − 1) dar ise ada küçülür, yapı ayrıca kısılır
-		var nm := ("b3" if n.boss else "i" + str(i))
+		var nm := (("b9" if tall else "b3") if n.boss else "i" + str(i))
 		var sm: Dictionary = wm.get("slots", {}).get(nm, {})
 		var Hf: float = sm.get("H", 2.0)
-		var room := y - 1.0
+		var room := y - (pad_t * H if tall else 0.0) - 1.0
 		var rxe := rx * maxf(0.6, minf(1.0, room / (Hf * rx)))
 		var cap := rxe * (3.0 if n.boss else 2.1)
 		var kk := minf(1.0, minf(cap, room) / (Hf * rxe))
@@ -157,10 +177,10 @@ func paint(wd: Dictionary, cleared: int, w: float, h: float) -> void:
 			cur = _seg(false)
 			cur.ops.append(func(ci: CanvasItem): _soft(ci, p, rx * 1.5, gl, 0.22))
 	# ── ön: biyom sisi/havası ──
-	var front := _sized(dir, "front")
+	var front := _tex(dir + "tall_front.png") if tall else _sized(dir, "front")
 	if front: cur.ops.append(func(ci: CanvasItem): ci.draw_texture_rect(front, Rect2(0, 0, W, H), false))
-	# ── vinyet: merkez radyal + dip karartması ──
-	cur.ops.append(func(ci: CanvasItem): _vignette(ci))
+	# ── vinyet: merkez radyal + dip karartması (dikeyde yan vinyet ön katmanda pişmiş) ──
+	if not tall: cur.ops.append(func(ci: CanvasItem): _vignette(ci))
 	for s in _segs: (s as Seg).queue_redraw()
 
 func _seg(add: bool) -> Seg:

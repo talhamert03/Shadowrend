@@ -22,6 +22,8 @@ var adwatch: ScrAdWatch
 var evo: ScrEvo
 var ach: AchToast
 var ftue: FtueHint
+var ceremony: ScrCeremony      # sandık açılış töreni
+var chestinspect: ScrChestInspect
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -56,6 +58,10 @@ func _ready() -> void:
 	layer.add_child(ach)
 	ftue = FtueHint.new()
 	layer.add_child(ftue)
+	chestinspect = ScrChestInspect.new(g)
+	layer.add_child(chestinspect)
+	ceremony = ScrCeremony.new(g)
+	layer.add_child(ceremony)
 	settings = ScrSettings.new(g)
 	layer.add_child(settings)
 
@@ -85,6 +91,23 @@ func boot() -> void:
 		if g.music: g.music.set_state("menu")
 		show_menu()
 		if _arg("chesttest") != "": _chest_test()
+		for tk in _arg("taps").split(",", false):
+			var pp := tk.split("@")
+			var at := Vector2(195, 422)
+			if pp.size() > 1:
+				var xy := pp[1].split("x")
+				at = Vector2(float(xy[0]), float(xy[1]))
+			_taps.append([float(pp[0]), at])
+		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
+		# geliştirici: yuvaları doldur — slots=ahsap:locked,kan:unlocking,kadim:ready
+		if _arg("slots") != "":
+			var sl := _arg("slots").split(",")
+			for i in mini(4, sl.size()):
+				var pr := sl[i].split(":")
+				if pr.size() < 2: continue
+				var tt: float = float(ChestSystem.chests()[pr[0]].time) * 1000.0
+				g.chests.slots[i] = {"t": pr[0], "st": pr[1], "at": Clock.now() + tt * 0.6 if pr[1] == "unlocking" else 0.0, "ad": false, "cut": 0.0}
+			menu.render_slots()
 		return
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
@@ -109,7 +132,19 @@ func boot() -> void:
 					"decor": r3.decorGroup.visible = false
 					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
 
+var _taps: Array = []
+
 func _process(_dt: float) -> void:
+	# geliştirici: zamanlı dokunuşlar — taps=1.5,3.0@200x400 (sn[@x,y])
+	if _t0 > 0 and not _taps.is_empty():
+		var now0 := Time.get_ticks_msec() / 1000.0 - _t0
+		while not _taps.is_empty() and now0 >= float(_taps[0][0]):
+			var tp: Array = _taps.pop_front()
+			for pr in [true, false]:
+				var ev := InputEventScreenTouch.new()
+				ev.pressed = pr
+				ev.position = tp[1]
+				Input.parse_input_event(ev)
 	if _t0 > 0 and g.state == "playing":
 		if _god and g.player.hp < g.player.maxHp * 0.5: g.player.hp = g.player.maxHp
 		var now := Time.get_ticks_msec() / 1000.0
@@ -199,6 +234,21 @@ func set_pick(w, m) -> void:
 	_pick = {"w": int(w), "m": int(m)}
 func stored_pick(): return _pick
 func toast(s) -> void: hud.toast(str(s))
+
+## sandık inceleme pop-up'ı (yuva i)
+func chest_inspect(i: int) -> void:
+	chestinspect.open(i)
+
+## açılış töreni; slot < 0 → yuva harcamaz (ücretsiz/zafer/mağaza)
+func chest_ceremony(type: String, slot: int, done: Callable) -> void:
+	if ceremony: ceremony.play(type, slot, done)
+	else:
+		var rw: Array = g.chests.apply_pity(g.chests.roll_rewards(type))
+		g.chests.apply_rewards(rw)
+		if slot >= 0:
+			g.chests.slots[slot] = null
+			g.chests.save()
+		if done.is_valid(): done.call()
 func ult_flash(c, r) -> void: hud.ult_flash(c, int(r))
 func update_hud() -> void: hud.update_hud()
 

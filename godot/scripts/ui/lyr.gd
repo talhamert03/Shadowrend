@@ -274,17 +274,16 @@ func _make_text(tx: Dictionary, n: N) -> UIText:
 
 ## düğümün kök koordinatındaki sol üstü (kutular ebeveyne göre saklı; kaydırma dahil)
 func _abs_of(n: N) -> Vector2:
+	# canlı konum (n.pos: esneme/taşıma sonrası), yakalanan kutu değil
 	var p := Vector2.ZERO
-	var d := n.d
-	var first := true
-	while d != null:
-		var b: Array = d.box
-		p += Vector2(b[0], b[1])
-		var par = d.get("parent")
+	var m: N = n
+	while m != null:
+		p += m.pos
+		var par = m.d.get("parent")
 		if par == null: break
 		var pn: N = by_id.get(str(par))
-		if pn and pn.scroller and String(d.get("pos", "")) != "sticky": p.y -= pn.scroll_y
-		d = pn.d if pn else null
+		if pn and pn.scroller and String(m.d.get("pos", "")) != "sticky": p.y -= pn.scroll_y
+		m = pn
 	return p
 
 ## kaydırma kapsayıcıları içinde görünen dikdörtgen (dokunma testi için)
@@ -828,9 +827,18 @@ func resize_h(n: N, h: float) -> void:
 	for k in n.kids:
 		if not k.d.has("_h0"): k.d["_h0"] = k.size.y
 		if not k.d.has("_w0"): k.d["_w0"] = k.size.x
-		if float(k.d["_h0"]) >= h0 * 0.8 and String(k.d.get("pos", "")) in ["absolute", "fixed"]:
-			k.size.y = float(k.d["_h0"]) + (h - h0)
+		if not k.d.has("_ry0"): k.d["_ry0"] = k.pos.y
+		if not (String(k.d.get("pos", "")) in ["absolute", "fixed"]): continue
+		var kh0: float = k.d["_h0"]
+		var ky0: float = k.d["_ry0"]
+		if absf(kh0 - h0) <= 6.0 and ky0 <= 4.0:
+			# kutuyu dolduran katman (inset:0 benzeri) uzar
+			k.size.y = kh0 + (h - h0)
 			_resize_img(k)
+		elif ky0 > h0 * 0.5 and ky0 + kh0 <= h0 + 2.0:
+			# alta yaslı öğe (bottom:…) kutunun dibiyle kayar
+			k.pos.y = ky0 + (h - h0)
+			_apply(k, t)
 	if n.clip_rect.size() == 4:
 		for m in n.mats.values():
 			m.set_shader_parameter("crect", Vector4(n.clip_rect[0], n.clip_rect[1], n.clip_rect[2], float(n.clip_rect[3]) + (h - h0)))

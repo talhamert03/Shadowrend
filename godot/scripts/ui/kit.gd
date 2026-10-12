@@ -173,3 +173,22 @@ static func shader_mat(path: String) -> ShaderMaterial:
 	var m := ShaderMaterial.new()
 	m.shader = load(path)
 	return m
+
+
+## <img> object-fit:cover + border-radius + kenarlık — portreler (tören, tepsi, kahraman kartları)
+static func round_image(tex: Texture2D, w: float, h: float, radius: float, opos := Vector2(0.5, 0.1), bw := 0.0, bcol := Color(0, 0, 0, 0), bg0 := Color(0, 0, 0, 0), bg1 := Color(0, 0, 0, 0)) -> ColorRect:
+	var r := ColorRect.new()
+	r.size = Vector2(w, h)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var m := shader_mat("res://shaders/ui/img_round.gdshader")
+	m.set_shader_parameter("img", tex)
+	m.set_shader_parameter("box", Vector2(w, h))
+	m.set_shader_parameter("isz", Vector2(tex.get_width(), tex.get_height()))
+	m.set_shader_parameter("opos", opos)
+	m.set_shader_parameter("radius", radius)
+	m.set_shader_parameter("bw", bw)
+	m.set_shader_parameter("bcol", bcol)
+	m.set_shader_parameter("bg0", bg0)
+	m.set_shader_parameter("bg1", bg1)
+	r.material = m
+	return r

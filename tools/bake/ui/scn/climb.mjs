@@ -13,7 +13,8 @@ import fs from 'node:fs'; import path from 'node:path';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../..');
 const OUT = path.join(ROOT, 'godot/assets/ui/climb');
 const R0 = 90, DPR = 2;
-const SIZES = [[358, 320]];          // önizleme tuvalleri (ana sayfa haritası)
+const SIZES = [[358, 320], [362, 282]];   // önizleme tuvalleri: ana sayfa haritası · dünya kartı (cardW×0,78)
+const TALL = { W: 390, base: 1287, t: 56, b: 96, dpr: 1.6 };   // bölüm seçimi (renderChapters)
 const BOSS_SEEDS = [3, 9];           // önizlemede boss 4. ada (seed 3), dikeyde 10. (seed 9)
 
 export default {
@@ -37,7 +38,7 @@ export function __split(gb, gs, wd, slot, x, y, rx) {
     return H;
   };
 }`;
-    const res = await A.eval(async ([code, R0, DPR, SIZES, BOSS_SEEDS]) => {
+    const res = await A.eval(async ([code, R0, DPR, SIZES, BOSS_SEEDS, TALL]) => {
       const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
       const M = await import(url);
       const { WORLDS } = await import('/game/worlds.js?v=20260930m');
@@ -55,6 +56,17 @@ export function __split(gb, gs, wd, slot, x, y, rx) {
         return { png: o.toDataURL('image/png').split(',')[1], ax: ax - x0, ay: ay - y0, w: o.width, h: o.height };
       };
       const out = { worlds: {}, files: {} };
+      /* dikey tırmanış: yol + adalar hariç ARKA (gök, yıldız, ay, uzak siluet, bulut) ve ÖN
+         (ön bulut, zerreler, yan vinyet) katmanları — skyMap kaynağı yamalanır */
+      let sky = await (await fetch('/game/skyMap.js?v=20260930m')).text();
+      sky = sky.replace(/from\s+'\.\/([^']+)'/g, (_, q) => "from '" + location.origin + "/game/" + q + "'");
+      sky = sky.replace("const g = cv.getContext('2d');", "let g = cv.getContext('2d');");
+      const i4 = sky.indexOf('  /* ═ 4. TIRMANIŞ YOLU'), i6 = sky.indexOf('  /* ═ 6. ÖN BULUTLAR');
+      if (i4 < 0 || i6 < 0) throw new Error('skyMap kalıbı değişti');
+      sky = sky.slice(0, i4) + '  if (!window.__skipMid) {\n' + sky.slice(i4, i6) + '  }\n  if (window.__front) g = window.__front;\n' + sky.slice(i6);
+      const SM = await import(URL.createObjectURL(new Blob([sky], { type: 'text/javascript' })));
+      const TH = TALL.base + TALL.t + TALL.b;
+      const tallPad = { t: TALL.t / TH, b: TALL.b / TH };
       for (const wd of WORLDS) {
         const W = { slots: {}, H: [] };
         for (const [w, h] of SIZES) {
@@ -79,16 +91,28 @@ export function __split(gb, gs, wd, slot, x, y, rx) {
           if (tb) out.files['w' + wd.id + '/' + name + '_b'] = tb.png;
           if (ts) out.files['w' + wd.id + '/' + name + '_s'] = ts.png;
         }
+        {
+          const fc = document.createElement('canvas'); fc.width = Math.round(TALL.W * TALL.dpr); fc.height = Math.round(TH * TALL.dpr);
+          const fg = fc.getContext('2d'); fg.scale(TALL.dpr, TALL.dpr);
+          window.__skipMid = true; window.__front = fg;
+          const _dpr = window.devicePixelRatio;
+          Object.defineProperty(window, 'devicePixelRatio', { value: TALL.dpr, configurable: true });
+          const bc = SM.paintClimb(wd, 0, TALL.W, TH, 'tall', 10, tallPad);
+          Object.defineProperty(window, 'devicePixelRatio', { value: _dpr, configurable: true });
+          window.__skipMid = false; window.__front = null;
+          out.files['w' + wd.id + '/tall_back'] = bc.toDataURL('image/png').split(',')[1];
+          out.files['w' + wd.id + '/tall_front'] = fc.toDataURL('image/png').split(',')[1];
+        }
         out.worlds[wd.id] = W;
       }
       return out;
-    }, [src + extra, R0, DPR, SIZES, BOSS_SEEDS]);
+    }, [src + extra, R0, DPR, SIZES, BOSS_SEEDS, TALL]);
     for (const k in res.files) {
       const f = path.join(OUT, k + '.png');
       fs.mkdirSync(path.dirname(f), { recursive: true });
       fs.writeFileSync(f, Buffer.from(res.files[k], 'base64'));
     }
-    fs.writeFileSync(path.join(OUT, 'climb.json'), JSON.stringify({ R0, dpr: DPR, sizes: SIZES, worlds: res.worlds }));
+    fs.writeFileSync(path.join(OUT, 'climb.json'), JSON.stringify({ R0, dpr: DPR, sizes: SIZES, tall: TALL, worlds: res.worlds }));
     console.log('tırmanış sanatı', Object.keys(res.files).length, 'dosya');
   },
 };

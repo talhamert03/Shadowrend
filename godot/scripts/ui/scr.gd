@@ -27,6 +27,19 @@ func btn(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 4.0) -> vo
 func scroll_area(L: Lyr, n: Lyr.N) -> void:
 	if n and n.scroller: _scrolls.append({"lyr": L, "n": n})
 
+## bir katmanın düğmelerini kaldır (katman yeniden kurulurken)
+func unbtn(L: Lyr) -> void:
+	for B in _btns.duplicate():
+		if B.lyr == L: _btns.erase(B)
+	for S in _scrolls.duplicate():
+		if S.lyr == L: _scrolls.erase(S)
+	if _drag and _drag.S.lyr == L: _drag = null
+	for F in _fling.duplicate():
+		if F.S.lyr == L: _fling.erase(F)
+	if _pb and _pb.lyr == L:
+		_pb = null
+		_press = -1
+
 func clear_btns() -> void:
 	_btns.clear()
 	_scrolls.clear()
