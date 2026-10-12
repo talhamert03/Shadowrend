@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/weapon_yemin.png-f1c7f3b2e4ce07e9e673d33be8f5
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

@@ -62,3 +62,6 @@ for f in os.listdir(sys.argv[1]):
             pass
 for f in os.listdir(imgd):
     if f.endswith('.png') and f not in refs: os.remove(os.path.join(imgd, f))
+# büyük katmanlar: çözünürlük bütçesi
+import subprocess
+subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), 'shrink.py'), sys.argv[1]])

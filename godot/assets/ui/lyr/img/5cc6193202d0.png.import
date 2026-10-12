@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/5cc6193202d0.png-9325c4ce26a1157dd47ed1d4affa
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

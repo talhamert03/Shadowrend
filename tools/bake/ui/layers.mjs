@@ -132,7 +132,16 @@ window.__lyr = (() => {
     if (!root) return null;
     nodes = []; byId = {};
     let id = 0;
-    const els = [root, ...root.querySelectorAll('*')].filter((e) => { for (let p = e.parentElement; p && p !== root.parentElement; p = p.parentElement) if (p !== e && ATOMIC.has(p.tagName.toLowerCase())) return false; return true; });
+    const skip = (opt.skip || []);
+    const isSkip = (e) => skip.some((k) => keyOf(e).includes(k));
+    /* atlanan / display:none ataların alt ağacı hiç taranmaz (yalnız atlanan kökün kutusu kalır) */
+    const els = [root, ...root.querySelectorAll('*')].filter((e) => {
+      for (let p = e.parentElement; p && p !== root.parentElement; p = p.parentElement) {
+        if (ATOMIC.has(p.tagName.toLowerCase())) return false;
+        if (p !== root && (isSkip(p) || getComputedStyle(p).display === 'none')) return false;
+      }
+      return true;
+    });
     for (const e of els) e.setAttribute('data-lyr', String(id++));
     const anims = collectAnims(root);
     /* ② dondur: durağan stiller */
@@ -337,7 +346,7 @@ export async function captureLayers(A, o) {
   const p = A.page;
   const pad = o.pad == null ? 40 : o.pad;
   if (!(await p.evaluate(() => !!window.__lyr))) await p.addScriptTag({ content: BROWSER });
-  const S = await p.evaluate(([sel, opt]) => window.__lyr.scan(sel, opt), [o.sel, { stretch: o.stretch || 0 }]);
+  const S = await p.evaluate(([sel, opt]) => window.__lyr.scan(sel, opt), [o.sel, { stretch: o.stretch || 0, skip: o.skip || [] }]);
   if (!S) { console.log('KATMAN: kök yok', o.sel); return null; }
   const dir = path.join(o.out, 'img');
   fs.mkdirSync(dir, { recursive: true });

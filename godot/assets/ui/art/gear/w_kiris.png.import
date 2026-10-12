@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/w_kiris.png-6eee45fbf146a1d2499a00f9b2208c51.
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

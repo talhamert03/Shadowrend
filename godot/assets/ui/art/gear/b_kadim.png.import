@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/b_kadim.png-e1052e1016ef04b32663106bd5ac7dba.
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

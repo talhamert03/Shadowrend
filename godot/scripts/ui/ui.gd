@@ -12,6 +12,7 @@ var _logT := 0.0
 var _hudDone := false
 var layer: CanvasLayer
 var hud: HUD
+var menu: ScrMenu
 var levelup: ScrLevelUp
 var bless: ScrBless
 var pause: ScrPause
@@ -33,6 +34,8 @@ func _ready() -> void:
 	layer = CanvasLayer.new()
 	layer.layer = 5
 	add_child(layer)
+	menu = ScrMenu.new(g)
+	layer.add_child(menu)
 	hud = HUD.new(g)
 	layer.add_child(hud)
 	levelup = ScrLevelUp.new(g)
@@ -63,12 +66,15 @@ func _arg(k: String, d: String = "") -> String:
 	return d
 
 func boot() -> void:
-	# GEÇİCİ TEST AKIŞI: arayüz taşınana kadar cihazda doğrudan savaşa girilir.
-	if _arg("autorun") == "" and not OS.has_feature("editor"):
-		g.meta.ftue = 1
-		if not g.meta.charsOwned.has("seher"): g.meta.charsOwned.append("seher")
-		g.meta.selectedChar = "seher"
-		g.start_run(1, 1)
+	# cihazda (geliştirici bayrağı yoksa) ana menüyle açılır
+	if _arg("menu") != "":
+		_shot = _arg("shot", "")
+		_shotT = float(_arg("shot_t", "6"))
+		_t0 = Time.get_ticks_msec() / 1000.0
+	if _arg("autorun") == "":
+		g.state = "menu"
+		if g.music: g.music.set_state("menu")
+		show_menu()
 		return
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
@@ -133,6 +139,7 @@ func show_level_up(choices) -> void:
 	levelup.show_choices(choices)
 func hide_level_up() -> void: levelup.hide_screen()
 func show_game() -> void:
+	menu.close()
 	missionend.hide_end()
 	hud.show_game()
 func show_menu() -> void:
@@ -140,8 +147,7 @@ func show_menu() -> void:
 	missionend.hide_end()
 	pause.hide_pause()
 	levelup.hide_screen()
-	# GEÇİCİ: menüler taşınana kadar menüye dönüş yeni bir test koşusu başlatır
-	if _arg("autorun") == "": get_tree().create_timer(0.6).timeout.connect(func(): g.start_run(1, 1))
+	menu.open("savas")
 func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
 func show_settings() -> void: settings.show_settings(pause.visible)
@@ -172,13 +178,16 @@ func ftue_show(k, _t = null) -> void: ftue.show_kind(str(k) if k != null else ""
 func hurt_dir(a) -> void: hud.hurt_dir(float(a))
 func hurt_flash() -> void: hud.hurt_flash()
 func powerup_flash(_k) -> void: hud._puKey = ""
-func refresh_wallet() -> void: pass
+func refresh_wallet() -> void: menu.refresh_wallet()
 func render_events() -> void: pass
 func set_danger(on) -> void: hud.set_danger(bool(on))
 func set_dying(on) -> void: hud.set_dying(bool(on))
 func set_nm_frame(_on) -> void: pass
 func set_nm_run(on) -> void: hud.set_nm_run(bool(on))
-func set_pick(_a, _b) -> void: pass
+var _pick = null
+func set_pick(w, m) -> void:
+	_pick = {"w": int(w), "m": int(m)}
+func stored_pick(): return _pick
 func toast(s) -> void: hud.toast(str(s))
 func ult_flash(c, r) -> void: hud.ult_flash(c, int(r))
 func update_hud() -> void: hud.update_hud()

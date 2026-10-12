@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/asa.png-cc40211c3cb8f4b618e0a94fc6f9c37e.ctex
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
