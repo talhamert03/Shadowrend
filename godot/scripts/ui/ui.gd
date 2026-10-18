@@ -391,3 +391,48 @@ func _hud_test(hv: String) -> void:
 			show_level_up([mk.call({"kind": "passive", "id": "kalp", "level": 1, "max": 4, "name": "Kadim Yürek"}),
 				mk.call({"kind": "special", "sig": true, "myth": true, "seher": true, "id": "ikiz", "icon": "kilic", "tier": 2, "level": 1, "max": 5, "name": "İkiz Savuruş", "desc": "Aynı hedefe ters yönden ikinci kesik.", "stag": "KOR", "stagN": 1}),
 				mk.call({"kind": "special", "id": "perkx", "icon": "yay", "level": 0, "max": 1, "name": "Uzun Kavis", "desc": "Menzil +%8, hasar +%10.", "stag": "RUH", "stagN": 3})])
+
+# ═══════════ GERİ TUŞU (ui.js handleBack) ═══════════
+## Android geri tuşu / masaüstünde ESC: en üstteki katman kapanır; oyunda duraklatır /
+## sürdürür; menüde alt sayfadan kök sekmeye döner; yalnız kök sekmede uygulama kapanır.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if not handle_back(): get_tree().quit()
+
+func _unhandled_input(ev: InputEvent) -> void:
+	if ev is InputEventKey and ev.pressed and not ev.echo and ev.keycode == KEY_ESCAPE:
+		handle_back()
+		get_viewport().set_input_as_handled()
+
+func handle_back() -> bool:
+	if gate and gate.visible: return true
+	if ceremony and ceremony.visible: return true
+	if celebrate and celebrate.visible:
+		celebrate._close()
+		return true
+	if sheet and sheet.visible:
+		sheet.close()
+		return true
+	if settings_open():
+		hide_settings()
+		return true
+	for S in [chestbuy, chestinspect, geardetail, chardetail, drawer, battlepass, quests, accjourney]:
+		if S and S.visible:
+			S.close()
+			return true
+	if g.state == "playing":
+		g.pause_game()
+		return true
+	if g.state == "paused":
+		g.resume_game()
+		return true
+	if menu and menu.visible:
+		var jp = menu.pages.get("dunyalar")
+		if menu.page == "dunyalar" and jp and jp.mode == "chapters":
+			jp.open_worlds()
+			return true
+		if menu.page != "savas":
+			menu.set_page("savas")
+			return true
+	return false
+
