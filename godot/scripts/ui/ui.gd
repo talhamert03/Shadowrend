@@ -27,6 +27,10 @@ var chestinspect: ScrChestInspect
 var chardetail: ScrCharDetail
 var geardetail: ScrGearDetail
 var chestbuy: ScrChestBuy
+var drawer: ScrDrawer
+var accjourney: ScrAccJourney
+var quests: ScrQuests
+var sheet: ScrSheet
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -73,6 +77,15 @@ func _ready() -> void:
 	layer.add_child(chestbuy)
 	settings = ScrSettings.new(g)
 	layer.add_child(settings)
+	drawer = ScrDrawer.new(g)
+	layer.add_child(drawer)
+	accjourney = ScrAccJourney.new(g)
+	layer.add_child(accjourney)
+	quests = ScrQuests.new(g)
+	layer.add_child(quests)
+	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
+	sheet = ScrSheet.new(g)
+	layer.add_child(sheet)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -118,6 +131,14 @@ func boot() -> void:
 				pg.render()
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
+		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
+		var ov := _arg("ov")
+		if ov == "drawer": show_daily_drawer()
+		elif ov == "aj": show_account_journey()
+		elif ov == "quests": show_quests()
+		elif ov == "wipe": confirm_wipe()
+		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
+		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
 		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
 		# geliştirici: yuvaları doldur — slots=ahsap:locked,kan:unlocking,kadim:ready
 		if _arg("slots") != "":
@@ -219,8 +240,17 @@ func show_settings() -> void: settings.show_settings(pause.visible)
 func hide_settings() -> void: settings.hide_settings()
 func settings_open() -> bool: return settings.visible
 ## yasal belge / destek sayfası (sheet) — GEÇİCİ: menü sayfaları taşınınca tam sayfa
-func open_doc(kind: String) -> void: toast({"support": "DESTEK", "privacy": "GİZLİLİK", "kvkk": "KVKK", "terms": "KOŞULLAR"}.get(kind, kind) + " YAKINDA")
-func confirm_wipe() -> void: toast("VERİ SİLME YAKINDA")
+func open_doc(kind: String, on_close := Callable()) -> void:
+	if kind == "support":
+		toast("DESTEK: destek@shadowrend.app")
+		return
+	sheet.doc(kind, on_close)
+func confirm_wipe() -> void: sheet.wipe()
+func show_odds(t: String) -> void: sheet.odds(t)
+func show_quests() -> void: quests.open()
+func show_daily_drawer() -> void: drawer.open()
+func show_account_journey() -> void: accjourney.open()
+func show_battle_pass() -> void: toast("SAVAŞ BİLETİ YAKINDA")
 func show_armory() -> void: pass
 func show_mission_end(won, info) -> void:
 	hud.hide_hud()

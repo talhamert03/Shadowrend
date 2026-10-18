@@ -34,7 +34,7 @@ func open(t: String, o: Dictionary) -> void:
 	btn(L, L.nodes[0], func(): close(), 1.0, 0.0)
 	if _card: btn(L, _card, func(): pass, 1.0, 0.0)
 	btn(L, L.find_id("#cb-close"), func(): close())
-	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.toast("OLASILIKLAR YAKINDA"))
+	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.show_odds(type))
 	btn(L, L.find(".cb-buy"), func(): _buy())
 	visible = true
 	_t = 0.0

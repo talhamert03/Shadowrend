@@ -18,7 +18,7 @@ window.__lyr = (() => {
   CSS.textContent = [
     '.lyr-freeze, .lyr-freeze *, .lyr-freeze::before, .lyr-freeze::after, .lyr-freeze *::before, .lyr-freeze *::after { animation: none !important; transition: none !important; }',
     '.lyr-flat, .lyr-flat *, .lyr-flat::before, .lyr-flat::after, .lyr-flat *::before, .lyr-flat *::after { transform: none !important; rotate: none !important; scale: none !important; translate: none !important; }',
-    '.lyr-anc { transform: none !important; rotate: none !important; scale: none !important; translate: none !important; opacity: 1 !important; filter: none !important; overflow: visible !important; clip-path: none !important; -webkit-mask: none !important; mask: none !important; animation: none !important; transition: none !important; background: none !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }',
+    '.lyr-anc { contain: none !important; transform: none !important; rotate: none !important; scale: none !important; translate: none !important; opacity: 1 !important; filter: none !important; overflow: visible !important; clip-path: none !important; -webkit-mask: none !important; mask: none !important; animation: none !important; transition: none !important; background: none !important; border-color: transparent !important; box-shadow: none !important; outline: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }',
     '.lyr-anc::before, .lyr-anc::after { visibility: hidden !important; }',
     '.lyr-hid { visibility: hidden !important; }',
     '.lyr-show { visibility: visible !important; opacity: 1 !important; }',

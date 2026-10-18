@@ -63,8 +63,8 @@ func _build() -> void:
 				cr.position = k.size * 0.5 - cr.size * 0.5
 				k.node.add_child(cr)
 	btn(shell, shell.find_id("#btn-settings"), func(): g.audio.play("click"); g.ui.show_settings())
-	btn(shell, shell.find_id("#tb-daily"), func(): g.audio.play("click"); g.ui.toast("GÜNLÜK ÇEKMECE YAKINDA"))
-	btn(shell, lv, func(): g.audio.play("click"); g.ui.toast("HESAP YOLCULUĞU YAKINDA"))
+	btn(shell, shell.find_id("#tb-daily"), func(): g.audio.play("click"); g.ui.show_daily_drawer())
+	btn(shell, lv, func(): g.audio.play("click"); g.ui.show_account_journey())
 	for c in shell.find_all(".tb-cur"):
 		btn(shell, c, func(): g.audio.play("click"); set_page("magaza"))
 	var tabs := shell.find_all(".dk-tab")

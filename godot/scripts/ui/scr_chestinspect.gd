@@ -59,7 +59,7 @@ func _build() -> void:
 	stage.set_chest(str(c.t))
 	_texts()
 	btn(L, L.find_id("#ci-close"), func(): g.audio.play("click"); close())
-	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.toast("OLASILIKLAR YAKINDA"))
+	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.show_odds(str(g.chests.slots[slot].t)))
 	var st := _state_name()
 	if st == "ready":
 		btn(L, L.find(".ci-open"), func(): _open_chest())
