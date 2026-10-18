@@ -66,6 +66,8 @@ jobs:
           G=~/godot/Godot_v${GODOT_VER}-stable_linux.x86_64
           mkdir -p build
           timeout 1200 $G --headless --path . --editor --quit || true
+          # paket kontrolü: dışa aktarılan paketi açıp betik hatası arar (ör. hariç tutulan class_name)
+          bash ../tools/check/export_check.sh $G 20
           timeout 1200 $G --headless --path . --export-debug "Android" build/shadowrend.apk
           ls -la build
 
