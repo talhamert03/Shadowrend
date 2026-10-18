@@ -31,6 +31,7 @@ var drawer: ScrDrawer
 var accjourney: ScrAccJourney
 var quests: ScrQuests
 var sheet: ScrSheet
+var battlepass: ScrBattlePass
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -83,6 +84,8 @@ func _ready() -> void:
 	layer.add_child(accjourney)
 	quests = ScrQuests.new(g)
 	layer.add_child(quests)
+	battlepass = ScrBattlePass.new(g)
+	layer.add_child(battlepass)
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
 	sheet = ScrSheet.new(g)
 	layer.add_child(sheet)
@@ -137,6 +140,7 @@ func boot() -> void:
 		elif ov == "aj": show_account_journey()
 		elif ov == "quests": show_quests()
 		elif ov == "wipe": confirm_wipe()
+		elif ov == "bp": show_battle_pass()
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
 		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
@@ -250,7 +254,7 @@ func show_odds(t: String) -> void: sheet.odds(t)
 func show_quests() -> void: quests.open()
 func show_daily_drawer() -> void: drawer.open()
 func show_account_journey() -> void: accjourney.open()
-func show_battle_pass() -> void: toast("SAVAŞ BİLETİ YAKINDA")
+func show_battle_pass() -> void: battlepass.open()
 func show_armory() -> void: pass
 func show_mission_end(won, info) -> void:
 	hud.hide_hud()

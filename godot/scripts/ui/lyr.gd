@@ -160,6 +160,8 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 			n.node.add_child(sh)
 			n.txt_shadow = sh
 			n.txt.no_shadow = true
+			# glif kapsaması köşe rengiyle taşınır: color saydamsa (yalnız -webkit-text-fill) beyaz al
+			if n.txt.color.a < 0.01: n.txt.color = Color.WHITE
 			if im is Dictionary:
 				var fm := ShaderMaterial.new()
 				fm.shader = load("res://shaders/ui/text_fill.gdshader")
