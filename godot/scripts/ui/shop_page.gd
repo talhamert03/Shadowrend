@@ -362,7 +362,9 @@ func _mk_buy(slot: String, cur: String) -> void:
 	g.ui.toast("+" + str(int(r.n)) + " " + str(r.name) + " KARTI")
 	menu.refresh_wallet()
 	render()
-	if r.get("first", false): g.ui.toast("YENİ KAHRAMAN AÇILDI · " + str(r.name))
+	if r.get("first", false):
+		var hid: String = r.id
+		get_tree().create_timer(0.65).timeout.connect(func(): g.ui.celebrate.hero_unlock(hid))
 
 # ═════════════ gem kesesi + bozdurma ═════════════
 

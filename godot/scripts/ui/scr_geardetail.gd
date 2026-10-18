@@ -193,10 +193,51 @@ func _upgrade() -> void:
 	if not g.upgrade_gear(id): return
 	g.audio.play("levelup")
 	Input.vibrate_handheld(20)
-	g.ui.toast("SEVİYE " + str(g.gear_level(id)) + "!")
 	g.ui.menu.refresh_wallet()
-	_build()
-	_refresh_page()
+	_fx(g.gear_level(id))
+
+## ui.js playGearUpgradeFx (web'de .upfx biçimsiz kalıyor): sahnede flaş + "SEVİYE N!"
+## pulu (1,2 sn), sonra kart yeni seviyeyle yeniden kurulur
+func _fx(lv: int) -> void:
+	var st := L.find(".gd-stage") if L else null
+	if st == null:
+		_build()
+		_refresh_page()
+		return
+	var fx := Node2D.new()
+	st.node.add_child(fx)
+	var W: Vector2 = st.size
+	var fl := ColorRect.new()
+	fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fl.size = W
+	var m := UIK.shader_mat("res://shaders/ui/rgrad.gdshader")
+	m.set_shader_parameter("size", W)
+	m.set_shader_parameter("center", W * Vector2(0.5, 0.48))
+	m.set_shader_parameter("radius", W.length() * 0.5)
+	m.set_shader_parameter("n", 3)
+	m.set_shader_parameter("c0", Color(1.0, 0.93, 0.78, 0.95))
+	m.set_shader_parameter("c1", Color(0.85, 0.64, 0.52, 0.45))
+	m.set_shader_parameter("c2", Color(0.85, 0.64, 0.52, 0.0))
+	m.set_shader_parameter("stops", Vector4(0.0, 0.35, 0.8, 1.0))
+	fl.material = m
+	fx.add_child(fl)
+	var t := UIText.new().style(true, 800, 26, 2.0, "#f7dfb4", "0 2px 0 #000, 0 0 18px rgba(216,162,132,0.8)")
+	t.text = "SEVİYE " + str(lv) + "!"
+	var tw0 := t.text_width()
+	var ban := Node2D.new()
+	ban.position = W * Vector2(0.5, 0.5)
+	t.position = Vector2(-tw0 * 0.5, -16)
+	ban.add_child(t)
+	fx.add_child(ban)
+	ban.scale = Vector2.ONE * 0.4
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(fl, "modulate:a", 0.0, 0.7).from(1.0)
+	tw.tween_property(ban, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ban, "modulate:a", 0.0, 0.3).set_delay(0.9)
+	tw.chain().tween_callback(func():
+		fx.queue_free()
+		if visible: _build()
+		_refresh_page())
 
 func _toggle() -> void:
 	g.audio.play("equip")

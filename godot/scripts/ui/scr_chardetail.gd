@@ -108,21 +108,84 @@ func _overlay(n: Lyr.N, key: String) -> void:
 	L.set_hidden(n, true)
 	_over.append(O)
 
+## ui.js playUpgradeFx — SEVİYE ATLADIN: kuyu + ışınlar + mühür halkaları, kartlar çubuktan
+## sahneye akar, flaş + dalga, madalyon eski→yeni seviyeyi yuvarlar, kazanım çipleri,
+## (varsa) YENİ YETENEK. 2,9 sn (yetenekle 3,4) sonra ya da dokununca (0,65 sn sonra) kapanır.
+var _upx: Lyr
+var _upx_t := -1.0
+var _upx_end := 2.9
+
 func _upgrade() -> void:
 	if not g.can_upgrade_char(id):
 		g.audio.play("error")
 		return
+	if _upx: return
 	var old: int = g.char_level(id)
 	if not g.upgrade_char(id): return
+	var lv: int = g.char_level(id)
 	g.audio.play("levelup")
-	Input.vibrate_handheld(20)
-	g.ui.toast("SEVİYE ATLADIN · SV " + str(old) + " → " + str(g.char_level(id)))
 	g.ui.menu.refresh_wallet()
-	_build()
-	if g.ui.menu.pages.has("kahraman"): g.ui.menu.pages["kahraman"].render()
+	var nu = null
+	for u in D.signatureUnlocks(id, lv):
+		if not u.get("locked", true) and int(u.get("minLvl", 0)) == lv: nu = u
+	var key := "upx_1" if nu else "upx_0"
+	var inner := L.find(".hd-inner")
+	if inner == null or not FileAccess.file_exists(Lyr.BASE + key + ".json"):
+		g.ui.toast("SEVİYE ATLADIN · SV " + str(old) + " → " + str(lv))
+		_build()
+		return
+	_upx = Lyr.make(key)
+	inner.host.add_child(_upx)
+	var bs := _upx.find(".upx-roll")
+	if bs:
+		var bb := bs.kids.filter(func(k): return k.d.get("tag") == "b")
+		if bb.size() >= 2:
+			_upx.set_text(bb[0], str(old))
+			_upx.set_text(bb[1], str(lv))
+	var a: Dictionary = D.charLevelMods(old)
+	var b: Dictionary = D.charLevelMods(lv)
+	var gains := [b.hpMul - a.hpMul, b.dmgAdd - a.dmgAdd, b.atkAdd - a.atkAdd]
+	var chips := _upx.find_all(".upx-g")
+	for k in mini(3, chips.size()):
+		for c in chips[k].kids:
+			if c.d.get("tag") == "b": _upx.set_text(c, "+" + str(int(round(float(gains[k]) * 100.0))) + "%")
+	if nu:
+		var nw := _upx.find(".upx-new")
+		if nw:
+			for c in nw.kids:
+				if c.d.get("tag") == "b": _upx.set_text(c, str(nu.name))
+	_upx_t = 0.0
+	_upx_end = 3.4 if nu else 2.9
+	btn(_upx, _upx.nodes[0], func():
+		if _upx_t > 0.65: _upx_finish(), 1.0, 0.0)
+
+func _process(dt: float) -> void:
+	if _upx == null or _upx_t < 0.0: return
+	_upx_t += dt
+	if absf(_upx_t - 0.6) < dt: Input.vibrate_handheld(25)
+	if _upx_t >= _upx_end: _upx_finish()
+
+func _upx_finish() -> void:
+	if _upx == null or _upx_t < 0.0: return
+	_upx_t = -1.0
+	var U := _upx
+	var tw := create_tween()
+	tw.tween_property(U, "modulate:a", 0.0, 0.26)
+	tw.tween_callback(func():
+		unbtn(U)
+		U.queue_free()
+		_upx = null
+		if visible:
+			_build()
+			if g.ui.menu.pages.has("kahraman"): g.ui.menu.pages["kahraman"].render())
 
 func close() -> void:
 	visible = false
+	if _upx:
+		unbtn(_upx)
+		_upx.queue_free()
+		_upx = null
+		_upx_t = -1.0
 	if L:
 		unbtn(L)
 		L.queue_free()

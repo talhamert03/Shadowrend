@@ -32,6 +32,7 @@ var accjourney: ScrAccJourney
 var quests: ScrQuests
 var sheet: ScrSheet
 var battlepass: ScrBattlePass
+var celebrate: ScrCelebrate
 var settings: ScrSettings
 
 func _init(a = null) -> void:
@@ -86,6 +87,8 @@ func _ready() -> void:
 	layer.add_child(quests)
 	battlepass = ScrBattlePass.new(g)
 	layer.add_child(battlepass)
+	celebrate = ScrCelebrate.new(g)
+	layer.add_child(celebrate)
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
 	sheet = ScrSheet.new(g)
 	layer.add_child(sheet)
@@ -141,6 +144,15 @@ func boot() -> void:
 		elif ov == "quests": show_quests()
 		elif ov == "wipe": confirm_wipe()
 		elif ov == "bp": show_battle_pass()
+		elif ov.begins_with("hu:"): celebrate.hero_unlock(ov.substr(3))
+		elif ov.begins_with("alu:"): celebrate.level_up({"fromLevel": 4, "toLevel": 5, "rewards": [{"level": 5, "chest": ov.substr(4)}] if ov.substr(4) != "0" else []})
+		elif ov.begins_with("upx:"):
+			var cid := ov.substr(4)
+			g.add_char_cards(cid, 300)
+			g.add_rubies(90000)
+			chardetail.open(cid)
+			chardetail._upgrade()
+		elif ov == "gift": celebrate.gift({"h": 6.5, "gold": 240, "chest": "ahsap", "full": false})
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
 		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
@@ -238,6 +250,15 @@ func show_menu() -> void:
 	pause.hide_pause()
 	levelup.hide_screen()
 	menu.open("savas")
+	# bekleyen dönüş hediyesi / hesap seviyesi (ui.js showMenu)
+	if g._pendingGift:
+		var G = g._pendingGift
+		g._pendingGift = null
+		get_tree().create_timer(0.9).timeout.connect(func(): celebrate.gift(G))
+	if g._pendingLevelUp:
+		var P = g._pendingLevelUp
+		g._pendingLevelUp = null
+		get_tree().create_timer(0.6).timeout.connect(func(): celebrate.level_up(P))
 func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
 func show_settings() -> void: settings.show_settings(pause.visible)
@@ -255,7 +276,12 @@ func show_quests() -> void: quests.open()
 func show_daily_drawer() -> void: drawer.open()
 func show_account_journey() -> void: accjourney.open()
 func show_battle_pass() -> void: battlepass.open()
-func show_armory() -> void: pass
+## ui.js showArmory: menü açıkken cüzdan + açık sayfa tazelenir (kuşanım · kahraman · ana sayfa)
+func show_armory() -> void:
+	if menu == null or not menu.visible: return
+	menu.refresh_wallet()
+	if menu.page == "cephane" or menu.page == "kahraman" or menu.page == "savas":
+		menu._render(menu.page)
 func show_mission_end(won, info) -> void:
 	hud.hide_hud()
 	levelup.hide_screen()
