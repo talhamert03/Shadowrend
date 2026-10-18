@@ -239,6 +239,7 @@ func _update_clips() -> void:
 # ═══════════ METİN ═══════════
 
 static func tr_upper(s: String) -> String:
+	if I18n.lang == "en": return s.to_upper()
 	return s.replace("i", "İ").replace("ı", "I").to_upper()
 
 func _make_text(tx: Dictionary, n: N) -> UIText:
@@ -249,7 +250,8 @@ func _make_text(tx: Dictionary, n: N) -> UIText:
 	var lh: float = tx.get("lh", 0)
 	if lh <= 0: lh = roundf(sz * (1.36 if disp else 1.3))
 	l.line_h = lh
-	var str_: String = tx.get("str", "")
+	var src: String = tx.get("str", "")
+	var str_: String = I18n.t(src)
 	if tx.get("tt", "none") == "uppercase": str_ = tr_upper(str_)
 	var cb: Array = tx.get("content", [0, 0, n.size.x, n.size.y])
 	var box: Array = n.d.box
@@ -277,7 +279,13 @@ func _make_text(tx: Dictionary, n: N) -> UIText:
 			var lw: float = lines[0][2]
 			l.position.x = lx
 			l.wrap_w = lw
+	l.i18n = false
 	l.text = str_
+	# çeviri tek satırın genişliğini değiştirdiyse hizalama noktası korunur
+	if str_ != src and lines.size() == 1:
+		var nw := l.text_width()
+		l.position.x -= (nw - l.wrap_w) * l.align
+		l.wrap_w = nw
 	return l
 
 ## düğümün kök koordinatındaki sol üstü (kutular ebeveyne göre saklı; kaydırma dahil)
@@ -642,6 +650,7 @@ func set_text(n: N, s: String) -> void:
 	if n == null or n.txt == null: return
 	var tx: Dictionary = n.d.text
 	var old_w := n.txt.text_width() if n.txt.lines_hint == 1 else 0.0
+	s = I18n.t(s)
 	n.txt.text = tr_upper(s) if tx.get("tt", "none") == "uppercase" else s
 	# tek satır: hizalama noktası sabit kalır (sol/orta/sağ), kutu metne göre
 	if n.txt.lines_hint == 1:

@@ -89,7 +89,7 @@ func _bind(L: Lyr, t: String) -> void:
 	# seçenek grupları
 	_seg_bind(L, "#set-gfx", ["auto", "low", "mid", "high"], func(i: int): _gfx(["auto", "low", "mid", "high"][i]))
 	_seg_bind(L, "#set-hap3", ["off", "soft", "full"], func(i: int): _hap(["off", "soft", "full"][i]))
-	_seg_bind(L, "#set-lang", ["tr", "en"], func(i: int): g.audio.play("click"); Settings.set_value("lang", ["tr", "en"][i]); _render())
+	_seg_bind(L, "#set-lang", ["tr", "en"], func(i: int): g.audio.play("click"); I18n.set_lang(["tr", "en"][i], get_tree()))
 	# hesap: yasal bağlantılar, gelişmiş, sil
 	for pair2 in [["#set-support", "support"], ["#set-privacy", "privacy"], ["#set-kvkk", "kvkk"], ["#set-terms", "terms"]]:
 		var b2 := L.find_id(pair2[0])
@@ -149,7 +149,7 @@ func _render() -> void:
 		_seg_set(L, "#set-gfx", ["auto", "low", "mid", "high"].find(str(S.get("gfx", "auto"))))
 		var hv := "off" if not S.get("haptics", true) else ("soft" if S.get("hsoft", false) else "full")
 		_seg_set(L, "#set-hap3", ["off", "soft", "full"].find(hv))
-		_seg_set(L, "#set-lang", ["tr", "en"].find(str(S.get("lang", "tr"))))
+		_seg_set(L, "#set-lang", ["tr", "en"].find(I18n.lang))
 		var sn := L.find_id("#set-sfx-now")
 		if sn: L.set_text(sn, str(int(round(float(S.get("sfx", 0.62)) * 100))))
 		var mn := L.find_id("#set-music-now")

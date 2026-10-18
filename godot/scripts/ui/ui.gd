@@ -41,6 +41,8 @@ func _init(a = null) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _ready() -> void:
+	if _arg("lang") != "": Settings.data["lang"] = _arg("lang")   # geliştirici
+	I18n.boot()
 	# arayüz katmanı: 3B (−10) ve dünya yazıları (1) üstünde
 	layer = CanvasLayer.new()
 	layer.layer = 5

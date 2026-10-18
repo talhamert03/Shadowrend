@@ -7,8 +7,11 @@ extends Control
 ## Konum: `anchor_x` 0 sol · 0,5 orta · 1 sağ; (pos_x, pos_y) metin kutusunun
 ## o noktası — CSS'teki text-align + kapsayıcı hizasıyla aynı iş.
 
+## i18n: metin TEK noktada çevrilir (Lyr kendi çevirir → i18n=false)
+var i18n := true
 @export var text := "":
 	set(v):
+		if i18n and I18n.lang != "tr": v = I18n.t(v)
 		if v == text: return
 		text = v
 		queue_redraw()
