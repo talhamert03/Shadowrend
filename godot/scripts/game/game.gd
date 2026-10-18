@@ -1588,11 +1588,12 @@ func _process(_delta: float) -> void:
 		acc += (rdt * 0.3 if _bossOutro > 0 else (rdt * 0.25 if _dying > 0 else rdt)) * devSpeed
 		var steps := 0
 		while acc >= STEP and steps < MAX_STEPS * devSpeed:
-			update(STEP)
+			Prof.b("update"); update(STEP); Prof.e("update")
 			acc -= STEP
 			steps += 1
 		if steps == MAX_STEPS * devSpeed: acc = 0
-	render_frame()
+	Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
+	Prof.frame()
 
 func update(dt: float) -> void:
 	time += dt
@@ -1600,26 +1601,26 @@ func update(dt: float) -> void:
 	if player.maxHp > 0:
 		var f := player.hp / player.maxHp
 		if f < _hpFloor: _hpFloor = f
-	player.update(dt)
-	props.update(dt)
-	objectives.update(dt)
-	powerups.update(dt)
-	fieldChests.update(dt)
-	ult.update(dt)
-	events.update(dt)
-	mode.update(dt)
+	Prof.b("player.update"); player.update(dt); Prof.e("player.update")
+	Prof.b("props.update"); props.update(dt); Prof.e("props.update")
+	Prof.b("objectives.update"); objectives.update(dt); Prof.e("objectives.update")
+	Prof.b("powerups.update"); powerups.update(dt); Prof.e("powerups.update")
+	Prof.b("fieldChests.update"); fieldChests.update(dt); Prof.e("fieldChests.update")
+	Prof.b("ult.update"); ult.update(dt); Prof.e("ult.update")
+	Prof.b("events.update"); events.update(dt); Prof.e("events.update")
+	Prof.b("mode.update"); mode.update(dt); Prof.e("mode.update")
 	Ftue.poll(self)
 	if Ftue.step != "": Ftue.update(self, dt)
 	Journey.ghost_tick(self, dt)
-	weapons.update(dt)
-	enemies.update(dt)
-	update_gems(dt)
-	update_hearts(dt)
-	update_powerups(dt)
-	update_particles(dt)
-	update_texts(dt)
-	update_rings(dt)
-	update_hazards(dt)
+	Prof.b("weapons.update"); weapons.update(dt); Prof.e("weapons.update")
+	Prof.b("enemies.update"); enemies.update(dt); Prof.e("enemies.update")
+	Prof.b("update_gems"); update_gems(dt); Prof.e("update_gems")
+	Prof.b("update_hearts"); update_hearts(dt); Prof.e("update_hearts")
+	Prof.b("update_powerups"); update_powerups(dt); Prof.e("update_powerups")
+	Prof.b("update_particles"); update_particles(dt); Prof.e("update_particles")
+	Prof.b("update_texts"); update_texts(dt); Prof.e("update_texts")
+	Prof.b("update_rings"); update_rings(dt); Prof.e("update_rings")
+	Prof.b("update_hazards"); update_hazards(dt); Prof.e("update_hazards")
 	var la := 0.04 if (motionK < 1 or Settings.data.rm) else 0.08
 	var lk := minf(1.0, 2.4 * dt)
 	var mx := input.mx
@@ -1902,11 +1903,11 @@ func render_frame() -> void:
 		renderer3d._needsFrame = false
 	renderer3d.set_frozen(still)
 	if not still:
-		renderer3d.render(self)
-		overlay.draw_frame()
+		Prof.b("r3d.render"); renderer3d.render(self); Prof.e("r3d.render")
+		Prof.b("overlay"); overlay.draw_frame(); Prof.e("overlay")
 	_hudTick += 1
 	if state == "playing" and _hudTick % 3 == 0:
-		ui.update_hud()
+		Prof.b("hud"); ui.update_hud(); Prof.e("hud")
 		var dz := player.hp > 0 and player.hp <= player.maxHp * 0.3
 		if dz != _dangerOn:
 			_dangerOn = dz

@@ -21,6 +21,7 @@ func open(gid: String) -> void:
 	id = gid
 	_build()
 	visible = true
+	fade_show()
 	g.audio.play("panel")
 
 func _state(x: Dictionary) -> String:
@@ -249,6 +250,10 @@ func _refresh_page() -> void:
 	if g.ui.menu.pages.has("cephane"): g.ui.menu.pages["cephane"].render()
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false
 	if L:
 		unbtn(L)

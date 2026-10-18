@@ -18,6 +18,7 @@ func open(cid: String) -> void:
 	id = cid
 	_build()
 	visible = true
+	fade_show()
 	g.audio.play("panel")
 
 func _state() -> String:
@@ -180,6 +181,10 @@ func _upx_finish() -> void:
 			if g.ui.menu.pages.has("kahraman"): g.ui.menu.pages["kahraman"].render())
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false
 	if _upx:
 		unbtn(_upx)

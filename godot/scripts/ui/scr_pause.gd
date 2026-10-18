@@ -54,7 +54,7 @@ func show_pause() -> void:
 func _layout_chips(items: Array) -> void:
 	var box := shell.find("#pause-loadout")
 	var br := shell.rect_of(box)
-	var maxw := minf(420.0, get_viewport().get_visible_rect().size.x - 48.0)
+	var maxw := minf(420.0, UIK.ui_size(get_viewport()).x - 48.0)
 	var made := []
 	for it in items:
 		var C := Lyr.make("pause_chip")

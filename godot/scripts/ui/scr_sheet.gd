@@ -16,6 +16,7 @@ func _init(game) -> void:
 ## yakalanmış bir sayfayı aç; acts[i] = #sh-actions içindeki i. düğmenin geri çağrısı
 ## (boş Callable → kapat)
 func show_key(key: String, acts: Array = [], on_close := Callable()) -> Lyr:
+	cancel_fade()
 	if not FileAccess.file_exists(Lyr.BASE + key + ".json"): return null
 	if L:
 		unbtn(L)
@@ -47,6 +48,10 @@ func show_key(key: String, acts: Array = [], on_close := Callable()) -> Lyr:
 	return L
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	if not visible: return
 	visible = false
 	if L:

@@ -49,12 +49,27 @@ static var _sh_clip: Shader
 static var _sh_clip_add: Shader
 static var _mat_add: CanvasItemMaterial
 
+## önceden ayrıştırılmış JSON'ları önbelleğe ekle (UIPrewarm, ana iş parçacığında)
+static func put_json(name: String, J: Dictionary) -> void:
+	if not _cache.has(name): _cache[name] = J
+
+static func has_json(name: String) -> bool:
+	return _cache.has(name)
+
 static func load_json(name: String) -> Dictionary:
 	if _cache.has(name): return _cache[name]
 	var f := FileAccess.open(BASE + name + ".json", FileAccess.READ)
 	var J: Dictionary = JSON.parse_string(f.get_as_text()) if f else {}
 	_cache[name] = J
 	return J
+
+## doku yükleme (önbellekli) — ölçüm: Lyr.t_tex (ms) ilk ziyaret maliyetinin doku payı
+static var t_tex := 0.0
+static func _tex(file: String) -> Texture2D:
+	var t0 := Time.get_ticks_usec()
+	var tx: Texture2D = load(BASE + "img/" + file)
+	t_tex += (Time.get_ticks_usec() - t0) / 1000.0
+	return tx
 
 static func make(name: String, skip_keys: Array = []) -> Lyr:
 	var L := Lyr.new()
@@ -79,6 +94,8 @@ func build(J: Dictionary, skip_keys: Array = []) -> void:
 		if d.get("parent") == null:
 			_build_node(d, self, kids, skip_keys, null)
 			break
+	# canlandırma/kırpma yoksa kare başı çağrı gereksiz (set_dyn yeniden açar)
+	set_process(not _dyn.is_empty() or not _clips.is_empty())
 
 func _skip(d: Dictionary, skip_keys: Array) -> bool:
 	if String(d.get("static", {}).get("display", "")) == "none": return true
@@ -140,7 +157,7 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 	if im is Dictionary and not fill:
 		var s := Sprite2D.new()
 		s.centered = false
-		s.texture = load(BASE + "img/" + im.file)
+		s.texture = _tex(im.file)
 		var dpr: float = im.get("dpr", 3)
 		s.position = Vector2(im.ox, im.oy)
 		s.scale = Vector2.ONE / dpr
@@ -165,7 +182,7 @@ func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Arr
 			if im is Dictionary:
 				var fm := ShaderMaterial.new()
 				fm.shader = load("res://shaders/ui/text_fill.gdshader")
-				fm.set_shader_parameter("fill", load(BASE + "img/" + im.file))
+				fm.set_shader_parameter("fill", _tex(im.file))
 				fm.set_shader_parameter("frect", Vector4(float(im.ox) - n.txt.position.x, float(im.oy) - n.txt.position.y, im.w, im.h))
 				n.txt.material = fm
 		else:
@@ -320,6 +337,7 @@ func _process(dt: float) -> void:
 	t += dt
 	for n in _dyn: _apply(n, t)
 	_update_clips()
+
 
 func restart() -> void:
 	t = 0.0
@@ -590,7 +608,7 @@ func to_state(name: String, under: N = null) -> void:
 		var im = d2.get("img")
 		if im is Dictionary and n.img is Sprite2D:
 			var spr := n.img as Sprite2D
-			var tex: Texture2D = load(BASE + "img/" + im.file)
+			var tex: Texture2D = _tex(im.file)
 			if spr.texture != tex:
 				spr.texture = tex
 				spr.position = Vector2(im.ox, im.oy)
@@ -669,6 +687,7 @@ func set_hidden(n: N, h: bool) -> void:
 	_apply(n, t)
 
 func set_dyn(n: N) -> void:
+	if not is_processing(): set_process(true)
 	if n and not _dyn.has(n):
 		n.dyn = true
 		_dyn.append(n)

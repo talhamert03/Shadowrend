@@ -27,6 +27,7 @@ func open(i: int) -> void:
 	_key = ""
 	_build()
 	visible = true
+	fade_show()
 	g.audio.play("panel")
 
 func _state_name() -> String:
@@ -87,6 +88,10 @@ func _texts() -> void:
 		if lt: L.set_text(lt, ChestSystem.fmt_dur(g.chests.lock_ms(slot)))
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false
 	slot = -1
 	if stage and stage.get_parent(): stage.get_parent().remove_child(stage)

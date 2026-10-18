@@ -149,7 +149,7 @@ func setup(w: float, h: float) -> void:
 ## mantıksal px → ekran pikseli (en çok 2, web setPixelRatio sınırı)
 func _dpr() -> float:
 	var win := DisplayServer.window_get_size()
-	var vis := get_viewport().get_visible_rect().size if is_inside_tree() else Vector2(390, 844)
+	var vis := UIK.ui_size(get_viewport()) if is_inside_tree() else Vector2(390, 844)
 	return clampf(float(win.x) / maxf(1.0, vis.x), 1.0, 2.0)
 
 # ═════════════ efekt nesneleri ═════════════

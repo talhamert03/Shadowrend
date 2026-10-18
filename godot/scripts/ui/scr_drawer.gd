@@ -12,6 +12,7 @@ func _init(game) -> void:
 	name = "Drawer"
 
 func open() -> void:
+	cancel_fade()
 	var d = g.dailies
 	if d: d.touch()
 	var hot: bool = d != null and d.pending()
@@ -65,6 +66,10 @@ func _fill(id: String, fr: float) -> void:
 	if fr > 0.0: L.fit_width(f, full * fr, false)
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	if not visible: return
 	visible = false
 	if L:

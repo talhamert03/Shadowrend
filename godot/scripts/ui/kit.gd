@@ -118,19 +118,46 @@ static func place_nine(n: NinePatchRect, name: String, x: float, y: float, w: fl
 	n.size = Vector2((w - ox * 2) * dpr, n.texture.get_size().y if n.texture else 1.0)
 
 ## Güvenli alan (çentik/gezinme çubuğu) — mantıksal px [üst, sağ, alt, sol] (CSS --sat/--sar/--sab/--sal)
+## Ölçek: içerik pencereyi enine (uzun telefon) ya da boyuna (geniş ekran, yan boşluk) doldurur →
+## k = max(mantıksal/piksel). Masaüstünde sınama: komut satırı "inset=<üst>,<alt>".
+static var _dev_inset := Vector2(-1, -1)
 static func safe(vp: Viewport) -> PackedFloat32Array:
 	var out := PackedFloat32Array([0, 0, 0, 0])
-	if not OS.has_feature("mobile"): return out
+	if _dev_inset.x < 0:
+		_dev_inset = Vector2.ZERO
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("inset="):
+				var p := a.substr(6).split(",")
+				_dev_inset = Vector2(float(p[0]), float(p[1]) if p.size() > 1 else 0.0)
+	if not OS.has_feature("mobile"):
+		out[0] = _dev_inset.x
+		out[2] = _dev_inset.y
+		return out
 	var ws := DisplayServer.window_get_size()
 	if ws.x <= 0 or ws.y <= 0: return out
 	var sa := DisplayServer.get_display_safe_area()
 	var vs := vp.get_visible_rect().size
-	var k := vs.x / float(ws.x)
+	var k := maxf(vs.x / float(ws.x), vs.y / float(ws.y))
 	out[0] = maxf(0, sa.position.y) * k
 	out[3] = maxf(0, sa.position.x) * k
 	out[1] = maxf(0, ws.x - sa.end.x) * k
 	out[2] = maxf(0, ws.y - sa.end.y) * k
 	return out
+
+## Arayüz çerçevesi: güvenli alan içinde kalan mantıksal boyut (menü ve ekranlar bunun içinde)
+static func ui_size(vp: Viewport) -> Vector2:
+	var vs := vp.get_visible_rect().size
+	var sa := safe(vp)
+	var h := vs.y - sa[0] - sa[2]
+	# 844'ten kısa kalan güvenli alan: arayüz orantılı küçültülür (ui_scale), mantıksal boy 844
+	if h < 844.0: return Vector2(vs.x, 844.0)
+	return Vector2(vs.x, h)
+
+## güvenli alan 844'ten kısaysa arayüz ölçeği (<1)
+static func ui_scale(vp: Viewport) -> float:
+	var vs := vp.get_visible_rect().size
+	var sa := safe(vp)
+	return minf(1.0, (vs.y - sa[0] - sa[2]) / 844.0)
 
 ## CSS cubic-bezier(x1, y1, x2, y2) zamanlama işlevi (ikiye bölme ile x→t)
 static func bez(x1: float, y1: float, x2: float, y2: float, x: float) -> float:

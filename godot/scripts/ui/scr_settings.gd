@@ -58,6 +58,7 @@ func show_settings(from_pause: bool) -> void:
 	_render()
 	_set_tab(cur)
 	visible = true
+	fade_show()
 
 func _set_tab(t: String) -> void:
 	cur = t
@@ -212,7 +213,7 @@ func _input(ev: InputEvent) -> void:
 				var L: Lyr = S.L
 				if not L.visible: continue
 				var r := L.visible_rect_of(S.n)
-				if Rect2(L.global_position + r.position, r.size).grow(8).has_point(st.position):
+				if (L.get_global_transform() * r).grow(8).has_point(st.position):
 					_slide = {"S": S, "id": st.index}
 					_slide_to(st.position.x)
 					get_viewport().set_input_as_handled()
@@ -233,11 +234,16 @@ func _slide_to(x: float) -> void:
 	var S: Dictionary = _slide.S
 	var L: Lyr = S.L
 	var r := L.rect_of(S.n)
-	var v := clampf((x - L.global_position.x - r.position.x - 12) / maxf(1, r.size.x - 24), 0, 1)
+	var lx: float = (L.get_global_transform().affine_inverse() * Vector2(x, 0)).x
+	var v := clampf((lx - r.position.x - 12) / maxf(1, r.size.x - 24), 0, 1)
 	v = roundf(v * 100) / 100.0
 	Settings.data[S.key] = v
 	Settings.apply_one(S.key)
 	_render()
 
 func hide_settings() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false

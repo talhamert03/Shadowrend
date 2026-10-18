@@ -155,7 +155,7 @@ func _build() -> void:
 	tray.clear()
 	rev = null; back = null; summ = null
 	var dh := Scr.dh_of(self)
-	var W := get_viewport().get_visible_rect().size
+	var W := UIK.ui_size(get_viewport())
 	base = Lyr.make("cer_idle")
 	add_child(base)
 	base.stretch_h(dh)
@@ -363,7 +363,7 @@ func _fx_step(dt: float) -> void:
 			h = lerpf(620, 700, (e - 0.1) / 0.6); op = lerpf(0.85, 0.6, (e - 0.1) / 0.6)
 		else:
 			h = lerpf(700, 780, (e - 0.7) / 0.3); op = lerpf(0.6, 0, (e - 0.7) / 0.3)
-		var W := get_viewport().get_visible_rect().size
+		var W := UIK.ui_size(get_viewport())
 		beam.size = Vector2(300, h)
 		beam.position = Vector2(W.x * 0.5 - 150, W.y * 0.54 - h)
 		beam_m.set_shader_parameter("opacity", op)
@@ -459,7 +459,7 @@ func _draw_parts() -> void:
 			fx.draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 		else:
 			fx.draw_rect(Rect2(p.p - Vector2.ONE * p.size / 2, Vector2.ONE * p.size), c)
-	var W := get_viewport().get_visible_rect().size
+	var W := UIK.ui_size(get_viewport())
 	for q in confetti:
 		var u: float = (q.t - q.delay) / q.dur
 		if u < 0: continue
@@ -582,7 +582,7 @@ func _show() -> void:
 		word.text = "EFSANEVİ!" if _drama >= 3 else str(rar.get("name", "")) + "!"
 		word.color = color
 		word.shadow_list = UIK.shadows("0 0 24px #" + color.to_html(false) + ", 0 3px 10px rgba(0,0,0,0.6)")
-		var W := get_viewport().get_visible_rect().size
+		var W := UIK.ui_size(get_viewport())
 		word.wrap_w = W.x
 		word.position = Vector2(0, W.y * 0.24)
 		word.size = Vector2(W.x, word.size_px * 1.3)
@@ -618,7 +618,7 @@ func _spawn_confetti(n: int) -> void:
 		var rr := rev.rect_of(stg)
 		o = rr.position
 		h = rr.size.y
-	var W := get_viewport().get_visible_rect().size
+	var W := UIK.ui_size(get_viewport())
 	for i in n:
 		confetti.append({"x": 6 + randf() * 88, "delay": randf() * 0.5, "dur": 1.8 + randf() * 1.4, "rot": randf() * 720 - 360, "drift": randf() * 60 - 30, "col": Color(pal[randi() % pal.size()]), "t": 0.0, "o": Vector2(0, o.y), "h": h})
 
@@ -627,7 +627,7 @@ func _reveal_step(dt: float) -> void:
 	_show_t += dt
 	var card := rev.find(".cr-rise")
 	var spin := rev.find(".cr-spinner")
-	var vh := get_viewport().get_visible_rect().size.y
+	var vh := UIK.ui_size(get_viewport()).y
 	# yükseliş (crRise 680 ms) + dönüş (rotateY n·360° → 0)
 	var kr := clampf(_show_t / 0.68, 0, 1) if not _skip else 1.0
 	var er := UIK.bez(0.18, 0.9, 0.3, 1.06, kr)

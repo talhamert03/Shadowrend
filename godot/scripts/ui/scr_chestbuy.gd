@@ -16,6 +16,7 @@ func _init(game) -> void:
 	name = "ChestBuy"
 
 func open(t: String, o: Dictionary) -> void:
+	cancel_fade()
 	type = t
 	opts = o
 	var key := "cb_" + t + ("_deal" if o.has("off") else "")
@@ -90,6 +91,10 @@ func _process(dt: float) -> void:
 	L.modulate.a = minf(1.0, k * 1.5)
 
 func close() -> void:
+	if not visible: return
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	if not visible: return
 	visible = false
 	g.audio.play("click")

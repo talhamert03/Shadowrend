@@ -13,6 +13,9 @@ var _pb = null
 var _scrolls: Array = []     # [{lyr, n}]
 var _drag = null             # {S, id, y0, s0, moved, vel, last}
 var _fling: Array = []       # [{S, vel}]
+## yatay kaydırma (sayfa geçişi): swipe_rect içinde başlayan, yatay baskın sürükleme
+var swipe_rect := Rect2()     # boşsa kapalı (ekran koordinatı)
+var _sw = null               # {id, x0, y0, t, on, last, lt, vel}
 
 func _init(game = null) -> void:
 	g = game
@@ -40,6 +43,36 @@ func unbtn(L: Lyr) -> void:
 		_pb = null
 		_press = -1
 
+## kapanış geçişi: kısa solma, sonra asıl kapatma (cb); açılışta reset_fade()
+var _fade_tw: Tween
+func fade_hide(cb: Callable, dur := 0.16) -> void:
+	if _fade_tw and _fade_tw.is_valid(): return
+	_fade_tw = create_tween()
+	_fade_tw.tween_property(self, "modulate:a", 0.0, dur).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_fade_tw.tween_callback(func():
+		_fade_tw = null
+		cb.call()
+		modulate.a = 1.0)
+
+## bekleyen kapanış geçişini iptal et (ekran kapanırken yeniden açıldı)
+func cancel_fade() -> void:
+	if _fade_tw and _fade_tw.is_valid(): _fade_tw.kill()
+	_fade_tw = null
+	modulate.a = 1.0
+
+## açılış geçişi: solarak + hafif büyüyerek belirir (ekran merkezli)
+func fade_show(dur := 0.2) -> void:
+	if _fade_tw and _fade_tw.is_valid(): _fade_tw.kill()
+	var W := UIK.ui_size(get_viewport())
+	modulate.a = 0.0
+	scale = Vector2.ONE * 0.97
+	position = W * 0.5 * (1.0 - 0.97)
+	_fade_tw = create_tween().set_parallel(true)
+	_fade_tw.tween_property(self, "modulate:a", 1.0, dur).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	_fade_tw.tween_property(self, "scale", Vector2.ONE, dur * 1.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_fade_tw.tween_property(self, "position", Vector2.ZERO, dur * 1.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_fade_tw.chain().tween_callback(func(): _fade_tw = null)
+
 func clear_btns() -> void:
 	_btns.clear()
 	_scrolls.clear()
@@ -51,7 +84,15 @@ func _rect(B: Dictionary) -> Rect2:
 	var L: Lyr = B.lyr
 	var r := L.visible_rect_of(B.n)
 	if r.size.x <= 0 or r.size.y <= 0: return Rect2()
-	return Rect2(L.global_position + r.position, r.size).grow(B.grow)
+	var R := (L.get_global_transform() * r).grow(B.grow)
+	# kırpan ata (sayfa görünüm alanı vb.): görünmeyen kısım dokunuş almaz — kaydırma alanının
+	# dışına taşan kartlar alt menünün dokunuşunu yutmasın
+	var p := L.get_parent()
+	while p:
+		if p is Control and (p as Control).clip_contents:
+			R = R.intersection((p as Control).get_global_rect())
+		p = p.get_parent()
+	return R
 
 func _set_pressed(B, on: bool) -> void:
 	if B == null: return
@@ -59,16 +100,34 @@ func _set_pressed(B, on: bool) -> void:
 	n.extra = Transform2D(0, Vector2.ONE * B.scale, 0, Vector2.ZERO) if on else Transform2D.IDENTITY
 	(B.lyr as Lyr).set_dyn(n)
 
+## alt sınıf: kaydırma sırasında (dx canlı), bitişte (dx, hız px/sn)
+func _swipe_move(_dx: float) -> void: pass
+func _swipe_end(_dx: float, _vel: float) -> void: pass
+
 func _input(ev: InputEvent) -> void:
 	if not visible or not is_visible_in_tree(): return
 	if ev is InputEventScreenTouch:
 		var st := ev as InputEventScreenTouch
+		if st.pressed and swipe_rect.has_area() and swipe_rect.has_point(st.position) and (_sw == null or st.index == _sw.id or not _sw.on):
+			_sw = {"id": st.index, "x0": st.position.x, "y0": st.position.y, "on": false, "last": st.position.x, "lt": Time.get_ticks_msec(), "vel": 0.0}
+		if not st.pressed and _sw and st.index == _sw.id:
+			var was_on: bool = _sw.on
+			var dx: float = st.position.x - float(_sw.x0)
+			var v: float = _sw.vel
+			_sw = null
+			if was_on:
+				_press = -1
+				_pb = null
+				_drag = null
+				get_viewport().set_input_as_handled()
+				_swipe_end(dx, v)
+				return
 		if st.pressed:
 			# kaydırma alanı: dokunuş başlangıcı (düğme basışıyla birlikte; 8 px sonra kaydırma kazanır)
 			for S in _scrolls:
 				var L: Lyr = S.lyr
 				var r := L.rect_of(S.n)
-				if Rect2(L.global_position + r.position, r.size).has_point(st.position):
+				if (L.get_global_transform() * r).has_point(st.position):
 					_drag = {"S": S, "id": st.index, "y0": st.position.y, "s0": (S.n as Lyr.N).scroll_y, "moved": false, "vel": 0.0, "last": st.position.y, "t": Time.get_ticks_msec()}
 					_fling.clear()
 					break
@@ -94,6 +153,27 @@ func _input(ev: InputEvent) -> void:
 				if B and _rect(B).grow(8).has_point(st.position): (B.cb as Callable).call()
 	elif ev is InputEventScreenDrag:
 		var sd := ev as InputEventScreenDrag
+		if _sw and sd.index == _sw.id:
+			var dx2: float = sd.position.x - float(_sw.x0)
+			var dy2: float = sd.position.y - float(_sw.y0)
+			var now2 := Time.get_ticks_msec()
+			var dt2 := maxf(1.0, float(now2 - int(_sw.lt))) / 1000.0
+			_sw.vel = lerpf(float(_sw.vel), (sd.position.x - float(_sw.last)) / dt2, 0.5)
+			_sw.last = sd.position.x
+			_sw.lt = now2
+			if not _sw.on:
+				# dikey kaydırma başladıysa yatay geçiş yok
+				if _drag and _drag.moved: _sw = null
+				elif absf(dx2) > 14.0 and absf(dx2) > absf(dy2) * 1.4:
+					_sw.on = true
+					if _pb: _set_pressed(_pb, false)
+					_pb = null
+					_press = -1
+					_drag = null
+			if _sw and _sw.on:
+				_swipe_move(dx2)
+				get_viewport().set_input_as_handled()
+				return
 		if _drag and sd.index == _drag.id:
 			var dy: float = sd.position.y - _drag.y0
 			if not _drag.moved and absf(dy) > 8.0:
@@ -106,14 +186,14 @@ func _input(ev: InputEvent) -> void:
 				var S: Dictionary = _drag.S
 				var L2: Lyr = S.lyr
 				var mx := L2.scroll_max(S.n)
-				var y: float = _drag.s0 - dy
+				var y: float = _drag.s0 - dy / maxf(0.01, L2.get_global_transform().get_scale().y)
 				# kenarda lastik direnç
 				if y < 0: y *= 0.35
 				elif y > mx: y = mx + (y - mx) * 0.35
 				L2.set_scroll(S.n, y)
 				var now := Time.get_ticks_msec()
 				var dt := maxf(1.0, float(now - int(_drag.t))) / 1000.0
-				_drag.vel = lerpf(float(_drag.vel), -(sd.position.y - float(_drag.last)) / dt, 0.5)
+				_drag.vel = lerpf(float(_drag.vel), -(sd.position.y - float(_drag.last)) / dt / maxf(0.01, L2.get_global_transform().get_scale().y), 0.5)
 				_drag.last = sd.position.y
 				_drag.t = now
 		if modal: get_viewport().set_input_as_handled()
@@ -136,4 +216,4 @@ func _physics_process(dt: float) -> void:
 
 ## ekran yüksekliği farkı (yakalama 844 px'te) — esneme çıkarımıyla dikey yerleşim
 static func dh_of(node: Node) -> float:
-	return node.get_viewport().get_visible_rect().size.y - 844.0
+	return UIK.ui_size(node.get_viewport()).y - 844.0

@@ -11,6 +11,8 @@ var _god := false
 var _logT := 0.0
 var _hudDone := false
 var layer: CanvasLayer
+var uiroot: Node2D            # güvenli alan içi (çentik altı / gezinme çubuğu üstü)
+var _bands: Array = []
 var hud: HUD
 var menu: ScrMenu
 var levelup: ScrLevelUp
@@ -47,53 +49,65 @@ func _ready() -> void:
 	layer = CanvasLayer.new()
 	layer.layer = 5
 	add_child(layer)
+	# çentik/gezinme çubuğu bantları (menüde güvenli alan dışı koyu zemin) + güvenli alan kökü
+	for i in 4:
+		var b := ColorRect.new()
+		b.color = Color("#06050a")
+		b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(b)
+		_bands.append(b)
+	uiroot = Node2D.new()
+	uiroot.name = "safe"
+	layer.add_child(uiroot)
+	_apply_safe()
+	get_viewport().size_changed.connect(_apply_safe)
 	menu = ScrMenu.new(g)
-	layer.add_child(menu)
+	uiroot.add_child(menu)
 	hud = HUD.new(g)
 	layer.add_child(hud)
 	levelup = ScrLevelUp.new(g)
-	layer.add_child(levelup)
+	uiroot.add_child(levelup)
 	bless = ScrBless.new(g)
-	layer.add_child(bless)
+	uiroot.add_child(bless)
 	pause = ScrPause.new(g)
-	layer.add_child(pause)
+	uiroot.add_child(pause)
 	missionend = ScrMissionEnd.new(g)
-	layer.add_child(missionend)
+	uiroot.add_child(missionend)
 	gate = ScrGate.new(g)
-	layer.add_child(gate)
+	uiroot.add_child(gate)
 	adwatch = ScrAdWatch.new(g)
-	layer.add_child(adwatch)
+	uiroot.add_child(adwatch)
 	evo = ScrEvo.new(g)
-	layer.add_child(evo)
+	uiroot.add_child(evo)
 	ach = AchToast.new(g)
-	layer.add_child(ach)
+	uiroot.add_child(ach)
 	ftue = FtueHint.new()
 	layer.add_child(ftue)
 	chestinspect = ScrChestInspect.new(g)
-	layer.add_child(chestinspect)
+	uiroot.add_child(chestinspect)
 	ceremony = ScrCeremony.new(g)
-	layer.add_child(ceremony)
+	uiroot.add_child(ceremony)
 	chardetail = ScrCharDetail.new(g)
-	layer.add_child(chardetail)
+	uiroot.add_child(chardetail)
 	geardetail = ScrGearDetail.new(g)
-	layer.add_child(geardetail)
+	uiroot.add_child(geardetail)
 	chestbuy = ScrChestBuy.new(g)
-	layer.add_child(chestbuy)
+	uiroot.add_child(chestbuy)
 	settings = ScrSettings.new(g)
-	layer.add_child(settings)
+	uiroot.add_child(settings)
 	drawer = ScrDrawer.new(g)
-	layer.add_child(drawer)
+	uiroot.add_child(drawer)
 	accjourney = ScrAccJourney.new(g)
-	layer.add_child(accjourney)
+	uiroot.add_child(accjourney)
 	quests = ScrQuests.new(g)
-	layer.add_child(quests)
+	uiroot.add_child(quests)
 	battlepass = ScrBattlePass.new(g)
-	layer.add_child(battlepass)
+	uiroot.add_child(battlepass)
 	celebrate = ScrCelebrate.new(g)
-	layer.add_child(celebrate)
+	uiroot.add_child(celebrate)
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
 	sheet = ScrSheet.new(g)
-	layer.add_child(sheet)
+	uiroot.add_child(sheet)
 
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
@@ -121,6 +135,18 @@ func boot() -> void:
 		if g.music: g.music.set_state("menu")
 		show_menu()
 		if _arg("chesttest") != "": _chest_test()
+		# geliştirici: kaydırma — swipes=t@x0x y0>x1x y1;… (0,15 sn'de 6 sürükleme adımı)
+		for sw in _arg("swipes").split(";", false):
+			var a := sw.split("@")
+			var pq := a[1].split(">")
+			var p0 := pq[0].split("x")
+			var p1 := pq[1].split("x")
+			var A := Vector2(float(p0[0]), float(p0[1]))
+			var B := Vector2(float(p1[0]), float(p1[1]))
+			var t0 := float(a[0])
+			_gest.append([t0, "down", A])
+			for k in range(1, 7): _gest.append([t0 + 0.025 * k, "drag", A.lerp(B, k / 6.0)])
+			_gest.append([t0 + 0.18, "up", B])
 		for tk in _arg("taps").split(",", false):
 			var pp := tk.split("@")
 			var at := Vector2(195, 422)
@@ -192,9 +218,30 @@ func boot() -> void:
 					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
 
 var _taps: Array = []
+var _gest: Array = []
 
 func _process(_dt: float) -> void:
+	if Prof.on and g.state == "menu" and Engine.get_process_frames() % 120 == 0:
+		Prof.frame()
+		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())
+	if _bands.size():
+		var bv: bool = g.state != "playing" and g.state != "paused"
+		if _bands[0].visible != bv:
+			for b in _bands: b.visible = bv
 	# geliştirici: zamanlı dokunuşlar — taps=1.5,3.0@200x400 (sn[@x,y])
+	if _t0 > 0 and not _gest.is_empty():
+		var nowg := Time.get_ticks_msec() / 1000.0 - _t0
+		while not _gest.is_empty() and nowg >= float(_gest[0][0]):
+			var G0: Array = _gest.pop_front()
+			if G0[1] == "drag":
+				var dv := InputEventScreenDrag.new()
+				dv.position = G0[2]
+				Input.parse_input_event(dv)
+			else:
+				var tv := InputEventScreenTouch.new()
+				tv.pressed = G0[1] == "down"
+				tv.position = G0[2]
+				Input.parse_input_event(tv)
 	if _t0 > 0 and not _taps.is_empty():
 		var now0 := Time.get_ticks_msec() / 1000.0 - _t0
 		while not _taps.is_empty() and now0 >= float(_taps[0][0]):
@@ -209,7 +256,7 @@ func _process(_dt: float) -> void:
 		var now := Time.get_ticks_msec() / 1000.0
 		if now - _logT > 3.0:
 			_logT = now
-			print("T=", snappedf(g.time, 0.1), " wave=", g.wave, " lvl=", g.player.level, " kills=", g.kills, " hp=", snappedf(g.player.hp, 1), " en=", g.enemies.pool.active.size(), " fps=", Engine.get_frames_per_second(), " w=", g.weapons.slots.keys())
+			print("T=", snappedf(g.time, 0.1), " wave=", g.wave, " lvl=", g.player.level, " kills=", g.kills, " hp=", snappedf(g.player.hp, 1), " en=", g.enemies.pool.active.size(), " fps=", Engine.get_frames_per_second(), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " objs=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " w=", g.weapons.slots.keys())
 	if _arg("quit") != "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
 	var hv := _arg("hudv", "")
 	if hv != "" and not _hudDone and _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT - float(_arg("hudw", "1")):
@@ -438,3 +485,23 @@ func handle_back() -> bool:
 			return true
 	return false
 
+## güvenli alan: arayüz kökü üst boşluk kadar aşağı; bantlar boşlukları örter
+func _apply_safe() -> void:
+	if uiroot == null: return
+	var vp := get_viewport()
+	var vs := vp.get_visible_rect().size
+	var sa := UIK.safe(vp)
+	var k := UIK.ui_scale(vp)
+	var w := vs.x * k
+	var x0 := (vs.x - w) * 0.5
+	uiroot.position = Vector2(x0, sa[0])
+	uiroot.scale = Vector2.ONE * k
+	var bot := vs.y - sa[2]
+	_bands[0].position = Vector2.ZERO
+	_bands[0].size = Vector2(vs.x, sa[0])
+	_bands[1].position = Vector2(0, bot)
+	_bands[1].size = Vector2(vs.x, sa[2])
+	_bands[2].position = Vector2(0, sa[0])
+	_bands[2].size = Vector2(x0, bot - sa[0])
+	_bands[3].position = Vector2(x0 + w, sa[0])
+	_bands[3].size = Vector2(vs.x - x0 - w, bot - sa[0])

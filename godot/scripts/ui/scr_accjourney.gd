@@ -74,6 +74,7 @@ func open() -> void:
 			if int(ms[i].level) == next_lv: ni = i
 		L.set_scroll(sc, clampf(y0 + ni * step - sc.size.y * 0.4, 0.0, L.scroll_max(sc)))
 	visible = true
+	fade_show()
 	g.ui.menu.visible = false     # hideAllScreens: menü arkada çizilmez
 	g.audio.play("panel")
 
@@ -82,6 +83,11 @@ func _crect(key: String) -> Rect2:
 	return Rect2(float(R[0]), float(R[1]), float(R[2]), float(R[3]))
 
 func close() -> void:
+	if not visible: return
+	g.ui.menu.visible = true
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false
 	g.ui.menu.visible = true
 	if L:

@@ -86,7 +86,11 @@ func get_item(k: String, def = null):
 	_schedule()
 	return good if good != null else def
 
+## kayıt değişim sayacı — sayfalar veri değişmediyse yeniden kurulmaz
+var rev := 0
+
 func set_item(k: String, v) -> void:
+	rev += 1
 	var s := JS.s(v) if (v is float or v is int) else str(v)
 	_kv[k] = s
 	if _protect(k):
@@ -95,6 +99,7 @@ func set_item(k: String, v) -> void:
 	_schedule()
 
 func remove_item(k: String) -> void:
+	rev += 1
 	_kv.erase(k)
 	if _protect(k):
 		_kv.erase(SIG + k)

@@ -10,6 +10,48 @@ const DOCK := ["magaza", "cephane", "savas", "kahraman", "etkinlik"]
 var shell: Lyr
 var pages := {}              # sayfa → Lyr
 var page := ""
+var _rendered := {}          # sayfa → son kurulduğu Store.rev
+var prewarm: UIPrewarm
+var _lru: Array = []          # en son açılan sayfa sonda (bellek sınırı için)
+
+## kademeye göre bellekte tutulan sayfa sayısı (ana sayfa hariç): düşük 2 · orta 4 · yüksek hepsi
+func page_cap() -> int:
+	match Quality.tier:
+		"low": return 2
+		"mid": return 4
+	return 9
+
+## sınır aşıldıysa en uzun süredir açılmayan sayfayı (mevcut ve ana sayfa dışında) bırak
+func _trim_pages() -> void:
+	var built := pages.keys().filter(func(k): return k != "savas" and k != page)
+	while built.size() > page_cap():
+		var victim := ""
+		for k in built:
+			if not _lru.has(k):
+				victim = k
+				break
+		if victim == "":
+			for k in _lru:
+				if built.has(k):
+					victim = k
+					break
+		if victim == "": return
+		_free_page(victim)
+		built.erase(victim)
+
+func _free_page(p: String) -> void:
+	var n: Node = pages.get(p)
+	if n == null: return
+	for B in _btns.duplicate():
+		if is_instance_valid(B.lyr) and n.is_ancestor_of(B.lyr): _btns.erase(B)
+	for S in _scrolls.duplicate():
+		if is_instance_valid(S.lyr) and n.is_ancestor_of(S.lyr): _scrolls.erase(S)
+	_drag = null
+	_fling.clear()
+	pages.erase(p)
+	_rendered.erase(p)
+	_lru.erase(p)
+	n.queue_free()
 var _t := 0.0
 var _slides: Array = []      # [{L, from, to, t0, out}]
 var _xpMat: ShaderMaterial
@@ -31,7 +73,12 @@ func _init(game) -> void:
 func open(p := "savas") -> void:
 	if shell == null: _build()
 	visible = true
+	_rendered.clear()          # savaştan/aradan dönüş: her sayfa ilk açılışta tazelenir
 	set_page(p, true)
+	if prewarm == null:
+		prewarm = UIPrewarm.new(self)
+		add_child(prewarm)
+	prewarm.start()
 	refresh_wallet(true)
 	_top()
 
@@ -74,6 +121,18 @@ func _build() -> void:
 		var pg: String = DOCK[i]
 		btn(shell, tabs[i], func(): _tap(pg), 0.94)
 
+## sayfa gizli kurulur (UIPrewarm) — sekme ilk açılışta takılmasın
+func prebuild(p: String) -> void:
+	var L := _page(p)
+	if L == null: return
+	_render(p)
+	_rendered[p] = Store.rev
+	if p != page: L.visible = false
+
+## kullanıcı etkileşimde mi (dokunuş, kaydırma, savurma, sayfa geçişi)
+func busy() -> bool:
+	return _press >= 0 or _drag != null or not _fling.is_empty() or not _slides.is_empty()
+
 func _tap(p: String) -> void:
 	g.audio.play("click")
 	if p != "savas" and not FileAccess.file_exists(Lyr.BASE + "pg_" + p + ".json"):
@@ -84,25 +143,99 @@ func _tap(p: String) -> void:
 func set_page(p: String, instant := false) -> void:
 	if not DOCK.has(p) and p != "dunyalar": p = "savas"
 	var prev := page
+	var L := _activate(p)
+	if L == null: return
+	if instant or prev == "" or prev == p or not pages.has(prev):
+		_slides.clear()
+		for k in pages: (pages[k] as Node2D).visible = k == p
+		_reset_page(L)
+		return
+	var fw := ORDER.find(p) > ORDER.find(prev)
+	_slide_pair(pages[prev], L, fw, 0.0)
+
+## sayfa durumunu etkinleştir: alt menü vurgusu, sayfa adı, (gerekirse) kurulum
+func _activate(p: String) -> Node2D:
+	_lru.erase(p)
+	_lru.append(p)
 	page = p
-	# alt gezinme durumu (etkin sekme + kayan plaka geçişi)
 	var dock := shell.find(".dock")
 	if dock and FileAccess.file_exists(Lyr.BASE + "menu_" + p + ".json"): shell.to_state("menu_" + p, dock)
 	var L := _page(p)
-	if L == null: return
-	_render(p)
-	if instant or prev == "" or prev == p or not pages.has(prev):
-		for k in pages: (pages[k] as Node2D).visible = k == p
-		L.modulate.a = 1.0
-		L.position.x = 0
-		L.scale = Vector2.ONE
-		return
-	var fw := ORDER.find(p) > ORDER.find(prev)
-	var W := get_viewport().get_visible_rect().size.x
-	var old: Node2D = pages[prev]
+	if L == null: return null
+	_trim_pages()
+	# veri değişmediyse sayfa yeniden kurulmaz (geçiş anında); savaş sayfası her zaman tazelenir
+	if p == "savas" or int(_rendered.get(p, -1)) != Store.rev:
+		_render(p)
+		_rendered[p] = Store.rev
+	return L
+
+func _reset_page(L: Node2D) -> void:
+	L.modulate.a = 1.0
+	L.position.x = 0
+	L.scale = Vector2.ONE
+
+## iki sayfa birlikte kayar: yeni sayfa yandan gelir, eski öbür yana gider (tam genişlik,
+## 0,34 sn, ease-out). off: parmakla kaydırılmış mevcut kayma (px) — geçiş oradan sürer.
+func _slide_pair(old: Node2D, L: Node2D, fw: bool, off: float) -> void:
+	var W := UIK.ui_size(get_viewport()).x
+	var sgn := 1.0 if fw else -1.0
+	_slides.clear()
+	for k in pages:
+		var n: Node2D = pages[k]
+		if n != old and n != L: n.visible = false
 	L.visible = true
-	_slides.append({"L": L, "from": W * (0.06 if fw else -0.06), "t0": _t, "out": false})
-	_slides.append({"L": old, "from": W * (-0.04 if fw else 0.04), "t0": _t, "out": true})
+	old.visible = true
+	var lf: float = L.position.x if absf(off) > 0.0 else W * sgn
+	_slides.append({"L": L, "from": lf, "to": 0.0, "a0": L.modulate.a if absf(off) > 0.0 else 0.4, "a1": 1.0, "t0": _t, "dur": 0.34, "out": false})
+	_slides.append({"L": old, "from": old.position.x, "to": -W * sgn, "a0": old.modulate.a, "a1": 0.4, "t0": _t, "dur": 0.34, "out": true})
+
+## ── parmakla sayfa kaydırma (alt menü sırasında komşu sekme) ──
+var _sw_n: Node2D = null       # önizlenen komşu sayfa
+var _sw_p := ""
+
+func _dock_index() -> int:
+	return DOCK.find("savas" if page == "dunyalar" else page)
+
+func _swipe_move(dx: float) -> void:
+	if _slides.size(): return
+	var cur: Node2D = pages.get(page)
+	if cur == null: return
+	var W := UIK.ui_size(get_viewport()).x
+	var idx := _dock_index() + (1 if dx < 0 else -1)
+	var np: String = DOCK[idx] if idx >= 0 and idx < DOCK.size() else ""
+	if np != _sw_p:
+		if _sw_n and _sw_n != cur: _sw_n.visible = false
+		_sw_p = np
+		_sw_n = pages.get(np) if np != "" and FileAccess.file_exists(Lyr.BASE + "pg_" + np + ".json") else null
+	var k := 1.0 if _sw_n else 0.35          # komşu yoksa lastik direnç
+	cur.position.x = dx * k
+	cur.modulate.a = 1.0 - minf(0.5, absf(dx) / W * 0.6)
+	if _sw_n:
+		_sw_n.visible = true
+		_sw_n.position.x = cur.position.x + (W if dx < 0 else -W)
+		_sw_n.modulate.a = 0.5 + minf(0.5, absf(dx) / W)
+
+func _swipe_end(dx: float, vel: float) -> void:
+	var cur: Node2D = pages.get(page)
+	if cur == null: return
+	var W := UIK.ui_size(get_viewport()).x
+	var go := _sw_p != "" and (absf(dx) > W * 0.22 or (absf(vel) > 650.0 and absf(dx) > 30.0 and signf(vel) == signf(dx)))
+	var target := _sw_p
+	_sw_p = ""
+	var nb := _sw_n
+	_sw_n = null
+	if go and target != "":
+		g.audio.play("tab")
+		var L := _activate(target)
+		if L == null: return
+		if nb == null: L.position.x = W * (1.0 if dx < 0 else -1.0)
+		_slide_pair(cur, L, dx < 0, 1.0)
+	else:
+		# geri yaylan
+		_slides.clear()
+		_slides.append({"L": cur, "from": cur.position.x, "to": 0.0, "a0": cur.modulate.a, "a1": 1.0, "t0": _t, "dur": 0.26, "out": false})
+		if nb:
+			_slides.append({"L": nb, "from": nb.position.x, "to": W * signf(nb.position.x), "a0": nb.modulate.a, "a1": 0.4, "t0": _t, "dur": 0.26, "out": true})
 
 func _page(p: String) -> Node2D:
 	if pages.has(p): return pages[p]
@@ -154,7 +287,7 @@ func _page_host() -> Node:
 		_pclip.size = vp.size
 		vp.host.add_child(_pclip)
 	else:
-		_pclip.size = get_viewport().get_visible_rect().size
+		_pclip.size = UIK.ui_size(get_viewport())
 		add_child(_pclip)
 	return _pclip
 
@@ -163,22 +296,17 @@ func _process(dt: float) -> void:
 	_t += dt
 	for S in _slides.duplicate():
 		var L: Node2D = S.L
-		var k := minf(1.0, (_t - float(S.t0)) / 0.46)
-		var ko := minf(1.0, (_t - float(S.t0)) / 0.36)
-		var e := UIK.bez(0.22, 0.8, 0.24, 1.0, k)
-		var eo := UIK.bez(0.4, 0.0, 0.2, 1.0, ko)
-		if S.out:
-			L.position.x = lerpf(0.0, float(S.from), e)
-			L.scale = Vector2.ONE * lerpf(1.0, 0.985, e)
-			L.modulate.a = 1.0 - eo
-			if _t - float(S.t0) >= 0.48:
+		var k := minf(1.0, (_t - float(S.t0)) / float(S.dur))
+		var e := 1.0 - pow(1.0 - k, 3.0)
+		L.position.x = lerpf(float(S.from), float(S.to), e)
+		L.modulate.a = lerpf(float(S.a0), float(S.a1), e)
+		if k >= 1.0:
+			_slides.erase(S)
+			if S.out:
 				L.visible = false
-				L.position.x = 0; L.scale = Vector2.ONE; L.modulate.a = 1.0
-				_slides.erase(S)
-		else:
-			L.position.x = lerpf(float(S.from), 0.0, e)
-			L.modulate.a = eo
-			if k >= 1.0 and ko >= 1.0: _slides.erase(S)
+				_reset_page(L)
+	# kaydırma alanı: sayfa görünüm alanı (üst çubuk ile alt menü arası)
+	if _pclip: swipe_rect = _pclip.get_global_rect()
 	# yuva sayaçları (web updateChestCountdowns: 1 sn)
 	_slotTick += dt
 	if _slotTick >= 1.0 and page == "savas" and home:

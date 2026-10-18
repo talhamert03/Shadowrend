@@ -30,6 +30,7 @@ func open() -> void:
 		if n: _c0[k] = L.rect_of(n).position
 	btn(L, L.find_id("#q-close"), func(): g.audio.play("click"); close())
 	visible = true
+	fade_show()
 	g.ui.menu.visible = false     # hideAllScreens: menü arkada çizilmez
 	g.audio.play("panel")
 	render()
@@ -193,6 +194,11 @@ func _claim_tier(i: int) -> void:
 	_grant(g.dailies.claim_tier(i), "tierclaim")
 
 func close() -> void:
+	if not visible: return
+	g.ui.menu.visible = true
+	fade_hide(_close_now)
+
+func _close_now() -> void:
 	visible = false
 	g.ui.menu.visible = true
 	_count_t = -1.0
