@@ -10,6 +10,19 @@ extends Node2D
 ## hepsi yerinde yakalandı, konum #week-box'a göre yakalama dikdörtgeninden (_loc).
 
 const TABS := ["gunluk", "muhur", "kupa", "zirve", "album"]
+## yeni başlık (resimli afiş + mod karoları) yakalamadakinden uzun: içerik bu kadar aşağı kayar
+const HERO_Y := 60.0
+const HERO_H := 176.0
+const TILE_Y := 248.0
+const TILE_H := 86.0
+const SHIFT := 62.0
+const TILE := {
+	"gunluk": {"n": "GÜNLÜK", "col": "#ffb35c", "art": "res://assets/ui/art/chest/t1.png", "tint": false},
+	"muhur": {"n": "MÜHÜR", "col": "#ff5468", "art": "res://assets/ui/art/icon/tilsim.png", "tint": true},
+	"kupa": {"n": "KUPA", "col": "#ffd27a", "art": "res://assets/ui/art/icon/kadeh.png", "tint": true},
+	"zirve": {"n": "ZİRVE", "col": "#8fb5ff", "art": "res://assets/ui/art/icon/tac.png", "tint": true},
+	"album": {"n": "ALBÜM", "col": "#c79bff", "art": "res://assets/ui/art/icon/star.png", "tint": true},
+}
 
 var menu
 var g
@@ -67,7 +80,7 @@ func render() -> void:
 
 func _loc(key: String) -> Vector2:
 	var R: Array = Lyr.load_json(key).get("rect", [0, 0, 0, 0])
-	return Vector2(float(R[0]), float(R[1])) - _wb0
+	return Vector2(float(R[0]), float(R[1])) - _wb0 + Vector2(0, SHIFT)
 
 func _h(key: String) -> float:
 	var R: Array = Lyr.load_json(key).get("rect", [0, 0, 0, 0])
@@ -121,52 +134,188 @@ func _kupa_ready() -> int:
 
 # ═════════════ BU HAFTA afişi + sekmeler ═════════════
 
+## başlık düğümü (#week-box içinde, yakalama koordinatından)
+func _hdr(y: float) -> Node2D:
+	var n := Node2D.new()
+	n.position = Vector2(14.0, y) - _wb0
+	wb.host.add_child(n)
+	_items.append(n)
+	return n
+
+static func _ut(disp: bool, w: int, sz: float, ls: float, col, s: String, sh := "0 1px 3px rgba(0,0,0,0.85)") -> UIText:
+	var t := UIText.new()
+	t.style(disp, w, sz, ls, col, sh)
+	t.nowrap = true
+	t.text = s
+	return t
+
+## BU HAFTA — resimli afiş: öne çıkan dünyanın göğü (ay) + boss adası, solda okunur perde,
+## etkinlik adı, satırı, kalan süre, sezon bölümü ve şeritleri
 func _hero() -> float:
 	var C: Dictionary = Calendar.current(D.WORLDS.size())
-	var H := _add("ev_hero_" + str(C.ev.id) + "_" + ("1" if C.weekend else "0"))
-	if H == null: H = _add("ev_hero_kor_0")
-	if H == null: return 0.0
+	var wn := int(C.featured) if int(C.featured) >= 1 and int(C.featured) <= D.WORLDS.size() else 1
+	var wd: Dictionary = D.WORLDS[wn - 1]
+	var wc := JS.col(wd.color)
+	var W := 362.0
+	var H := HERO_H
+	var R := _hdr(HERO_Y)
+	var sky := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/tall_back.png")
+	if sky: R.add_child(UIK.round_image(sky, W, H, 16, Vector2(0.5, 0.05)))
+	# boss adası sağda, afişin üst kenarından taşar (Clash Royale afişi gibi)
+	var isle := Node2D.new()
+	var slot: Dictionary = ClimbArt.meta().get("worlds", {}).get(str(wn), {}).get("slots", {}).get("b9", {})
+	var isc := 58.0 / float(ClimbArt.meta().get("R0", 90)) / float(ClimbArt.meta().get("dpr", 2))
+	for part in [["body", "_b"], ["top", "_s"]]:
+		var mm = slot.get(part[0])
+		var tx := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/b9" + part[1] + ".png")
+		if mm is Dictionary and tx:
+			var sp := Sprite2D.new()
+			sp.texture = tx
+			sp.centered = false
+			sp.scale = Vector2(float(mm.w) / tx.get_width(), float(mm.h) / tx.get_height()) * isc
+			sp.position = -Vector2(float(mm.ax), float(mm.ay)) * isc
+			isle.add_child(sp)
+	isle.position = Vector2(W - 70.0, H - 58.0)
+	# okunur perde: soldan sağa koyudan saydama
+	var gr := Gradient.new()
+	gr.offsets = PackedFloat32Array([0.0, 0.5, 0.78])
+	gr.colors = PackedColorArray([Color(0.03, 0.02, 0.05, 0.92), Color(0.03, 0.02, 0.05, 0.62), Color(0.03, 0.02, 0.05, 0.0)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr
+	gt.width = 256
+	gt.height = 120
+	R.add_child(UIK.round_image(gt, W, H, 16, Vector2(0.5, 0.5)))
+	R.add_child(isle)
+	var deco := Node2D.new()
+	R.add_child(deco)
+	var w: int = Journey.season_week()
+	var SN: Dictionary = Journey.SEASON[w]
+	var ns: int = Journey.SEASON.size()
+	deco.draw.connect(func():
+		var bd := StyleBoxFlat.new()
+		bd.bg_color = Color(0, 0, 0, 0)
+		bd.set_corner_radius_all(16)
+		bd.set_border_width_all(2)
+		bd.border_color = Color(wc.lerp(Color("#e9b86a"), 0.5), 0.75)
+		deco.draw_style_box(bd, Rect2(0, 0, W, H))
+		# sezon şeritleri
+		for i in ns:
+			var c := Color("#e9b86a") if i < w else (wc.lerp(Color.WHITE, 0.3) if i == w else Color(1, 1, 1, 0.16))
+			deco.draw_rect(Rect2(18 + i * 26, H - 18, 22, 4), c)
+		# kalan süre hapı
+		var pill := StyleBoxFlat.new()
+		pill.bg_color = Color(0.04, 0.03, 0.06, 0.78)
+		pill.set_corner_radius_all(11)
+		pill.set_border_width_all(1)
+		pill.border_color = Color(1, 1, 1, 0.14)
+		deco.draw_style_box(pill, Rect2(W - 104, 12, 92, 22)))
 	var left := maxf(0.0, float(C.leftMs))
 	var dd := int(floor(left / 864e5))
 	var hh := int(floor(fmod(left, 864e5) / 36e5))
 	var fw = D.WORLDS[int(C.featured) - 1] if int(C.featured) >= 1 and int(C.featured) <= D.WORLDS.size() else null
 	var line: String = (str(fw.name) + " haritasında altın ×2") if C.ev.id == "biyom" and fw else str(C.ev.line)
-	txt(H, H.find(".wke-n"), str(C.ev.name))
-	txt(H, H.find(".wke-l"), line)
-	txt(H, H.find(".wke-t"), (str(dd) + " GÜN " + str(hh) + " SA") if dd > 0 else (str(hh) + " SA"), 1.0)
-	var w: int = Journey.season_week()
-	var SN: Dictionary = Journey.SEASON[w]
-	txt(H, H.find(".ws-k"), "SEZON · BÖLÜM " + str(w + 1) + "/" + str(Journey.SEASON.size()) + " · " + str(SN.n))
-	txt(H, H.find(".ws-l"), str(SN.l))
-	var pp := H.find(".ws-pips")
-	if pp and FileAccess.file_exists(Lyr.BASE + "ev_pips_" + str(w) + ".json"):
-		var P := Lyr.make("ev_pips_" + str(w))
-		pp.node.add_child(P)
-	return H.position.y + H.nodes[0].size.y
+	var eye := _ut(false, 700, 10.5, 3.0, wc.lerp(Color.WHITE, 0.5), "BU HAFTA" + (" · HAFTA SONU" if C.weekend else ""))
+	eye.position = Vector2(18, 16)
+	R.add_child(eye)
+	var tm := _ut(false, 700, 11, 0.6, "#f4e9dd", (str(dd) + " GÜN " + str(hh) + " SA") if dd > 0 else (str(hh) + " SA"))
+	tm.align = 0.5
+	tm.wrap_w = 92
+	tm.position = Vector2(W - 104, 15)
+	R.add_child(tm)
+	var ti := _ut(true, 800, 28, 1.2, "#fff4e6", str(C.ev.name), "0 0 16px #" + wc.to_html(false) + ", 0 2px 6px rgba(0,0,0,0.9)")
+	ti.position = Vector2(16, 34)
+	R.add_child(ti)
+	var ln := _ut(false, 600, 12.5, 0.2, "#e2d9dc", line)
+	ln.nowrap = false
+	ln.max_lines = 2
+	ln.wrap_w = 200
+	ln.position = Vector2(18, 78)
+	R.add_child(ln)
+	var ss := _ut(false, 700, 9.5, 1.6, "#d8b98a", "SEZON · BÖLÜM " + str(w + 1) + "/" + str(ns) + " · " + str(SN.n))
+	ss.position = Vector2(18, H - 38)
+	R.add_child(ss)
+	return HERO_Y + H - _wb0.y
 
+## mod karoları (Clash Royale oyun modu kartları gibi): resim + ad + rozet; seçili karo kalkık, altın kenarlı
 func _tabs(dLeft: int, kReady: int) -> float:
-	var bottom := 0.0
-	for t in TABS:
+	var n := TABS.size()
+	var gap := 6.0
+	var tw := (362.0 - gap * (n - 1)) / n
+	for i in n:
+		var t: String = TABS[i]
+		var info: Dictionary = TILE[t]
 		var on: bool = t == tab
-		var T := _add("ev_tab_" + t + ("_on" if on else "_off"))
-		if T == null: continue
-		bottom = maxf(bottom, T.position.y + T.nodes[0].size.y)
-		var n := dLeft if t == "gunluk" else (kReady if t == "kupa" else 0)
-		if n > 0:
-			var bk := "ev2n_hot" if t == "kupa" else "ev2n"
-			var ref := "ev_tab_kupa_on" if t == "kupa" else "ev_tab_gunluk_on"
-			var rel := _loc(bk) - _loc(ref)
-			var B := _add(bk, T.position + rel)
-			if B: B.set_text(B.nodes[0], str(n))
+		var col := Color(String(info.col))
+		var L := Lyr.new()
+		L.build({"nodes": [{"id": "0", "key": ".ev-tile", "box": [0, 0, tw, TILE_H], "origin": [tw * 0.5, TILE_H * 0.5]}]})
+		L.position = Vector2(14.0 + i * (tw + gap), TILE_Y + (-3.0 if on else 0.0)) - _wb0
+		wb.host.add_child(L)
+		_items.append(L)
+		var host: Node2D = L.nodes[0].node
+		var bg := Node2D.new()
+		host.add_child(bg)
+		bg.draw.connect(func():
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color("#211a27") if on else Color("#17121c")
+			sb.set_corner_radius_all(12)
+			sb.set_border_width_all(2 if on else 1)
+			sb.border_color = Color("#e9b86a") if on else Color(1, 1, 1, 0.09)
+			sb.shadow_color = Color(col, 0.35) if on else Color(0, 0, 0, 0.4)
+			sb.shadow_size = 10 if on else 4
+			bg.draw_style_box(sb, Rect2(0, 0, tw, TILE_H))
+			# üst parıltı şeridi
+			var hl := StyleBoxFlat.new()
+			hl.bg_color = Color(1, 1, 1, 0.05)
+			hl.corner_radius_top_left = 11
+			hl.corner_radius_top_right = 11
+			bg.draw_style_box(hl, Rect2(1, 1, tw - 2, TILE_H * 0.42)))
+		var gl := Sprite2D.new()
+		gl.texture = ClimbArt.glow_tex()
+		var gm := CanvasItemMaterial.new()
+		gm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		gl.material = gm
+		gl.modulate = Color(col, 0.55 if on else 0.22)
+		gl.scale = Vector2.ONE * (tw * 1.1 / 128.0)
+		gl.position = Vector2(tw * 0.5, 34)
+		host.add_child(gl)
+		var tex := UITex.get_tex(String(info.art))
+		if tex:
+			var sp := Sprite2D.new()
+			sp.texture = tex
+			var box := 40.0 if bool(info.tint) else 50.0
+			sp.scale = Vector2.ONE * (box / maxf(tex.get_width(), tex.get_height()))
+			sp.position = Vector2(tw * 0.5, 34)
+			if bool(info.tint): sp.modulate = col.lerp(Color.WHITE, 0.25) if on else col.darkened(0.15)
+			elif not on: sp.modulate = Color(0.82, 0.82, 0.82)
+			host.add_child(sp)
+		var lb := _ut(true, 800, 10.5, 0.8, "#fff1dc" if on else "#a9a1ad", String(info.n))
+		lb.align = 0.5
+		lb.wrap_w = tw
+		lb.position = Vector2(0, TILE_H - 22)
+		host.add_child(lb)
+		var cnt := dLeft if t == "gunluk" else (kReady if t == "kupa" else 0)
+		if cnt > 0:
+			var bd := Node2D.new()
+			bd.position = Vector2(tw - 8, 8)
+			host.add_child(bd)
+			var hot := t == "kupa"
+			bd.draw.connect(func():
+				bd.draw_circle(Vector2.ZERO, 9.5, Color("#ff3b4e") if hot else Color("#e0563d"))
+				bd.draw_arc(Vector2.ZERO, 9.5, 0, TAU, 24, Color(1, 1, 1, 0.5), 1.2, true))
+			var bt := _ut(false, 800, 11, 0, "#ffffff", str(cnt))
+			bt.align = 0.5
+			bt.wrap_w = 20
+			bt.position = Vector2(-10, -8)
+			bd.add_child(bt)
 		var tt: String = t
-		menu.btn(T, T.nodes[0], func(): _tab_tap(tt), 0.95)
-	return bottom
+		menu.btn(L, L.nodes[0], func(): _tab_tap(tt), 0.94)
+	return TILE_Y + TILE_H - _wb0.y
 
 func _tab_tap(t: String) -> void:
 	if t == tab: return
 	tab = t
 	g.audio.play("tab")
-	var nav_y := _loc("ev_tab_kupa_on").y + wb.pos.y
+	var nav_y := TILE_Y - _wb0.y + wb.pos.y
 	if root.scroll_y > nav_y: shell.set_scroll(root, maxf(0.0, nav_y - 8.0))
 	render()
 
