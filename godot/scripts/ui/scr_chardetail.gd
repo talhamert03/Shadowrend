@@ -67,6 +67,14 @@ func _texts_locked() -> void:
 	if nm: L.set_text(nm, str(c.get("name", id)))
 	var sub := L.find_id("#cd-subtitle")
 	if sub: L.set_text(sub, str(c.get("title", "")) + " · KİLİTLİ")
+	# satır içi kalın kelime ("…yalnızca <b>sandıklardan</b> çıkar") yakalamada cümlenin üstüne
+	# biniyor: cümle tek metin olarak yazılır, kalın parça gizlenir
+	for n in L.nodes:
+		if n.txt == null or n.kids.is_empty(): continue
+		for b in n.kids:
+			if b.d.get("tag") == "b" and b.txt and n.txt.text.contains("  "):
+				L.set_text(n, n.txt.text.replace("  ", " " + b.txt.text + " "))
+				L.set_hidden(b, true)
 	if not FileAccess.file_exists(Lyr.BASE + "hd_" + id + "_own.json"): return
 	var vals: Array = []
 	for d in Lyr.load_json("hd_" + id + "_own").get("nodes", []):
