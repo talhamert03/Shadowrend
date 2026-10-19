@@ -35,7 +35,12 @@ func draw_frame() -> void:
 	var w: float = g.w
 	var h: float = g.h
 	ctx.save()
-	if g.zoomP > 5e-4:
+	var xf3 = _cam_affine()
+	if xf3 != null:
+		# 3B kameranın zemindeki izdüşümü (eğim kısalması + uzaklık): işaretler modellerle çakışır
+		var X: Transform2D = xf3
+		ctx.set_transform(X.x.x, X.x.y, X.y.x, X.y.y, X.origin.x, X.origin.y)
+	elif g.zoomP > 5e-4:
 		var z: float = 1 / (1 - g.zoomP)
 		ctx.translate(w / 2 + g.shakeX, h / 2 + g.shakeY)
 		ctx.scale(z, z)
@@ -56,6 +61,23 @@ func draw_frame() -> void:
 	ctx.restore()
 	g.input.render(ctx)
 
+## dünya (x, z) → ekran: kamera hedefinde 3B izdüşümün doğrusal karşılığı (FOV dar, kenarda
+## sapma birkaç piksel). 3B yoksa null (eski düz eşleme).
+func _cam_affine():
+	var g = game
+	var r3 = g.renderer3d
+	if r3 == null or r3.camera == null or not r3.camera.is_inside_tree() or r3.vp == null: return null
+	var cam: Camera3D = r3.camera
+	var k: float = float(g.w) / maxf(1.0, float(r3.vp.size.x))
+	var cx: float = g.cam.x
+	var cz: float = g.cam.y
+	var p0 := cam.unproject_position(Vector3(cx, 0, cz)) * k
+	var px := cam.unproject_position(Vector3(cx + 100.0, 0, cz)) * k
+	var pz := cam.unproject_position(Vector3(cx, 0, cz + 100.0)) * k
+	var ax := (px - p0) / 100.0
+	var az := (pz - p0) / 100.0
+	return Transform2D(ax, az, p0 - ax * cx - az * cz)
+
 static var _fontCache := {}
 func _font_for(px: int) -> String:
 	if not _fontCache.has(px): _fontCache[px] = "700 " + str(px) + "px 'Chakra Petch', sans-serif"
@@ -68,6 +90,8 @@ func _render_texts() -> void:
 	ctx.line_join = "round"
 	var M := ctx.get_transform()
 	var ma := M.x.x
+	var mb := M.x.y
+	var mc := M.y.x
 	var md := M.y.y
 	var me := M.origin.x
 	var mf := M.origin.y
@@ -76,23 +100,33 @@ func _render_texts() -> void:
 	var lastLW := 0.0
 	for o in g.pools.texts.active:
 		if not g.in_view(o.x, o.y, 40): continue
-		var a: float = minf(1.0, o.life / (o.max * 0.4))
-		var pp: float = 1 - o.pt / 0.13
-		var k: float = (1 + (o.pk - 1) * pp * pp if pp > 0 else 1.0) * (0.74 + 0.26 * a)
+		var a: float = minf(1.0, o.life / (o.max * 0.35))
+		# pop: hızla büyür, taşar, yerine oturur (ease-out-back)
+		var pt: float = o.pt / 0.16
+		var k: float
+		if pt < 1.0:
+			k = 1.0 + (o.pk - 1.0) * (1.0 - pt) * (1.0 - pt) + 0.18 * sin(pt * PI) * (1.0 if o.crit else 0.5)
+		else:
+			k = 1.0
+		k *= (0.7 + 0.3 * a)
 		ctx.global_alpha = a
-		ctx.set_transform(ma * k, 0, 0, md * k, me + ma * o.x, mf + md * o.y)
-		var f := _font_for(JS.round_js(o.size))
+		var cr := cos(o.rot)
+		var sr := sin(o.rot)
+		# metin ekran ölçeğinde (sayılar eğim kısalmasıyla basılmaz); modelin başının üstünde
+		var sk: float = absf(ma) * k
+		ctx.set_transform(sk * cr, sk * sr, -sk * sr, sk * cr, me + ma * o.x + mc * o.y, mf + mb * o.x + md * o.y - 16.0)
+		var f := _font_for(JS.round_js(o.size * (1.12 if o.arc else 1.0)))
 		if f != lastFont:
 			ctx.set_font(f)
 			lastFont = f
-		var lw := 4.0 if o.crit else 3.0
+		var lw := 5.0 if o.crit else 3.6
 		if lw != lastLW:
 			ctx.line_width = lw
 			lastLW = lw
 		ctx.stroke_text(o.str, 0, 0)
 		ctx.fill_style = o.color
 		ctx.fill_text(o.str, 0, 0)
-	ctx.set_transform(ma, 0, 0, md, me, mf)
+	ctx.set_transform(ma, mb, mc, md, me, mf)
 	ctx.global_alpha = 1
 
 func _render_powerups() -> void:

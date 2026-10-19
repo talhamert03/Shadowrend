@@ -1896,10 +1896,18 @@ func update_texts(dt: float) -> void:
 			pools.texts.release(o)
 			continue
 		o.pt += dt
-		o.x += o.vx * dt
-		o.vx *= 0.9
-		o.y += o.vy * dt
-		o.vy *= 0.94
+		if o.arc:
+			# fırla → tepe → hafif düş (yerçekimi, hava sürtünmesi)
+			o.vy += (600.0 if o.crit else 520.0) * dt
+			o.vx *= exp(-3.2 * dt)
+			o.x += o.vx * dt
+			o.y += o.vy * dt
+			o.rot *= exp(-2.0 * dt)
+		else:
+			o.x += o.vx * dt
+			o.vx *= 0.9
+			o.y += o.vy * dt
+			o.vy *= 0.94
 
 # ═══════════ RENDER ═══════════
 

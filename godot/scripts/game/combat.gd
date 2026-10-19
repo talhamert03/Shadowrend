@@ -67,7 +67,8 @@ static func apply_hit(game, e: Ent.Enemy, base: float, angle: float = 0.0, knock
 		if o != null and o.owner == e and o.pi >= 0 and not o.crit and game.time - e.txtT < FEEL.mergeWin:
 			o.val += r.dmg
 			o.str = JS.s(o.val)
-			o.pt = 0.0; o.pk = 1.3
+			o.pt = 0.0; o.pk = 1.4
+			o.vy = minf(o.vy, -120.0)
 			o.life = maxf(o.life, o.max * 0.8)
 			if o.size < FEEL.mergeMaxSize: o.size += 0.7
 			if o.y > ty: o.y = ty
@@ -80,7 +81,9 @@ static func apply_hit(game, e: Ent.Enemy, base: float, angle: float = 0.0, knock
 		e.txtT = game.time
 
 	if game.renderer3d and game.in_view(e.x, e.y, 60):
-		if r.crit: game.renderer3d.spawn_hit(e.x, e.y, angle, 2 if e.isBoss else 1, 1, 0.80, 0.34)
+		if r.crit:
+			game.renderer3d.spawn_hit(e.x, e.y, angle, 2 if e.isBoss else 1, 1, 0.80, 0.34)
+			game.renderer3d.spawn_pow(e.x + cos(angle) * -8.0, e.y + sin(angle) * -8.0)
 		else: game.renderer3d.spawn_hit(e.x, e.y, angle, 0, 1, 0.90, 0.74)
 
 	if not e.isBoss and game.in_view(e.x, e.y, 60):

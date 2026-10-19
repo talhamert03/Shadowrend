@@ -734,12 +734,9 @@ func on_death(e: Ent.Enemy) -> void:
 	if e.elite and not e.isBoss and g.in_view(e.x, e.y, 40): g.audio.play("elitdown")
 	if g.renderer3d: g.renderer3d.enemy_death(e, e.hurtAng, false)
 	if g.in_view(e.x, e.y, 40):
-		for i in 5:
-			var a := randf() * 6.283
-			var rr := e.radius * 0.55 * randf()
-			g.pools.particles.take().setup(e.x + cos(a) * rr, e.y + sin(a) * rr * 0.6,
-				cos(a) * 10, -34 - randf() * 26, 0.42 + randf() * 0.2, 2.2, e.color, 0.93, 0, true)
-		g.spawn_burst(e.x, e.y, "#7d0e1c", 4, 96, 2.4, 0.5, false)
+		# çizgi roman ölüm patlaması (yıldız + parçalar + duman pufları; model beyaz flaş + çözülme)
+		if g.renderer3d: g.renderer3d.spawn_death(e.x, e.y, e.hurtAng, JS.col(e.color), e.elite or e.lastCrit)
+		g.spawn_burst(e.x, e.y, "#7d0e1c", 3, 96, 2.4, 0.5, false)
 		if int(e.seed * 997) % 3 == 0:
 			for i in 3:
 				g.pools.particles.take().setup(e.x + (randf() - 0.5) * 6, e.y, 0, -90 - i * 26, 0.5, 2.8 - i * 0.5,

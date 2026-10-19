@@ -107,3 +107,12 @@ vec3 r3_rim(vec3 N, vec3 V, float s, float p, vec3 c) {
 	float up = clamp(N.y * 0.55 + 0.60, 0.0, 1.0);
 	return c * (f * s * up);
 }
+
+// ölüm çözülmesi için ucuz 3B değer gürültüsü
+float r3_h31(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float r3_noise3(vec3 p) {
+	vec3 i = floor(p), f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(r3_h31(i), r3_h31(i + vec3(1, 0, 0)), f.x), mix(r3_h31(i + vec3(0, 1, 0)), r3_h31(i + vec3(1, 1, 0)), f.x), f.y),
+		mix(mix(r3_h31(i + vec3(0, 0, 1)), r3_h31(i + vec3(1, 0, 1)), f.x), mix(r3_h31(i + vec3(0, 1, 1)), r3_h31(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}

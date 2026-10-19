@@ -32,6 +32,7 @@ var camDist := 1150.0
 const CAM_NEAR := 1.12
 ## geliştirici: kamera uzaklık çarpanı (camzoom=0.4 → yakın çekim, stil incelemesi)
 var _dev_zoom := 1.0
+var _fixdt := 0.0
 var cam_left := -185.0
 var cam_right := 185.0
 var cam_top := 560.0
@@ -56,6 +57,7 @@ var groundMat: ShaderMaterial
 var voidGround: MeshInstance3D
 var voidMat: ShaderMaterial
 var isles: R3Isles
+var death: R3Death
 var _islesKey := ""
 var _isleRock := Color("#4a4450")
 var _isleDeep := Color("#07080d")
@@ -168,6 +170,7 @@ func _ready() -> void:
 	camera.fov = CAM_FOV
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("camzoom="): _dev_zoom = float(a.substr(8))
+		if a.begins_with("fixdt="): _fixdt = 1.0 / float(a.substr(6))
 		if a.begins_with("tilt="):
 			TILT = deg_to_rad(float(a.substr(5)))
 			COS_TILT = cos(TILT)
@@ -190,6 +193,7 @@ func _ready() -> void:
 	_build_player_root()
 	en = R3Enemies.new(self)
 	fx = R3Fx.new(self)
+	death = R3Death.new(self)
 	wpn = R3Weapons.new(self)
 	_currentCharId = ""
 	load_character(game.player.charId if game and game.player and game.player.charId else D.DEFAULT_CHAR)
@@ -222,17 +226,18 @@ static func lerp_lin(a: Color, b: Color, t: float) -> Color:
 # ═══════════ KURULUM ═══════════
 
 func _build_lights() -> void:
-	RenderingServer.global_shader_parameter_set("r3_hemi_sky", Shd.lin3(Color("#5a6a9a"), 1.55))
-	RenderingServer.global_shader_parameter_set("r3_hemi_ground", Shd.lin3(Color("#1c1822"), 1.55))
-	RenderingServer.global_shader_parameter_set("r3_ambient", Shd.lin3(Color("#8090c0"), 0.65))
+	# gök yarıküresi daha nötr (mavi gök + kızıl kontur ten rengini leylağa çeviriyordu)
+	RenderingServer.global_shader_parameter_set("r3_hemi_sky", Shd.lin3(Color("#6f7590"), 1.55))
+	RenderingServer.global_shader_parameter_set("r3_hemi_ground", Shd.lin3(Color("#221d22"), 1.55))
+	RenderingServer.global_shader_parameter_set("r3_ambient", Shd.lin3(Color("#8f94ae"), 0.65))
 	RenderingServer.global_shader_parameter_set("r3_rim_dir", Vector3(320, 160, 260).normalized())
 	_apply_light_colors()
 
 func _apply_light_colors() -> void:
 	# ana ışık sıcak-beyaz, ay rengi yalnız hafif bir ton (tam kızıl ay teni pembeye boyuyordu);
 	# dünya rengi kontur ışığında kalır
-	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(lerp_lin(Color("#fff3e6"), _moonHex, 0.3), 1.75))
-	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(_rimHex, 0.5))
+	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(lerp_lin(Color("#fbf6f0"), _moonHex, 0.12), 1.75))
+	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(_rimHex, 0.3))
 
 func _build_ground() -> void:
 	groundMat = ShaderMaterial.new()
@@ -439,6 +444,7 @@ func set_frozen(on: bool) -> void:
 func render(g) -> void:
 	var now := Time.get_ticks_msec() * 1.0
 	var dt := minf(0.1, (now - _clock) / 1000.0) if _clock > 0 else 0.016
+	if _fixdt > 0.0: dt = _fixdt          # geliştirici: --write-movie kaydında kare başına sabit adım
 	_clock = now
 	RenderingServer.global_shader_parameter_set("r3_time", now / 1000.0)
 	if g.player.charId and g.player.charId != _currentCharId:
@@ -455,6 +461,7 @@ func render(g) -> void:
 	wpn.update(g, dt)
 	en.update(g, dt)
 	fx.update(g, dt)
+	death.update(dt, fx.cam)
 
 func _update_camera(g) -> void:
 	var cx: float = g.cam.x + g.shakeX
@@ -799,6 +806,8 @@ func _rot_bone(b: int, axis: Vector3, a: float) -> void:
 
 func prepare_world_enemies(floor_id: String) -> void: en.prepare(floor_id)
 func spawn_hit(x: float, y: float, ang: float, t: int, cr := 1.0, cg := 0.92, cb := 0.76) -> void: fx.spawn_hit(x, y, ang, t, cr, cg, cb)
+func spawn_death(x: float, y: float, ang: float, col: Color, big: bool) -> void: if death: death.spawn(x, y, ang, col, big)
+func spawn_pow(x: float, y: float) -> void: if death: death.pow_spark(x, y)
 func spawn_cast(x: float, y: float, cr: float, cg: float, cb: float) -> void: fx.spawn_cast(x, y, cr, cg, cb)
 func spawn_flame_impact(x: float, y: float, ang: float, sc := 1.0) -> void: fx.spawn_flame_impact(x, y, ang, sc)
 func spawn_judgement(x: float, y: float) -> void: wpn.spawn_judgement(x, y)

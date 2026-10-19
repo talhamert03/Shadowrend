@@ -5,7 +5,7 @@ extends RefCounted
 ## menzilli düşmanın asa pozu) + boss (Hasat Lordu süzülür / Batak Ejderi zıplar).
 ## Model ölçüleri bake'te ölçüldü (models_meta.json: baseScale, rigPos, restT).
 
-const CORPSE_T := 0.5
+const CORPSE_T := 0.62
 const BOSS_HOVER := 12.0
 const BOSS_ATK := 0.62
 const BOSS_WINDUP := 0.62
@@ -150,7 +150,10 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 		var ol := 0.0 if Quality.tier == "low" else 1.4
 		var mats := Shd.convert_tree(inst, {"lift": lift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0, "outline": ol})
 		var ek: Array = []
-		for m in mats: ek.append(float(m.get_shader_parameter("emissive_k")))
+		var nps: Array = []
+		for m in mats:
+			ek.append(float(m.get_shader_parameter("emissive_k")))
+			nps.append((m as ShaderMaterial).next_pass)
 		var ap := inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		var anim := ""
 		if ap:
@@ -176,7 +179,7 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 		holder.visible = false
 		pool.append({
 			"holder": holder, "rig": rig, "rigY0": rig.position.y, "ap": ap, "anim": anim, "t": t0, "dur": dur,
-			"sk": sk, "bones": bones, "mats": mats, "ek": ek, "emI": -1.0,
+			"sk": sk, "bones": bones, "mats": mats, "ek": ek, "emI": -1.0, "nps": nps, "dis": false, "wh": 0.0,
 			"e": null, "seed": -1.0, "yaw": 0.0, "sx": 0.0, "sz": 0.0, "aAcc": 0.0,
 			"dead": 0.0, "deadAng": 0.0, "fl": 0.0, "hs": 0,
 		})
@@ -263,14 +266,17 @@ func _drive_group(g, dt: float, EM: Dictionary, act: Array, tok: int, sh: int, a
 			if p.fl:
 				p.fl = 0.0
 				_flyN = maxi(0, _flyN - 1)
+			_dissolve(p, 0.0, 0.0)
 			H.visible = false
 			H.rotation = Vector3(0, p.yaw, 0)
 			H.position.y = 0
 			H.scale = Vector3(bs, bs, bs)
 			continue
 		var k: float = 1 - p.dead / CORPSE_T
+		# beyaz flaş (ilk ~70 ms) → kenarı parlayan çözülme (yukarıdan aşağı)
+		_dissolve(p, smoothstep(0.14, 0.95, k), clampf(1.0 - k / 0.11, 0.0, 1.0))
 		var fall := (k / 0.22) * (k / 0.22) if k < 0.22 else 1.0
-		var sink := 0.0 if k < 0.30 else (k - 0.30) / 0.70
+		var sink := 0.0 if k < 0.70 else (k - 0.70) / 0.30 * 0.35
 		var rel: float = p.deadAng - p.yaw
 		var amt := 1.24 * fall
 		H.rotation = Vector3(cos(rel) * amt, p.yaw, -sin(rel) * amt)
@@ -422,6 +428,11 @@ func _drive_group(g, dt: float, EM: Dictionary, act: Array, tok: int, sh: int, a
 			p.emI = wantI
 			var mats: Array = p.mats
 			for mi in mats.size(): mats[mi].set_shader_parameter("emissive_k", p.ek[mi] * wantI)
+		# vuruş: çizgi roman beyaz flaşı (ilk karelerde tam, hızla söner)
+		var wantW: float = snappedf(clampf(e.flash / maxf(0.001, float(D.FX.hitFlashTime)), 0.0, 1.0) * 0.82, 0.1) if e.flash > 0 else 0.0
+		if p.wh != wantW:
+			p.wh = wantW
+			for m in p.mats: (m as ShaderMaterial).set_shader_parameter("white", wantW)
 		if sh < _enemyMax:
 			var r: float = EM.shadowR
 			shadowMesh.set_ys(sh, p.sx, 0.3, p.sz, 0, r, r, r)
@@ -472,12 +483,29 @@ func enemy_death(e, ang: float, quiet: bool) -> void:
 				return
 			p.dead = CORPSE_T
 			p.deadAng = ang
+			_dis_col(p, JS.col(e.color))
 			p.sx = e.x; p.sz = e.y
 			p.fl = 0.0
 			if _flyN < 12 and not e.elite:
 				p.fl = 64.0 if e.stopMv else 28.0
 				_flyN += 1
 			return
+
+## ölüm çözülmesi: kontur geçişi çözülme boyunca kapalı (paylaşılan malzeme), sonra geri gelir
+func _dissolve(p: Dictionary, d: float, w: float) -> void:
+	var on := d > 0.0 or w > 0.0
+	var mats: Array = p.mats
+	if on != bool(p.dis):
+		p.dis = on
+		for i in mats.size(): (mats[i] as ShaderMaterial).next_pass = null if on else p.nps[i]
+	p.wh = w
+	for m in mats:
+		(m as ShaderMaterial).set_shader_parameter("dissolve", d)
+		(m as ShaderMaterial).set_shader_parameter("white", w)
+
+func _dis_col(p: Dictionary, c: Color) -> void:
+	var hc := c.lerp(Color(1, 0.92, 0.75), 0.35)
+	for m in p.mats: (m as ShaderMaterial).set_shader_parameter("dis_col", hc)
 
 # ═══════════ BOSS ═══════════
 

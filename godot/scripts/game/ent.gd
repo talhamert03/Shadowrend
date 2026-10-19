@@ -26,13 +26,23 @@ class FloatText:
 	var pt := 0.0; var pk := 1.0
 	var owner = null
 	var val := 0.0
+	var rot := 0.0
+	var arc := false       # sayı: fırlar, yay çizip düşer (Borderlands); etiketler süzülür
 	func setup(px, py, pstr, pcolor, psize, pcrit, ang, life_base: float) -> FloatText:
 		x = px; y = py
-		vy = -64.0 if pcrit else -48.0
-		vx = 0.0 if ang == null else cos(ang) * 34.0 + (randf() - 0.5) * 18.0
-		life = life_base * (1.12 if pcrit else 1.0); max = life
 		str = pstr; color = JS.col(pcolor); size = psize; crit = pcrit
-		pt = 0.0; pk = 1.95 if pcrit else 1.42
+		arc = String(pstr).is_valid_int()
+		if arc:
+			var side := (cos(ang) if ang != null else (randf() - 0.5) * 2.0)
+			vx = side * (70.0 if pcrit else 46.0) + (randf() - 0.5) * 50.0
+			vy = -250.0 if pcrit else -185.0
+			rot = (randf() - 0.5) * (0.36 if pcrit else 0.14)
+		else:
+			vy = -64.0 if pcrit else -48.0
+			vx = 0.0 if ang == null else cos(ang) * 34.0 + (randf() - 0.5) * 18.0
+			rot = 0.0
+		life = life_base * (1.25 if pcrit else 1.05); max = life
+		pt = 0.0; pk = 2.2 if pcrit else 1.55
 		owner = null; val = 0.0
 		return self
 
