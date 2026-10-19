@@ -120,6 +120,7 @@ func _build() -> void:
 	for i in mini(tabs.size(), DOCK.size()):
 		var pg: String = DOCK[i]
 		_tab_n[pg] = tabs[i]
+		no_spring[tabs[i]] = true           # sekmenin kendi ezil-zıpla animasyonu var
 		btn(shell, tabs[i], func(): _tap(pg), 0.94)
 
 ## sayfa gizli kurulur (UIPrewarm) — sekme ilk açılışta takılmasın
@@ -182,6 +183,33 @@ func set_page(p: String, instant := false) -> void:
 		return
 	var fw := ORDER.find(p) > ORDER.find(prev)
 	_slide_pair(pages[prev], L, fw, 0.0)
+	_stagger(L)
+
+## Supercell sayfa girişi: içerik blokları yukarıdan aşağı sırayla, hafif aşağıdan ve küçükten
+## taşarak yerine oturur (45 ms ara, 340 ms ease-out-back). Yalnız sayfanın kaydırma alanı.
+var _stg: Array = []          # [{L, n, t0}]
+func _stagger(page_n: Node2D) -> void:
+	if Settings.data.get("rm", false): return
+	var lyrs: Array = []
+	if page_n is Lyr: lyrs.append(page_n)
+	lyrs.append_array(page_n.find_children("*", "Lyr", true, false))
+	for L in lyrs:
+		var sc: Lyr.N = null
+		for n in (L as Lyr).nodes:
+			if n.scroller:
+				sc = n
+				break
+		if sc == null: continue
+		var kids: Array = sc.kids.filter(func(k): return not k.hidden)
+		kids.sort_custom(func(a, b): return a.pos.y < b.pos.y)
+		var i := 0
+		for k in kids.slice(0, 10):
+			_stg.append({"L": L, "n": k, "t0": _t + 0.06 + i * 0.045})
+			k.op_mul = 0.0
+			k.extra = Transform2D(0, Vector2.ONE * 0.95, 0, Vector2(0, 18))
+			(L as Lyr).set_dyn(k)
+			i += 1
+		return
 
 ## sayfa durumunu etkinleştir: alt menü vurgusu, sayfa adı, (gerekirse) kurulum
 func _activate(p: String) -> Node2D:
@@ -343,6 +371,24 @@ func _process(dt: float) -> void:
 			if S.out:
 				L.visible = false
 				_reset_page(L)
+	for S2 in _stg.duplicate():
+		var L2: Lyr = S2.L
+		var N3: Lyr.N = S2.n
+		if not is_instance_valid(L2):
+			_stg.erase(S2)
+			continue
+		var ks := (_t - float(S2.t0)) / 0.34
+		if ks < 0.0: continue
+		if ks >= 1.0:
+			N3.op_mul = 1.0
+			N3.extra = Transform2D.IDENTITY
+			_stg.erase(S2)
+		else:
+			var q := ks - 1.0
+			var eb := 1.0 + 2.4 * q * q * q + 1.4 * q * q
+			N3.op_mul = minf(1.0, ks * 2.2)
+			N3.extra = Transform2D(0, Vector2.ONE * lerpf(0.95, 1.0, eb), 0, Vector2(0, 18.0 * (1.0 - eb)))
+		L2.set_dyn(N3)
 	# kaydırma alanı: sayfa görünüm alanı (üst çubuk ile alt menü arası)
 	if _pclip: swipe_rect = _pclip.get_global_rect()
 	# yuva sayaçları (web updateChestCountdowns: 1 sn)

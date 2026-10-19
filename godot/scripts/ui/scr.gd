@@ -112,11 +112,46 @@ func _srect(S: Dictionary) -> Rect2:
 	if not is_instance_valid(L) or not L.is_visible_in_tree(): return Rect2()
 	return _clip(L, L.get_global_transform() * L.rect_of(S.n))
 
+## Supercell düğme hissi: basınca yayla derin ezilir (~0,92), bırakınca taşarak (≈1,04)
+## yerine oturur — anlık ölçek değişimi değil, sönümlü yay (k 760, c 15; ζ≈0,27).
+var _springs := {}           # Lyr.N → {lyr, s, v, tgt}
+var no_spring := {}          # kendi animasyonu olan düğümler (alt menü sekmesi zıplaması)
+
 func _set_pressed(B, on: bool) -> void:
 	if B == null: return
 	var n: Lyr.N = B.n
-	n.extra = Transform2D(0, Vector2.ONE * B.scale, 0, Vector2.ZERO) if on else Transform2D.IDENTITY
-	(B.lyr as Lyr).set_dyn(n)
+	if float(B.scale) >= 0.999: return            # ölçeksiz düğme (tam ekran dokunuş alanı vb.)
+	if no_spring.has(n) or Settings.data.get("rm", false):
+		n.extra = Transform2D(0, Vector2.ONE * B.scale, 0, Vector2.ZERO) if on else Transform2D.IDENTITY
+		(B.lyr as Lyr).set_dyn(n)
+		return
+	var sp = _springs.get(n)
+	if sp == null:
+		sp = {"lyr": B.lyr, "s": 1.0, "v": 0.0, "tgt": 1.0}
+		_springs[n] = sp
+	sp.tgt = (1.0 - (1.0 - float(B.scale)) * 2.6) if on else 1.0
+	if on: sp.v -= 1.6                    # basış anında hızlı çöküş
+
+func _tick_springs(dt: float) -> void:
+	if _springs.is_empty(): return
+	var h := minf(dt, 1.0 / 30.0)
+	for n in _springs.keys():
+		var sp: Dictionary = _springs[n]
+		if not is_instance_valid(sp.lyr):
+			_springs.erase(n)
+			continue
+		var steps := 2
+		for i in steps:
+			var a: float = 760.0 * (float(sp.tgt) - float(sp.s)) - 15.0 * float(sp.v)
+			sp.v = float(sp.v) + a * h / steps
+			sp.s = float(sp.s) + float(sp.v) * h / steps
+		var N: Lyr.N = n
+		if float(sp.tgt) == 1.0 and absf(float(sp.s) - 1.0) < 0.0015 and absf(float(sp.v)) < 0.02:
+			N.extra = Transform2D.IDENTITY
+			_springs.erase(n)
+		else:
+			N.extra = Transform2D(0, Vector2.ONE * float(sp.s), 0, Vector2.ZERO)
+		(sp.lyr as Lyr).set_dyn(N)
 
 ## alt sınıf: kaydırma sırasında (dx canlı), bitişte (dx, hız px/sn)
 func _swipe_move(_dx: float) -> void: pass
@@ -320,6 +355,7 @@ func _release(pos: Vector2, canceled: bool) -> void:
 	if modal: get_viewport().set_input_as_handled()
 
 func _tick_fling(dt: float) -> void:
+	_tick_springs(dt)
 	# savurma + kenara geri yaylanma
 	if _fling.is_empty(): return
 	for F in _fling.duplicate():
