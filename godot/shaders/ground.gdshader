@@ -32,5 +32,12 @@ void fragment() {
 	float kh11 = fract(sin(dot(khI + vec2(1.0, 1.0), vec2(127.1, 311.7))) * 43758.5);
 	float khM = mix(mix(kh00, kh10, khF.x), mix(kh01, kh11, khF.x), khF.y);
 	d *= mix(vec3(0.91, 0.92, 0.96), vec3(1.08, 1.05, 1.0), khM * macro_k + (1.0 - macro_k) * 0.5);
+	// ada kenarı (uçuruma bakan): mürekkep çizgi · ışıklı dudak · içe doğru hafif gölge
+	vec2 eu = min(v_uv, 1.0 - v_uv) * arena.zw;
+	float e = min(eu.x, eu.y);
+	float aa = max(fwidth(e), 0.5);
+	d *= mix(0.72, 1.0, smoothstep(10.0, 70.0, e));
+	d = mix(d, d * 1.55 + vec3(0.02), smoothstep(5.0 - aa, 5.0 + aa, e) * (1.0 - smoothstep(10.0 - aa, 10.0 + aa, e)));
+	d = mix(vec3(0.004, 0.003, 0.006), d, smoothstep(4.0 - aa, 4.0 + aa, e));
 	ALBEDO = r3_srgb(d);
 }

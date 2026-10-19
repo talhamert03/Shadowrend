@@ -10,10 +10,10 @@ extends Node
 ## Alt modüller: R3Weapons (süzülen imza silahları) · R3Fx (isabet/ateş/şimşek/
 ## cevher/parçacık/alan havuzları) · R3Enemies (düşman/boss modelleri, mermiler).
 
-const TILT := 0.767944870877505          # 44°
-const CAM_FOV := 28.0
+static var TILT := 0.6981317007977318     # 40° (dikeyden) — yukarıdan, okunaklı 3/4 bakış
+static var CAM_FOV := 28.0
 const ZOOM := 1.05
-const COS_TILT := 0.7193398003386512
+static var COS_TILT := 0.766044443118978
 const TREE_SWAY := {"agac": 1, "fidan": 1}
 const DECOR_SWAY := {"ot": 1, "cicek": 1, "saz": 1, "mantar": 1}
 const DECOR_SCALE := {"ot": 2.4, "cicek": 2.3, "tas": 2.1, "mum": 1.9, "mantar": 1.9, "saz": 1.8, "kazik": 1.35, "kristal": 2.1, "kor": 2.0, "kemikP": 2.0, "disliP": 1.9, "yaprakP": 2.3, "kar": 2.1, "nilufer": 2.3}
@@ -27,6 +27,9 @@ var scene: Node3D
 var camera: Camera3D
 var env: Environment
 var camDist := 1150.0
+## kamera biraz daha uzak (daha geniş görüş); görünür alan sınırları (doğma/ayıklama) da aynı
+## oranda genişler — resize()
+const CAM_NEAR := 1.12
 ## geliştirici: kamera uzaklık çarpanı (camzoom=0.4 → yakın çekim, stil incelemesi)
 var _dev_zoom := 1.0
 var cam_left := -185.0
@@ -52,6 +55,13 @@ var ground: MeshInstance3D
 var groundMat: ShaderMaterial
 var voidGround: MeshInstance3D
 var voidMat: ShaderMaterial
+var isles: R3Isles
+var _islesKey := ""
+var _isleRock := Color("#4a4450")
+var _isleDeep := Color("#07080d")
+var cliff: MeshInstance3D
+var cliffMat: ShaderMaterial
+var _cliffArena := Vector4.ZERO
 var _groundWorld := -1
 
 # ── engeller / süsler / fx ──
@@ -127,7 +137,7 @@ func _ready() -> void:
 	vp.handle_input_locally = false
 	vp.gui_disable_input = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	vp.msaa_3d = Viewport.MSAA_4X if tier == "high" else Viewport.MSAA_DISABLED
+	vp.msaa_3d = Viewport.MSAA_4X if tier == "high" else (Viewport.MSAA_2X if tier == "mid" else Viewport.MSAA_DISABLED)
 	vp.positional_shadow_atlas_size = 0
 	add_child(vp)
 	view = TextureRect.new()
@@ -137,6 +147,10 @@ func _ready() -> void:
 	view.set_anchors_preset(Control.PRESET_FULL_RECT)
 	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	# keskinleştirme (CAS benzeri, 5 örnek): ölçeklenen 3B görüntü yumuşak/çamurlu durmasın
+	var sh := ShaderMaterial.new()
+	sh.shader = load("res://shaders/ui/sharpen.gdshader")
+	view.material = sh
 	layer.add_child(view)
 
 	scene = Node3D.new()
@@ -154,13 +168,19 @@ func _ready() -> void:
 	camera.fov = CAM_FOV
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("camzoom="): _dev_zoom = float(a.substr(8))
+		if a.begins_with("tilt="):
+			TILT = deg_to_rad(float(a.substr(5)))
+			COS_TILT = cos(TILT)
+		if a.begins_with("fov="):
+			CAM_FOV = float(a.substr(4))
+			camera.fov = CAM_FOV
 		# geliştirici: global stil değeri — sg=r3_toon:0,r3_sat:1
 		if a.begins_with("sg="):
 			for kv in a.substr(3).split(","):
 				var p := kv.split(":")
 				if p.size() == 2: RenderingServer.global_shader_parameter_set(p[0], float(p[1]))
 	camera.near = 80
-	camera.far = 3200
+	camera.far = 7000
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
 	scene.add_child(camera)
 	camera.current = true
@@ -209,8 +229,10 @@ func _build_lights() -> void:
 	_apply_light_colors()
 
 func _apply_light_colors() -> void:
-	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(_moonHex, 1.7))
-	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(_rimHex, 0.4))
+	# ana ışık sıcak-beyaz, ay rengi yalnız hafif bir ton (tam kızıl ay teni pembeye boyuyordu);
+	# dünya rengi kontur ışığında kalır
+	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(lerp_lin(Color("#fff3e6"), _moonHex, 0.3), 1.75))
+	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(_rimHex, 0.5))
 
 func _build_ground() -> void:
 	groundMat = ShaderMaterial.new()
@@ -218,10 +240,19 @@ func _build_ground() -> void:
 	groundMat.set_shader_parameter("macro_k", 0.0 if Quality.tier == "low" else 1.0)
 	ground = mesh_node(Geo.plane(1, 1, 1, 1, -PI / 2), groundMat, scene)
 	ground.visible = false
-	# dış boşluk: arenanın etrafını kaplayan büyük koyu zemin (y = -12)
-	voidMat = Shd.basic({"color": Color("#171d2c")})
-	voidGround = mesh_node(Geo.plane(12000, 12000, 1, 1, -PI / 2), voidMat, scene)
-	voidGround.position.y = -12
+	# dış boşluk: ada uçurumun üstünde süzülür — paralakslı sis katları + dipte kıvılcımlar
+	# (shaders/void.gdshader), kenarlardan inen kaya yarları (cliff.gdshader); renkler dünyadan
+	voidMat = ShaderMaterial.new()
+	voidMat.shader = load("res://shaders/void.gdshader")
+	voidMat.set_shader_parameter("layers", 1.0 if Quality.tier == "low" else 2.0)
+	voidMat.set_shader_parameter("noise", tex("res://assets/fx/void_noise.png"))
+	voidGround = mesh_node(Geo.plane(14000, 14000, 1, 1, -PI / 2), voidMat, scene)
+	voidGround.position.y = -2200          # adacıkların altında (sis katları shader'da sanal)
+	isles = R3Isles.new()
+	scene.add_child(isles)
+	cliffMat = ShaderMaterial.new()
+	cliffMat.shader = load("res://shaders/cliff.gdshader")
+	cliff = mesh_node(null, cliffMat, scene)
 	# engel/süs materyalleri — gren dokusu (ortalama ≈ 1,0 nötr çarpan)
 	propTex = tex("res://assets/fx/prop_grain.png")
 	propMat = Shd.basic({"map": "srgb", "repeat": true, "tex": propTex})
@@ -380,12 +411,16 @@ func resize() -> void:
 	if pr == _rsPr and w == _rsW and h == _rsH: return
 	_rsPr = pr; _rsW = w; _rsH = h
 	vp.size = Vector2i(maxi(1, int(round(w * pr))), maxi(1, int(round(h * pr))))
+	# çözünürlük ekranın altındaysa (uyarlamalı ölçek) daha güçlü keskinleştir
+	if view.material:
+		var under := clampf(1.0 - pr / maxf(1.0, Quality._device_ratio()), 0.0, 0.6)
+		(view.material as ShaderMaterial).set_shader_parameter("amount", 0.32 + under * 0.5)
 	var halfHPerp := h / 2 / ZOOM
 	var halfH := halfHPerp / cos(TILT)
 	var halfW := (w / 2) / ZOOM
 	camDist = halfHPerp / tan(deg_to_rad(CAM_FOV) / 2)
-	cam_left = -halfW; cam_right = halfW
-	cam_top = halfH; cam_bottom = -halfH
+	cam_left = -halfW * CAM_NEAR; cam_right = halfW * CAM_NEAR
+	cam_top = halfH * CAM_NEAR; cam_bottom = -halfH * CAM_NEAR
 	if fx: fx.set_point_scale(pr, h)
 
 func set_active(on: bool) -> void:
@@ -415,6 +450,7 @@ func render(g) -> void:
 	_update_objective(g)
 	if fieldChestView: fieldChestView.update(g)
 	_update_atmosphere(g, dt)
+	if isles: isles.update(now / 1000.0, dt)
 	_update_player(g, dt)
 	wpn.update(g, dt)
 	en.update(g, dt)
@@ -423,7 +459,7 @@ func render(g) -> void:
 func _update_camera(g) -> void:
 	var cx: float = g.cam.x + g.shakeX
 	var cy: float = g.cam.y + g.shakeY
-	var dist: float = camDist * (1 - g.zoomP) * _dev_zoom
+	var dist: float = camDist * CAM_NEAR * (1 - g.zoomP) * _dev_zoom
 	var height: float = dist * cos(TILT)
 	var back: float = dist * sin(TILT)
 	var pos := Vector3(cx, height, cy + back)
@@ -439,6 +475,11 @@ func _update_ground(g) -> void:
 		ground.visible = false
 		return
 	ground.visible = true
+	var av := Vector4(A.x0, A.y0, A.w, A.h)
+	if av != _cliffArena:
+		_cliffArena = av
+		cliff.mesh = _cliff_mesh(A.x0, A.y0, A.w, A.h, 440.0)
+		voidMat.set_shader_parameter("arena", av)
 	ground.scale = Vector3(A.w, 1, A.h)
 	ground.position = Vector3(A.x0 + A.w / 2, 0, A.y0 + A.h / 2)
 	var wid: int = g.worldId
@@ -446,7 +487,9 @@ func _update_ground(g) -> void:
 		_groundWorld = wid
 		var L: Dictionary = g.arenaLayout
 		var k := clampi(wid, 1, 10)
-		groundMat.set_shader_parameter("macro", tex("res://assets/arena/w%d/macro.png" % k))
+		var mtex := tex("res://assets/arena/w%d/macro.png" % k)
+		groundMat.set_shader_parameter("macro", mtex)
+		_build_isles(A, mtex, wid)
 		groundMat.set_shader_parameter("detail", tex("res://assets/arena/w%d/detail.png" % k))
 		groundMat.set_shader_parameter("arena", Vector4(A.x0, A.y0, A.w, A.h))
 		var tile := float(L.get("tile", 512))
@@ -454,6 +497,44 @@ func _update_ground(g) -> void:
 		groundMat.set_shader_parameter("detail_k", 0.9)
 		groundMat.set_shader_parameter("detail_mid", float(L.get("detailMid", 0.216)))
 		groundMat.set_shader_parameter("detail_break", 0.34)
+
+func _build_isles(A, mtex: Texture2D, wid: int) -> void:
+	var wd = game.world_def() if game else null
+	if wd and _atmoWorldId != int(wd.id): _set_world_atmosphere(wd)      # kaya/sis renkleri önce
+	var top := Color("#4c5a3c")
+	var img := mtex.get_image() if mtex else null
+	if img:
+		if img.is_compressed(): img.decompress()
+		img.resize(1, 1, Image.INTERPOLATE_BILINEAR)
+		top = img.get_pixel(0, 0)
+		# zemin ortalaması koyu-soluk: adacık tepesi biraz daha canlı ve aydınlık
+		top = Color.from_hsv(top.h, minf(1.0, top.s * 1.25), minf(1.0, top.v * 1.3 + 0.04))
+	isles.build(Vector4(A.x0, A.y0, A.w, A.h), top, _isleRock, _isleDeep, 1000 + wid * 17)
+
+## arenanın dört kenarında aşağı inen duvar halkası (dış yüz normalleri dışa)
+static func _cliff_mesh(x0: float, z0: float, w: float, h: float, dep: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var x1 := x0 + w
+	var z1 := z0 + h
+	var y0 := -1.0
+	var y1 := -dep
+	# [a, b, normal]: a→b kenar boyunca
+	var walls := [
+		[Vector3(x0, 0, z1), Vector3(x1, 0, z1), Vector3(0, 0, 1)],    # güney (kameraya bakan)
+		[Vector3(x1, 0, z0), Vector3(x0, 0, z0), Vector3(0, 0, -1)],   # kuzey
+		[Vector3(x0, 0, z0), Vector3(x0, 0, z1), Vector3(-1, 0, 0)],   # batı
+		[Vector3(x1, 0, z1), Vector3(x1, 0, z0), Vector3(1, 0, 0)],    # doğu
+	]
+	for wl in walls:
+		var a: Vector3 = wl[0]
+		var b: Vector3 = wl[1]
+		var n: Vector3 = wl[2]
+		var q := [a + Vector3(0, y0, 0), b + Vector3(0, y0, 0), b + Vector3(0, y1, 0), a + Vector3(0, y1, 0)]
+		for i in [0, 1, 2, 0, 2, 3]:
+			st.set_normal(n)
+			st.add_vertex(q[i])
+	return st.commit()
 
 ## Görev yüklemesinde (perde arkası): engel/süs geometrilerini önceden kur.
 func prepare_arena(_world_id: int, _layout: Dictionary) -> void:
@@ -621,8 +702,31 @@ func _set_world_atmosphere(wd) -> void:
 	_atmoWorldId = wd.id
 	var colorHex := JS.col(wd.color)
 	var moonHex := JS.col(wd.moon[0])
-	var voidTint := lerp_lin(Color("#171d2c"), colorHex, 0.24)
-	voidMat.set_shader_parameter("color", voidTint)
+	var mo: Array = wd.moon
+	var m0 := JS.col(mo[0])
+	var m1 := JS.col(mo[1])
+	var m2 := JS.col(mo[2])
+	var m3 := JS.col(mo[3])
+	var deep := lerp_lin(lerp_lin(Color("#05060b"), m3, 0.45), Color("#0b0d16"), 0.35)
+	var mist := lerp_lin(lerp_lin(m2, m3, 0.35), Color("#3a3f55"), 0.25)
+	# bulut denizi: dünyanın ay paleti — gölge (koyu) · gövde · ışıklı tepe; tepeler hafif beyaza
+	voidMat.set_shader_parameter("c_deep", deep)
+	# bulutlar oyun alanından daha koyu ve az doygun kalır (göz zemindeki savaşta)
+	var mute := func(c: Color, k: float) -> Color: return lerp_lin(c, Color("#3c3d4c"), k)
+	voidMat.set_shader_parameter("c_shadow", mute.call(lerp_lin(m3, m2, 0.35), 0.3))
+	voidMat.set_shader_parameter("c_body", mute.call(lerp_lin(m3, m2, 0.85), 0.32))
+	voidMat.set_shader_parameter("c_hi", mute.call(lerp_lin(m2, m1, 0.7), 0.22))
+	voidMat.set_shader_parameter("c_ink", lerp_lin(Color("#020206"), m3, 0.35))
+	voidMat.set_shader_parameter("c_spark", m0)
+	if isles:
+		isles.set_cloud_colors(mute.call(lerp_lin(m3, m2, 0.4), 0.38), mute.call(lerp_lin(m2, m1, 0.25), 0.36),
+			mute.call(lerp_lin(m1, m0, 0.35), 0.24), lerp_lin(Color("#030207"), m3, 0.4), deep)
+	cliffMat.set_shader_parameter("c_rock", lerp_lin(Color("#34303a"), colorHex, 0.12))
+	cliffMat.set_shader_parameter("c_lip", lerp_lin(Color("#9a9088"), m0, 0.25))
+	cliffMat.set_shader_parameter("c_mist", mist)
+	cliffMat.set_shader_parameter("c_deep", deep)
+	_isleRock = lerp_lin(Color("#4a4450"), colorHex, 0.14)
+	_isleDeep = deep
 	env.background_color = lerp_lin(Color("#07080d"), colorHex, 0.05)
 	_moonHex = moonHex
 	_rimHex = colorHex

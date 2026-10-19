@@ -224,6 +224,10 @@ func boot() -> void:
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
+		if _arg("px") != "" or _arg("py") != "":
+			g.player.x = float(_arg("px", "0"))
+			g.player.y = float(_arg("py", "0"))
+			g.cam = Vector2(g.player.x, g.player.y)
 		var hide := _arg("hide", "")
 		if hide != "":
 			var r3 = g.renderer3d
@@ -231,6 +235,7 @@ func boot() -> void:
 				match k:
 					"ground": r3.ground.queue_free(); r3.ground = MeshInstance3D.new()
 					"void": r3.voidGround.visible = false; r3.voidGround.position.y = -9999
+					"cliff": r3.cliff.visible = false
 					"props": r3.propGroup.visible = false
 					"decor": r3.decorGroup.visible = false
 					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
