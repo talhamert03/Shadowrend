@@ -327,6 +327,17 @@ func _process(dt: float) -> void:
 		_slotTick = 0.0
 		if g.chests.tick(): render_slots()
 		else: _slot_texts()
+	# cüzdan zıplaması (v74Bump 360 ms: 1 → 1,1 → 1)
+	for bn in _bumps.keys():
+		var kb := (_t - float(_bumps[bn])) / 0.36
+		var N2: Lyr.N = bn
+		if kb >= 1.0:
+			_bumps.erase(bn)
+			N2.extra = Transform2D.IDENTITY
+		else:
+			var sc := 1.0 + 0.1 * (kb / 0.35 if kb < 0.35 else 1.0 - (kb - 0.35) / 0.65)
+			N2.extra = Transform2D(0, Vector2.ONE * sc, 0, Vector2.ZERO)
+		shell.set_dyn(N2)
 	# sayaç geçişleri (420 ms kübik)
 	for key in _tw.keys():
 		var T: Array = _tw[key]
@@ -343,10 +354,70 @@ func refresh_wallet(instant := false) -> void:
 	var r: float = g.read_rubies()
 	var s: float = g.read_stones()
 	for pair in [["#menu-ruby-val", r, _ruby], ["#menu-stone-val", s, _stone]]:
+		if _flying.get(pair[0], false): continue      # uçuş sayacı parça parça artırıyor
 		if instant or Settings.data.get("rm", false): shell.set_text(shell.find_id(pair[0]), str(int(pair[1])))
 		elif pair[1] != pair[2]: _tw[pair[0]] = [pair[2], pair[1], _t]
 	_ruby = r
 	_stone = s
+
+# ── para uçuşu (ui.js rewardFrom / flyCurrency) ──
+var _flying := {}            # sayaç kimliği → uçuş sürüyor
+var _bumps := {}             # .tb-cur düğümü → başlangıç (zıplama 360 ms)
+
+## ödül veren düğme: artış olan cüzdana kaynaktan uçuş, yoksa sayarak tazeleme.
+## Ödül VERİLDİKTEN sonra, kaynak düğüm yeniden kurulmadan ÖNCE çağrılır.
+func reward_from(L: Lyr, n: Lyr.N) -> void:
+	var up_r: bool = g.read_rubies() > _ruby
+	var up_s: bool = g.read_stones() > _stone
+	var ok := L != null and n != null and is_instance_valid(L) and L.is_visible_in_tree() and visible
+	if ok and up_r: fly_currency(L, n, "ruby")
+	if ok and up_s: fly_currency(L, n, "stone")
+	refresh_wallet()      # uçmayan sayaç (ör. bozdurmada azalan gem) sayarak tazelenir
+
+func _uiroot_pos(L: Lyr, n: Lyr.N) -> Vector2:
+	var root: Node2D = g.ui.uiroot
+	var gp: Vector2 = L.get_global_transform() * L.rect_of(n).get_center()
+	return root.get_global_transform().affine_inverse() * gp
+
+func fly_currency(L: Lyr, n: Lyr.N, kind: String, on_done := Callable()) -> void:
+	var key := "#menu-ruby-val" if kind == "ruby" else "#menu-stone-val"
+	var val := shell.find_id(key)
+	var ic := shell.find("." + kind)
+	if val == null or ic == null or Settings.data.get("rm", false) or _flying.get(key, false):
+		refresh_wallet()
+		if on_done.is_valid(): on_done.call()
+		return
+	var cur: Lyr.N = shell.by_id.get(str(val.d.parent))
+	var target: float = g.read_rubies() if kind == "ruby" else g.read_stones()
+	var base: float = _ruby if kind == "ruby" else _stone
+	_tw.erase(key)
+	shell.set_text(val, str(int(base)))
+	_flying[key] = true
+	if kind == "ruby": _ruby = target
+	else: _stone = target
+	var F := FxFly.new()
+	F.z_index = 50
+	F.col = Color(1.0, 0.82, 0.48) if kind == "ruby" else Color(0.78, 0.61, 1.0)
+	F.src = _uiroot_pos(L, n)
+	F.dst = _uiroot_pos(shell, ic)
+	var holder := Node2D.new()
+	var dup := ic.node.duplicate() as Node2D
+	dup.position = -ic.size * 0.5
+	dup.rotation = 0.0
+	dup.scale = Vector2.ONE
+	holder.add_child(dup)
+	holder.scale = Vector2.ONE * (22.0 / maxf(1.0, ic.size.x))
+	F.icon = holder
+	F.on_arrive = func(i: int, total: int):
+		shell.set_text(val, str(int(round(base + (target - base) * float(i) / total))))
+		if cur: _bumps[cur] = _t
+		if i == 1: g.audio.play("walletin")
+	F.on_done = func():
+		_flying.erase(key)
+		refresh_wallet(true)
+		if on_done.is_valid(): on_done.call()
+	g.ui.uiroot.add_child(F)
+	F.start()
 
 func _top() -> void:
 	var alv: int = g.account_level()

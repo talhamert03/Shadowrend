@@ -83,11 +83,23 @@ func level_up(p: Dictionary) -> void:
 func gift(G: Dictionary) -> void:
 	var c := "1" if G.get("chest") else "0"
 	var f := "1" if G.get("full") else "0"
+	# altın zaten eklendi: sayaç hediye öncesini gösterir, TOPLA'da altın düğmeden cüzdana uçar
+	var m = g.ui.menu
+	var gold := float(G.get("gold", 0))
+	if m and m.shell and gold > 0.0:
+		m._ruby = maxf(0.0, m._ruby - gold)
+		m.shell.set_text(m.shell.find_id("#menu-ruby-val"), str(int(m._ruby)))
+	var holder := {}
 	var S: Lyr = g.ui.sheet.show_key("sh_gift_" + c + "_" + f, [func():
-		g.ui.sheet.close()
 		g.audio.play("claim")
-		g.ui.refresh_wallet()])
-	if S == null: return
+		var SL: Lyr = holder.get("S")
+		var act: Lyr.N = SL.find_id("#sh-actions") if SL else null
+		if m: m.reward_from(SL, act.kids[0] if act and act.kids.size() else act)
+		g.ui.sheet.close()], func(): if m: m.refresh_wallet())
+	holder["S"] = S
+	if S == null:
+		if m: m.refresh_wallet(true)
+		return
 	var hrs := float(G.get("h", 0))
 	var h := int(floor(hrs))
 	var mm := int(round((hrs - h) * 60.0))

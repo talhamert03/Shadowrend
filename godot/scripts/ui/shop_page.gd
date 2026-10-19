@@ -31,6 +31,7 @@ var _cont := {}            # kap kimliği → yakalanan mutlak konum (yakalama k
 var _items := {}           # kap → [Node]
 var _scroll_h0 := 0.0
 var _tick := 0.0
+var _pack_lyr := {}        # gem paketi kimliği → katman (uçuşun kaynağı)
 var _cd := {}              # geri sayım düğümleri: {"free": [L, n], "ad": …, "deal": …}
 
 func _init(m) -> void:
@@ -379,6 +380,7 @@ func _stone_shop() -> void:
 	for p in D.STONE_PACKS:
 		var P := _add("sp_" + str(p.id) + ("_x2" if x2 else ""), K)
 		if P == null: continue
+		_pack_lyr[p.id] = P
 		h = maxf(h, P.position.y + P.nodes[0].size.y)
 		var pid: String = p.id
 		menu.btn(P, P.nodes[0], func(): _buy_pack(pid), 0.96)
@@ -396,7 +398,8 @@ func _buy_pack(id: String) -> void:
 		if first:
 			g.add_stones(total)
 			Store.set_item("kh_firstbuy", "1")
-		menu.refresh_wallet()
+		var P = _pack_lyr.get(id)
+		menu.reward_from(P, P.nodes[0] if P else null)
 		render()
 		g.ui.toast("+" + str(int(total * 2 if first else total)) + " GEM ALINDI" + (" (×2!)" if first else ""))
 
@@ -411,7 +414,7 @@ func _exchange() -> void:
 		var rub: int = int(e.rubies)
 		menu.btn(E, E.nodes[0], func():
 			if g.exchange_stones(eid):
-				menu.refresh_wallet()
+				menu.reward_from(E, E.nodes[0])
 				render()
 				g.ui.toast("+" + str(rub) + " ALTIN BOZDURULDU")
 			else:
