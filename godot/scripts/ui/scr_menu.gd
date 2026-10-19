@@ -119,6 +119,7 @@ func _build() -> void:
 	tabs.sort_custom(func(a, b): return a.pos.x < b.pos.x)
 	for i in mini(tabs.size(), DOCK.size()):
 		var pg: String = DOCK[i]
+		_tab_n[pg] = tabs[i]
 		btn(shell, tabs[i], func(): _tap(pg), 0.94)
 
 ## sayfa gizli kurulur (UIPrewarm) — sekme ilk açılışta takılmasın
@@ -139,8 +140,31 @@ func prebuild(p: String) -> void:
 func busy() -> bool:
 	return _press >= 0 or _drag != null or not _fling.is_empty() or not _slides.is_empty()
 
+## v59 _navTap: dokunulan sekmeden halka yayılır, simge ezilip zıplar
+var _tab_n := {}             # sayfa → alt menü sekme düğümü
+var _hops := {}              # sekme düğümü → başlangıç
+func _dock_fx(p: String) -> void:
+	var n: Lyr.N = _tab_n.get(p)
+	if n == null or Settings.data.get("rm", false): return
+	_hops[n] = _t
+	var rip := Node2D.new()
+	rip.z_index = 5
+	rip.position = g.ui.uiroot.get_global_transform().affine_inverse() * (shell.get_global_transform() * shell.rect_of(n).get_center())
+	g.ui.uiroot.add_child(rip)
+	var t0 := Time.get_ticks_msec()
+	rip.draw.connect(func():
+		var k := clampf((Time.get_ticks_msec() - t0) / 620.0, 0.0, 1.0)
+		var e := 1.0 - pow(1.0 - k, 3.0)
+		var r := 30.0 * (0.3 + 1.2 * e)
+		rip.draw_circle(Vector2.ZERO, r, Color(1.0, 0.84, 0.75, 0.22 * (1.0 - k)))
+		rip.draw_arc(Vector2.ZERO, r, 0, TAU, 32, Color(1.0, 0.84, 0.75, 0.45 * (1.0 - k)), 1.5, true))
+	var tw := rip.create_tween()
+	tw.tween_method(func(_v): rip.queue_redraw(), 0.0, 1.0, 0.62)
+	tw.tween_callback(rip.queue_free)
+
 func _tap(p: String) -> void:
 	g.audio.play("click")
+	_dock_fx(p)
 	if p != "savas" and not FileAccess.file_exists(Lyr.BASE + "pg_" + p + ".json"):
 		g.ui.toast("YAKINDA")
 		return
@@ -327,6 +351,27 @@ func _process(dt: float) -> void:
 		_slotTick = 0.0
 		if g.chests.tick(): render_slots()
 		else: _slot_texts()
+	# sekme zıplaması (dk-hop 420 ms): ezil → uzan → otur
+	for hn in _hops.keys():
+		var kh := (_t - float(_hops[hn])) / 0.42
+		var H: Lyr.N = hn
+		if kh >= 1.0:
+			_hops.erase(hn)
+			H.extra = Transform2D.IDENTITY
+		else:
+			var sx := 1.0
+			var sy := 1.0
+			if kh < 0.25:
+				var u := kh / 0.25
+				sx = lerpf(1.0, 1.12, u); sy = lerpf(1.0, 0.86, u)
+			elif kh < 0.6:
+				var u2 := (kh - 0.25) / 0.35
+				sx = lerpf(1.12, 0.95, u2); sy = lerpf(0.86, 1.08, u2)
+			else:
+				var u3 := (kh - 0.6) / 0.4
+				sx = lerpf(0.95, 1.0, u3); sy = lerpf(1.08, 1.0, u3)
+			H.extra = Transform2D(0, Vector2(sx, sy), 0, Vector2(0, -4.0 * sin(clampf(kh / 0.6, 0, 1) * PI)))
+		shell.set_dyn(H)
 	# cüzdan zıplaması (v74Bump 360 ms: 1 → 1,1 → 1)
 	for bn in _bumps.keys():
 		var kb := (_t - float(_bumps[bn])) / 0.36
