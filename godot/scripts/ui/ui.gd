@@ -304,11 +304,19 @@ func show_menu() -> void:
 	if g._pendingGift:
 		var G = g._pendingGift
 		g._pendingGift = null
-		get_tree().create_timer(0.9).timeout.connect(func(): celebrate.gift(G))
+		get_tree().create_timer(0.9).timeout.connect(func(): _gift_when_free(G))
 	if g._pendingLevelUp:
 		var P = g._pendingLevelUp
 		g._pendingLevelUp = null
 		get_tree().create_timer(0.6).timeout.connect(func(): celebrate.level_up(P))
+## dönüş hediyesi: tören/katman/savaş sürerken bekler (üstlerine açılıp onları kilitlemesin)
+func _gift_when_free(G) -> void:
+	var busy: bool = g.state != "menu" or (ceremony and ceremony.visible) or sheet.visible or chestinspect.visible \
+		or chestbuy.visible or celebrate.visible or quests.visible or battlepass.visible or settings.visible
+	if busy:
+		get_tree().create_timer(0.5).timeout.connect(func(): _gift_when_free(G))
+		return
+	celebrate.gift(G)
 func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
 func show_settings() -> void: _ov("set", func(): settings.show_settings(pause.visible))

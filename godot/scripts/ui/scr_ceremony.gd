@@ -68,6 +68,18 @@ var _skip := false
 var _count_to := 0
 var _count_t := -1.0
 var _count_ms := 600.0
+# ── sahne cilası (Clash Royale düzeni): opak sahne, kart halesi, iniş vurgusu, kalan ödül rozeti ──
+var _bg: ColorRect
+var _halo: Sprite2D
+var _halo_c := Color.WHITE
+var _landed := false
+var _pop_t := -1.0             # kart oturma vurgusu (0,32 sn)
+var _cnt_pop := -1.0           # sayaç bitiş vurgusu (0,3 sn)
+var _left: Node2D              # kalan ödül rozeti
+var _left_lbl: UIText
+var _left_pop := -1.0
+var _menu_vis := false
+var _card_deco: Array = []
 
 func _init(game) -> void:
 	super(game)
@@ -142,6 +154,9 @@ func play(t: String, s: int, cb: Callable) -> void:
 	em_color = JS.col(prar.color) if peak >= 3 and prar.has("color") else JS.col(C.get("accent", C.color))
 	em_glow = JS.col(prar.glow) if peak >= 3 and prar.has("glow") else JS.col(C.glow)
 	_build()
+	# ayrı sahne: menü bu sürede çizilmez (opak zemin; performans)
+	_menu_vis = g.ui.menu.visible
+	g.ui.menu.visible = false
 	S = {"phase": "drop", "t": 0.0, "openT": 0.0, "shakeT": 0.0, "dropY": -560.0, "approach": 0.0, "landT": 0.0, "landed": false, "hopT": 0.0, "miniT": 0.0, "seam": 0.0, "punch": 0.0}
 	parts.clear()
 	confetti.clear()
@@ -157,6 +172,12 @@ func _build() -> void:
 	rev = null; back = null; summ = null
 	var dh := Scr.dh_of(self)
 	var W := UIK.ui_size(get_viewport())
+	# opak sahne zemini: menü arkada görünmez; sandık renginde derin ışıma, kenarlar gece
+	var acc := JS.col(C.get("accent", C.color))
+	_bg = _rg(W, Vector2(0.5, 0.58), [Color(acc.darkened(0.62), 1.0), Color(acc.darkened(0.84), 1.0), Color("#07060a"), Color("#030304")], [0.0, 0.28, 0.72, 1.0], true)
+	add_child(_bg)
+	_halo = null
+	_left = null
 	base = Lyr.make("cer_idle")
 	add_child(base)
 	base.stretch_h(dh)
@@ -521,6 +542,21 @@ func _show() -> void:
 	rev.stretch_h(Scr.dh_of(self))
 	base.visible = false
 	_layout_tray(rev, false)
+	# yakalamada CSS backface-visibility yoktu: kartın arka yüzü ön yüzün ÜSTÜNE çizilmiş
+	# (ön yüz hiç görünmüyordu) — gizle; dönüşte ayrı arka yüz katmanı (cer_back_*) kullanılır.
+	# Yakalanmış nadirlik yazısı da gizlenir (kendi 'word' düğümümüz çizer; üst üste binmesin).
+	for hk in [".cr-card-back", "#chest-rarity-word"]:
+		var hn := rev.find_id(hk) if hk.begins_with("#") else rev.find(hk)
+		if hn: rev.set_hidden(hn, true)
+	word.visible = false
+	_word_t = -1.0
+	# kartın çerçeve süsleri (.cr-card::before/::after: efsane/epik ışıltı çerçevesi) yalnız ön
+	# yüzle görünür — arka yüz dönerken taşıp kartı "yamuk" gösteriyordu
+	_card_deco.clear()
+	var crd := rev.find(".cr-card")
+	if crd:
+		for kd in crd.kids:
+			if String(kd.d.get("kind", "el")) != "el": _card_deco.append(kd)
 	# kart arka yüzü (dönüşte)
 	back = Lyr.make("cer_back_" + k)
 	var card := rev.find(".cr-card")
@@ -529,6 +565,20 @@ func _show() -> void:
 	_drama = drama_of(r)
 	var color := color_of(r)
 	var rar := rarity_of(r)
+	_halo_c = color
+	_landed = false
+	_pop_t = -1.0
+	_cnt_pop = -1.0
+	if _halo == null:
+		_halo = Sprite2D.new()
+		_halo.texture = ClimbArt.glow_tex()
+		var hm := CanvasItemMaterial.new()
+		hm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_halo.material = hm
+		add_child(_halo)
+	move_child(_halo, rev.get_index())
+	_halo.modulate.a = 0.0
+	_left_set(rewards.size() - idx)
 	# metinler
 	var tag := rev.find(".cr-card-tag")
 	if tag: rev.set_text(tag, _tag_of(r, rar))
@@ -544,6 +594,10 @@ func _show() -> void:
 		rev.set_text(cnt, "+0")
 	# görsel: eşya/silah çizimi ya da kahraman portresi
 	var gl := rev.find(".rw-glyph")
+	if gl and (r.kind == "rubies" or r.kind == "stone"):
+		# para kartı: yakalamadaki 20 px ikon kartın ortasında büyük, parlak (Clash Royale yığını gibi)
+		gl.extra = Transform2D(0, Vector2.ONE * 2.1, 0, Vector2(0, 6))
+		rev.set_dyn(gl)
 	if gl and r.kind != "rubies" and r.kind != "stone":
 		var tex: Texture2D = null
 		if r.kind == "char":
@@ -585,7 +639,7 @@ func _show() -> void:
 		word.shadow_list = UIK.shadows("0 0 24px #" + color.to_html(false) + ", 0 3px 10px rgba(0,0,0,0.6)")
 		var W := UIK.ui_size(get_viewport())
 		word.wrap_w = W.x
-		word.position = Vector2(0, W.y * 0.24)
+		word.position = Vector2(0, maxf(14.0, W.y * 0.045))
 		word.size = Vector2(W.x, word.size_px * 1.3)
 		word.pivot_offset = word.size * 0.5
 		_word_rb = _drama >= 3
@@ -610,6 +664,48 @@ static func _tag_of(r: Dictionary, rar: Dictionary) -> String:
 	if r.kind == "weapon": return "YENİ SİLAH"
 	return str(rar.get("name", "")) + (" EKİPMAN" if r.get("isNew", false) else " KART")
 
+## kartın merkezi (bu ekranın yerel uzayı)
+func _card_center(card: Lyr.N) -> Vector2:
+	return get_global_transform().affine_inverse() * (card.node.get_global_transform() * (card.size * 0.5))
+
+## kart oturunca çevresine saçılan kıvılcımlar (nadirlik renginde + beyaz)
+func _card_sparks(o: Vector2, n: int) -> void:
+	for i in n:
+		var a := randf() * TAU
+		var v := 180.0 + randf() * 260.0
+		var col := _halo_c.lerp(Color.WHITE, randf() * 0.6)
+		parts.append({"p": o + Vector2(cos(a), sin(a)) * Vector2(70, 95), "v": Vector2(cos(a), sin(a) - 0.4) * v,
+			"life": 0.5 + randf() * 0.6, "size": 2.0 + randf() * 3.0, "spin": 0.0, "rot": 0.0, "col": col})
+
+## kalan ödül rozeti (sandığın sağ üstünde; Clash Royale sayacı)
+func _left_set(n: int) -> void:
+	if _left == null:
+		_left = Node2D.new()
+		_left.draw.connect(func():
+			_left.draw_circle(Vector2(0, 2), 19, Color(0, 0, 0, 0.45))
+			_left.draw_circle(Vector2.ZERO, 18, Color("#1b1522"))
+			_left.draw_arc(Vector2.ZERO, 17, 0, TAU, 40, Color("#e9b86a"), 2.5, true)
+			_left.draw_arc(Vector2.ZERO, 13.5, PI * 1.1, PI * 1.9, 16, Color(1, 1, 1, 0.18), 2.0, true))
+		_left_lbl = UIText.new()
+		_left_lbl.style(false, 700, 17, 0, "#fff3dc", "0 2px 4px rgba(0,0,0,0.7)")
+		_left_lbl.align = 0.5
+		_left_lbl.nowrap = true
+		_left_lbl.wrap_w = 40
+		_left_lbl.position = Vector2(-20, -12)
+		_left.add_child(_left_lbl)
+		add_child(_left)
+	_left.position = stage.position + stage.size_l * Vector2(0.74, 0.22)
+	_left.visible = n > 0
+	_left_lbl.text = str(n)
+	_left_pop = 0.0
+
+func _left_step(dt: float) -> void:
+	if _left == null or _left_pop < 0.0: return
+	_left_pop += dt
+	var k := clampf(_left_pop / 0.35, 0, 1)
+	_left.scale = Vector2.ONE * (1.0 + 0.35 * sin(k * PI) * (1.0 - k))
+	if k >= 1.0: _left_pop = -1.0
+
 func _spawn_confetti(n: int) -> void:
 	var pal := ["#ff5a2c", "#ff9a5c", "#cfd6e2", "#9b6cff", "#8b93a6", "#ffffff"]
 	var stg := rev.find(".reveal-stage")
@@ -632,20 +728,41 @@ func _reveal_step(dt: float) -> void:
 	# yükseliş (crRise 680 ms) + dönüş (rotateY n·360° → 0)
 	var kr := clampf(_show_t / 0.68, 0, 1) if not _skip else 1.0
 	var er := UIK.bez(0.18, 0.9, 0.3, 1.06, kr)
+	var ks := clampf(_show_t * 1000.0 / _spin_ms, 0, 1) if not _skip else 1.0
+	# kart oturunca: kısa büyüme vurgusu + kıvılcım halkası; sonra hafif süzülme
+	if ks >= 1.0 and not _landed:
+		_landed = true
+		_pop_t = 0.0
+		if card: _card_sparks(_card_center(card), 18 + _drama * 10)
+		Input.vibrate_handheld(18 if _drama < 2 else 40)
+	var pop := 1.0
+	if _pop_t >= 0.0:
+		_pop_t += dt
+		var kp := clampf(_pop_t / 0.32, 0, 1)
+		pop = 1.0 + 0.09 * sin(kp * PI) * (1.0 - kp * 0.4)
+		if kp >= 1.0: _pop_t = -1.0
+	var bob := sin(_t * 2.1) * 3.0 if _landed else 0.0
 	if card:
-		card.extra = Transform2D(0, Vector2.ONE * lerpf(0.28, 1.0, er), 0, Vector2(0, lerpf(vh * 0.44, 0, er)))
+		card.extra = Transform2D(0, Vector2.ONE * lerpf(0.28, 1.0, er) * pop, 0, Vector2(0, lerpf(vh * 0.44, 0, er) + bob))
 		card.op_mul = clampf(kr / 0.3, 0, 1)
 		rev.set_dyn(card)
-	var ks := clampf(_show_t * 1000.0 / _spin_ms, 0, 1) if not _skip else 1.0
+		# hale: kartın ardında nadirlik renginde nabız atan ışıma
+		if _halo:
+			_halo.position = _card_center(card)
+			var hs := card.size.x * (2.5 + 0.35 * _drama) / 128.0 * lerpf(0.4, 1.0, er) * pop
+			_halo.scale = Vector2.ONE * hs
+			_halo.modulate = Color(_halo_c, (0.30 + 0.12 * _drama) * er * (0.82 + 0.18 * sin(_t * 3.2)))
 	var turns := 2.0 if _drama < 2 else (4.0 if _drama == 2 else 6.0)
 	var es := UIK.bez(0.22, 0.68, 0.3, 1.0, ks) if _drama < 2 else (UIK.bez(0.2, 0.6, 0.24, 1.0, ks) if _drama == 2 else UIK.bez(0.16, 0.52, 0.2, 1.0, ks))
 	var ang := (1.0 - es) * turns * TAU
 	var cs := cos(ang)
 	if spin:
-		spin.extra = Transform2D(0, Vector2(maxf(0.02, absf(cs)), 1.0), 0, Vector2.ZERO)
+		# dönüşte perspektif: kenara dönerken kart hafif büyür (yakın kenar)
+		spin.extra = Transform2D(0, Vector2(maxf(0.02, absf(cs)), 1.0 + 0.07 * absf(sin(ang))), 0, Vector2.ZERO)
 		rev.set_dyn(spin)
 		var face := rev.find(".cr-card-face")
 		if face: face.node.visible = cs >= 0
+		for kd in _card_deco: (kd as Lyr.N).node.visible = cs >= 0
 		if back: back.visible = cs < 0
 	# sayaç
 	if _count_t >= 0:
@@ -653,7 +770,18 @@ func _reveal_step(dt: float) -> void:
 		var k := clampf(_count_t * 1000.0 / _count_ms, 0, 1)
 		var cnt := rev.find(".rw-count")
 		if cnt: rev.set_text(cnt, "+" + str(int(round(_count_to * (1 - pow(1 - k, 3))))))
-		if k >= 1: _count_t = -1.0
+		if k >= 1:
+			_count_t = -1.0
+			_cnt_pop = 0.0
+	if _cnt_pop >= 0.0:
+		_cnt_pop += dt
+		var kc := clampf(_cnt_pop / 0.3, 0, 1)
+		var cnt2 := rev.find(".rw-count")
+		if cnt2:
+			cnt2.extra = Transform2D(0, Vector2.ONE * (1.0 + 0.28 * sin(kc * PI)), 0, Vector2.ZERO)
+			rev.set_dyn(cnt2)
+		if kc >= 1.0: _cnt_pop = -1.0
+	_left_step(dt)
 	if busy and (_show_t * 1000.0 >= _hold_ms or _skip):
 		busy = false
 		var rh := rev.find_id("#reveal-hint")
@@ -680,6 +808,8 @@ func _advance() -> void:
 
 func _summary() -> void:
 	awaiting = true
+	if _halo: _halo.visible = false
+	if _left: _left.visible = false
 	if rev: rev.visible = false
 	if back: back.visible = false
 	spot.visible = false
@@ -782,6 +912,7 @@ func _tray_texts(T: Lyr, r: Dictionary) -> void:
 func _finish() -> void:
 	if UITex.rec == "_cer": UITex.rec = ""
 	visible = false
+	if _menu_vis: g.ui.menu.visible = true
 	if not _forced: g.chests.apply_rewards(rewards)
 	if slot >= 0:
 		g.chests.slots[slot] = null
