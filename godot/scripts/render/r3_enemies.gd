@@ -104,7 +104,7 @@ func _ensure_boss_model(floor_id = null) -> void:
 	if rig == null: rig = inst
 	rig.rotation_order = EULER_ORDER_XYZ
 	_bossLift = float(_bossDef.get("lift", 0.0))
-	var mats := Shd.convert_tree(inst, {"lift": _bossLift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true})
+	var mats := Shd.convert_tree(inst, {"lift": _bossLift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "outline": 2.0})
 	_bossRigs[key] = [rig, mats]
 	bossRig = rig; bossMats = mats
 	_bossEmI = -1
@@ -146,7 +146,9 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 		var rig: Node3D = (gh.get_child(0) as Node3D) if gh and gh.get_child_count() else inst
 		rig.rotation_order = EULER_ORDER_XYZ
 		rig.position = Vector3(rigPos[0], rigPos[1], rigPos[2])
-		var mats := Shd.convert_tree(inst, {"lift": lift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0})
+		# kontur: düşük kademede yalnız boss ve kahraman (ikinci çizim geçişi)
+		var ol := 0.0 if Quality.tier == "low" else 1.4
+		var mats := Shd.convert_tree(inst, {"lift": lift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0, "outline": ol})
 		var ek: Array = []
 		for m in mats: ek.append(float(m.get_shader_parameter("emissive_k")))
 		var ap := inst.find_child("AnimationPlayer", true, false) as AnimationPlayer

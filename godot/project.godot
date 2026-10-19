@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Shadowrend"
-config/version="1.0.4"
+config/version="1.0.5"
 config/build=44
 config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"
@@ -62,6 +62,11 @@ r3_rim_dir={"type": "vec3", "value": Vector3(0, 1, 0)}
 r3_rim_col={"type": "vec3", "value": Vector3(0, 0, 0)}
 r3_time={"type": "float", "value": 0.0}
 r3_player={"type": "vec2", "value": Vector2(0, 0)}
+r3_toon={"type": "float", "value": 1.0}
+r3_sat={"type": "float", "value": 1.4}
+r3_tint={"type": "vec3", "value": Vector3(1.02, 1.0, 0.97)}
+r3_expo={"type": "float", "value": 1.14}
+r3_con={"type": "float", "value": 1.1}
 
 [importer_defaults]
 

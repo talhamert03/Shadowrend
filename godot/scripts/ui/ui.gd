@@ -11,6 +11,7 @@ var _god := false
 var _logT := 0.0
 var _hudDone := false
 var layer: CanvasLayer
+var _vig: TextureRect
 var uiroot: Node2D            # güvenli alan içi (çentik altı / gezinme çubuğu üstü)
 var _bands: Array = []
 var hud: HUD
@@ -49,6 +50,23 @@ func _ready() -> void:
 	layer = CanvasLayer.new()
 	layer.layer = 5
 	add_child(layer)
+	# savaş vinyeti: kenarlar yumuşakça kararır, göz ortadaki aksiyona gider (yalnız savaşta)
+	var vg := Gradient.new()
+	vg.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+	vg.colors = PackedColorArray([Color(0, 0, 0, 0), Color(0.02, 0.01, 0.03, 0.10), Color(0.02, 0.01, 0.03, 0.42)])
+	var vt := GradientTexture2D.new()
+	vt.gradient = vg
+	vt.fill = GradientTexture2D.FILL_RADIAL
+	vt.fill_from = Vector2(0.5, 0.5)
+	vt.fill_to = Vector2(1.08, 0.5)
+	vt.width = 128
+	vt.height = 256
+	_vig = TextureRect.new()
+	_vig.texture = vt
+	_vig.stretch_mode = TextureRect.STRETCH_SCALE
+	_vig.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_vig.visible = false
+	layer.add_child(_vig)
 	# çentik/gezinme çubuğu bantları (menüde güvenli alan dışı koyu zemin) + güvenli alan kökü
 	for i in 4:
 		var b := ColorRect.new()
@@ -229,6 +247,9 @@ func _process(_dt: float) -> void:
 		var bv: bool = g.state != "playing" and g.state != "paused"
 		if _bands[0].visible != bv:
 			for b in _bands: b.visible = bv
+		if _vig.visible == bv:
+			_vig.visible = not bv
+			_vig.size = get_viewport().get_visible_rect().size
 	# geliştirici: zamanlı dokunuşlar — taps=1.5,3.0@200x400 (sn[@x,y])
 	if _t0 > 0 and not _gest.is_empty():
 		var nowg := Time.get_ticks_msec() / 1000.0 - _t0

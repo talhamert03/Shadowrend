@@ -27,6 +27,8 @@ var scene: Node3D
 var camera: Camera3D
 var env: Environment
 var camDist := 1150.0
+## geliştirici: kamera uzaklık çarpanı (camzoom=0.4 → yakın çekim, stil incelemesi)
+var _dev_zoom := 1.0
 var cam_left := -185.0
 var cam_right := 185.0
 var cam_top := 560.0
@@ -150,6 +152,13 @@ func _ready() -> void:
 	scene.add_child(we)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("camzoom="): _dev_zoom = float(a.substr(8))
+		# geliştirici: global stil değeri — sg=r3_toon:0,r3_sat:1
+		if a.begins_with("sg="):
+			for kv in a.substr(3).split(","):
+				var p := kv.split(":")
+				if p.size() == 2: RenderingServer.global_shader_parameter_set(p[0], float(p[1]))
 	camera.near = 80
 	camera.far = 3200
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
@@ -359,7 +368,7 @@ func load_character(char_id: String) -> void:
 
 ## charLook.applyCharLook + lift: her yüzey malzemesini three Standard karşılığına çevirir.
 func _apply_char_look(root: Node, lift: float, rough_max: float) -> void:
-	Shd.convert_tree(root, {"lift": lift, "rough_max": rough_max, "metal_min": 0.08, "metal_max": 0.22, "rim": true})
+	Shd.convert_tree(root, {"lift": lift, "rough_max": rough_max, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "outline": 1.7})
 
 # ═══════════ BOYUT ═══════════
 
@@ -414,7 +423,7 @@ func render(g) -> void:
 func _update_camera(g) -> void:
 	var cx: float = g.cam.x + g.shakeX
 	var cy: float = g.cam.y + g.shakeY
-	var dist: float = camDist * (1 - g.zoomP)
+	var dist: float = camDist * (1 - g.zoomP) * _dev_zoom
 	var height: float = dist * cos(TILT)
 	var back: float = dist * sin(TILT)
 	var pos := Vector3(cx, height, cy + back)

@@ -154,7 +154,54 @@ static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
 		m.set_shader_parameter("emissive_k", 0.0)
 	return m
 
+## KONTUR (ters gövde): ikinci geçiş, ön yüzleri ayıklayıp normal yönünde ekran uzayında
+## sabit kalınlıkta (~1,5 mantıksal px) şişirir. Renk saf siyah değil: dokunun koyulaştırılmış
+## tonu + mürekkep (çizgi roman, yumuşak) — Borderlands'in kalın siyahı değil.
+const OUTLINE_CODE := """shader_type spatial;
+render_mode unshaded, cull_front, specular_disabled, fog_disabled;
+#include "res://shaders/three_lit.gdshaderinc"
+uniform vec4 ink = vec4(0.10, 0.06, 0.09, 1.0);
+uniform float width = 1.5;
+uniform float use_map = 0.0;
+uniform vec4 base = vec4(1.0);
+uniform sampler2D map : filter_linear_mipmap;
+void vertex() {
+	vec4 clip = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1.0));
+	vec3 nv = (MODELVIEW_MATRIX * vec4(NORMAL, 0.0)).xyz;
+	vec2 nc = (PROJECTION_MATRIX * vec4(nv, 0.0)).xy;
+	float ln = length(nc);
+	if (ln > 1e-5) {
+		float px = width * VIEWPORT_SIZE.y / 844.0;
+		clip.xy += (nc / ln) * (px * 2.0 / VIEWPORT_SIZE) * clip.w;
+	}
+	POSITION = clip;
+}
+void fragment() {
+	vec3 c = r3_lin(base.rgb);
+	if (use_map > 0.5) c *= r3_lin(texture(map, UV).rgb);
+	ALBEDO = r3_srgb(mix(r3_lin(ink.rgb), c * 0.16, 0.55));
+}
+"""
+static var _outline_sh: Shader
+static var _outline_cache := {}
+static func outline(tex: Texture2D, base := Color(1, 1, 1), width := 1.5) -> ShaderMaterial:
+	var key := str(tex.get_instance_id() if tex else 0) + "|" + base.to_html() + "|" + str(width)
+	if _outline_cache.has(key): return _outline_cache[key]
+	if _outline_sh == null:
+		_outline_sh = Shader.new()
+		_outline_sh.code = OUTLINE_CODE
+	var m := ShaderMaterial.new()
+	m.shader = _outline_sh
+	m.set_shader_parameter("width", width)
+	m.set_shader_parameter("base", base)
+	if tex:
+		m.set_shader_parameter("map", tex)
+		m.set_shader_parameter("use_map", 1.0)
+	_outline_cache[key] = m
+	return m
+
 ## Bir düğüm ağacındaki tüm yüzeyleri çevirir; malzeme listesini döndürür.
+## o.outline: kontur kalınlığı (mantıksal px; 0/yok = kontursuz)
 static func convert_tree(root: Node, o: Dictionary) -> Array:
 	var mats := []
 	for c in root.find_children("*", "MeshInstance3D", true, false):
@@ -164,6 +211,8 @@ static func convert_tree(root: Node, o: Dictionary) -> Array:
 		for si in mi.mesh.get_surface_count():
 			var src := mi.get_active_material(si) as BaseMaterial3D
 			var m := from_gltf(src, o)
+			if float(o.get("outline", 0.0)) > 0.0:
+				m.next_pass = outline(src.albedo_texture if src else null, src.albedo_color if src else Color.WHITE, float(o.outline))
 			mi.set_surface_override_material(si, m)
 			mats.append(m)
 	return mats

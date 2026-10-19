@@ -188,6 +188,8 @@ func _ready() -> void:
 
 	isMobile = OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 	qualityTier = _guess_tier()
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("tier="): qualityTier = a.substr(5)     # geliştirici: kademe zorla
 	var L = Store.get_item("kh_learntier_v1")
 	var TT := ["low", "mid", "high"]
 	if L != null and TT.has(L) and TT.find(L) < TT.find(qualityTier): qualityTier = L
