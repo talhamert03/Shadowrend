@@ -102,16 +102,17 @@ func _card(id: String, w: float, h: float) -> Lyr:
 	gl.scale = Vector2(w * 1.4 / 128.0, h * 0.85 / 128.0)
 	gl.modulate = Color(rc, 0.5 if owned else 0.3)
 	clip.add_child(gl)
-	# model portresi (baştan bele, tools: scripts/dev/hero_bake.gd): kart genişliğini doldurur
-	var tx := UITex.get_tex("res://assets/ui/art/hero3d/" + id + ".png")
+	# kart görseli: Clash Royale kartı gibi omuz-baş portresi (boyanmış konsept görselinden,
+	# tools/bake/ui/hero_cards.py) — kartın üstünü alt plakaya kadar doldurur
+	var tx := UITex.get_tex("res://assets/ui/art/herocard/" + id + ".png")
 	if tx:
 		var sp := Sprite2D.new()
 		sp.texture = tx
 		sp.centered = false
-		var k := (w + 8.0) / tx.get_width()
+		var k := maxf(w / tx.get_width(), (h - 38.0) / tx.get_height())
 		sp.scale = Vector2.ONE * k
-		sp.position = Vector2(-4.0, 12.0)
-		if not owned: sp.modulate = Color(0.58, 0.56, 0.64) if cards == 0 else Color(0.78, 0.76, 0.84)
+		sp.position = Vector2((w - tx.get_width() * k) * 0.5, 0.0)
+		if not owned: sp.modulate = Color(0.5, 0.48, 0.55) if cards == 0 else Color(0.74, 0.72, 0.8)
 		clip.add_child(sp)
 	var fr := Node2D.new()
 	hn.add_child(fr)
