@@ -311,7 +311,7 @@ func show_menu() -> void:
 		get_tree().create_timer(0.6).timeout.connect(func(): celebrate.level_up(P))
 ## dönüş hediyesi: tören/katman/savaş sürerken bekler (üstlerine açılıp onları kilitlemesin)
 func _gift_when_free(G) -> void:
-	var busy: bool = g.state != "menu" or (ceremony and ceremony.visible) or sheet.visible or chestinspect.visible \
+	var busy: bool = g.state != "menu" or is_instance_valid(g.boot_screen) or (ceremony and ceremony.visible) or sheet.visible or chestinspect.visible \
 		or chestbuy.visible or celebrate.visible or quests.visible or battlepass.visible or settings.visible
 	if busy:
 		get_tree().create_timer(0.5).timeout.connect(func(): _gift_when_free(G))

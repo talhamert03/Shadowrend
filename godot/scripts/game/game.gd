@@ -161,7 +161,22 @@ var _curtain_at := -1.0
 func _now_ms() -> float:
 	return Time.get_ticks_usec() / 1000.0
 
+var boot_screen: ScrBoot
+var booted := false
+
+## yükleme adımı: açılış ekranı ilerler, bir kare çizilir (ekran donmaz, çubuk akar)
+func _boot_step(p: float) -> void:
+	if boot_screen: boot_screen.set_progress(p)
+	await get_tree().process_frame
+
 func _ready() -> void:
+	# açılış ekranı ilk karede: kurulum bitene dek oyun döngüsü kapalı
+	set_process(false)
+	set_physics_process(false)
+	boot_screen = ScrBoot.new()
+	add_child(boot_screen)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	PerfLog.err_ctx = self
 	Clock.boot()
 	meta = load_meta()
@@ -182,7 +197,9 @@ func _ready() -> void:
 	maxEnemies = Quality.budget("enemies")
 	msn = D.missionDef(1, 1)
 
+	await _boot_step(0.12)
 	_build_pools()
+	await _boot_step(0.2)
 
 	audio = AudioFX.new(self)
 	add_child(audio)
@@ -201,13 +218,16 @@ func _ready() -> void:
 	pools.eBullets.prewarm(220)
 	pools.pBullets.prewarm(140)
 	pools.rings.prewarm(60)
+	await _boot_step(0.4)
 
 	renderer3d = Render3D.new(self)
 	add_child(renderer3d)
+	await _boot_step(0.58)
 	overlay = Overlay2D.new(self)
 	add_child(overlay)
 	ui = load("res://scripts/ui/ui.gd").new(self)
 	add_child(ui)
+	await _boot_step(0.72)
 
 	props = PropField.new(self)
 	objectives = ObjectiveManager.new(self)
@@ -220,8 +240,16 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(resize)
 	resize()
 	Settings.apply_all()
-	last = _now_ms()
+	await _boot_step(0.8)
 	ui.boot()
+	last = _now_ms()
+	set_process(true)
+	set_physics_process(true)
+	booted = true
+	# menü kuruldu; ilk kareler (doku yükleme, ilk çizim) da açılış ekranının ardında geçsin
+	await _boot_step(0.9)
+	await get_tree().process_frame
+	boot_screen.finish(func(): if audio: audio.play("boot"))
 
 func _guess_tier() -> String:
 	# web: bellek + çekirdek + dokunmatik + GPU ailesi; yerelde aynı mantık

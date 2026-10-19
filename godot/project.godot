@@ -10,7 +10,8 @@ config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.4", "GL Compatibility")
-boot_splash/bg_color=Color(0.031, 0.024, 0.039, 1)
+boot_splash/bg_color=Color(0.027, 0.02, 0.043, 1)
+boot_splash/show_image=false
 config/icon="res://icon.png"
 
 [autoload]
