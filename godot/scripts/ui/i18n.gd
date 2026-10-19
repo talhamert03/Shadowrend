@@ -22,6 +22,8 @@ static func boot() -> void:
 	if s in LANGS: lang = s
 	else:
 		lang = "tr" if OS.get_locale_language() == "tr" else "en"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("lang=") and a.substr(5) in LANGS: lang = a.substr(5)     # geliştirici
 	_load()
 
 static func _load() -> void:

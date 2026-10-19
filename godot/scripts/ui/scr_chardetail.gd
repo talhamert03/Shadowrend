@@ -9,6 +9,12 @@ extends Scr
 var L: Lyr
 var id := ""
 var _over: Array = []
+## sahnede canlı 3B model (Tripo): parmakla döndürülür, bırakınca süzülür
+var hv: HeroView
+var _stage_n: Lyr.N
+var _hv_t := 0.0
+var _sw_last := 0.0
+var _idle := 0.0
 
 func _init(game) -> void:
 	super(game)
@@ -49,15 +55,93 @@ func _build() -> void:
 		close())
 	var sd := L.find(".hd-selected")
 	if sd: btn(L, sd, func(): g.audio.play("click"); close())
+	_stage()
 	if g.owns_char(id): _texts()
+	else: _texts_locked()
+
+## kilitli kahraman da tanıtılır: adı, unvanı, statları ve imza silahı/gücü (seviye 1 değerleri,
+## sahip olunan yakalamadan); yetenekler ve SÜPER yakalamada zaten açık
+func _texts_locked() -> void:
+	var c: Dictionary = D.CHARACTERS.get(id, {})
+	var nm := L.find_id("#cd-name")
+	if nm: L.set_text(nm, str(c.get("name", id)))
+	var sub := L.find_id("#cd-subtitle")
+	if sub: L.set_text(sub, str(c.get("title", "")) + " · KİLİTLİ")
+	if not FileAccess.file_exists(Lyr.BASE + "hd_" + id + "_own.json"): return
+	var vals: Array = []
+	for d in Lyr.load_json("hd_" + id + "_own").get("nodes", []):
+		if String(d.get("key", "")).begins_with(".hs-v") and d.get("text") is Dictionary:
+			vals.append(str(d.text.get("str", "")))
+	var hv_n := L.find_all(".hs-v")
+	for i in mini(vals.size(), hv_n.size()): L.set_text(hv_n[i], vals[i])
+
+## portre yerine kahramanın kendi 3B modeli (savaştaki malzeme, mürekkep kontur); kilitliyse
+## de gösterilir (ne kazanacağını görsün) — biraz karartılmış, kilit işareti üstte kalır
+func _stage() -> void:
+	hv = null
+	_stage_n = null
+	swipe_rect = Rect2()
+	var st := L.find(".hd-stage")
+	var au := L.find_id("#cd-aura")
+	if st == null or au == null or not HeroView.models().get("heroes", {}).has(id): return
+	var v := HeroView.new()
+	var w := st.size.x
+	var h := st.size.y + 26.0               # ayaklar başlık geçişinin altına süzülür
+	if not v.setup(id, w, h, 2.0, 2.4, 0.0):
+		v.queue_free()
+		return
+	for k in ["#cd-hero-img", "#cd-hero"]:
+		var n := L.find_id(k)
+		if n: L.set_hidden(n, true)
+	var fo := L.find(".hd-foil")
+	if fo: L.set_hidden(fo, true)
+	var par := au.node.get_parent()
+	# zemin parıltısı (ayak altı) + model
+	var fl := Sprite2D.new()
+	fl.texture = ClimbArt.glow_tex()
+	var rc := Color(str(HeroesPage._rar(id).get("color", "#c8b6ff")))
+	fl.modulate = Color(rc, 0.5)
+	fl.scale = Vector2(1.9, 0.34)
+	fl.position = Vector2(w * 0.5, h - 30.0)
+	var am := CanvasItemMaterial.new()
+	am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	fl.material = am
+	par.add_child(fl)
+	par.move_child(fl, au.node.get_index() + 1)
+	v.position = Vector2.ZERO
+	v.yaw = 0.42
+	v.auto_spin = 0.0
+	if not g.owns_char(id):
+		v.modulate = Color(0.7, 0.68, 0.76)
+		var lm := L.find(".hd-lockmark")
+		if lm: L.set_hidden(lm, true)          # kilit, alttaki adın yanında zaten yazıyor
+	par.add_child(v)
+	par.move_child(v, fl.get_index() + 1)
+	hv = v
+	_stage_n = st
+	_hv_t = 0.0
+	v.scale = Vector2.ONE * 0.9
+	v.modulate.a = 0.0
+
+func _swipe_move(dx: float) -> void:
+	if hv == null: return
+	hv.dragging = true
+	hv.drag(dx - _sw_last)
+	_sw_last = dx
+
+func _swipe_end(_dx: float, vel: float) -> void:
+	_sw_last = 0.0
+	if hv == null: return
+	hv.dragging = false
+	hv._vel = clampf(vel * 0.012, -14.0, 14.0)
 
 func _texts() -> void:
 	var c: Dictionary = D.CHARACTERS[id]
 	var lvl: int = g.char_level(id)
 	var lb := L.find_id("#hd-lvl")
 	if lb:
-		var b := L.find_exact("b")
-		if b: L.set_text(b, str(lvl))
+		for b in lb.kids:
+			if b.d.get("tag") == "b": L.set_text(b, str(lvl))
 	var sub := L.find_id("#cd-subtitle")
 	if sub: L.set_text(sub, str(c.get("title", "")) + " · SEVİYE " + str(lvl))
 	# ustalık
@@ -161,6 +245,21 @@ func _upgrade() -> void:
 		if _upx_t > 0.65: _upx_finish(), 1.0, 0.0)
 
 func _process(dt: float) -> void:
+	if hv and is_instance_valid(hv):
+		# giriş: yukarı süzülüp oturur (ease-out back); sahne dikdörtgeni = döndürme alanı
+		_hv_t += dt
+		var k := clampf(_hv_t / 0.55, 0.0, 1.0)
+		var e := 1.0 + 2.2 * pow(k - 1.0, 3.0) + 1.2 * pow(k - 1.0, 2.0)
+		hv.scale = Vector2.ONE * lerpf(0.9, 1.0, e)
+		hv.modulate.a = minf(1.0, _hv_t / 0.3)
+		if _stage_n:
+			var xf := _stage_n.node.get_global_transform_with_canvas()
+			swipe_rect = Rect2(xf.origin, _stage_n.size * xf.get_scale())
+		_idle = 0.0 if hv.dragging or absf(hv._vel) > 0.05 else _idle + dt
+		if _idle > 2.5:
+			# bırakıldıktan bir süre sonra yavaşça 3/4 önden duruşa döner
+			var tgt := 0.42 + roundf((hv.yaw - 0.42) / TAU) * TAU
+			hv.yaw = lerpf(hv.yaw, tgt, minf(1.0, dt * 2.0))
 	if _upx == null or _upx_t < 0.0: return
 	_upx_t += dt
 	if absf(_upx_t - 0.6) < dt: Input.vibrate_handheld(25)
@@ -195,6 +294,9 @@ func _close_now() -> void:
 		unbtn(L)
 		L.queue_free()
 		L = null
+	hv = null
+	_stage_n = null
+	swipe_rect = Rect2()
 	for o in _over: (o as Node).queue_free()
 	_over.clear()
 	if g.ui.menu.pages.has("kahraman"): g.ui.menu.pages["kahraman"].render()
