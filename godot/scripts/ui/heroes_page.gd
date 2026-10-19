@@ -40,7 +40,7 @@ func render() -> void:
 	var i := 0
 	# kartlar yerel çizim: Tripo modelinin toon pişirimi (assets/ui/art/hero3d/<id>.png) — kilitli
 	# kahramanlar da kendi modeliyle (karartılmış + kilit) görünür; eski web silüetleri kullanılmaz
-	var ch := 170.0
+	var ch := 196.0
 	for id in D.CHARACTERS:
 		var C := _card(String(id), colw, ch)
 		host.add_child(C)
@@ -85,20 +85,34 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		sb.shadow_color = Color(rc, 0.35) if sel else Color(0, 0, 0, 0.45)
 		sb.shadow_size = 12 if sel else 5
 		bg.draw_style_box(sb, Rect2(0, 0, w, h))
-		# nadirlik ışıması (kartın üst yarısı)
-		bg.draw_set_transform(Vector2(w * 0.5, h * 0.40), 0.0, Vector2(w * 1.25 / 128.0, h * 0.9 / 128.0))
-		bg.draw_texture(ClimbArt.glow_tex(), Vector2(-64, -64), Color(rc, 0.42 if owned else 0.22))
 		bg.draw_set_transform(Vector2.ZERO))
-	# model görseli
+	# portre alanı: kartın yuvarlak köşeli şekline kırpılır (görsel taşmaz)
+	var clip := Node2D.new()
+	clip.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	hn.add_child(clip)
+	clip.draw.connect(func():
+		var m := StyleBoxFlat.new()
+		m.bg_color = Color.WHITE
+		m.set_corner_radius_all(14)
+		clip.draw_style_box(m, Rect2(1, 1, w - 2, h - 2)))
+	# nadirlik ışıması (başın arkası; maske düğümü kendisi çizilmez)
+	var gl := Sprite2D.new()
+	gl.texture = ClimbArt.glow_tex()
+	gl.position = Vector2(w * 0.5, h * 0.30)
+	gl.scale = Vector2(w * 1.4 / 128.0, h * 0.85 / 128.0)
+	gl.modulate = Color(rc, 0.5 if owned else 0.3)
+	clip.add_child(gl)
+	# model portresi (baştan bele, tools: scripts/dev/hero_bake.gd): kart genişliğini doldurur
 	var tx := UITex.get_tex("res://assets/ui/art/hero3d/" + id + ".png")
 	if tx:
 		var sp := Sprite2D.new()
 		sp.texture = tx
-		var k := (h - 8.0) / tx.get_height()
+		sp.centered = false
+		var k := (w + 8.0) / tx.get_width()
 		sp.scale = Vector2.ONE * k
-		sp.position = Vector2(w * 0.5, (h - 8.0) * 0.5 - 6.0)
-		if not owned: sp.modulate = Color(0.42, 0.40, 0.48) if cards == 0 else Color(0.62, 0.6, 0.68)
-		hn.add_child(sp)
+		sp.position = Vector2(-4.0, 12.0)
+		if not owned: sp.modulate = Color(0.58, 0.56, 0.64) if cards == 0 else Color(0.78, 0.76, 0.84)
+		clip.add_child(sp)
 	var fr := Node2D.new()
 	hn.add_child(fr)
 	fr.draw.connect(func():

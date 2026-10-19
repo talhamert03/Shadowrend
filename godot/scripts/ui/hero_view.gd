@@ -109,10 +109,40 @@ func _frame() -> void:
 	var fit := maxf(vis * 0.56 / tn, maxf(bb.size.x, bb.size.z) * 0.62 / (tn * aspect))
 	var pitch := deg_to_rad(9.0)
 	var look := Vector3(0, hgt - vis * 0.5, 0)
+	if crop > 0.0:
+		# yakın çekim: kadraj baş kemiğine göre (her kahramanın yüzü kartta aynı yerde);
+		# baş kemiği yoksa sınırlara göre
+		var hp = _head_pos(inst)
+		if hp != null:
+			var body: float = maxf(1.0, (hp as Vector3).y)          # ayaklar y=0'da
+			var top: float = (hp as Vector3).y + body * 0.19
+			var bot: float = (hp as Vector3).y - body * 0.47
+			vis = top - bot
+			look = Vector3((hp as Vector3).x * 0.6, (top + bot) * 0.5, (hp as Vector3).z * 0.6)
+			fit = vis * 0.5 / tn
+			pitch = deg_to_rad(6.0)
+		else:
+			look.y += hgt * 0.035
 	var cp := look + Vector3(0, sin(pitch), cos(pitch)) * fit
 	cam.transform = Transform3D(Basis.looking_at(look - cp, Vector3.UP), cp)
 	_base_y = 0.0
 	_apply()
+
+## baş kemiğinin (pivot uzayında) konumu; yoksa null
+func _head_pos(root: Node3D):
+	var sks := root.find_children("*", "Skeleton3D", true, false)
+	if sks.is_empty(): return null
+	var sk := sks[0] as Skeleton3D
+	var best := -1
+	for i in sk.get_bone_count():
+		var n := sk.get_bone_name(i).to_lower()
+		if n.contains("head") and not (n.contains("end") or n.contains("top") or n.contains("nub")):
+			best = i
+			break
+	if best < 0: return null
+	var xf := sk.global_transform if sk.is_inside_tree() else _xf_to(sk, root)
+	var p: Vector3 = xf * sk.get_bone_global_pose(best).origin
+	return pivot.global_transform.affine_inverse() * p if pivot.is_inside_tree() else p
 
 static func _bounds(root: Node3D) -> AABB:
 	# iskeletli modelde kemiklerin gerçek (pozlanmış) konumları: mesh sınırı bağlama pozunda ve

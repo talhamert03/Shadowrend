@@ -1,10 +1,13 @@
 extends Node2D
 ## Geliştirme aracı: kahraman modellerini kart görseli olarak pişirir (HeroView, toon + kontur).
 ##   godot --path . res://scenes/dev/hero_bake.tscn [-- ids=seher,okcu yaw=0.42]
-## Çıktı: res://assets/ui/art/hero3d/<id>.png (saydam, 420×560)
+## Çıktı: res://assets/ui/art/hero3d/<id>.png (saydam, 540×720, baştan bele portre)
 
-const W := 210.0
-const H := 280.0
+## kart portresi: baştan bele yakın çekim (kart oranında), yüksek çözünürlük
+const W := 150.0
+const H := 200.0
+const DPR := 3.6
+const CROP := 0.46
 var _ids: Array = []
 var _cur: HeroView
 var _i := -1
@@ -13,13 +16,14 @@ var _yaw := 0.42
 
 func _ready() -> void:
 	# savaş ışıkları (render3d._build_lights) — pişirmede de aynı
-	RenderingServer.global_shader_parameter_set("r3_hemi_sky", Shd.lin3(Color("#5a6a9a"), 1.55))
-	RenderingServer.global_shader_parameter_set("r3_hemi_ground", Shd.lin3(Color("#1c1822"), 1.55))
-	RenderingServer.global_shader_parameter_set("r3_ambient", Shd.lin3(Color("#8090c0"), 0.65))
-	RenderingServer.global_shader_parameter_set("r3_rim_dir", Vector3(320, 160, 260).normalized())
-	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(Color("#d8e4ff"), 1.7))
-	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(Color("#ff3b4e"), 0.4))
-	RenderingServer.global_shader_parameter_set("r3_moon_dir", Vector3(-0.45, 0.75, 0.5).normalized())
+	# vitrin ışığı: önden-soldan sıcak ana ışık, aydınlık dolgu, arkadan soğuk kontur
+	RenderingServer.global_shader_parameter_set("r3_hemi_sky", Shd.lin3(Color("#8e94ae"), 1.6))
+	RenderingServer.global_shader_parameter_set("r3_hemi_ground", Shd.lin3(Color("#3a3036"), 1.4))
+	RenderingServer.global_shader_parameter_set("r3_ambient", Shd.lin3(Color("#a8aec8"), 0.8))
+	RenderingServer.global_shader_parameter_set("r3_rim_dir", Vector3(0.55, 0.45, -0.7).normalized())
+	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(Color("#fff3e4"), 1.75))
+	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(Color("#cfe0ff"), 0.9))
+	RenderingServer.global_shader_parameter_set("r3_moon_dir", Vector3(-0.5, 0.55, 0.85).normalized())
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("ids="): _ids = Array(a.substr(4).split(","))
 		if a.begins_with("yaw="): _yaw = float(a.substr(4))
@@ -36,7 +40,7 @@ func _next() -> void:
 	_cur = HeroView.new()
 	add_child(_cur)
 	_cur.yaw = _yaw
-	var ok := _cur.setup(str(_ids[_i]), W, H, 2.0, 2.6)
+	var ok := _cur.setup(str(_ids[_i]), W, H, DPR, 1.7, CROP)
 	if not ok:
 		print("YOK ", _ids[_i])
 		_next()
