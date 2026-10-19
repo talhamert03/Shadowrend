@@ -57,6 +57,7 @@ static func has_json(name: String) -> bool:
 	return _cache.has(name)
 
 static func load_json(name: String) -> Dictionary:
+	UITex.note_json(name)
 	if _cache.has(name): return _cache[name]
 	var f := FileAccess.open(BASE + name + ".json", FileAccess.READ)
 	var J: Dictionary = JSON.parse_string(f.get_as_text()) if f else {}
@@ -67,13 +68,21 @@ static func load_json(name: String) -> Dictionary:
 static var t_tex := 0.0
 static func _tex(file: String) -> Texture2D:
 	var t0 := Time.get_ticks_usec()
-	var tx: Texture2D = load(BASE + "img/" + file)
+	var tx: Texture2D = UITex.get_tex(BASE + "img/" + file)
 	t_tex += (Time.get_ticks_usec() - t0) / 1000.0
 	return tx
 
+static var t_json := 0.0
+static var t_text := 0.0
+static var n_make := 0
+static var n_nodes := 0
 static func make(name: String, skip_keys: Array = []) -> Lyr:
 	var L := Lyr.new()
-	L.build(load_json(name).duplicate(true), skip_keys)
+	var t0 := Time.get_ticks_usec()
+	var J: Dictionary = load_json(name).duplicate(true)
+	t_json += (Time.get_ticks_usec() - t0) / 1000.0
+	n_make += 1
+	L.build(J, skip_keys)
 	return L
 
 func _init() -> void:
@@ -106,6 +115,7 @@ func _skip(d: Dictionary, skip_keys: Array) -> bool:
 
 func _build_node(d: Dictionary, parent: Node2D, kids: Dictionary, skip_keys: Array, clip_owner: N) -> N:
 	var n := N.new()
+	n_nodes += 1
 	n.d = d
 	n.co = clip_owner
 	nodes.append(n)
@@ -260,6 +270,12 @@ static func tr_upper(s: String) -> String:
 	return s.replace("i", "İ").replace("ı", "I").to_upper()
 
 func _make_text(tx: Dictionary, n: N) -> UIText:
+	var t0 := Time.get_ticks_usec()
+	var l := _make_text0(tx, n)
+	t_text += (Time.get_ticks_usec() - t0) / 1000.0
+	return l
+
+func _make_text0(tx: Dictionary, n: N) -> UIText:
 	var l := UIText.new()
 	var disp := String(tx.get("font", "")).begins_with("Cinzel")
 	var sz: float = tx.get("size", 12)

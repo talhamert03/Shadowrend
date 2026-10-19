@@ -51,7 +51,7 @@ func _build() -> void:
 	if gl and owned:
 		var p := "res://assets/ui/art/gear/" + str(x.icon) + ".png"
 		if ResourceLoader.exists(p):
-			var t: Texture2D = load(p)
+			var t: Texture2D = UITex.get_tex(p)
 			var s := Sprite2D.new()
 			s.texture = t
 			s.scale = Vector2.ONE * (92.0 / maxf(t.get_width(), t.get_height()))
@@ -167,7 +167,7 @@ func _stats(x: Dictionary, owned: bool, lvl: int, st: Lyr.N) -> float:
 				if not ResourceLoader.exists(ip): ip = "res://assets/ui/art/icon/guc.png"
 				if ResourceLoader.exists(ip):
 					var s := Sprite2D.new()
-					s.texture = load(ip)
+					s.texture = UITex.get_tex(ip)
 					s.scale = Vector2.ONE * (14.0 / maxf(s.texture.get_width(), s.texture.get_height()))
 					s.position = ic.size * 0.5
 					s.modulate = Color("#7ee08a") if good else Color("#ff7d8c")

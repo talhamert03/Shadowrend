@@ -90,8 +90,12 @@ func get_item(k: String, def = null):
 var rev := 0
 
 func set_item(k: String, v) -> void:
-	rev += 1
 	var s := JS.s(v) if (v is float or v is int) else str(v)
+	# aynı değer: kayıt da sayfa tazelemesi de gerekmez (rev yalnız gerçek değişimde artar)
+	if _kv.get(k) == s: return
+	# saat damgası (hile koruması) arayüz verisi değil: sayfaları yeniden kurdurmasın
+	if k != "kh_clock": rev += 1
+	if Prof.on: print("STORE ", k)
 	_kv[k] = s
 	if _protect(k):
 		_kv[SIG + k] = _sign(k, s)

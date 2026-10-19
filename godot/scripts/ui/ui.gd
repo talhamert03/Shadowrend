@@ -221,6 +221,7 @@ var _taps: Array = []
 var _gest: Array = []
 
 func _process(_dt: float) -> void:
+	Prof.hitch(_dt)
 	if Prof.on and g.state == "menu" and Engine.get_process_frames() % 120 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())
@@ -310,7 +311,7 @@ func show_menu() -> void:
 		get_tree().create_timer(0.6).timeout.connect(func(): celebrate.level_up(P))
 func show_pause() -> void: pause.show_pause()
 func hide_pause() -> void: pause.hide_pause()
-func show_settings() -> void: settings.show_settings(pause.visible)
+func show_settings() -> void: _ov("set", func(): settings.show_settings(pause.visible))
 func hide_settings() -> void: settings.hide_settings()
 func settings_open() -> bool: return settings.visible
 ## yasal belge / destek sayfası (sheet) — GEÇİCİ: menü sayfaları taşınınca tam sayfa
@@ -321,10 +322,10 @@ func open_doc(kind: String, on_close := Callable()) -> void:
 	sheet.doc(kind, on_close)
 func confirm_wipe() -> void: sheet.wipe()
 func show_odds(t: String) -> void: sheet.odds(t)
-func show_quests() -> void: quests.open()
-func show_daily_drawer() -> void: drawer.open()
-func show_account_journey() -> void: accjourney.open()
-func show_battle_pass() -> void: battlepass.open()
+func show_quests() -> void: _ov("qx", func(): quests.open())
+func show_daily_drawer() -> void: _ov("dd", func(): drawer.open())
+func show_account_journey() -> void: _ov("aj", func(): accjourney.open())
+func show_battle_pass() -> void: _ov("bp", func(): battlepass.open())
 ## ui.js showArmory: menü açıkken cüzdan + açık sayfa tazelenir (kuşanım · kahraman · ana sayfa)
 func show_armory() -> void:
 	if menu == null or not menu.visible: return
@@ -365,27 +366,42 @@ func set_pick(w, m) -> void:
 func stored_pick(): return _pick
 func toast(s) -> void: hud.toast(str(s))
 
+## katman açılışı: süre ölçümü + kullandığı dokuların kaydı (UIPrewarm bir sonraki sefer ön yükler)
+const OVERLAYS := ["_cb", "_ci", "_cd", "_gd", "_dd", "_qx", "_bp", "_aj", "_set"]
+func _ov(k: String, f: Callable) -> void:
+	Prof.s("ov:" + k)
+	var rk := UITex.rec_begin("_" + k)
+	f.call()
+	UITex.rec_end(rk)
+	Prof.t("ov:" + k)
+
 ## eşya inceleme ekranı
 func open_gear_detail(id: String) -> void:
-	if geardetail: geardetail.open(id)
+	if geardetail: _ov("gd", func(): geardetail.open(id))
 	else: toast("YAKINDA")
 
 ## kahraman detay ekranı
 func open_char_detail(id: String) -> void:
-	if chardetail: chardetail.open(id)
+	if chardetail: _ov("cd", func(): chardetail.open(id))
 	else: toast("YAKINDA")
 
 ## sandık satın alma pop-up'ı (mağaza vitrini / günün fırsatı)
 func chest_buy(t: String, o: Dictionary) -> void:
-	chestbuy.open(t, o)
+	_ov("cb", func(): chestbuy.open(t, o))
 
 ## sandık inceleme pop-up'ı (yuva i)
 func chest_inspect(i: int) -> void:
-	chestinspect.open(i)
+	_ov("ci", func(): chestinspect.open(i))
 
 ## açılış töreni; slot < 0 → yuva harcamaz (ücretsiz/zafer/mağaza)
 func chest_ceremony(type: String, slot: int, done: Callable) -> void:
-	if ceremony: ceremony.play(type, slot, done)
+	if ceremony:
+		Prof.s("ceremony")
+		# tören boyunca kullanılan dokular kaydedilir (ScrCeremony._finish kapatır)
+		UITex.rec_begin("_cer")
+		ceremony.play(type, slot, done)
+		if not ceremony.visible and UITex.rec == "_cer": UITex.rec = ""
+		Prof.t("ceremony")
 	else:
 		var rw: Array = g.chests.apply_pity(g.chests.roll_rewards(type))
 		g.chests.apply_rewards(rw)

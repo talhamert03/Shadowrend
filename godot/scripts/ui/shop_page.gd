@@ -266,7 +266,7 @@ func _hero_card(C: Lyr, o: Dictionary) -> void:
 	var art := C.find(".mk-hc-art")
 	var pp := "res://assets/ui/art/portrait/" + str(o.id) + ".webp"
 	if art and ResourceLoader.exists(pp):
-		var pr := UIK.round_image(load(pp), art.size.x, art.size.y, 11.0, Vector2(0.5, 0.18), 0.0, Color(0, 0, 0, 0), Color("#120e15"), Color("#120e15"))
+		var pr := UIK.round_image(UITex.get_tex(pp), art.size.x, art.size.y, 11.0, Vector2(0.5, 0.18), 0.0, Color(0, 0, 0, 0), Color("#120e15"), Color("#120e15"))
 		var m := pr.material as ShaderMaterial
 		var bri := 1.0
 		var sat := 1.0
@@ -300,7 +300,7 @@ func _gear_card(C: Lyr, o: Dictionary) -> void:
 	var p := "res://assets/ui/art/gear/" + str(o.get("icon", "")) + ".png"
 	if art and ResourceLoader.exists(p):
 		var s := Sprite2D.new()
-		s.texture = load(p)
+		s.texture = UITex.get_tex(p)
 		var box := art.size.x - 12.0
 		s.scale = Vector2.ONE * (box / maxf(s.texture.get_width(), s.texture.get_height()))
 		s.position = art.size * 0.5

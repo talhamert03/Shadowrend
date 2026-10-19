@@ -21,6 +21,7 @@ var shell: Lyr
 var root: Lyr.N
 var _items: Array = []        # içerik Lyr/düğümleri (yeniden kurulumda silinir)
 var _art: ClimbArt
+var _lazy: Array = []         # dünya kartı çizimleri: {art, wd, cleared, w, h, y0, y1, st: 0 boş · 1 yükleniyor · 2 boyalı, paths}
 
 func _init(m) -> void:
 	menu = m
@@ -48,6 +49,7 @@ func _build_shell(nm: String) -> void:
 	menu.btn(shell, shell.find_id("#journey-back"), func(): _back())
 
 func _clear_items() -> void:
+	_lazy.clear()
 	for it in _items:
 		if it is Lyr: menu.unbtn(it)
 		(it as Node).queue_free()
@@ -80,6 +82,44 @@ func _set_content_h(h: float) -> void:
 
 # ═════════════ dünya kartları ═════════════
 
+## önizleme çiziminin kutusu (yakalamadaki .wsel-art)
+static func art_size() -> Vector2:
+	for n in Lyr.load_json("wsel_1_peek").get("nodes", []):
+		if String(n.get("key", "")).contains("wsel-art"): return Vector2(float(n.box[2]), float(n.box[3]))
+	return Vector2(330, 190)
+
+func _process(_dt: float) -> void:
+	if _lazy.is_empty() or mode != "worlds" or not is_visible_in_tree() or root == null: return
+	var top: float = root.scroll_y
+	var vh: float = root.size.y
+	var near0 := top - vh * 0.75
+	var near1 := top + vh * 1.75
+	var painted := false
+	for c in _lazy:
+		var vis: bool = float(c.y1) > near0 and float(c.y0) < near1
+		var far: bool = float(c.y1) < top - vh * 2.5 or float(c.y0) > top + vh * 3.5
+		match int(c.st):
+			0:
+				if vis:
+					c.paths = ClimbArt.card_paths(int(c.wd.id), float(c.w), float(c.h))
+					UITex.request(c.paths, true)
+					c.st = 1
+			1:
+				if painted: continue
+				var ready := true
+				for p in c.paths:
+					if not UITex.has(p):
+						ready = false
+						break
+				if ready or not UITex.busy():
+					(c.art as ClimbArt).paint(c.wd, int(c.cleared), float(c.w), float(c.h))
+					c.st = 2
+					painted = true       # karede en çok bir kart boyanır
+			2:
+				if far:
+					(c.art as ClimbArt).clear()
+					c.st = 0
+
 func render_worlds() -> void:
 	var cur_w: int = int(menu.home_target().w)
 	var N: int = D.WORLDS.size()
@@ -103,12 +143,14 @@ func render_worlds() -> void:
 		card_h = C.nodes[0].size.y
 		if cur: cur_y = y
 		# önizleme sanatı (tuval düğümünün yerinde, kartın yuvarlak kırpmasıyla)
+		# çizim tembel: kart görünür alana yaklaşınca dokuları arka planda yüklenip boyanır,
+		# uzaklaşınca bırakılır (10 dünyanın tüm çizimleri ~120 MB doku)
 		var an := C.find(".wsel-art")
 		if an:
 			var art := ClimbArt.new()
 			art.set_clip(C.clip_mat(an), C.clip_mat(an, true))
 			an.node.add_child(art)
-			art.paint(wd, cleared, an.size.x, an.size.y)
+			_lazy.append({"art": art, "wd": wd, "cleared": cleared, "w": an.size.x, "h": an.size.y, "y0": y, "y1": y + C.nodes[0].size.y, "st": 0, "paths": []})
 		var cnt := C.find(".wsel-count")
 		if cnt: C.set_text(cnt, str(cleared) + "/" + str(MPW))
 		var pr := C.find(".wsel-progress")

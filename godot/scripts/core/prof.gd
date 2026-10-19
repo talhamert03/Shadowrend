@@ -26,3 +26,20 @@ static func frame() -> void:
 	print(s)
 	_acc.clear()
 	_frames = 0
+
+## tek seferlik iş süresi: s(k) … t(k) → 2 ms'yi aşarsa "SPAN k ms" yazar
+static var _sp := {}
+static func s(k: String) -> void:
+	if not on: return
+	_sp[k] = Time.get_ticks_usec()
+	Lyr.t_json = 0.0; Lyr.t_tex = 0.0; Lyr.t_text = 0.0; Lyr.n_make = 0; Lyr.n_nodes = 0
+
+static func t(k: String) -> void:
+	if not on or not _sp.has(k): return
+	var ms := (Time.get_ticks_usec() - int(_sp[k])) / 1000.0
+	_sp.erase(k)
+	if ms >= 2.0: print("SPAN ", k, " ", snappedf(ms, 0.1), " ms  [make=", Lyr.n_make, " nodes=", Lyr.n_nodes, " json=", snappedf(Lyr.t_json, 0.1), " tex=", snappedf(Lyr.t_tex, 0.1), " text=", snappedf(Lyr.t_text, 0.1), "]")
+
+## uzun kare: kare süresi eşiği aşınca yazar
+static func hitch(dt: float) -> void:
+	if on and dt > 0.03: print("HITCH ", snappedf(dt * 1000.0, 0.1), " ms @", Engine.get_process_frames())

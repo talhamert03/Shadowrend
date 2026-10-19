@@ -46,7 +46,7 @@ func hero_unlock(cid: String) -> void:
 			if k.d.get("tag") == "img": img = k
 		var pp := "res://assets/ui/art/portrait/" + cid + ".webp"
 		if img and ResourceLoader.exists(pp):
-			var pr := UIK.round_image(load(pp), img.size.x, img.size.y, 10.0, Vector2(0.5, 0.15))
+			var pr := UIK.round_image(UITex.get_tex(pp), img.size.x, img.size.y, 10.0, Vector2(0.5, 0.15))
 			img.node.add_child(pr)
 	EventsPage.txt(L, L.find(".hu-rar"), RAR[r])
 	EventsPage.txt(L, L.find(".hu-name"), str(C.get("name", "")))

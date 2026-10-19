@@ -151,7 +151,8 @@ func play(t: String, s: int, cb: Callable) -> void:
 	visible = true
 
 func _build() -> void:
-	for n in get_children(): n.queue_free()
+	for n in get_children():
+		if not (n is Scr._Ticker): n.queue_free()
 	tray.clear()
 	rev = null; back = null; summ = null
 	var dh := Scr.dh_of(self)
@@ -547,10 +548,10 @@ func _show() -> void:
 		var tex: Texture2D = null
 		if r.kind == "char":
 			var pp := "res://assets/ui/art/portrait/" + str(r.get("id", "")) + ".webp"
-			if ResourceLoader.exists(pp): tex = load(pp)
+			if ResourceLoader.exists(pp): tex = UITex.get_tex(pp)
 		else:
 			var gp := "res://assets/ui/art/gear/" + str(r.get("icon", "")) + ".png"
-			if ResourceLoader.exists(gp): tex = load(gp)
+			if ResourceLoader.exists(gp): tex = UITex.get_tex(gp)
 		if tex and r.kind == "char":
 			# img.rw-portrait.is-art: 78 px, cover center 12%, köşe 16 px, 2 px nadirlik halkası
 			var cc := color_of(r)
@@ -761,10 +762,10 @@ func _tray_texts(T: Lyr, r: Dictionary) -> void:
 		var tex: Texture2D = null
 		if r.kind == "char":
 			var pp := "res://assets/ui/art/portrait/" + str(r.get("id", "")) + ".webp"
-			if ResourceLoader.exists(pp): tex = load(pp)
+			if ResourceLoader.exists(pp): tex = UITex.get_tex(pp)
 		else:
 			var gp := "res://assets/ui/art/gear/" + str(r.get("icon", "")) + ".png"
-			if ResourceLoader.exists(gp): tex = load(gp)
+			if ResourceLoader.exists(gp): tex = UITex.get_tex(gp)
 		if tex and r.kind == "char":
 			# .tc-portrait: 44 px daire, radyal zemin, 1 px nadirlik kenarı, cover center 10%
 			var cc := color_of(r)
@@ -779,6 +780,7 @@ func _tray_texts(T: Lyr, r: Dictionary) -> void:
 			gl.node.add_child(sp)
 
 func _finish() -> void:
+	if UITex.rec == "_cer": UITex.rec = ""
 	visible = false
 	if not _forced: g.chests.apply_rewards(rewards)
 	if slot >= 0:
@@ -786,6 +788,7 @@ func _finish() -> void:
 		g.chests.save()
 	g.chests.ceremonyActive = false
 	g.audio.play("collect")
-	for n in get_children(): n.queue_free()
+	for n in get_children():
+		if not (n is Scr._Ticker): n.queue_free()
 	base = null; rev = null; back = null; summ = null; tray.clear()
 	if done_cb.is_valid(): done_cb.call()

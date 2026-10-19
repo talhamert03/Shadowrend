@@ -21,6 +21,16 @@ func _init(game = null) -> void:
 	g = game
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# savurma her görüntü karesinde ilerler (90/120 Hz ekranda fizik adımına bağlı takılmasın);
+	# alt sınıfların _process'inden bağımsız küçük bir saat düğümü
+	var tk := _Ticker.new()
+	tk.cb = _tick_fling
+	add_child(tk)
+
+class _Ticker extends Node:
+	var cb: Callable
+	func _init() -> void: process_mode = Node.PROCESS_MODE_ALWAYS
+	func _process(dt: float) -> void: cb.call(dt)
 
 func btn(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 4.0) -> void:
 	if n == null: return
@@ -84,15 +94,23 @@ func _rect(B: Dictionary) -> Rect2:
 	var L: Lyr = B.lyr
 	var r := L.visible_rect_of(B.n)
 	if r.size.x <= 0 or r.size.y <= 0: return Rect2()
-	var R := (L.get_global_transform() * r).grow(B.grow)
-	# kırpan ata (sayfa görünüm alanı vb.): görünmeyen kısım dokunuş almaz — kaydırma alanının
-	# dışına taşan kartlar alt menünün dokunuşunu yutmasın
+	return _clip(L, (L.get_global_transform() * r).grow(B.grow))
+
+## kırpan ata (sayfa görünüm alanı vb.): görünmeyen kısım dokunuş almaz — kaydırma alanının
+## dışına taşan kartlar / sayfa kökü alt menünün dokunuşunu yutmasın
+static func _clip(L: Node, R: Rect2) -> Rect2:
 	var p := L.get_parent()
 	while p:
 		if p is Control and (p as Control).clip_contents:
 			R = R.intersection((p as Control).get_global_rect())
 		p = p.get_parent()
 	return R
+
+## kaydırma alanının ekrandaki (kırpılmış) dikdörtgeni; gizli katmanınki boş
+func _srect(S: Dictionary) -> Rect2:
+	var L: Lyr = S.lyr
+	if not is_instance_valid(L) or not L.is_visible_in_tree(): return Rect2()
+	return _clip(L, L.get_global_transform() * L.rect_of(S.n))
 
 func _set_pressed(B, on: bool) -> void:
 	if B == null: return
@@ -104,104 +122,195 @@ func _set_pressed(B, on: bool) -> void:
 func _swipe_move(_dx: float) -> void: pass
 func _swipe_end(_dx: float, _vel: float) -> void: pass
 
+# ── dokunma hareketi ──
+# Tek etkin parmak (_gid). Basışta adaylar belirlenir: düğme (_pb), dikey kaydırma (_drag),
+# yatay sayfa kaydırma (_sw). Parmak SLOP kadar gidince yön kilitlenir: yatay baskınsa
+# sayfa kaydırma, değilse dikey kaydırma; ikisi de düğme basışını iptal eder. Hız, son
+# ~100 ms'lik örneklerden (Android dokunuşları kare başına toplu gelir; tek aralıktan
+# ölçülen hız oynak olur).
+const SLOP := 9.0
+var _gid := -1
+var _g0 := Vector2.ZERO
+var _mode := ""              # "" · "swipe" · "scroll"
+var _samples: Array = []     # [[usec, Vector2]]
+
+func _reset_gesture() -> void:
+	if _pb: _set_pressed(_pb, false)
+	_pb = null
+	_press = -1
+	_drag = null
+	_sw = null
+	_gid = -1
+	_mode = ""
+	_samples.clear()
+
+func _notification(what: int) -> void:
+	# gizlenirken yarım kalan hareket bırakılır (bırakış olayı bu ekrana hiç gelmeyebilir)
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not is_visible_in_tree() and _gid >= 0:
+		var was_sw := _mode == "swipe"
+		_reset_gesture()
+		if was_sw: _swipe_end(0.0, 0.0)
+
+func _sample(p: Vector2) -> void:
+	var now := Time.get_ticks_usec()
+	_samples.append([now, p])
+	while _samples.size() > 2 and now - int(_samples[0][0]) > 100000: _samples.pop_front()
+
+## son örneklerden hız (px/sn); parmak bırakmadan önce durduysa 0
+func _velocity() -> Vector2:
+	if _samples.size() < 2: return Vector2.ZERO
+	var now := Time.get_ticks_usec()
+	var a: Array = _samples[0]
+	var b: Array = _samples[-1]
+	if now - int(b[0]) > 70000: return Vector2.ZERO
+	var dt := float(int(b[0]) - int(a[0])) / 1000000.0
+	if dt < 0.012: return Vector2.ZERO
+	return ((b[1] as Vector2) - (a[1] as Vector2)) / dt
+
+## B düğmesi, S kaydırma alanının içeriğinde mi (içerikteki kart sürüklenince kaydırma kazanır;
+## alanın üstündeki sabit düğme — alt menü vb. — kaydırma başlatmaz)
+static func _owns(S_lyr: Node, B) -> bool:
+	if B == null: return true
+	var bl: Node = B.lyr
+	return bl == S_lyr or S_lyr.is_ancestor_of(bl)
+
 func _input(ev: InputEvent) -> void:
 	if not visible or not is_visible_in_tree(): return
 	if ev is InputEventScreenTouch:
 		var st := ev as InputEventScreenTouch
-		if st.pressed and swipe_rect.has_area() and swipe_rect.has_point(st.position) and (_sw == null or st.index == _sw.id or not _sw.on):
-			_sw = {"id": st.index, "x0": st.position.x, "y0": st.position.y, "on": false, "last": st.position.x, "lt": Time.get_ticks_msec(), "vel": 0.0}
-		if not st.pressed and _sw and st.index == _sw.id:
-			var was_on: bool = _sw.on
-			var dx: float = st.position.x - float(_sw.x0)
-			var v: float = _sw.vel
-			_sw = null
-			if was_on:
-				_press = -1
-				_pb = null
-				_drag = null
-				get_viewport().set_input_as_handled()
-				_swipe_end(dx, v)
-				return
 		if st.pressed:
-			# kaydırma alanı: dokunuş başlangıcı (düğme basışıyla birlikte; 8 px sonra kaydırma kazanır)
-			for S in _scrolls:
-				var L: Lyr = S.lyr
-				var r := L.rect_of(S.n)
-				if (L.get_global_transform() * r).has_point(st.position):
-					_drag = {"S": S, "id": st.index, "y0": st.position.y, "s0": (S.n as Lyr.N).scroll_y, "moved": false, "vel": 0.0, "last": st.position.y, "t": Time.get_ticks_msec()}
-					_fling.clear()
-					break
-			for i in range(_btns.size() - 1, -1, -1):
-				var B: Dictionary = _btns[i]
-				if not (B.n as Lyr.N).hidden and (B.lyr as Lyr).is_visible_in_tree() and _rect(B).has_point(st.position):
-					_press = st.index
-					_pb = B
-					_set_pressed(B, true)
-					get_viewport().set_input_as_handled()
-					return
-			if modal: get_viewport().set_input_as_handled()
-		else:
-			if _drag and st.index == _drag.id:
-				if _drag.moved: _fling.append({"S": _drag.S, "vel": _drag.vel})
-				_drag = null
-			if st.index == _press:
-				_press = -1
-				var B = _pb
-				_pb = null
-				_set_pressed(B, false)
-				get_viewport().set_input_as_handled()
-				if B and _rect(B).grow(8).has_point(st.position): (B.cb as Callable).call()
+			# başka parmak etkinken ikinci dokunuş yok sayılır; aynı kimlikle yeni basış →
+			# önceki bırakış kaybolmuş, hareket sıfırlanır
+			if _gid >= 0 and st.index != _gid:
+				if modal: get_viewport().set_input_as_handled()
+				return
+			if _gid >= 0:
+				var was_sw := _mode == "swipe"
+				_reset_gesture()
+				if was_sw: _swipe_end(0.0, 0.0)
+			_press_at(st.index, st.position)
+		elif st.index == _gid:
+			_release(st.position, st.canceled)
 	elif ev is InputEventScreenDrag:
 		var sd := ev as InputEventScreenDrag
-		if _sw and sd.index == _sw.id:
-			var dx2: float = sd.position.x - float(_sw.x0)
-			var dy2: float = sd.position.y - float(_sw.y0)
-			var now2 := Time.get_ticks_msec()
-			var dt2 := maxf(1.0, float(now2 - int(_sw.lt))) / 1000.0
-			_sw.vel = lerpf(float(_sw.vel), (sd.position.x - float(_sw.last)) / dt2, 0.5)
-			_sw.last = sd.position.x
-			_sw.lt = now2
-			if not _sw.on:
-				# dikey kaydırma başladıysa yatay geçiş yok
-				if _drag and _drag.moved: _sw = null
-				elif absf(dx2) > 14.0 and absf(dx2) > absf(dy2) * 1.4:
-					_sw.on = true
-					if _pb: _set_pressed(_pb, false)
-					_pb = null
-					_press = -1
-					_drag = null
-			if _sw and _sw.on:
-				_swipe_move(dx2)
-				get_viewport().set_input_as_handled()
-				return
-		if _drag and sd.index == _drag.id:
-			var dy: float = sd.position.y - _drag.y0
-			if not _drag.moved and absf(dy) > 8.0:
-				_drag.moved = true
-				# kaydırma başladı → basılı düğmeyi bırak (tıklama sayılmaz)
-				if _pb: _set_pressed(_pb, false)
-				_pb = null
-				_press = -1
-			if _drag.moved:
-				var S: Dictionary = _drag.S
-				var L2: Lyr = S.lyr
-				var mx := L2.scroll_max(S.n)
-				var y: float = _drag.s0 - dy / maxf(0.01, L2.get_global_transform().get_scale().y)
-				# kenarda lastik direnç
-				if y < 0: y *= 0.35
-				elif y > mx: y = mx + (y - mx) * 0.35
-				L2.set_scroll(S.n, y)
-				var now := Time.get_ticks_msec()
-				var dt := maxf(1.0, float(now - int(_drag.t))) / 1000.0
-				_drag.vel = lerpf(float(_drag.vel), -(sd.position.y - float(_drag.last)) / dt / maxf(0.01, L2.get_global_transform().get_scale().y), 0.5)
-				_drag.last = sd.position.y
-				_drag.t = now
-		if modal: get_viewport().set_input_as_handled()
+		if sd.index != _gid:
+			if modal: get_viewport().set_input_as_handled()
+			return
+		_move(sd.position)
 
-func _physics_process(dt: float) -> void:
+func _press_at(id: int, pos: Vector2) -> void:
+	_gid = id
+	_g0 = pos
+	_mode = ""
+	_samples.clear()
+	_sample(pos)
+	_fling.clear()
+	# düğme: en üstteki (son eklenen) görünür düğme
+	for i in range(_btns.size() - 1, -1, -1):
+		var B: Dictionary = _btns[i]
+		if not is_instance_valid(B.lyr): continue
+		if not (B.n as Lyr.N).hidden and (B.lyr as Lyr).is_visible_in_tree() and _rect(B).has_point(pos):
+			_press = id
+			_pb = B
+			_set_pressed(B, true)
+			break
+	# kaydırma alanı: en üstteki görünür alan; basılan düğme içeriğindeyse
+	for i in range(_scrolls.size() - 1, -1, -1):
+		var S: Dictionary = _scrolls[i]
+		if _srect(S).has_point(pos) and _owns(S.lyr, _pb):
+			_drag = {"S": S, "id": id, "y0": pos.y, "s0": (S.n as Lyr.N).scroll_y, "moved": false}
+			break
+	if swipe_rect.has_area() and swipe_rect.has_point(pos):
+		_sw = {"id": id, "x0": pos.x, "y0": pos.y, "on": false}
+	if _pb or modal: get_viewport().set_input_as_handled()
+
+func _move(pos: Vector2) -> void:
+	_sample(pos)
+	if _mode == "":
+		var d := pos - _g0
+		if d.length() < SLOP:
+			if _pb or modal: get_viewport().set_input_as_handled()
+			return
+		if _sw and absf(d.x) > absf(d.y) * 1.15:
+			_mode = "swipe"
+			_sw.on = true
+			_sw.x0 = pos.x - signf(d.x) * 2.0      # kilit anındaki sıçramayı yut
+		elif _drag and absf(d.y) >= absf(d.x) * 0.6:
+			_mode = "scroll"
+			_drag.moved = true
+			_drag.y0 = pos.y
+			_drag.s0 = (_drag.S.n as Lyr.N).scroll_y
+		else:
+			_mode = "none"
+			# düğmeden belirgin şekilde çıkıldıysa basış iptal (web click)
+		if _mode == "swipe" or _mode == "scroll":
+			if _pb: _set_pressed(_pb, false)
+			_pb = null
+			_press = -1
+	if _mode == "swipe":
+		_swipe_move(pos.x - float(_sw.x0))
+		get_viewport().set_input_as_handled()
+		return
+	if _mode == "scroll" and _drag:
+		var S: Dictionary = _drag.S
+		var L2: Lyr = S.lyr
+		if not is_instance_valid(L2):
+			_drag = null
+			return
+		var sc := maxf(0.01, L2.get_global_transform().get_scale().y)
+		var mx := L2.scroll_max(S.n)
+		var y: float = _drag.s0 - (pos.y - _drag.y0) / sc
+		# kenarda lastik direnç
+		if y < 0: y *= 0.35
+		elif y > mx: y = mx + (y - mx) * 0.35
+		L2.set_scroll(S.n, y)
+		get_viewport().set_input_as_handled()
+		return
+	if _pb and not _rect(_pb).grow(14).has_point(pos):
+		_set_pressed(_pb, false)
+		_pb = null
+		_press = -1
+	if _pb or modal: get_viewport().set_input_as_handled()
+
+func _release(pos: Vector2, canceled: bool) -> void:
+	_sample(pos)
+	var v := _velocity()
+	var mode := _mode
+	var B = _pb
+	var D = _drag
+	var SW = _sw
+	_pb = null
+	_press = -1
+	_drag = null
+	_sw = null
+	_gid = -1
+	_mode = ""
+	_samples.clear()
+	if B: _set_pressed(B, false)
+	if mode == "swipe" and SW:
+		get_viewport().set_input_as_handled()
+		_swipe_end(0.0 if canceled else pos.x - float(SW.x0), 0.0 if canceled else v.x)
+		return
+	if mode == "scroll" and D:
+		var L2: Lyr = D.S.lyr
+		var vy := 0.0 if canceled else -v.y / maxf(0.01, L2.get_global_transform().get_scale().y)
+		_fling.append({"S": D.S, "vel": clampf(vy, -6000.0, 6000.0)})
+		get_viewport().set_input_as_handled()
+		return
+	if B:
+		get_viewport().set_input_as_handled()
+		if not canceled and is_instance_valid(B.lyr) and _rect(B).grow(10).has_point(pos): (B.cb as Callable).call()
+		return
+	if modal: get_viewport().set_input_as_handled()
+
+func _tick_fling(dt: float) -> void:
 	# savurma + kenara geri yaylanma
+	if _fling.is_empty(): return
 	for F in _fling.duplicate():
 		var S: Dictionary = F.S
+		if not is_instance_valid(S.lyr):
+			_fling.erase(F)
+			continue
 		var L: Lyr = S.lyr
 		var n: Lyr.N = S.n
 		var mx := L.scroll_max(n)

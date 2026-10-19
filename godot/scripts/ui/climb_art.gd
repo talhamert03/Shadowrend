@@ -196,18 +196,42 @@ func _seg(add: bool) -> Seg:
 	return s
 
 static func _tex(path: String) -> Texture2D:
-	return load(path) if ResourceLoader.exists(path) else null
+	return UITex.get_tex(path)
 
 ## en yakın oranlı pişmiş biyom katmanı
 func _sized(dir: String, side: String) -> Texture2D:
+	var best := sized_name(side, W, H)
+	return _tex(dir + best + ".png") if best != "" else null
+
+static func sized_name(side: String, w: float, h: float) -> String:
 	var best := ""
 	var bd := 1e9
 	for sz in meta().get("sizes", []):
-		var d := absf(float(sz[1]) / float(sz[0]) - H / W) * 10.0 + absf(float(sz[0]) - W) / W
+		var d := absf(float(sz[1]) / float(sz[0]) - h / w) * 10.0 + absf(float(sz[0]) - w) / w
 		if d < bd:
 			bd = d
 			best = side + "_" + str(int(sz[0])) + "x" + str(int(sz[1]))
-	return _tex(dir + best + ".png") if best != "" else null
+	return best
+
+## önizleme kartının (tall değil) kullanacağı dokular — arka planda önceden yüklemek için
+static func card_paths(wid: int, w: float, h: float) -> Array:
+	var dir := BASE + "w" + str(wid) + "/"
+	var out: Array = []
+	for side in ["back", "front"]:
+		var nm := sized_name(side, w, h)
+		if nm != "": out.append(dir + nm + ".png")
+	var nodes := layout(h / w)
+	for i in nodes.size():
+		var nm2: String = "b3" if nodes[i].boss else "i" + str(i)
+		out.append(dir + nm2 + "_b.png")
+		out.append(dir + nm2 + "_s.png")
+	return out.filter(func(p): return ResourceLoader.exists(p))
+
+## çizimi bırak (kart görünümden çıktı): parçalar silinir, doku referansları düşer
+func clear() -> void:
+	for s in _segs: s.queue_free()
+	_segs.clear()
+	_key = ""
 
 static func _ellipse(ci: CanvasItem, c: Vector2, rx: float, ry: float, col: Color) -> void:
 	var pts := PackedVector2Array()

@@ -108,8 +108,9 @@ func _bind(L: Lyr, t: String) -> void:
 
 func _find_attr(L: Lyr, key: String, txt: String) -> Lyr.N:
 	var map := {"oyun": "OYUN", "erisim": "ERİŞİM", "hesap": "HESAP"}
+	# yakalamadaki kaynak metin (çeviri açıkken görünen metin farklıdır)
 	for n in L.find_all(key):
-		if n.txt and n.txt.text == map.get(txt, txt): return n
+		if n.txt and str((n.d.get("text", {}) as Dictionary).get("str", "")).strip_edges() == map.get(txt, txt): return n
 	return null
 
 ## seçenek grubu: düğmeler; açık görünüm = yakalamada .on olanın görüntüsü/yazı rengi

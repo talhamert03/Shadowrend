@@ -14,6 +14,26 @@ const CAM_DIR := Vector2(0.242, 0.970)
 
 static var _meta: Dictionary
 static var _tex := {}
+static var _env: Environment      # tüm sahnelerde ortak: gökyüzü ışıması bir kez hesaplanır
+static var _scenes := {}          # kademe → PackedScene (bir kez yüklenir, açılışta disk/ayrıştırma yok)
+static var _want := {}            # kademe → arka planda yükleniyor
+
+## modeli arka planda yüklemeye başla (menü boştayken; açılış anında hazır olsun)
+static func want(k: int) -> void:
+	k = clampi(k, 1, 7)
+	if _scenes.has(k) or _want.has(k): return
+	var path := BASE + "t" + str(k) + ".glb"
+	if ResourceLoader.load_threaded_request(path) == OK: _want[k] = path
+
+static func scene(k: int) -> PackedScene:
+	k = clampi(k, 1, 7)
+	if not _scenes.has(k):
+		if _want.has(k):
+			_scenes[k] = ResourceLoader.load_threaded_get(_want[k])
+			_want.erase(k)
+		else:
+			_scenes[k] = load(BASE + "t" + str(k) + ".glb")
+	return _scenes[k]
 
 var vp: SubViewport
 var spr: Sprite2D
@@ -65,7 +85,7 @@ static func meta() -> Dictionary:
 	return _meta
 
 static func tex(n: String) -> Texture2D:
-	if not _tex.has(n): _tex[n] = load(BASE + "fx_" + n + ".png")
+	if not _tex.has(n): _tex[n] = UITex.get_tex(BASE + "fx_" + n + ".png")
 	return _tex[n]
 
 static func tier_of(type: String) -> int:
@@ -76,7 +96,7 @@ func _init() -> void:
 	vp = SubViewport.new()
 	vp.own_world_3d = true
 	vp.transparent_bg = true
-	vp.msaa_3d = Viewport.MSAA_4X
+	vp.msaa_3d = Viewport.MSAA_2X if Quality.tier == "low" else Viewport.MSAA_4X
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp)
 	spr = Sprite2D.new()
@@ -95,17 +115,19 @@ func _init() -> void:
 	cam.far = 800
 	world.add_child(cam)
 	# ortam: stüdyo gökyüzü (makeEnv) yalnız ışık/yansıma için; arka plan şeffaf
-	var env := Environment.new()
-	env.background_mode = Environment.BG_CLEAR_COLOR
-	var sky := Sky.new()
-	var sm := ShaderMaterial.new()
-	sm.shader = load("res://shaders/chest_env.gdshader")
-	sky.sky_material = sm
-	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	env.ambient_light_energy = 1.0
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	if _env == null:
+		_env = Environment.new()
+		_env.background_mode = Environment.BG_CLEAR_COLOR
+		var sky := Sky.new()
+		var sm := ShaderMaterial.new()
+		sm.shader = load("res://shaders/chest_env.gdshader")
+		sky.sky_material = sm
+		_env.sky = sky
+		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+		_env.ambient_light_energy = 1.0
+		_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	var env := _env
 	var we := WorldEnvironment.new()
 	we.environment = env
 	world.add_child(we)
@@ -232,7 +254,7 @@ func set_tier(k: int) -> void:
 	_sheen = null
 	_T = meta().get("tiers", {}).get(str(tier), {})
 	glow_col = Color(String(_T.get("glow", "#ffbe5a")))
-	var ps: PackedScene = load(BASE + "t" + str(tier) + ".glb")
+	var ps: PackedScene = scene(tier)
 	var inst := ps.instantiate() as Node3D
 	_chest = Node3D.new()
 	_chest.add_child(inst)

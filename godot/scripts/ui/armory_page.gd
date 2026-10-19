@@ -23,6 +23,7 @@ var sel_id := ""
 var _items: Array = []        # [Node] — yeniden kurulumda silinir
 var _pop = null               # {slot, L}
 var _base := {}               # bölümlerin yakalanan konum/boyları
+var _lazy: Array = []         # kurulmayı bekleyen çanta kartları: {f: Callable, y: içerik y}
 
 func _init(m) -> void:
 	menu = m
@@ -45,6 +46,7 @@ func render() -> void:
 		if it is Lyr: menu.unbtn(it)
 		(it as Node).queue_free()
 	_items.clear()
+	_lazy.clear()
 	_pop = null
 	_decks()
 	var dy := _slots_and_stats()
@@ -78,7 +80,7 @@ static func fmt_mod(key: String, v: float) -> Dictionary:
 
 func _gear_tex(icon: String) -> Texture2D:
 	var p := "res://assets/ui/art/gear/" + icon + ".png"
-	return load(p) if ResourceLoader.exists(p) else null
+	return UITex.get_tex(p)
 
 ## gear çizimini bir düğümün kutusuna ortalı yerleştir (svg boyutu: kutunun 'frac'ı)
 func _art_into(L: Lyr, n: Lyr.N, icon: String, frac := 0.8, silhouette := false) -> void:
@@ -157,7 +159,7 @@ func _slots_and_stats() -> float:
 		var pid: String = g.meta.selectedChar
 		var pp := "res://assets/ui/art/portrait/" + pid + ".webp"
 		if ResourceLoader.exists(pp):
-			var pr := UIK.round_image(load(pp), av.size.x, av.size.y, av.size.x * 0.5, Vector2(0.5, 0.12))
+			var pr := UIK.round_image(UITex.get_tex(pp), av.size.x, av.size.y, av.size.x * 0.5, Vector2(0.5, 0.12))
 			av.node.add_child(pr)
 			_items.append(pr)
 	var ln := shell.find_id("#loadout-name")
@@ -363,8 +365,12 @@ func _bag(dy: float) -> void:
 	if owned.is_empty():
 		var E := _add("kz_empty", grid, Vector2(0, 0))
 		y += (E.nodes[0].size.y if E else 46.0) + GRID_GAP_Y
+	# kartlar tembel kurulur: görünür alana yakın olanlar hemen, kalanı karelere yayılarak
+	# (44 kartlık çanta tek karede kurulunca sekme geçişi takılıyordu)
+	var gy := shell._abs_of(grid).y + root.scroll_y
 	for x in owned:
-		var C := _card(grid, x, false, Vector2((i % 3) * GRID_STEP_X, y + (i / 3) * (161.8 + GRID_GAP_Y)))
+		var pos := Vector2((i % 3) * GRID_STEP_X, y + (i / 3) * (161.8 + GRID_GAP_Y))
+		_lazy.append({"f": _card.bind(grid, x, false, pos), "y": gy + pos.y})
 		i += 1
 	if owned.size(): y += ceilf(owned.size() / 3.0) * (161.8 + GRID_GAP_Y)
 	if missing.size():
@@ -375,7 +381,8 @@ func _bag(dy: float) -> void:
 		y += 10.0 + 6.0 + GRID_GAP_Y
 		i = 0
 		for x in missing:
-			_card(grid, x, true, Vector2((i % 3) * GRID_STEP_X, y + (i / 3) * (161.8 + GRID_GAP_Y)))
+			var pos2 := Vector2((i % 3) * GRID_STEP_X, y + (i / 3) * (161.8 + GRID_GAP_Y))
+			_lazy.append({"f": _card.bind(grid, x, true, pos2), "y": gy + pos2.y})
 			i += 1
 		y += ceilf(missing.size() / 3.0) * (161.8 + GRID_GAP_Y)
 	# kaydırma içeriği: çantanın dibi + sayfa alt dolgusu
@@ -385,6 +392,32 @@ func _bag(dy: float) -> void:
 	var S0 = root.d.get("scroll")
 	if S0 is Dictionary:
 		S0.h = 4.0 + (bag.pos.y if bag else 0.0) + bag_h + 18.0 + 96.0
+	_build_lazy(1000)
+
+## görünür alana (kaydırma ± ekran) yakın kartları kur; en çok n kart
+func _build_lazy(n: int) -> void:
+	if _lazy.is_empty() or root == null: return
+	var top: float = root.scroll_y
+	var vh: float = root.size.y
+	var built := 0
+	for c in _lazy.duplicate():
+		if built >= n: break
+		if float(c.y) + 170.0 > top - vh * 0.5 and float(c.y) < top + vh * 1.5:
+			_lazy.erase(c)
+			(c.f as Callable).call()
+			built += 1
+
+func _process(_dt: float) -> void:
+	if _lazy.is_empty(): return
+	if is_visible_in_tree():
+		_build_lazy(6)
+		if not _lazy.is_empty() and not menu.busy():
+			# görünmeyenler: karede bir
+			var c: Dictionary = _lazy.pop_front()
+			(c.f as Callable).call()
+	elif not menu.busy():
+		var c2: Dictionary = _lazy.pop_front()
+		(c2.f as Callable).call()
 
 func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 	var rk: int = KZ_RANK.get(int(x.rarity), 1)

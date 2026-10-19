@@ -123,9 +123,15 @@ func _build() -> void:
 
 ## sayfa gizli kurulur (UIPrewarm) — sekme ilk açılışta takılmasın
 func prebuild(p: String) -> void:
+	Prof.s("prebuild:" + p)
+	var rk := UITex.rec_begin(p)
 	var L := _page(p)
-	if L == null: return
+	if L == null:
+		UITex.rec_end(rk)
+		return
 	_render(p)
+	UITex.rec_end(rk)
+	Prof.t("prebuild:" + p)
 	_rendered[p] = Store.rev
 	if p != page: L.visible = false
 
@@ -160,13 +166,21 @@ func _activate(p: String) -> Node2D:
 	page = p
 	var dock := shell.find(".dock")
 	if dock and FileAccess.file_exists(Lyr.BASE + "menu_" + p + ".json"): shell.to_state("menu_" + p, dock)
+	Prof.s("page:" + p)
+	var rk := UITex.rec_begin(p)
 	var L := _page(p)
-	if L == null: return null
+	Prof.t("page:" + p)
+	if L == null:
+		UITex.rec_end(rk)
+		return null
 	_trim_pages()
 	# veri değişmediyse sayfa yeniden kurulmaz (geçiş anında); savaş sayfası her zaman tazelenir
 	if p == "savas" or int(_rendered.get(p, -1)) != Store.rev:
+		Prof.s("render:" + p)
 		_render(p)
+		Prof.t("render:" + p)
 		_rendered[p] = Store.rev
+	UITex.rec_end(rk)
 	return L
 
 func _reset_page(L: Node2D) -> void:
