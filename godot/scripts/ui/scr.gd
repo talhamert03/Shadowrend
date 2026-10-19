@@ -153,18 +153,26 @@ func _notification(what: int) -> void:
 
 func _sample(p: Vector2) -> void:
 	var now := Time.get_ticks_usec()
+	# bırakış, son hareketle aynı noktadaysa örnek değildir (hızı sıfıra çekmesin)
+	if _samples.size() and (_samples[-1][1] as Vector2).is_equal_approx(p): return
 	_samples.append([now, p])
-	while _samples.size() > 2 and now - int(_samples[0][0]) > 100000: _samples.pop_front()
+	while _samples.size() > 3 and now - int(_samples[0][0]) > 150000: _samples.pop_front()
 
-## son örneklerden hız (px/sn); parmak bırakmadan önce durduysa 0
+## son ~120 ms'lik hareketten hız (px/sn); parmak bırakmadan önce durduysa 0. Dokunuşlar kare
+## başına toplanarak gelir (Android) — zaman damgası kare zamanıdır, kare süresi hesaba katılır.
 func _velocity() -> Vector2:
 	if _samples.size() < 2: return Vector2.ZERO
 	var now := Time.get_ticks_usec()
-	var a: Array = _samples[0]
 	var b: Array = _samples[-1]
-	if now - int(b[0]) > 70000: return Vector2.ZERO
+	var frame_us := get_process_delta_time() * 1000000.0
+	if float(now - int(b[0])) > maxf(70000.0, frame_us * 1.6): return Vector2.ZERO
+	var a: Array = b
+	for smp in _samples:
+		if int(b[0]) - int(smp[0]) <= 120000:
+			a = smp
+			break
 	var dt := float(int(b[0]) - int(a[0])) / 1000000.0
-	if dt < 0.012: return Vector2.ZERO
+	if dt < 0.008: return Vector2.ZERO
 	return ((b[1] as Vector2) - (a[1] as Vector2)) / dt
 
 ## B düğmesi, S kaydırma alanının içeriğinde mi (içerikteki kart sürüklenince kaydırma kazanır;
@@ -204,9 +212,15 @@ func _press_at(id: int, pos: Vector2) -> void:
 	_mode = ""
 	_samples.clear()
 	_sample(pos)
-	_fling.clear()
+	# dokunuş savurmayı durdurur; kenar dışındaysa geri yaylanma sürer (_tick_fling).
+	# Kayan listeye dokunmak yalnız durdurur — altındaki kart açılmaz (mobil alışkanlık)
+	var stopped := false
+	for F in _fling:
+		if absf(float(F.vel)) > 80.0: stopped = true
+		F.vel = 0.0
 	# düğme: en üstteki (son eklenen) görünür düğme
 	for i in range(_btns.size() - 1, -1, -1):
+		if stopped: break
 		var B: Dictionary = _btns[i]
 		if not is_instance_valid(B.lyr): continue
 		if not (B.n as Lyr.N).hidden and (B.lyr as Lyr).is_visible_in_tree() and _rect(B).has_point(pos):
@@ -240,6 +254,8 @@ func _move(pos: Vector2) -> void:
 			_drag.moved = true
 			_drag.y0 = pos.y
 			_drag.s0 = (_drag.S.n as Lyr.N).scroll_y
+			for F in _fling.duplicate():
+				if F.S == _drag.S: _fling.erase(F)
 		else:
 			_mode = "none"
 			# düğmeden belirgin şekilde çıkıldıysa basış iptal (web click)
@@ -291,7 +307,7 @@ func _release(pos: Vector2, canceled: bool) -> void:
 		get_viewport().set_input_as_handled()
 		_swipe_end(0.0 if canceled else pos.x - float(SW.x0), 0.0 if canceled else v.x)
 		return
-	if mode == "scroll" and D:
+	if mode == "scroll" and D and is_instance_valid(D.S.lyr):
 		var L2: Lyr = D.S.lyr
 		var vy := 0.0 if canceled else -v.y / maxf(0.01, L2.get_global_transform().get_scale().y)
 		_fling.append({"S": D.S, "vel": clampf(vy, -6000.0, 6000.0)})
