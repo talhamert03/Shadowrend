@@ -103,8 +103,29 @@ func build(J: Dictionary, skip_keys: Array = []) -> void:
 		if d.get("parent") == null:
 			_build_node(d, self, kids, skip_keys, null)
 			break
+	_rename_rarity()
 	# canlandırma/kırpma yoksa kare başı çağrı gereksiz (set_dyn yeniden açar)
 	set_process(not _dyn.is_empty() or not _clips.is_empty())
+
+## Nadirlik adları (v1.0.9): yakalamalardaki eski adlar yenileriyle; tek kelimelik haplar
+## yeni metne göre genişler, uzun metinlerde ifade içinde değişir.
+const RAR_EXACT := {"ADİ": "SIRADAN", "DESTAN": "EPİK", "DESTANSI": "EPİK", "EFSANE": "EFSANEVİ"}
+const RAR_PHRASE := [["ADİ GÜCÜ", "SIRADAN GÜCÜ"], ["DESTANSI GÜCÜ", "EPİK GÜCÜ"], ["DESTAN GÜCÜ", "EPİK GÜCÜ"],
+	["EFSANE GÜCÜ", "EFSANEVİ GÜCÜ"], ["efsane garantili", "efsanevi garantili"], ["EFSANE GARANTİ", "EFSANEVİ GARANTİ"]]
+func _rename_rarity() -> void:
+	for n in nodes:
+		if n.txt == null or not (n.d.get("text") is Dictionary): continue
+		var src: String = String(n.d.text.get("str", "")).strip_edges()
+		if RAR_EXACT.has(src):
+			var w0: float = n.txt.text_width()
+			set_text(n, RAR_EXACT[src])
+			var dw: float = n.txt.text_width() - w0
+			if dw > 0.5 and n.txt.lines_hint == 1 and n.kids.is_empty() and n.img: fit_width(n, n.size.x + dw)
+			continue
+		for ph in RAR_PHRASE:
+			if src.contains(ph[0]):
+				set_text(n, src.replace(ph[0], ph[1]))
+				break
 
 func _skip(d: Dictionary, skip_keys: Array) -> bool:
 	if String(d.get("static", {}).get("display", "")) == "none": return true

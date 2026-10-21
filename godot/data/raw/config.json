@@ -883,7 +883,7 @@
  "CHAR_RARITIES": [
   null,
   {
-   "name": "ADİ",
+   "name": "SIRADAN",
    "color": "#b8c0cc",
    "glow": "rgba(184,192,204,0.30)",
    "dropW": 100
@@ -895,13 +895,13 @@
    "dropW": 34
   },
   {
-   "name": "DESTAN",
+   "name": "EPİK",
    "color": "#b96cff",
    "glow": "rgba(185,108,255,0.44)",
    "dropW": 10
   },
   {
-   "name": "EFSANE",
+   "name": "EFSANEVİ",
    "color": "#c98a52",
    "glow": "rgba(255,122,44,0.58)",
    "dropW": 3

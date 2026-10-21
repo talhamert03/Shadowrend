@@ -190,6 +190,11 @@ func boot() -> void:
 		elif ov == "quests": show_quests()
 		elif ov == "wipe": confirm_wipe()
 		elif ov == "bp": show_battle_pass()
+		elif ov.begins_with("fly:"):
+			# geliştirici: para uçuşu (fly:gem / fly:coin) — ekran ortasından cüzdana
+			var kind := "stone" if ov.substr(4) == "gem" else "ruby"
+			get_tree().create_timer(5.0).timeout.connect(func():
+				menu.fly_currency(menu.shell, menu.shell.find(".dk-tab", 2), kind))
 		elif ov.begins_with("hu:"): celebrate.hero_unlock(ov.substr(3))
 		elif ov.begins_with("alu:"): celebrate.level_up({"fromLevel": 4, "toLevel": 5, "rewards": [{"level": 5, "chest": ov.substr(4)}] if ov.substr(4) != "0" else []})
 		elif ov.begins_with("upx:"):

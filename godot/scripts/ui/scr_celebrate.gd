@@ -6,7 +6,7 @@ extends Scr
 ##   level_up(p)     — ui.js showAccountLevelUp: HESAP SEVİYESİ YÜKSELDİ (+ seviye sandığı)
 ##   gift(G)         — ui.js _showGift: DÖNÜŞ HEDİYESİ (genel sayfa)
 
-const RAR := ["", "ADİ", "NADİR", "DESTANSI", "EFSANE"]
+const RAR := ["", "SIRADAN", "NADİR", "EPİK", "EFSANEVİ"]
 var L: Lyr
 var _t := 0.0
 var _kind := ""

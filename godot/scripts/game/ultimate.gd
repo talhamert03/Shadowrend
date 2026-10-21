@@ -6,10 +6,10 @@ extends RefCounted
 
 const ULT_NEED := 80
 const ULT_TIER := [null,
-	{"r": 250.0, "norm": 0.60, "elite": 0.22, "boss": 0.03, "inv": 1.0, "heal": 0.0,  "n": 1.0, "label": "ADİ"},
+	{"r": 250.0, "norm": 0.60, "elite": 0.22, "boss": 0.03, "inv": 1.0, "heal": 0.0,  "n": 1.0, "label": "SIRADAN"},
 	{"r": 290.0, "norm": 0.80, "elite": 0.32, "boss": 0.04, "inv": 1.2, "heal": 0.05, "n": 1.2, "label": "NADİR"},
-	{"r": 330.0, "norm": 1.00, "elite": 0.45, "boss": 0.05, "inv": 1.5, "heal": 0.10, "n": 1.4, "label": "DESTANSI"},
-	{"r": 380.0, "norm": 1.00, "elite": 0.60, "boss": 0.06, "inv": 1.8, "heal": 0.15, "n": 1.6, "label": "EFSANE"},
+	{"r": 330.0, "norm": 1.00, "elite": 0.45, "boss": 0.05, "inv": 1.5, "heal": 0.10, "n": 1.4, "label": "EPİK"},
+	{"r": 380.0, "norm": 1.00, "elite": 0.60, "boss": 0.06, "inv": 1.8, "heal": 0.15, "n": 1.6, "label": "EFSANEVİ"},
 ]
 const ULT_ID := {
 	"okcu":    {"name": "AY YAĞMURU",    "col": "#cfe8ff", "c2": "#7fb2ff", "k": "moon",   "base": 16, "hr": 70.0,  "desc": "Gökte hilal doğar; hilal uçlu ay okları yağar."},

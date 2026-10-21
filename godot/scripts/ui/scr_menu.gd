@@ -491,14 +491,8 @@ func fly_currency(L: Lyr, n: Lyr.N, kind: String, on_done := Callable()) -> void
 	F.col = Color(1.0, 0.82, 0.48) if kind == "ruby" else Color(0.78, 0.61, 1.0)
 	F.src = _uiroot_pos(L, n)
 	F.dst = _uiroot_pos(shell, ic)
-	var holder := Node2D.new()
-	var dup := ic.node.duplicate() as Node2D
-	dup.position = -ic.size * 0.5
-	dup.rotation = 0.0
-	dup.scale = Vector2.ONE
-	holder.add_child(dup)
-	holder.scale = Vector2.ONE * (22.0 / maxf(1.0, ic.size.x))
-	F.icon = holder
+	# net, konturlu para sprite'ı (cüzdan ikonunun kopyası kırpma malzemesiyle silik çıkıyordu)
+	F.tex = load("res://assets/fx/currency/" + ("coin" if kind == "ruby" else "gem") + ".png")
 	F.on_arrive = func(i: int, total: int):
 		shell.set_text(val, str(int(round(base + (target - base) * float(i) / total))))
 		if cur: _bumps[cur] = _t

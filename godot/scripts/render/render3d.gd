@@ -29,7 +29,7 @@ var env: Environment
 var camDist := 1150.0
 ## kamera biraz daha uzak (daha geniş görüş); görünür alan sınırları (doğma/ayıklama) da aynı
 ## oranda genişler — resize()
-const CAM_NEAR := 1.12
+const CAM_NEAR := 1.26
 ## geliştirici: kamera uzaklık çarpanı (camzoom=0.4 → yakın çekim, stil incelemesi)
 var _dev_zoom := 1.0
 var _fixdt := 0.0

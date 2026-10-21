@@ -11,9 +11,9 @@ const SHOP_META := {
 	"yaygin": {"short": "GÜMÜŞ", "hook": "1 EKİPMAN", "tag": ""},
 	"kemik": {"short": "ALTIN", "hook": "GARANTİ EKİPMAN", "tag": ""},
 	"kan": {"short": "BÜYÜLÜ", "hook": "SİLAH ŞANSI", "tag": "POPÜLER"},
-	"kadim": {"short": "BUZUL", "hook": "DESTAN + ALTIN", "tag": "EN İYİ DEĞER"},
-	"mistik": {"short": "MİSTİK", "hook": "EFSANE GARANTİ", "tag": "GARANTİ"},
-	"ejderha": {"short": "EJDERHA", "hook": "EFSANE + ALTIN", "tag": "EFSANEVİ"},
+	"kadim": {"short": "BUZUL", "hook": "EPİK + ALTIN", "tag": "EN İYİ DEĞER"},
+	"mistik": {"short": "MİSTİK", "hook": "EFSANEVİ GARANTİ", "tag": "GARANTİ"},
+	"ejderha": {"short": "EJDERHA", "hook": "EFSANEVİ + ALTIN", "tag": "EFSANEVİ"},
 }
 const DEAL_POOL := ["kemik", "kan", "kadim", "mistik"]
 const VITRINE := ["yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]
