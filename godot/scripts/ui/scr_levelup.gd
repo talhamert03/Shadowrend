@@ -8,13 +8,15 @@ extends Node2D
 ## hafif süzülme + parıltı süpürmesi; seçilen kart büyüyüp ortaya gelir, ışık patlaması,
 ## diğerleri düşerek söner → seçim uygulanır.
 
-const LEVEL_TIERS := ["#9aa0b8", "#41a8ff", "#b565ff", "#ffb03a", "#ff7a3c"]
+const LEVEL_TIERS := ["#7fb8d8", "#3aa0ff", "#a85cff", "#ffb020", "#ff6a2a"]
 const ROMAN := ["I", "II", "III", "IV", "V"]
 const HEROES := ["seher", "simsek", "korsan", "kralice", "sovalye"]
 const GLYPH_DIR := "res://assets/ui/lyr/glyph/"
 const INK := Color(0.05, 0.03, 0.07)
 const CW := 116.0
-const CH := 236.0
+const CH := 244.0
+const PAPER := Color("#fff3d6")
+const YEL := Color("#ffd23a")
 
 var g
 var cards: Array = []        # [{node, back, face, choice, col, t0, base}]
@@ -118,23 +120,24 @@ func _ensure_shell() -> void:
 	if _bg: return
 	_W = UIK.ui_size(get_viewport())
 	_bg = ColorRect.new()
-	_bg.color = Color(0.03, 0.015, 0.05, 0.78)
+	_bg.color = Color(0.06, 0.02, 0.08, 0.8)
 	_bg.size = _W + Vector2(0, 400)
 	_bg.position = Vector2(0, -200)
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
 	_rays = Node2D.new()
-	_rays.position = Vector2(_W.x * 0.5, _W.y * 0.30)
+	_rays.position = Vector2(_W.x * 0.5, _W.y * 0.52 - CH * 0.5 - 64.0)
 	_rays.draw.connect(_draw_rays)
 	add_child(_rays)
-	_title = _mk_text(true, 800, 34, 2.0, Color("#fff1d6"), "0 3px 0 #1a0d10, 0 0 18px rgba(255,150,60,0.6)")
+	# başlık: çizgi roman yazısı (Bangers), sarı + kalın mürekkep, hafif eğik, patlama zemini üstünde
+	_title = _mk_text(false, 1000, 44, 1.5, YEL, UIK.ink_stroke(3.0, 4.0))
 	_title.text = "SEVİYE ATLADIN!"
-	_sub = _mk_text(false, 700, 12, 3.0, Color("#ffcf8a"), "0 1px 3px rgba(0,0,0,0.9)")
-	_sub.text = "BİR GÜÇ SEÇ"
+	_sub = _mk_text(false, 1000, 19, 2.0, Color.WHITE, UIK.ink_stroke(2.0, 2.0))
+	_sub.text = "BİR GÜÇ SEÇ!"
 	_reroll = Node2D.new()
 	_reroll.draw.connect(_draw_reroll)
 	add_child(_reroll)
-	_rr_txt = _mk_text(false, 800, 13, 2.0, Color("#fff4e6"), "0 1px 2px rgba(0,0,0,0.9)")
+	_rr_txt = _mk_text(false, 1000, 20, 1.5, INK, "")
 	_rr_txt.reparent(_reroll)
 	_spark = Node2D.new()
 	_spark.draw.connect(_draw_sparks)
@@ -199,108 +202,130 @@ func show_choices(choices: Array) -> void:
 	_layout_static()
 
 func _layout_static() -> void:
-	_title.position = Vector2(0, _W.y * 0.52 - CH * 0.5 - 92.0)
-	_sub.position = Vector2(0, _W.y * 0.52 - CH * 0.5 - 44.0)
-	_reroll.position = Vector2(_W.x * 0.5, _W.y * 0.52 + CH * 0.5 + 44.0)
-	_rr_txt.position = Vector2(-_W.x * 0.5, -9.0)
+	var top := _W.y * 0.52 - CH * 0.5
+	_title.position = Vector2(0, top - 104.0)
+	_sub.position = Vector2(0, top - 50.0)
+	_reroll.position = Vector2(_W.x * 0.5, top + CH + 46.0)
+	_rr_txt.position = Vector2(-_W.x * 0.5, -14.0)
 
 # ── kart yüzü (çizgi roman) ──
 func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void:
 	var w := CW
 	var h := CH
+	var dark := col.darkened(0.45)
+	var lite := col.lightened(0.35)
+	var mc := Vector2(0, -h * 0.5 + 70)
 	var bg := Node2D.new()
 	bg.draw.connect(func():
 		var r := Rect2(-w * 0.5, -h * 0.5, w, h)
-		# alt gölge (mürekkep ofset)
+		# mürekkep ofset gölge + gövde (nadirlik rengi)
 		var sh := StyleBoxFlat.new()
 		sh.bg_color = INK
-		sh.set_corner_radius_all(14)
-		bg.draw_style_box(sh, Rect2(r.position + Vector2(4, 6), r.size))
+		sh.set_corner_radius_all(12)
+		bg.draw_style_box(sh, Rect2(r.position + Vector2(5, 6), r.size))
 		var b := StyleBoxFlat.new()
-		b.bg_color = Color("#241a2e")
-		b.set_corner_radius_all(14)
-		b.set_border_width_all(4)
-		b.border_color = INK
+		b.bg_color = col
+		b.set_corner_radius_all(12)
 		bg.draw_style_box(b, r)
-		# başlık şeridi (nadirlik rengi)
-		var hb := StyleBoxFlat.new()
-		hb.bg_color = col
-		hb.corner_radius_top_left = 11
-		hb.corner_radius_top_right = 11
-		bg.draw_style_box(hb, Rect2(r.position + Vector2(4, 4), Vector2(w - 8, 24)))
-		bg.draw_line(r.position + Vector2(4, 28), r.position + Vector2(w - 4, 28), INK, 3.0)
-		# yarım ton madalyon zemini
-		var mc := Vector2(0, -h * 0.5 + 72)
-		for yy in range(-6, 7):
+		# madalyon arkasında aksiyon ışınları (kart içine kırpılı)
+		var box := PackedVector2Array([r.position + Vector2(4, 4), Vector2(r.end.x - 4, r.position.y + 4), r.end - Vector2(4, 4), Vector2(r.position.x + 4, r.end.y - 4)])
+		for i in 14:
+			var a := i * TAU / 14.0
+			var R := w * 1.2
+			var tri := PackedVector2Array([mc, mc + Vector2(cos(a - 0.12), sin(a - 0.12)) * R, mc + Vector2(cos(a + 0.12), sin(a + 0.12)) * R])
+			for q in Geometry2D.intersect_polygons(tri, box):
+				if q.size() >= 3: bg.draw_colored_polygon(q, Color(lite, 0.55))
+		# yarım ton: üstten aşağı büyüyen koyu noktalar
+		for yy in range(0, 16):
 			for xx in range(-7, 8):
-				var p := mc + Vector2(xx * 8 + (4 if yy % 2 else 0), yy * 7)
-				var d := p.distance_to(mc)
-				var rr := clampf(3.2 - d / 18.0, 0.0, 3.2)
-				if rr > 0.4 and absf(p.x) < w * 0.5 - 8: bg.draw_circle(p, rr, Color(col, 0.22))
-		# madalyon
-		bg.draw_circle(mc, 33, INK)
-		bg.draw_circle(mc, 29.5, col.darkened(0.55))
-		bg.draw_circle(mc, 29.5 - 4, col.darkened(0.25))
-		bg.draw_arc(mc, 26, PI * 1.1, PI * 1.75, 16, Color(1, 1, 1, 0.35), 3.0, true)
-		# ad altı ayraç
-		bg.draw_line(Vector2(-w * 0.32, 26), Vector2(w * 0.32, 26), Color(col, 0.6), 2.0))
+				var p := Vector2(xx * 8.0 + (4.0 if yy % 2 else 0.0), -h * 0.5 + 6 + yy * 7.0)
+				var rr := 0.4 + yy * 0.14
+				if absf(p.x) < w * 0.5 - 6: bg.draw_circle(p, rr, Color(dark, 0.45))
+		# açıklama kâğıdı (krem, mürekkep konturlu)
+		var pr := Rect2(-w * 0.5 + 8, -h * 0.5 + 158, w - 16, h - 166)
+		var pb := StyleBoxFlat.new()
+		pb.bg_color = PAPER
+		pb.set_corner_radius_all(8)
+		pb.set_border_width_all(3)
+		pb.border_color = INK
+		bg.draw_style_box(pb, pr)
+		# dış mürekkep kontur
+		var o := StyleBoxFlat.new()
+		o.bg_color = Color(0, 0, 0, 0)
+		o.set_corner_radius_all(12)
+		o.set_border_width_all(5)
+		o.border_color = INK
+		bg.draw_style_box(o, r)
+		# madalyon: beyaz daire, kalın kontur, gölge
+		bg.draw_circle(mc + Vector2(3, 4), 34, INK)
+		bg.draw_circle(mc, 34, INK)
+		bg.draw_circle(mc, 29, Color("#fffaf0"))
+		bg.draw_circle(mc + Vector2(-8, -10), 9, Color(1, 1, 1, 0.9))
+		bg.draw_arc(mc, 29, PI * 0.15, PI * 0.85, 16, Color(col, 0.55), 5.0, true))
 	face.add_child(bg)
-	# glif
+	# glif (mürekkep rengi)
 	var gf := glyph_file(c)
 	var tex: Texture2D = load(GLYPH_DIR + gf + ".png") if ResourceLoader.exists(GLYPH_DIR + gf + ".png") else null
 	if tex:
 		var sp := Sprite2D.new()
 		sp.texture = tex
-		sp.scale = Vector2.ONE * (36.0 / (tex.get_width() * 38.0 / 66.0))
-		sp.position = Vector2(0, -h * 0.5 + 72)
-		sp.modulate = Color(1, 0.98, 0.94)
+		sp.scale = Vector2.ONE * (38.0 / (tex.get_width() * 38.0 / 66.0))
+		sp.position = mc
+		sp.modulate = Color(0.1, 0.06, 0.12)
 		face.add_child(sp)
-	# tür etiketi
+	# tür etiketi: eğik siyah bant, beyaz çizgi roman yazısı
+	var tag := Node2D.new()
+	tag.position = Vector2(-w * 0.5 + 6, -h * 0.5 + 6)
+	tag.rotation = -0.08
+	var lbl := _type_label(c, K)
+	tag.draw.connect(func():
+		var tw := 14.0 + lbl.length() * 8.0
+		tag.draw_rect(Rect2(0, 0, tw, 20), INK))
 	var tl := UIText.new()
-	tl.style(false, 800, 10, 1.8, INK, "")
-	tl.align = 0.5
+	tl.style(false, 1000, 15, 1.2, YEL, "")
 	tl.nowrap = true
-	tl.wrap_w = w
-	tl.text = _type_label(c, K)
-	tl.position = Vector2(-w * 0.5, -h * 0.5 + 9)
-	face.add_child(tl)
-	# ad (1-2 satır)
+	tl.text = lbl
+	tl.position = Vector2(7, 1)
+	tag.add_child(tl)
+	face.add_child(tag)
+	# ad: beyaz çizgi roman yazısı, kalın mürekkep (1-2 satır)
 	var nm := UIText.new()
-	nm.style(true, 800, 14, 0.4, Color("#fff4e6"), "0 2px 0 #0a0510")
+	nm.style(false, 1000, 19, 0.8, Color.WHITE, UIK.ink_stroke(2.0, 2.0))
 	nm.align = 0.5
 	nm.nowrap = false
 	nm.max_lines = 2
-	nm.wrap_w = w - 14
+	nm.line_h = 19
+	nm.wrap_w = w - 10
 	nm.text = str(c.get("name", ""))
-	nm.position = Vector2(-w * 0.5 + 7, -h * 0.5 + 112)
+	nm.position = Vector2(-w * 0.5 + 5, -h * 0.5 + 110)
 	face.add_child(nm)
-	# kademe noktaları
+	# kademe noktaları (kâğıdın üst kenarında)
 	var mx := int(c.get("max", 1))
 	if mx > 1:
 		var pips := Node2D.new()
 		var tgt := int(K.target)
 		pips.draw.connect(func():
 			var cnt := mini(mx, 5)
-			var span := cnt * 9 + (cnt - 1) * 4
-			var x := -span * 0.5 + 4.5
+			var span := cnt * 12 + (cnt - 1) * 3
+			var x := -span * 0.5 + 6
 			for j in cnt:
 				var on := j + 1 <= tgt
-				var q := Vector2(x + j * 13, 0)
-				var pts := PackedVector2Array([q + Vector2(0, -5), q + Vector2(5, 0), q + Vector2(0, 5), q + Vector2(-5, 0)])
+				var q := Vector2(x + j * 15, 0)
+				var pts := PackedVector2Array([q + Vector2(0, -7), q + Vector2(7, 0), q + Vector2(0, 7), q + Vector2(-7, 0)])
 				pips.draw_colored_polygon(pts, INK)
-				var pi := PackedVector2Array([q + Vector2(0, -3), q + Vector2(3, 0), q + Vector2(0, 3), q + Vector2(-3, 0)])
-				pips.draw_colored_polygon(pi, col if on else Color(1, 1, 1, 0.15)))
+				var pi := PackedVector2Array([q + Vector2(0, -4), q + Vector2(4, 0), q + Vector2(0, 4), q + Vector2(-4, 0)])
+				pips.draw_colored_polygon(pi, YEL if on else Color("#5a5060")))
 		pips.position = Vector2(0, -h * 0.5 + 158)
 		face.add_child(pips)
-	# açıklama
+	# açıklama: kâğıt üstünde koyu yazı
 	var ds := UIText.new()
-	ds.style(false, 600, 11, 0.2, Color("#d8cfe0"), "0 1px 2px rgba(0,0,0,0.8)")
+	ds.style(false, 800, 11, 0.1, Color("#2a1c24"), "")
 	ds.align = 0.5
 	ds.nowrap = false
-	ds.max_lines = 4
-	ds.wrap_w = w - 16
+	ds.max_lines = 5
+	ds.wrap_w = w - 26
 	ds.text = str(c.get("desc", ""))
-	ds.position = Vector2(-w * 0.5 + 8, -h * 0.5 + 172)
+	ds.position = Vector2(-w * 0.5 + 13, -h * 0.5 + 170)
 	face.add_child(ds)
 	# parıltı süpürmesi (kartın içine kırpılı)
 	var shine := Node2D.new()
@@ -312,29 +337,29 @@ func _draw_back(n: Node2D, col: Color) -> void:
 	var r := Rect2(-CW * 0.5, -CH * 0.5, CW, CH)
 	var sh := StyleBoxFlat.new()
 	sh.bg_color = INK
-	sh.set_corner_radius_all(14)
-	n.draw_style_box(sh, Rect2(r.position + Vector2(4, 6), r.size))
+	sh.set_corner_radius_all(12)
+	n.draw_style_box(sh, Rect2(r.position + Vector2(5, 6), r.size))
 	var b := StyleBoxFlat.new()
-	b.bg_color = col.darkened(0.6)
-	b.set_corner_radius_all(14)
-	b.set_border_width_all(4)
+	b.bg_color = col.darkened(0.25)
+	b.set_corner_radius_all(12)
+	b.set_border_width_all(5)
 	b.border_color = INK
 	n.draw_style_box(b, r)
-	for yy in range(-12, 13):
-		for xx in range(-6, 7):
-			var p := Vector2(xx * 9 + (4.5 if yy % 2 else 0.0), yy * 9)
-			if absf(p.x) < CW * 0.5 - 9 and absf(p.y) < CH * 0.5 - 9:
-				n.draw_circle(p, 2.2, Color(col, 0.28))
-	n.draw_circle(Vector2.ZERO, 30, INK)
-	n.draw_circle(Vector2.ZERO, 26, col)
+	for i in 12:
+		var a := i * TAU / 12.0
+		n.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.13), sin(a - 0.13)) * 150, Vector2(cos(a + 0.13), sin(a + 0.13)) * 150]), Color(col.lightened(0.3), 0.5))
+	n.draw_rect(Rect2(r.position + Vector2(5, 5), Vector2(0, 0)), INK)
+	n.draw_circle(Vector2(2, 3), 32, INK)
+	n.draw_circle(Vector2.ZERO, 32, INK)
+	n.draw_circle(Vector2.ZERO, 27, YEL)
 	if n.get_child_count() == 0:
 		var q := UIText.new()
-		q.style(true, 800, 32, 0.0, INK, "")
+		q.style(false, 1000, 40, 0.0, INK, "")
 		q.align = 0.5
 		q.nowrap = true
 		q.wrap_w = 60
 		q.text = "?"
-		q.position = Vector2(-30, -22)
+		q.position = Vector2(-30, -24)
 		n.add_child(q)
 
 func _draw_shine(n: Node2D) -> void:
@@ -348,29 +373,41 @@ func _draw_shine(n: Node2D) -> void:
 		if q.size() >= 3: n.draw_colored_polygon(q, Color(1, 1, 1, 0.13))
 
 func _draw_rays() -> void:
-	var a0 := _t * 0.25
-	var R := _W.x * 0.9
-	var alpha := clampf(_t / 0.4, 0.0, 1.0) * 0.10
-	for i in 12:
-		var a := a0 + i * TAU / 12.0
-		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.11), sin(a - 0.11)) * R, Vector2(cos(a + 0.11), sin(a + 0.11)) * R]), Color(1.0, 0.75, 0.4, alpha))
+	# başlık arkası: dönen sarı-turuncu ışınlar + sivri patlama (çizgi roman "POW" zemini)
+	var a0 := _t * 0.3
+	var R := _W.x * 1.1
+	var al := clampf(_t / 0.4, 0.0, 1.0)
+	for i in 16:
+		var a := a0 + i * TAU / 16.0
+		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.1), sin(a - 0.1)) * R, Vector2(cos(a + 0.1), sin(a + 0.1)) * R]), Color(1.0, 0.72, 0.2, 0.13 * al))
+	var kb := clampf(_t / 0.35, 0.0, 1.0)
+	var s := _back_ease(kb) if kb < 1.0 else 1.0 + sin(_t * 3.0) * 0.02
+	var pts := PackedVector2Array()
+	for i in 22:
+		var a := -PI * 0.5 + i * TAU / 22.0 + 0.05
+		var rr := (150.0 if i % 2 == 0 else 112.0) * s
+		pts.append(Vector2(cos(a) * rr, sin(a) * rr * 0.42 - 6))
+	var ink := PackedVector2Array()
+	for p in pts: ink.append(p * 1.06 + Vector2(4, 5))
+	_rays.draw_colored_polygon(ink, Color(INK, al))
+	_rays.draw_colored_polygon(pts, Color(Color("#e8322c"), al))
 
 func _draw_reroll() -> void:
 	var n := int(g.rerolls)
-	var w := 150.0
-	var h := 40.0
+	var w := 156.0
+	var h := 42.0
 	var r := Rect2(-w * 0.5, -h * 0.5, w, h)
 	var sh := StyleBoxFlat.new()
 	sh.bg_color = INK
-	sh.set_corner_radius_all(20)
-	_reroll.draw_style_box(sh, Rect2(r.position + Vector2(0, 4), r.size))
+	sh.set_corner_radius_all(21)
+	_reroll.draw_style_box(sh, Rect2(r.position + Vector2(3, 5), r.size))
 	var b := StyleBoxFlat.new()
-	b.bg_color = Color("#3a8f5a") if n > 0 else Color("#3a3440")
-	b.set_corner_radius_all(20)
-	b.set_border_width_all(3)
+	b.bg_color = YEL if n > 0 else Color("#6a6070")
+	b.set_corner_radius_all(21)
+	b.set_border_width_all(4)
 	b.border_color = INK
 	_reroll.draw_style_box(b, r)
-	_reroll.draw_line(Vector2(-w * 0.5 + 14, -h * 0.5 + 8), Vector2(w * 0.5 - 14, -h * 0.5 + 8), Color(1, 1, 1, 0.25 if n > 0 else 0.08), 3.0)
+	_reroll.draw_line(Vector2(-w * 0.5 + 16, -h * 0.5 + 9), Vector2(w * 0.5 - 16, -h * 0.5 + 9), Color(1, 1, 1, 0.55 if n > 0 else 0.15), 3.0)
 
 func _draw_sparks() -> void:
 	for s in _sparks:
@@ -391,7 +428,7 @@ func _burst(at: Vector2, col: Color, n: int, spd: float) -> void:
 func _sync_reroll() -> void:
 	if _rr_txt == null: return
 	var n := int(g.rerolls)
-	_rr_txt.text = I18n.t("↻ YENİLE · " + str(n))
+	_rr_txt.text = I18n.t("YENİLE  x" + str(n))
 	_rr_txt.modulate.a = 1.0 if n > 0 else 0.45
 	_reroll.queue_redraw()
 
@@ -407,8 +444,9 @@ func _process(dt: float) -> void:
 	# başlık patlaması
 	var kt := clampf(_t / 0.4, 0.0, 1.0)
 	var ts := _back_ease(kt) if kt < 1.0 else 1.0 + sin(_t * 2.2) * 0.015
+	_title.pivot_offset = Vector2(_W.x * 0.5, 26)
 	_title.scale = Vector2.ONE * maxf(0.01, ts)
-	_title.position.x = _W.x * 0.5 * (1.0 - _title.scale.x)
+	_title.rotation = -0.05
 	_title.modulate.a = kt
 	_sub.modulate.a = clampf((_t - 0.2) / 0.3, 0.0, 1.0)
 	_reroll.modulate.a = clampf((_t - 0.9) / 0.3, 0.0, 1.0) * (0.0 if _pick >= 0 else 1.0)
@@ -451,7 +489,7 @@ func _process(dt: float) -> void:
 		var pop := 1.0 + 0.08 * sin(land * PI)
 		var bob := sin(_t * 2.0 + i * 1.3) * 3.0 if lt > 0.8 else 0.0
 		node.position = pos + Vector2(0, bob)
-		node.rotation = rot
+		node.rotation = rot + (float(i) - 1.0) * 0.035 * clampf(land * 2.0, 0.0, 1.0)
 		node.scale = Vector2(maxf(0.02, sx) * pop, pop) * minf(1.0, 0.6 + 0.4 * ef)
 		var shine: Node2D = (C.face as Node2D).get_node_or_null("shine")
 		if shine:

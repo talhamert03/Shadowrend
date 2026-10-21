@@ -124,6 +124,8 @@ var _ultNopeAt := -9.0
 # duraklat
 var pauseImg: TextureRect
 var comic: Draw              # Borderlands tarzı plakalar (mürekkep konturlu, yarım ton)
+var _gem_tex: Texture2D
+var lvTag: UIText
 const INK := Color(0.05, 0.03, 0.07)
 var _pausePress := -1
 # pankart
@@ -247,6 +249,11 @@ func _ready() -> void:
 	nmVeil.visible = false
 	comic = Draw.new(_draw_comic)
 	root.add_child(comic)
+	lvTag = UIText.new()
+	lvTag.style(false, 1000, 10, 1.0, "#ffd23a", "")
+	lvTag.anchor_x = 0.5
+	lvTag.text = "SV"
+	root.add_child(lvTag)
 	_build_xp()
 	_build_row()
 	_build_pu()
@@ -286,21 +293,22 @@ func _build_row() -> void:
 	var lb: Array = UIK.meta("hud_cell_l").get("texts", [])
 	lbLevel = UIK.text_from(root, lb[0] if lb.size() else {}, "SEVİYE")
 	lbLevel.line_h = 9.45
-	vLevel = _txt(root).style(true, 800, 20, 0, "#fff4dc", "rgb(13, 8, 18) 0px 2px 0px", 19.95)
+	vLevel = _txt(root).style(false, 1000, 24, 0.5, "#2a1408", "", 24)
+	vLevel.anchor_x = 0.5
 	vLevel.text = "1"
 	lbMoney = _txt(root).style(false, 800, 8, 1.6, "#b9a8d6", "", 9.45)
 	lbMoney.text = "MATERYAL"
 	lbMoney.anchor_x = 1.0
-	vMoney = _txt(root).style(true, 800, 20, 0, "#d9c8ff", "rgb(13, 8, 18) 0px 2px 0px", 19.95)
+	vMoney = _txt(root).style(false, 1000, 24, 1.0, "#ffffff", UIK.ink_stroke(2.0, 2.0), 24)
 	vMoney.anchor_x = 1.0
 	vMoney.text = "0"
-	tWave = _txt(root).style(false, 800, 10, 1.8, INK, "", 11)
+	tWave = _txt(root).style(false, 1000, 13, 1.4, INK, "", 13)
 	tWave.anchor_x = 0.5
 	ghost = Draw.new(_draw_ghost)
 	root.add_child(ghost)
 	ghostTxt = _txt(ghost).style(false, 700, 10, 0.6, "#ff8a94", "", 10)
 	ghost.visible = false
-	tTimer = _txt(root).style(true, 800, 24, 1.92, "#fff1c8", "rgb(13, 8, 18) 0px 3px 0px, rgb(13, 8, 18) 0px -1px 0px, rgb(13, 8, 18) 1px 0px 0px, rgb(13, 8, 18) -1px 0px 0px", 24)
+	tTimer = _txt(root).style(false, 1000, 30, 2.0, "#fff1c8", UIK.ink_stroke(2.0, 3.0), 30)
 	tTimer.anchor_x = 0.5
 
 func _build_pu() -> void:
@@ -479,7 +487,14 @@ func _layout() -> void:
 	bmK.position = Vector2(pw * 0.5, 12)
 	bmN.position = Vector2(pw * 0.5, 12 + 13 + 4)
 	bmL.position = Vector2(pw * 0.5, 12 + 13 + 4 + bmN.line_h + 4)
-	lbLevel.modulate = Color(1.0, 0.86, 0.6)
+	lbLevel.visible = false
+	lbMoney.visible = false
+	var bc := _lvl_center()
+	vLevel.position = Vector2(bc.x, bc.y - 13)
+	lvTag.position = Vector2(bc.x, bc.y + 17)
+	vMoney.anchor_x = 1.0
+	vMoney.position = Vector2(R - 10, cellY + 1)
+	tTimer.position.y += 1
 	comic.size = r
 	comic.queue_redraw()
 
@@ -498,6 +513,10 @@ func _plate(c: Control, r: Rect2, fill: Color, rad := 10.0, bw := 3.0) -> void:
 	b.border_color = INK
 	c.draw_style_box(b, r)
 	c.draw_line(r.position + Vector2(rad, bw + 2.5), r.position + Vector2(r.size.x - rad, bw + 2.5), Color(1, 1, 1, 0.16), 2.0)
+
+func _lvl_center() -> Vector2:
+	var rowY := sa[0] + 20
+	return Vector2(12 + sa[3] + 26, rowY + (_rowH - 29.375) * 0.5 + 14)
 
 func _draw_comic(c: Control) -> void:
 	if not root.visible: return
@@ -520,14 +539,40 @@ func _draw_comic(c: Control) -> void:
 	# satır plakaları
 	var rowY := sat + 20
 	var cellY := rowY + (_rowH - 29.375) * 0.5
-	_plate(c, Rect2(L - 4, cellY - 5, 62, 40), Color("#3a2a1e"))
-	# seviye rozeti (yıldız)
-	_plate(c, Rect2(R - 76, cellY - 5, 80, 40), Color("#2a2042"))
-	var gc := Vector2(R - 64, cellY + 19)
-	var gem := PackedVector2Array([gc + Vector2(0, -8), gc + Vector2(7, -2), gc + Vector2(0, 8), gc + Vector2(-7, -2)])
-	c.draw_colored_polygon(gem, INK)
-	var gi := PackedVector2Array([gc + Vector2(0, -5.5), gc + Vector2(4.5, -1.5), gc + Vector2(0, 5.5), gc + Vector2(-4.5, -1.5)])
-	c.draw_colored_polygon(gi, Color("#b98aff"))
+	# SEVİYE: sarı patlama rozeti (çizgi roman yıldızı), çevresinde XP halkası
+	var bc := _lvl_center()
+	var star := PackedVector2Array()
+	var ink := PackedVector2Array()
+	var wob := 1.0 + sin(_t * 3.0) * 0.02
+	for i in 20:
+		var a := -PI * 0.5 + i * TAU / 20.0
+		var rr := (25.0 if i % 2 == 0 else 19.0) * wob
+		star.append(bc + Vector2(cos(a), sin(a)) * rr)
+		ink.append(bc + Vector2(cos(a), sin(a)) * (rr + 3.5) + Vector2(1.5, 3))
+	c.draw_colored_polygon(ink, INK)
+	var ink2 := PackedVector2Array()
+	for i in 20:
+		var a := -PI * 0.5 + i * TAU / 20.0
+		ink2.append(bc + Vector2(cos(a), sin(a)) * ((25.0 if i % 2 == 0 else 19.0) * wob + 3.0))
+	c.draw_colored_polygon(ink2, INK)
+	c.draw_colored_polygon(star, Color("#ffd23a"))
+	c.draw_circle(bc + Vector2(-6, -7), 5, Color(1, 1, 1, 0.55))
+	# SV etiketi (rozetin altında küçük bant)
+	c.draw_rect(Rect2(bc.x - 13, bc.y + 18, 26, 11), INK)
+	# MATERYAL: eğik koyu hap + boyanmış gem
+	var mw := 92.0
+	var mr := Rect2(R - mw, cellY - 1, mw, 32)
+	var pts := PackedVector2Array([mr.position + Vector2(10, 0), mr.position + Vector2(mw, 0), mr.position + Vector2(mw - 10, 32), mr.position + Vector2(0, 32)])
+	var sh := PackedVector2Array()
+	for q in pts: sh.append(q + Vector2(2, 4))
+	c.draw_colored_polygon(sh, INK)
+	c.draw_colored_polygon(pts, INK)
+	var inner := PackedVector2Array([pts[0] + Vector2(2, 3), pts[1] + Vector2(-3, 3), pts[2] + Vector2(-2, -3), pts[3] + Vector2(3, -3)])
+	c.draw_colored_polygon(inner, Color("#3b2a5c"))
+	c.draw_line(pts[0] + Vector2(6, 6), pts[1] + Vector2(-8, 6), Color(1, 1, 1, 0.18), 2.0)
+	if _gem_tex == null: _gem_tex = load("res://assets/fx/currency/gem.png")
+	var gs := 30.0
+	c.draw_texture_rect(_gem_tex, Rect2(Vector2(mr.position.x - 10, mr.position.y + 1), Vector2(gs, gs)), false)
 	# orta: dalga şeridi + süre plakası
 	var cx := L + cw * 0.5
 	var pw := 132.0

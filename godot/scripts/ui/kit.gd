@@ -21,7 +21,10 @@ static func font(display: bool, weight: int, ls: float = 0.0) -> Font:
 	if _fonts.has(key): return _fonts[key]
 	# FontVariation iç içe kurulamaz (dıştaki boş wght içtekini ezer) → doğrudan dosyadan
 	var fv := FontVariation.new()
-	if display:
+	if weight >= 1000:
+		# çizgi roman başlık yazısı (Bangers, OFL): ağırlık 1000 = "comic"
+		fv.base_font = load("res://assets/fonts/Bangers-Regular.ttf")
+	elif display:
 		fv.base_font = load(Ctx2D.FONT_DISPLAY)
 		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): clampi(weight, 400, 900)}
 	else:
@@ -32,6 +35,14 @@ static func font(display: bool, weight: int, ls: float = 0.0) -> Font:
 	fv.spacing_glyph = int(round(ls))
 	_fonts[key] = fv
 	return fv
+
+## çizgi roman mürekkep konturu (8 yönlü kaydırılmış gölge) + alt ofset — text-shadow dizesi
+static func ink_stroke(px := 2.0, drop := 3.0, col := "rgb(13, 8, 18)") -> String:
+	var o := []
+	for d in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(0.7, 0.7), Vector2(-0.7, 0.7), Vector2(0.7, -0.7), Vector2(-0.7, -0.7)]:
+		o.append(col + " " + str(snappedf(d.x * px, 0.1)) + "px " + str(snappedf(d.y * px, 0.1)) + "px 0px")
+	if drop > 0: o.append(col + " 0px " + str(px + drop) + "px 0px")
+	return ", ".join(o)
 
 ## "rgba(0, 0, 0, 0.9) 0px 0px 8px, rgba(...) 0px 2px 4px" → [[Color, dx, dy, blur], ...]
 static func shadows(s: String) -> Array:
