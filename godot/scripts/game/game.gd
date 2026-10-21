@@ -173,6 +173,12 @@ func _ready() -> void:
 	# açılış ekranı ilk karede: kurulum bitene dek oyun döngüsü kapalı
 	set_process(false)
 	set_physics_process(false)
+	# firma introsu (ALPHA WOLF GAMES), ardından yükleme ekranı. Geliştirici: nointro / autorun atlar
+	var ua := OS.get_cmdline_user_args()
+	if not (ua.has("nointro") or ua.has("autorun")):
+		var intro := ScrIntro.new()
+		add_child(intro)
+		await intro.finished
 	boot_screen = ScrBoot.new()
 	add_child(boot_screen)
 	await get_tree().process_frame
