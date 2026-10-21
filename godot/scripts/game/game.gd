@@ -119,7 +119,7 @@ var _introBusy := false
 var pendingWaveBonus := false
 var reviveUsed := false
 var _hpFloor := 1.0
-var rerolls := 3
+var rerolls := 2
 var _eliteK := 0
 var _ftuePow := false
 var _bless = null
@@ -401,7 +401,7 @@ func _start_run_now(wi: int, mi: int) -> void:
 	pendingWaveBonus = false
 	reviveUsed = false
 	_hpFloor = 1
-	rerolls = 3
+	rerolls = 2
 	_eliteK = 0; _ftuePow = false; _bless = null; _lookX = 0; _lookY = 0
 	_objCard = false
 	_lvDelay = 0

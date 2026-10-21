@@ -229,6 +229,11 @@ func boot() -> void:
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
+		if _arg("lvnow") != "":
+			# geliştirici: savaş başlayınca seviye kartı ekranı
+			get_tree().create_timer(float(_arg("lvnow"))).timeout.connect(func():
+				g.player.pendingLevels += 1
+				g.enter_level_up())
 		if _arg("px") != "" or _arg("py") != "":
 			g.player.x = float(_arg("px", "0"))
 			g.player.y = float(_arg("py", "0"))

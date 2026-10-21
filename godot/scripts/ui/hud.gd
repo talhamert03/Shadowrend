@@ -123,6 +123,8 @@ var _ultPressK := 0.0
 var _ultNopeAt := -9.0
 # duraklat
 var pauseImg: TextureRect
+var comic: Draw              # Borderlands tarzı plakalar (mürekkep konturlu, yarım ton)
+const INK := Color(0.05, 0.03, 0.07)
 var _pausePress := -1
 # pankart
 var bnMain: UIText
@@ -243,6 +245,8 @@ func _ready() -> void:
 	# kabus perdesi (html.nm-run #hud::after, z −1)
 	nmVeil = _radial(root, Color(0, 0, 0, 0), 0.55, Color(90 / 255.0, 6 / 255.0, 20 / 255.0, 0.42), 1.0, Vector2(0.5, 0.45), Vector2(1.3, 1.0))
 	nmVeil.visible = false
+	comic = Draw.new(_draw_comic)
+	root.add_child(comic)
 	_build_xp()
 	_build_row()
 	_build_pu()
@@ -250,6 +254,7 @@ func _ready() -> void:
 	_build_cb()
 	_build_ult()
 	pauseImg = UIK.img(root, "hud_pause")
+	pauseImg.visible = false
 	_build_banner()
 	_build_bm()
 	toastBox = Draw.new(_draw_toast)
@@ -263,6 +268,7 @@ func _ready() -> void:
 
 func _build_xp() -> void:
 	xpBg = UIK.nine(root, "hud_xpbar", 8 + 5)
+	xpBg.visible = false
 	xpClip = Control.new()
 	xpClip.clip_contents = true
 	xpClip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -272,6 +278,7 @@ func _build_xp() -> void:
 	xpHold.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	xpClip.add_child(xpHold)
 	xpFill = UIK.nine(xpHold, "hud_xpfill_full", 12 + 4)
+	xpFill.visible = false
 	xpGlint = Draw.new(_draw_glint)
 	xpClip.add_child(xpGlint)
 
@@ -279,21 +286,21 @@ func _build_row() -> void:
 	var lb: Array = UIK.meta("hud_cell_l").get("texts", [])
 	lbLevel = UIK.text_from(root, lb[0] if lb.size() else {}, "SEVİYE")
 	lbLevel.line_h = 9.45
-	vLevel = _txt(root).style(false, 700, 19, 0, "#f2ecf4", "rgba(0, 0, 0, 0.9) 0px 0px 8px", 19.95)
+	vLevel = _txt(root).style(true, 800, 20, 0, "#fff4dc", "rgb(13, 8, 18) 0px 2px 0px", 19.95)
 	vLevel.text = "1"
-	lbMoney = _txt(root).style(false, 600, 9, 1.98, C_DIM, "", 9.45)
+	lbMoney = _txt(root).style(false, 800, 8, 1.6, "#b9a8d6", "", 9.45)
 	lbMoney.text = "MATERYAL"
 	lbMoney.anchor_x = 1.0
-	vMoney = _txt(root).style(false, 700, 19, 0, "#cfd6e2", "rgba(0, 0, 0, 0.9) 0px 0px 8px", 19.95)
+	vMoney = _txt(root).style(true, 800, 20, 0, "#d9c8ff", "rgb(13, 8, 18) 0px 2px 0px", 19.95)
 	vMoney.anchor_x = 1.0
 	vMoney.text = "0"
-	tWave = _txt(root).style(true, 800, 11, 2.42, C_SILVER, "rgba(184, 115, 81, 0.4) 0px 0px 10px", 11)
+	tWave = _txt(root).style(false, 800, 10, 1.8, INK, "", 11)
 	tWave.anchor_x = 0.5
 	ghost = Draw.new(_draw_ghost)
 	root.add_child(ghost)
 	ghostTxt = _txt(ghost).style(false, 700, 10, 0.6, "#ff8a94", "", 10)
 	ghost.visible = false
-	tTimer = _txt(root).style(true, 800, 24, 1.92, "#efe9f0", "rgba(205, 109, 90, 0.35) 0px 0px 14px, rgba(0, 0, 0, 0.9) 0px 2px 4px", 24)
+	tTimer = _txt(root).style(true, 800, 24, 1.92, "#fff1c8", "rgb(13, 8, 18) 0px 3px 0px, rgb(13, 8, 18) 0px -1px 0px, rgb(13, 8, 18) 1px 0px 0px, rgb(13, 8, 18) -1px 0px 0px", 24)
 	tTimer.anchor_x = 0.5
 
 func _build_pu() -> void:
@@ -472,8 +479,78 @@ func _layout() -> void:
 	bmK.position = Vector2(pw * 0.5, 12)
 	bmN.position = Vector2(pw * 0.5, 12 + 13 + 4)
 	bmL.position = Vector2(pw * 0.5, 12 + 13 + 4 + bmN.line_h + 4)
+	lbLevel.modulate = Color(1.0, 0.86, 0.6)
+	comic.size = r
+	comic.queue_redraw()
 
 # ═══════════ ÇİZİMLER ═══════════
+
+## çizgi roman paneli: mürekkep ofset gölge + kontur + üstte ışık şeridi
+func _plate(c: Control, r: Rect2, fill: Color, rad := 10.0, bw := 3.0) -> void:
+	var sh := StyleBoxFlat.new()
+	sh.bg_color = INK
+	sh.set_corner_radius_all(int(rad))
+	c.draw_style_box(sh, Rect2(r.position + Vector2(0, 3), r.size))
+	var b := StyleBoxFlat.new()
+	b.bg_color = fill
+	b.set_corner_radius_all(int(rad))
+	b.set_border_width_all(int(bw))
+	b.border_color = INK
+	c.draw_style_box(b, r)
+	c.draw_line(r.position + Vector2(rad, bw + 2.5), r.position + Vector2(r.size.x - rad, bw + 2.5), Color(1, 1, 1, 0.16), 2.0)
+
+func _draw_comic(c: Control) -> void:
+	if not root.visible: return
+	var sat := sa[0]; var sar := sa[1]; var sal := sa[3]
+	var L := 12 + sal
+	var R := W - 12 - sar
+	var cw := R - L
+	# XP çubuğu: kalın, mürekkep konturlu, dolum limon→altın, yarım ton, parıltı
+	var xr := Rect2(L, sat + 4, cw, 11)
+	_plate(c, xr, Color("#1d1526"), 6, 2.5)
+	var fw := (cw - 6) * clampf(_xp_now(), 0.0, 1.0)
+	if fw > 2.0:
+		var f := StyleBoxFlat.new()
+		f.bg_color = Color("#b8f05a")
+		f.set_corner_radius_all(4)
+		c.draw_style_box(f, Rect2(L + 3, sat + 7, fw, 5))
+		c.draw_rect(Rect2(L + 3, sat + 7, fw, 2), Color(1, 1, 0.8, 0.55))
+		var gx := L + 3 + fmod(_t * 90.0, maxf(1.0, fw))
+		c.draw_rect(Rect2(gx, sat + 7, minf(8.0, L + 3 + fw - gx), 5), Color(1, 1, 1, 0.45))
+	# satır plakaları
+	var rowY := sat + 20
+	var cellY := rowY + (_rowH - 29.375) * 0.5
+	_plate(c, Rect2(L - 4, cellY - 5, 62, 40), Color("#3a2a1e"))
+	# seviye rozeti (yıldız)
+	_plate(c, Rect2(R - 76, cellY - 5, 80, 40), Color("#2a2042"))
+	var gc := Vector2(R - 64, cellY + 19)
+	var gem := PackedVector2Array([gc + Vector2(0, -8), gc + Vector2(7, -2), gc + Vector2(0, 8), gc + Vector2(-7, -2)])
+	c.draw_colored_polygon(gem, INK)
+	var gi := PackedVector2Array([gc + Vector2(0, -5.5), gc + Vector2(4.5, -1.5), gc + Vector2(0, 5.5), gc + Vector2(-4.5, -1.5)])
+	c.draw_colored_polygon(gi, Color("#b98aff"))
+	# orta: dalga şeridi + süre plakası
+	var cx := L + cw * 0.5
+	var pw := 132.0
+	var pr := Rect2(cx - pw * 0.5, rowY - 3, pw, _rowH + 6)
+	_plate(c, pr, Color("#24192c"), 12)
+	var rib := Rect2(cx - pw * 0.5 + 3, rowY - 0, pw - 6, 14)
+	var rb := StyleBoxFlat.new()
+	rb.bg_color = Color("#ffb03a")
+	rb.corner_radius_top_left = 9
+	rb.corner_radius_top_right = 9
+	c.draw_style_box(rb, rib)
+	c.draw_line(Vector2(rib.position.x, rib.end.y), Vector2(rib.end.x, rib.end.y), INK, 2.5)
+	# duraklat düğmesi: yuvarlak, mürekkep konturlu
+	var pp := Vector2(W - sar - 10 - 21, sat + 66 + 21)
+	c.draw_circle(pp + Vector2(0, 3), 21, INK)
+	c.draw_circle(pp, 21, INK)
+	c.draw_circle(pp, 18, Color("#3a2f4a"))
+	c.draw_arc(pp, 14, PI * 1.15, PI * 1.85, 12, Color(1, 1, 1, 0.18), 2.5, true)
+	for dx in [-5.0, 5.0]:
+		c.draw_rect(Rect2(pp.x + dx - 2.5, pp.y - 8, 5, 16), Color("#fff1c8"))
+	# süper düğmesi: kalın mürekkep halka
+	var uc := ult.position + Vector2(37, 37)
+	c.draw_circle(uc + Vector2(0, 3), 41, INK)
 
 func _draw_glint(c: Control) -> void:
 	# #xp-glint: 34 px bant (%50 ± 17), translateX(−50% − 23px) → (60% + 17px), 3,2 sn doğrusal
@@ -971,7 +1048,8 @@ var _hurtA0 := 0.0
 func _tick_hud(rm: bool) -> void:
 	# XP dolumu (scaleX, 160 ms ease-out) + parıltı
 	xpHold.scale = Vector2(_xp_now(), 1.0)
-	xpGlint.queue_redraw()
+	xpGlint.visible = false
+	comic.queue_redraw()
 	# süre: ≤5 sn nabız (0,5 sn, %50 opaklık)
 	tTimer.modulate.a = UIK.kf([[0.0, 1.0], [0.5, 0.5], [1.0, 1.0]], fmod(_t, 0.5) / 0.5, UIK.EASE_IN_OUT) if _timerDanger else 1.0
 	# boss dolgusu (120 ms doğrusal)
