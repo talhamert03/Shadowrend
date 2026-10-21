@@ -71,7 +71,8 @@ var hpFill: IMesh
 var _hpMax := 0
 
 func _quad_mesh(texp: String, max_n: int, order: int) -> IMesh:
-	var m := Shd.basic({"map": "raw", "tex": r3.tex(texp), "add": true, "zwrite": false, "cull": "none", "order": order})
+	var m: ShaderMaterial = Shd.comic(texp, null, 1.0, order)
+	if m == null: m = Shd.basic({"map": "raw", "tex": r3.tex(texp), "add": true, "zwrite": false, "cull": "none", "order": order})
 	var im := IMesh.new(Geo.plane(1, 1), m, max_n)
 	r3.scene.add_child(im)
 	return im
@@ -269,8 +270,8 @@ func _update_impacts(dt: float) -> void:
 		var Y: float = 24 + s.tier * 7
 		var grow := e / 0.15 if e < 0.15 else 1.0
 		var a := inv * inv * inv
-		var core: float = (10 + 24 * grow) * s.sc
-		_bb(impCore, c, s.x, Y, s.z, core, core, 0, a * s.cr, a * s.cg, a * s.cb); c += 1
+		var core: float = (8 + 16 * grow) * s.sc
+		_bb(impCore, c, s.x, Y, s.z, core, core, 0, a * s.cr * 0.8, a * s.cg * 0.8, a * s.cb * 0.8); c += 1
 		if s.tier > 0 or not lite:
 			var ln: float = (26 + 74 * e) * s.sc
 			var wd: float = (15 * inv * inv + 2) * s.sc
@@ -309,9 +310,10 @@ func _add_fire(b, P: Dictionary, rs: float, T: float, lite: bool) -> void:
 	var w1 := sin(T * 17.0 + ph * 3.1)
 	var w2 := sin(T * 11.3 + ph * 5.7)
 	if _fg + 2 <= FIRE_GLOW_MAX:
-		var c := 0.90 + w1 * 0.08
-		_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, r * 2.0, r * 2.0, 0, c * P.cr, c * P.cg, c * P.cb); _fg += 1
-		_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, r * 5.2, r * 4.6, 0, P.gx, P.gy, P.gz); _fg += 1
+		# çizgi roman: konturlu alev dilleri öne çıkar, yumuşak hale küçük ve sönük
+		var c := (0.90 + w1 * 0.08) * 0.7
+		_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, r * 1.7, r * 1.7, 0, c * P.cr, c * P.cg, c * P.cb); _fg += 1
+		_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, r * 3.6, r * 3.2, 0, P.gx * 0.3, P.gy * 0.3, P.gz * 0.3); _fg += 1
 	var segs := 2 if lite else 3
 	for k in segs:
 		if _fb >= FIRE_FLAME_MAX: break

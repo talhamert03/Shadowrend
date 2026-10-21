@@ -87,9 +87,10 @@ func _build_clouds(rng: RandomNumberGenerator, cx: float, cz: float, hw: float, 
 	pm.size = Vector2(1, 1)
 	# katmanlı yerleşim: kenar boyunca eşit aralıklı (boşluk kalmasın) + titreşim
 	# [derinlik, boyut aralığı, kenardan uzaklık aralığı, aralık, hız]
-	var tiers := [[-170.0, Vector2(380, 640), Vector2(-150, 380), 470.0, 16.0],
+	var tiers := [[-170.0, Vector2(380, 640), Vector2(-150, 380), 470.0 * (1.5 if Quality.tier == "low" else 1.0), 16.0],
 		[-520.0, Vector2(640, 1000), Vector2(250, 1200), 760.0, 10.0],
 		[-1100.0, Vector2(1000, 1500), Vector2(900, 2600), 1150.0, 6.0]]
+	if Quality.tier == "low": tiers.resize(2)          # düşük kademe: en uzak kat yok (dolum maliyeti)
 	for T in tiers:
 		var step_: float = T[3]
 		for side in 4:

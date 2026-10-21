@@ -139,7 +139,9 @@ func _ready() -> void:
 	vp.handle_input_locally = false
 	vp.gui_disable_input = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	vp.msaa_3d = Viewport.MSAA_4X if tier == "high" else (Viewport.MSAA_2X if tier == "mid" else Viewport.MSAA_DISABLED)
+	# mobil GPU dolum bütçesi: yüksek çözünürlük + keskinleştirme asıl netliği verir; MSAA yalnız
+	# yüksek kademede 2× (konturların kenarı), masaüstünde 4×
+	vp.msaa_3d = (Viewport.MSAA_2X if Quality.is_mobile else Viewport.MSAA_4X) if tier == "high" else Viewport.MSAA_DISABLED
 	vp.positional_shadow_atlas_size = 0
 	add_child(vp)
 	view = TextureRect.new()
@@ -261,6 +263,8 @@ func _build_ground() -> void:
 	# engel/süs materyalleri — gren dokusu (ortalama ≈ 1,0 nötr çarpan)
 	propTex = tex("res://assets/fx/prop_grain.png")
 	propMat = Shd.basic({"map": "srgb", "repeat": true, "tex": propTex})
+	# çizgi roman: engel/kaya/mezar taşlarına da mürekkep kontur (düşük kademede yok)
+	if Quality.tier != "low": propMat.next_pass = Shd.outline(null, Color(0.5, 0.45, 0.42), 1.2)
 	treeMat = _wind_mat(1.1e-4, 0, 1)
 	decorMat = _wind_mat(0.012, 1.1, 0)
 	propGroup = node(scene)

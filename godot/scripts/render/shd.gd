@@ -49,6 +49,23 @@ static func basic_shader(o: Dictionary) -> Shader:
 	_cache[key] = s
 	return s
 
+## Borderlands tarzı efekt: eski eklemeli parıltı dokusunun çizgi roman karşılığı varsa
+## (assets/fx/comic/<ad>) alfa karışımlı konturlu malzeme döner; yoksa null.
+const COMIC := {"slash.png": "slash.png", "shock.png": "shock.png", "beam.png": "beam.png", "bolt_1.png": "bolt_1.png",
+	"bolt_2.png": "bolt_2.png", "bolt_3.png": "bolt_3.png", "flame_sprite.png": "flame.png", "soft_blob.png": "blob.png"}
+static var _comic_sh: Shader
+static func comic(texp: String, col = null, opacity := 1.0, order := 0) -> ShaderMaterial:
+	var f := texp.get_file()
+	if not COMIC.has(f): return null
+	if _comic_sh == null: _comic_sh = load("res://shaders/fx_comic.gdshader")
+	var m := ShaderMaterial.new()
+	m.shader = _comic_sh
+	m.set_shader_parameter("map", load("res://assets/fx/comic/" + str(COMIC[f])))
+	if col != null: m.set_shader_parameter("color", col if col is Color else JS.col(col))
+	m.set_shader_parameter("opacity", opacity)
+	m.render_priority = clampi(order, -128, 127)
+	return m
+
 ## Kısayol: MeshBasicMaterial karşılığı (ShaderMaterial).
 static func basic(o: Dictionary = {}) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()

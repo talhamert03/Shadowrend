@@ -8,7 +8,7 @@ signal changed
 
 const BUDGETS := {
 	"low":  {"particles": 220, "modelEnemies": 18, "enemies": 130, "atmo": 40,  "impacts": 14, "props": 66, "dpr": 1.6,  "tex": 512,  "texHero": 768},
-	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.3, "tex": 512,  "texHero": 1024},
+	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.2, "tex": 512,  "texHero": 1024},
 	"high": {"particles": 700, "modelEnemies": 52, "enemies": 460, "atmo": 110, "impacts": 30, "props": 78, "dpr": 3.0,  "tex": 1024, "texHero": 1536},
 }
 const FLEX := {"particles": 0.45, "modelEnemies": 0.25, "enemies": 0.15, "atmo": 0.6, "impacts": 0.30, "props": 0.0, "dpr": 0.0, "tex": 0.0, "texHero": 0.0}

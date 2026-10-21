@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Shadowrend"
-config/version="1.0.8"
+config/version="1.0.9"
 config/build=44
 config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"

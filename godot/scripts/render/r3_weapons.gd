@@ -40,6 +40,10 @@ func _wscene(k: String) -> Node3D:
 	return ps.instantiate() if ps else null
 
 func _add_mat(texp: String, col, opacity: float, cull_none := true, order := 0) -> ShaderMaterial:
+	# Borderlands tarzı: dokunun çizgi roman karşılığı varsa konturlu malzeme
+	if texp != "":
+		var cm: ShaderMaterial = Shd.comic(texp, col if col != null else Color.WHITE, opacity, order)
+		if cm: return cm
 	var o := {"add": true, "zwrite": false, "opacity": opacity, "order": order}
 	if cull_none: o.cull = "none"
 	if texp != "":
@@ -759,7 +763,7 @@ func _update_flame(g, dt: float) -> void:
 	flameTongues.commit(cap)
 	flameSpill.visible = true
 	flameSpill.position = Vector3(_flX, 1.6, _flZ)
-	_op(flameSpill, 0.11 + wob * 0.45 + ch * 0.10)
+	_op(flameSpill, (0.11 + wob * 0.45 + ch * 0.10) * 0.45)      # çizgi roman: zemin parıltısı hafif
 
 # ═══════════ KAPTAN TOPU ═══════════
 var cannonPivot: Node3D
@@ -1044,7 +1048,7 @@ func _update_shard(g, dt: float) -> void:
 			g.pools.particles.take().setup(_shX, _shZ, cos(a) * sp, sin(a) * sp * 0.7, 0.26, 2.2, "#ffffff" if i % 3 == 0 else "#9fdcff", 0.94, -30, true)
 	shardSpill.visible = true
 	shardSpill.position = Vector3(_shX, 1.6, _shZ)
-	_op(shardSpill, 0.07 + bl * 0.05 + ch * 0.14)
+	_op(shardSpill, (0.07 + bl * 0.05 + ch * 0.14) * 0.45)
 
 # ═══════════ ZİNCİR YILDIRIM KAVİSİ + FIRTINA ═══════════
 var boltArcs: Array = []
@@ -1058,9 +1062,9 @@ var _stormX := 0.0
 var _stormY := 0.0
 
 func _build_arcs() -> void:
-	_boltArcTexs = [r3.tex("res://assets/fx/bolt_1.png"), r3.tex("res://assets/fx/bolt_2.png"), r3.tex("res://assets/fx/bolt_3.png")]
+	_boltArcTexs = [r3.tex("res://assets/fx/comic/bolt_1.png"), r3.tex("res://assets/fx/comic/bolt_2.png"), r3.tex("res://assets/fx/comic/bolt_3.png")]
 	for i in 10:
-		var mat := Shd.basic({"map": "raw", "tex": _boltArcTexs[i % 3], "color": Color("#cfeaff"), "add": true, "opacity": 0.0, "zwrite": false, "cull": "none", "order": 5})
+		var mat: ShaderMaterial = Shd.comic("res://assets/fx/bolt_%d.png" % (i % 3 + 1), Color("#9fdcff"), 0.0, 5)
 		var mesh := Render3D.mesh_node(Geo.plane(1, 1), mat, S)
 		mesh.visible = false
 		boltArcs.append({"mesh": mesh, "life": 0.0, "max": 0.22, "x1": 0.0, "y1": 0.0, "x2": 0.0, "y2": 0.0})

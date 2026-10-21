@@ -26,6 +26,8 @@ var _pi := 0
 var _si := 0
 var _gi := 0
 var _live := false
+var _warm := 4               # ilk kareler (giriş perdesi altında): her ağ bir kez saydam çizilir →
+							 # gölgelendiriciler ilk öldürmede değil şimdi derlenir (takılma olmasın)
 
 func _init(r) -> void:
 	r3 = r
@@ -103,6 +105,13 @@ static func _back(k: float) -> float:
 	return 1.0 + (c1 + 1.0) * pow(k - 1.0, 3.0) + c1 * pow(k - 1.0, 2.0)
 
 func update(dt: float, cam: Basis) -> void:
+	if _warm > 0:
+		_warm -= 1
+		for im in [bursts, puffs, shards, glows]:
+			(im as IMesh).set_bb(0, 0, -400, 0, 1, 1, 0, cam)
+			(im as IMesh).set_col(0, 0, 0, 0, 0.0)
+			(im as IMesh).commit(1 if _warm > 0 else 0)
+		if _warm > 0: return
 	if not _live: return
 	var any := false
 	var n := 0
