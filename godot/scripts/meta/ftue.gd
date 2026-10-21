@@ -47,6 +47,10 @@ static func visit(g, page: String) -> void:
 static func begin(g) -> void:
 	_game = g
 	step = ""
+	# eğitim (savaş koçu) kapalı: oyun hiçbir koşulda ilk adım plakalarıyla açılmaz
+	if not g.meta.get("ftue"):
+		g.meta["ftue"] = 1
+		g.save_meta()
 	if g.meta.get("ftue") or g.towerRun or g.sealRun or cleared(g) > 0 or g.worldId != 1 or g.missionId != 1:
 		show("")
 		return

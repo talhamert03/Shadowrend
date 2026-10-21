@@ -8,6 +8,7 @@ const IDS := ["okcu", "seher", "simsek", "savasci", "gokalev", "korsan", "kralic
 
 var size_l := Vector2(390, 844)
 var bottom_pad := 0.0          # güvenli alan (gezinme çubuğu)
+var top_pad := 0.0             # güvenli alan (çentik)
 var progress := 0.0
 var _art: Sprite2D
 var _base := 1.0
@@ -37,6 +38,29 @@ func setup(sz: Vector2, hero := "", accent := Color("#ffb070")) -> void:
 		_art.scale = Vector2.ONE * _base
 		_art.position = Vector2(sz.x * 0.5, tx.get_height() * _base * 0.5)
 		add_child(_art)
+	# üstte okunurluk için koyulaşma + SHADOWREND logosu (açılış yakalamasından: assets/ui/lyr/logo_title)
+	var gr := Gradient.new()
+	gr.offsets = PackedFloat32Array([0.0, 1.0])
+	gr.colors = PackedColorArray([Color(0.02, 0.01, 0.03, 0.78), Color(0.02, 0.01, 0.03, 0.0)])
+	var gt := GradientTexture2D.new()
+	gt.gradient = gr
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	gt.width = 4
+	gt.height = 128
+	var sh := TextureRect.new()
+	sh.texture = gt
+	sh.stretch_mode = TextureRect.STRETCH_SCALE
+	sh.position = Vector2(0, -200)
+	sh.size = Vector2(sz.x, 200.0 + top_pad + 190.0)
+	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(sh)
+	if FileAccess.file_exists(Lyr.BASE + "logo_title.json"):
+		var lg := Lyr.make("logo_title")
+		var k := sz.x / 390.0
+		lg.scale = Vector2.ONE * k
+		lg.position = Vector2(0, top_pad + 34.0 - 54.86 * k)     # yakalamadaki dikey konumu sıfırla
+		add_child(lg)
 	_label = UIText.new()
 	_label.style(true, 700, 15, 4.0, Color("#f3e6d6"), "0 2px 6px rgba(0,0,0,0.9)")
 	_label.align = 0.5

@@ -30,6 +30,7 @@ func _ready() -> void:
 	add_child(_bg)
 	_view = LoadArt.new()
 	_view.bottom_pad = sa[2]
+	_view.top_pad = sa[0]
 	add_child(_view)
 	_view.setup(vs)
 
