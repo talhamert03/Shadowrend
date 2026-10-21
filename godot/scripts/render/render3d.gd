@@ -479,6 +479,39 @@ func _update_camera(g) -> void:
 	RenderingServer.global_shader_parameter_set("r3_moon_dir", (MOON_POS - Vector3(cx, 0, cy)).normalized())
 	voidGround.position.x = cx
 	voidGround.position.z = cy
+	_update_screen_quad()
+
+## ekranın zemindeki izdüşümü (yamuk): menzilli silahlar yalnız EKRANDAKİ düşmanı hedefler.
+## Kenarlardan pay bırakılır (üstte HUD, yanlarda çerçeve) — düşman görünmeden vurulmaz.
+var screen_quad := PackedVector2Array()
+func _update_screen_quad() -> void:
+	if camera == null or not camera.is_inside_tree(): return
+	var sz := Vector2(vp.size)
+	var ins := [Vector2(0.04, 0.09), Vector2(0.96, 0.09), Vector2(0.96, 0.95), Vector2(0.04, 0.95)]
+	var q := PackedVector2Array()
+	for f in ins:
+		var sp: Vector2 = sz * (f as Vector2)
+		var o := camera.project_ray_origin(sp)
+		var d := camera.project_ray_normal(sp)
+		if absf(d.y) < 1e-4: return
+		var t := (24.0 - o.y) / d.y          # düşman gövdesi yüksekliği (~24) düzlemi
+		var w := o + d * t
+		q.append(Vector2(w.x, w.z))
+	screen_quad = q
+
+func on_screen(x: float, y: float) -> bool:
+	var q := screen_quad
+	if q.size() != 4: return true
+	var p := Vector2(x, y)
+	var sgn := 0.0
+	for i in 4:
+		var a: Vector2 = q[i]
+		var b: Vector2 = q[(i + 1) % 4]
+		var c := (b - a).cross(p - a)
+		if c == 0.0: continue
+		if sgn == 0.0: sgn = signf(c)
+		elif signf(c) != sgn: return false
+	return true
 
 func _update_ground(g) -> void:
 	var A = g.arena

@@ -231,15 +231,22 @@ func _each_release(pool: Pool, fn: Callable) -> void:
 		if fn.call(o) == true: pool.release(o)
 		i -= 1
 
+## düşman ekranda mı (3B kameranın zemin yamuğu; HUD/kenar payıyla)
+func _vis(e) -> bool:
+	var r3 = game.renderer3d
+	return r3 == null or r3.on_screen(e.x, e.y)
+
 func find_nearest() -> void:
 	var p = game.player
 	var best: Ent.Enemy = null
 	var bd := INF
+	var r3 = game.renderer3d
 	for e in game.enemies.pool.active:
 		var dx: float = e.x - p.x
 		var dy: float = e.y - p.y
 		var d2 := dx * dx + dy * dy
-		if d2 < bd:
+		# ekranda görünmeyen düşman hedeflenmez (uzaktan vuranlar ekran dışını temizlemesin)
+		if d2 < bd and (r3 == null or r3.on_screen(e.x, e.y)):
 			bd = d2
 			best = e
 	nearest = best
@@ -467,7 +474,7 @@ func update_kor(dt: float) -> void:
 		var ty := 0.0
 		var found := 0
 		for e in g.enemies.pool.active:
-			if not g.in_view(e.x, e.y, 0): continue
+			if not _vis(e): continue
 			found += 1
 			if randf() < 1.0 / found:
 				tx = e.x; ty = e.y
@@ -581,7 +588,7 @@ func update_bolt(dt: float) -> void:
 	var cand := scratch
 	cand.clear()
 	for e in g.enemies.pool.active:
-		if g.in_view(e.x, e.y, -10): cand.append(e)
+		if _vis(e): cand.append(e)
 	if cand.is_empty():
 		boltT = 0.5
 		return
@@ -790,7 +797,7 @@ func fire_judgement(id: String, Wd: Dictionary) -> void:
 	var cand := scratch
 	cand.clear()
 	for e in g.enemies.pool.active:
-		if g.in_view(e.x, e.y, -10): cand.append(e)
+		if _vis(e): cand.append(e)
 	if cand.is_empty():
 		judgeT = 0.5
 		return
@@ -866,7 +873,7 @@ func update_arrow(b, dt: float) -> bool:
 				var best = null
 				var bd := INF
 				for c in cand:
-					if c == e: continue
+					if c == e or not _vis(c): continue
 					var cx: float = c.x - b.x
 					var cy: float = c.y - b.y
 					var d2 := cx * cx + cy * cy
@@ -996,7 +1003,7 @@ func fire_chain(L: int, Wd: Dictionary) -> void:
 		var best = null
 		var bd := INF
 		for c in cand:
-			if hit.has(c): continue
+			if hit.has(c) or not _vis(c): continue
 			var dx: float = c.x - ox
 			var dy: float = c.y - oy
 			var d2 := dx * dx + dy * dy
@@ -1012,7 +1019,7 @@ func fire_storm() -> void:
 	var g = game
 	var cand := []
 	for e in g.enemies.pool.active:
-		if g.in_view(e.x, e.y, -10): cand.append(e)
+		if _vis(e): cand.append(e)
 	if cand.is_empty(): return
 	var t = cand[int(randf() * cand.size())]
 	var L := maxi(0, lvl("simsek") - 1)
