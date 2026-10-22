@@ -127,8 +127,9 @@ func _ensure_shell() -> void:
 	_W = UIK.ui_size(get_viewport())
 	_bg = ColorRect.new()
 	_bg.color = Color(0.06, 0.02, 0.08, 0.8)
-	_bg.size = _W + Vector2(0, 400)
-	_bg.position = Vector2(0, -200)
+	var SR := UIK.screen_rect(self)          # tüm ekran (yan kenarlar dahil)
+	_bg.size = SR.size
+	_bg.position = SR.position
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
 	_rays = Node2D.new()

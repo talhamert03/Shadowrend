@@ -54,7 +54,8 @@ static func font(weight: int = 700, display: bool = false) -> Font:
 	var key := ("d" if display else "h") + str(weight)
 	if _fonts.has(key): return _fonts[key]
 	var f: Font
-	if display:
+	if weight >= 1000: f = UIK.font(false, 1000)        # çizgi roman yazısı (Bangers)
+	elif display:
 		var base: FontFile = load(FONT_DISPLAY)
 		var fv := FontVariation.new()
 		fv.base_font = base

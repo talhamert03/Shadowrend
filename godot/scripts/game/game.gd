@@ -1637,7 +1637,12 @@ func _process(_delta: float) -> void:
 	Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
 	Prof.frame()
 
+var _ultauto := -1.0
 func update(dt: float) -> void:
+	if _ultauto < 0.0:
+		_ultauto = 0.0
+		for u in OS.get_cmdline_user_args():
+			if u.begins_with("ultauto="): _ultauto = float(u.substr(8))
 	time += dt
 	if Quality.stress >= 0.66: _stressT += dt
 	if player.maxHp > 0:
@@ -1648,6 +1653,9 @@ func update(dt: float) -> void:
 	Prof.b("objectives.update"); objectives.update(dt); Prof.e("objectives.update")
 	Prof.b("powerups.update"); powerups.update(dt); Prof.e("powerups.update")
 	Prof.b("fieldChests.update"); fieldChests.update(dt); Prof.e("fieldChests.update")
+	# geliştirici: ultauto=sn — süper yetenek her sn'de bir dolu ve ateşlenir (efekt testi)
+	if _ultauto > 0.0 and fmod(time, _ultauto) < dt and time > 2.0:
+		ult.charge = Ultimate.ULT_NEED; ult.ready = true; ult.fire()
 	Prof.b("ult.update"); ult.update(dt); Prof.e("ult.update")
 	Prof.b("events.update"); events.update(dt); Prof.e("events.update")
 	Prof.b("mode.update"); mode.update(dt); Prof.e("mode.update")

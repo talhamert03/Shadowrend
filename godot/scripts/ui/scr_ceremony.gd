@@ -27,6 +27,7 @@ var _menu_vis := false
 
 var stage: ChestStage
 var _W := Vector2(390, 844)
+var _SR := Rect2(0, 0, 390, 844)     # tüm ekran (yerel)
 var _bg: ColorRect
 var _rays: Node2D            # zemin ışın yelpazesi (döner)
 var _fx: Node2D              # kıvılcımlar, POW yıldızı, halkalar
@@ -176,9 +177,10 @@ func _build() -> void:
 	add_child(_warm)
 	var acc := JS.col(C.get("accent", C.color))
 	var base := JS.col(C.color)
+	# TÜM ekran (güvenli alan bantları + ölçek kenarları dahil; iniş sarsıntısı payı)
+	position = Vector2.ZERO
+	_SR = UIK.screen_rect(self).grow(12.0)
 	_bg = _rg(_W, Vector2(0.5, 0.62), [base.darkened(0.25), base.darkened(0.6), base.darkened(0.82), Color("#07050b")], [0.0, 0.3, 0.7, 1.0])
-	_bg.position = Vector2(0, -200)
-	_bg.size = _W + Vector2(0, 400)
 	add_child(_bg)
 	_rays = Node2D.new()
 	_rays.draw.connect(_draw_rays)
@@ -201,8 +203,8 @@ func _build() -> void:
 	_flash = ColorRect.new()
 	_flash.color = Color.WHITE
 	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_flash.position = Vector2(0, -200)
-	_flash.size = _W + Vector2(0, 400)
+	_flash.position = _SR.position
+	_flash.size = _SR.size
 	_flash.visible = false
 	add_child(_flash)
 	# sandık adı (çizgi roman başlığı)
@@ -262,14 +264,15 @@ func _txt(w: int, sz: float, ls: float, col: Color, sh: String) -> UIText:
 func _rg(W: Vector2, at: Vector2, cols: Array, st: Array) -> ColorRect:
 	var r := ColorRect.new()
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	r.size = W
+	r.position = _SR.position
+	r.size = _SR.size
 	var m := UIK.shader_mat("res://shaders/ui/rgrad.gdshader")
 	r.material = m
 	var c := W * at
 	var R := 0.0
-	for k in [Vector2.ZERO, Vector2(W.x, 0), Vector2(0, W.y), W]: R = maxf(R, c.distance_to(k))
-	m.set_shader_parameter("size", W + Vector2(0, 400))
-	m.set_shader_parameter("center", c + Vector2(0, 200))
+	for k in [_SR.position, Vector2(_SR.end.x, _SR.position.y), Vector2(_SR.position.x, _SR.end.y), _SR.end]: R = maxf(R, c.distance_to(k))
+	m.set_shader_parameter("size", _SR.size)
+	m.set_shader_parameter("center", c - _SR.position)
 	m.set_shader_parameter("radius", R)
 	m.set_shader_parameter("n", cols.size())
 	for i in cols.size(): m.set_shader_parameter("c" + str(i), cols[i])
@@ -952,7 +955,7 @@ func _out() -> void:
 func _confetti(n: int) -> void:
 	var pal := [YEL, Color("#ff5a2c"), Color("#3aa0ff"), Color("#a85cff"), Color("#5fd35a"), Color.WHITE]
 	for i in n:
-		confetti.append({"x": randf() * _W.x, "delay": randf() * 0.5, "dur": randf_range(1.8, 3.0), "rot": randf_range(-8, 8),
+		confetti.append({"x": _SR.position.x + randf() * _SR.size.x, "delay": randf() * 0.5, "dur": randf_range(1.8, 3.0), "rot": randf_range(-8, 8),
 			"drift": randf_range(-40, 40), "ph": randf() * TAU, "col": pal[randi() % pal.size()], "t": 0.0})
 
 # ═════════════ özet ═════════════
