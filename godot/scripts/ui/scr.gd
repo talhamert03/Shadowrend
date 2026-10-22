@@ -358,7 +358,9 @@ func _release(pos: Vector2, canceled: bool) -> void:
 		return
 	if B:
 		get_viewport().set_input_as_handled()
-		if not canceled and is_instance_valid(B.lyr) and _rect(B).grow(10).has_point(pos): (B.cb as Callable).call()
+		if not canceled and is_instance_valid(B.lyr) and _rect(B).grow(10).has_point(pos):
+			if float(B.scale) < 0.999: TapFx.pop(pos)       # tam ekran dokunuş alanlarında değil
+			(B.cb as Callable).call()
 		return
 	if modal: get_viewport().set_input_as_handled()
 

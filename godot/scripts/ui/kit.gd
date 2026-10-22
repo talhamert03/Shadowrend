@@ -164,6 +164,15 @@ static func ui_size(vp: Viewport) -> Vector2:
 	if h < 844.0: return Vector2(vs.x, 844.0)
 	return Vector2(vs.x, h)
 
+## tüm ekranın (güvenli alan bantları + ölçek kenar boşlukları dahil) düğümün yerel uzayındaki
+## dikdörtgeni — tam ekran perdeler (yükleme, tören) yanlardan alttakini göstermesin
+static func screen_rect(n: CanvasItem) -> Rect2:
+	var vs := n.get_viewport().get_visible_rect().size
+	var inv := n.get_global_transform().affine_inverse()
+	var a := inv * Vector2.ZERO
+	var b := inv * vs
+	return Rect2(a, b - a).abs().grow(2.0)
+
 ## güvenli alan 844'ten kısaysa arayüz ölçeği (<1)
 static func ui_scale(vp: Viewport) -> float:
 	var vs := vp.get_visible_rect().size

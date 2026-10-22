@@ -83,6 +83,7 @@ static func make(name: String, skip_keys: Array = []) -> Lyr:
 	t_json += (Time.get_ticks_usec() - t0) / 1000.0
 	n_make += 1
 	L.build(J, skip_keys)
+	if ComicSkin.auto_on(name): ComicSkin.auto(L)
 	return L
 
 func _init() -> void:
@@ -650,7 +651,7 @@ func to_state(name: String, under: N = null) -> void:
 				spr.texture = tex
 				spr.position = Vector2(im.ox, im.oy)
 				spr.scale = Vector2.ONE / float(im.get("dpr", 3))
-		if n.img: n.img.visible = im is Dictionary
+		if n.img: n.img.visible = im is Dictionary and not n.d.get("_skin", false)     # çizgi roman kaplaması görüntüyü gizler
 		# animasyonlar: ad kümesi değiştiyse yeniden başlar (CSS kuralı)
 		var new_an := []
 		for A in d2.get("anims", []):
@@ -663,7 +664,7 @@ func to_state(name: String, under: N = null) -> void:
 		if names_old != names_new:
 			n.anims = new_an
 			n.t0 = t
-		n.hidden = hid
+		n.hidden = hid or n.d.get("_skinhide", false)
 		set_dyn(n)
 		_apply(n, t)
 
@@ -679,6 +680,15 @@ func find_all(key: String) -> Array:
 		if not pseudo and k.contains("::"): continue
 		if k.contains(key): out.append(n)
 	return out
+
+## bir düğümün alt ağacında anahtarı içeren ilk düğüm (kendisi hariç)
+func find_in(root: N, key: String) -> N:
+	if root == null: return null
+	for k in root.kids:
+		if String(k.d.get("key", "")).contains(key) and not String(k.d.get("key", "")).contains("::"): return k
+		var r := find_in(k, key)
+		if r: return r
+	return null
 
 func find(key: String, idx := 0) -> N:
 	var a := find_all(key)

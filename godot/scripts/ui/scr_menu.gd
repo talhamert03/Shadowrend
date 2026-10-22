@@ -109,6 +109,10 @@ func _build() -> void:
 				cr.size = Vector2.ONE * (R + 2.0) * 2.0
 				cr.position = k.size * 0.5 - cr.size * 0.5
 				k.node.add_child(cr)
+	ComicSkin.skin_shell(shell)
+	if _xpMat:
+		_xpMat.set_shader_parameter("c0", ComicSkin.YEL)
+		_xpMat.set_shader_parameter("c1", Color("#ff8a2a"))
 	btn(shell, shell.find_id("#btn-settings"), func(): g.audio.play("click"); g.ui.show_settings())
 	btn(shell, shell.find_id("#tb-daily"), func(): g.audio.play("click"); g.ui.show_daily_drawer())
 	btn(shell, lv, func(): g.audio.play("click"); g.ui.show_account_journey())
@@ -537,6 +541,7 @@ func home_target() -> Dictionary:
 
 func _bind_home(L: Lyr) -> void:
 	home = L
+	ComicSkin.skin_home(L)
 	btn(L, L.find_id("#btn-start"), func():
 		g.audio.play("cta")
 		var nm := home_target()
@@ -643,6 +648,7 @@ func render_slots() -> void:
 				var S := Lyr.make(key)
 				row.host.add_child(S)
 				_slotL[i] = S
+				ComicSkin.skin_slot(S, str(c.t), str(c.st))
 				var idx := i
 				btn(S, S.nodes[0], func(): _slot_tap(idx), 0.95)
 				# ilerleme dolumu: yakalamadaki satır içi scaleX betikten
@@ -674,6 +680,7 @@ func render_slots() -> void:
 			L.resize_h(E, rowH)
 	if _map: _map.paint(D.WORLDS[int(home_target().w) - 1], int(g.progress.get(int(home_target().w), 0)), _mapN.size.x, _mapN.size.y)
 	_slot_texts()
+	ComicSkin.refresh(L)
 
 func _slot_texts() -> void:
 	var now := Clock.now()

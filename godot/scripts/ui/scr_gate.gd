@@ -1,11 +1,12 @@
 class_name ScrGate
 extends Scr
-## SAVAŞA GİRİŞ — sade, premium yükleme ekranı (v2). Dünyanın kendi gökyüzü resmi (ay + bulutlar)
-## yavaşça yakınlaşır; altta dünya renginde ışıma üstünde göz: DÜNYA satırı, büyük GÖREV başlığı,
-## süs ayracı, hedef, yıldızlar; dipte ipucu + ince yükleme çubuğu (aşama · yüzde).
-## Akış (ui.js playBattleIntro ile aynı): kararma (COVER sn) → on_cover (arena perde arkasında
-## kurulur) → çubuk BAR sn'de dolar → açılış: içerik hafif büyüyerek söner, savaş belirir → on_done.
-## HUD bu ekranın altında kalır (z_index).
+## SAVAŞA GİRİŞ (v3 · Borderlands çizgi roman sayfası). Tam ekran (güvenli alan / ölçek
+## kenarları dahil — alttaki arena yanlardan görünmez). Dünya renginde dönen ışınlar + yarım ton;
+## üstte mürekkep çerçeveli PANEL içinde dünyanın göğü ve boss adası; panelin köşesinde eğik
+## DÜNYA bandı; ortada kırmızı patlama yıldızı üstünde sarı "GÖREV n"; hedef bir konuşma
+## balonunda; görev yıldızları; dipte krem İPUCU kutusu + şeritli kalın yükleme çubuğu.
+## Akış: panel çarparak iner, başlık patlar, balon fırlar → kararma (COVER) → on_cover (arena
+## perde arkasında kurulur) → çubuk BAR sn'de dolar → "SAVAŞ!" patlaması → içerik söner → on_done.
 
 const TIPS := [
 	"İmza silahın kahramanınla büyür — kademeler mavi, mor, altın…",
@@ -18,7 +19,10 @@ const TIPS := [
 const STEPS := ["ARENA KURULUYOR", "DÜŞMANLAR UYANIYOR", "RÜNLER HAZIRLANIYOR", "KAPI AÇILIYOR"]
 const COVER := 0.72
 const BAR := 2.0
-const OPEN := 0.7
+const OPEN := 0.75
+const INK := Color(0.05, 0.03, 0.07)
+const YEL := Color("#ffd23a")
+const PAPER := Color("#fff3d6")
 
 var on_cover: Callable
 var on_done: Callable
@@ -30,31 +34,36 @@ var _doneAt := -1.0
 var _p := 0.0
 var _lastPct := -1
 var _lastStep := -1
-
-var _root: Node2D            # tüm içerik (açılışta büyür)
-var _sky: Sprite2D
-var _shade: TextureRect
-var _glow: Sprite2D
-var _isle: Node2D
-var _txt := {}               # ad → UIText
-var _deco: Node2D            # ayraç + yıldızlar + çubuk (çizim)
 var _stars := -1
+
 var _W := Vector2(390, 844)
+var _SR := Rect2()           # tüm ekran (yerel)
+var _root: Node2D            # içerik (açılışta söner)
+var _rays: Node2D
+var _panel: Node2D           # mürekkep çerçeveli dünya paneli
+var _panel_r := Rect2()
+var _isle: Node2D
+var _title: Node2D           # yıldız + GÖREV yazısı
+var _bubble: Node2D
+var _bar: Node2D
+var _fx: Node2D
+var _txt := {}
+var _obj := ""
 
 func _init(game) -> void:
 	super(game)
 	name = "Gate"
-	z_index = 60                 # HUD (katman kökünde) ve dalga bandı bu ekranın altında
+	z_index = 60                 # HUD ve dalga bandı bu ekranın altında
 
 func play(info: Dictionary, cover: Callable, done: Callable) -> void:
 	for c in get_children():
 		if not (c is Scr._Ticker): c.queue_free()
+	_txt.clear()
 	on_cover = cover
 	on_done = done
 	wc = JS.col(info.get("wc", "#b06a49"))
 	_W = UIK.ui_size(get_viewport())
 	_stars = int(info.get("stars", -1))
-	_build(info)
 	_t = 0.0
 	_covered = false
 	_finished = false
@@ -62,43 +71,83 @@ func play(info: Dictionary, cover: Callable, done: Callable) -> void:
 	_lastPct = -1
 	_lastStep = -1
 	_p = 0.0
-	modulate.a = 0.0
+	position = Vector2.ZERO
+	scale = Vector2.ONE
 	visible = true
+	_build(info)
+	modulate.a = 0.0
 	g.audio.play("gateclose")
-	_layout(0.0)
+	_step_anim()
 
 func _build(info: Dictionary) -> void:
 	var W := _W
-	# zemin: tam ekran gece (güvenli alan bantları dahil uiroot dışını ui.gd bantları örter)
+	_SR = UIK.screen_rect(self)
+	# zemin: TÜM ekran — dünya renginin koyusu
 	var base := ColorRect.new()
-	base.color = Color("#050408")
-	base.size = W + Vector2(0, 200)
-	base.position = Vector2(0, -100)
-	base.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	base.color = wc.darkened(0.78)
+	base.position = _SR.position
+	base.size = _SR.size
+	base.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(base)
 	_root = Node2D.new()
 	add_child(_root)
-	# dünyanın gökyüzü (ay + bulutlar): üst bölge, ekranı kaplar
+	_rays = Node2D.new()
+	_rays.position = Vector2(W.x * 0.5, W.y * 0.55)
+	_rays.draw.connect(_draw_rays)
+	_root.add_child(_rays)
+	var dots := Node2D.new()
+	dots.draw.connect(func(): _draw_dots(dots))
+	_root.add_child(dots)
+	# ── dünya paneli ──
 	var wn := clampi(int(info.get("worldNo", 1)), 1, 10)
+	_panel_r = Rect2(22, 60, W.x - 44, W.y * 0.36)
+	_panel = Node2D.new()
+	_panel.position = _panel_r.position + _panel_r.size * 0.5
+	_root.add_child(_panel)
+	var pr := Rect2(-_panel_r.size * 0.5, _panel_r.size)
+	var under := Node2D.new()
+	under.draw.connect(func():
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = INK
+		sb.set_corner_radius_all(6)
+		under.draw_style_box(sb, Rect2(pr.position + Vector2(6, 8), pr.size))
+		var bb := StyleBoxFlat.new()
+		bb.bg_color = wc.darkened(0.5)
+		bb.set_corner_radius_all(6)
+		under.draw_style_box(bb, pr))
+	_panel.add_child(under)
+	var clip := Control.new()
+	clip.clip_contents = true
+	clip.position = pr.position + Vector2(5, 5)
+	clip.size = pr.size - Vector2(10, 10)
+	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.add_child(clip)
 	var sky_t := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/tall_back.png")
 	if sky_t:
-		var at := AtlasTexture.new()
-		at.atlas = sky_t
-		var rh := minf(float(sky_t.get_height()), float(sky_t.get_width()) * W.y / W.x)
-		at.region = Rect2(0, 0, sky_t.get_width(), rh)
-		_sky = Sprite2D.new()
-		_sky.texture = at
-		_sky.centered = true
-		var sc := maxf(W.x / float(sky_t.get_width()), W.y / rh)
-		_sky.scale = Vector2.ONE * sc
-		_sky.position = W * 0.5
-		_root.add_child(_sky)
-	# dünyanın boss adası (menü haritasıyla aynı çizim): göğün ortasında süzülür
+		var sk := Sprite2D.new()
+		sk.texture = sky_t
+		sk.centered = false
+		var sc := maxf(clip.size.x / sky_t.get_width(), clip.size.y / (sky_t.get_height() * 0.55))
+		sk.scale = Vector2.ONE * sc
+		sk.position = Vector2((clip.size.x - sky_t.get_width() * sc) * 0.5, 0)
+		clip.add_child(sk)
+	# panel içi aksiyon ışınları + yarım ton (çizgi roman baskısı)
+	var pfx := Node2D.new()
+	pfx.draw.connect(func():
+		var c := Vector2(clip.size.x * 0.5, clip.size.y * 0.55)
+		for i in 20:
+			var a := i * TAU / 20.0
+			pfx.draw_colored_polygon(PackedVector2Array([c, c + Vector2(cos(a - 0.05), sin(a - 0.05)) * 600, c + Vector2(cos(a + 0.05), sin(a + 0.05)) * 600]), Color(1, 1, 1, 0.05))
+		for yy in 9:
+			for xx in int(clip.size.x / 9) + 1:
+				var p := Vector2(xx * 9.0 + (4.5 if yy % 2 else 0.0), clip.size.y - 6 - yy * 8.0)
+				pfx.draw_circle(p, 2.6 - yy * 0.28, Color(INK, 0.35)))
+	clip.add_child(pfx)
 	_isle = Node2D.new()
 	var slot: Dictionary = ClimbArt.meta().get("worlds", {}).get(str(wn), {}).get("slots", {}).get("b9", {})
 	var R0: float = float(ClimbArt.meta().get("R0", 90))
 	var dpr: float = float(ClimbArt.meta().get("dpr", 2))
-	var isc := (W.x * 0.27) / R0 / dpr
+	var isc := (clip.size.x * 0.30) / R0 / dpr
 	for part in [["body", "_b"], ["top", "_s"]]:
 		var mm = slot.get(part[0])
 		var tx := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/b9" + part[1] + ".png")
@@ -109,158 +158,246 @@ func _build(info: Dictionary) -> void:
 			sp.scale = Vector2(float(mm.w) / tx.get_width(), float(mm.h) / tx.get_height()) * isc
 			sp.position = -Vector2(float(mm.ax), float(mm.ay)) * isc
 			_isle.add_child(sp)
-	_isle.position = Vector2(W.x * 0.5, W.y * 0.33)
-	_root.add_child(_isle)
-	# okunurluk: üstte açık, ortadan aşağı koyulaşan perde
-	var gr := Gradient.new()
-	gr.offsets = PackedFloat32Array([0.0, 0.32, 0.58, 1.0])
-	gr.colors = PackedColorArray([Color(0.02, 0.016, 0.03, 0.15), Color(0.02, 0.016, 0.03, 0.25), Color(0.02, 0.016, 0.03, 0.86), Color(0.02, 0.016, 0.03, 0.97)])
-	var gt := GradientTexture2D.new()
-	gt.gradient = gr
-	gt.fill_from = Vector2(0, 0)
-	gt.fill_to = Vector2(0, 1)
-	gt.width = 4
-	gt.height = 256
-	_shade = TextureRect.new()
-	_shade.texture = gt
-	_shade.stretch_mode = TextureRect.STRETCH_SCALE
-	_shade.size = W
-	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(_shade)
-	# başlığın ardında dünya renginde ışıma
-	_glow = Sprite2D.new()
-	_glow.texture = ClimbArt.glow_tex()
-	var gm := CanvasItemMaterial.new()
-	gm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	_glow.material = gm
-	_glow.modulate = Color(wc, 0.30)
-	_glow.scale = Vector2(W.x * 1.5 / 128.0, 2.2)
-	_glow.position = Vector2(W.x * 0.5, W.y * 0.58)
-	_root.add_child(_glow)
-	# metinler
+	_isle.position = Vector2(clip.size.x * 0.5, clip.size.y * 0.42)
+	clip.add_child(_isle)
+	var frame := Node2D.new()
+	frame.draw.connect(func():
+		var o := StyleBoxFlat.new()
+		o.bg_color = Color(0, 0, 0, 0)
+		o.set_corner_radius_all(6)
+		o.set_border_width_all(6)
+		o.border_color = INK
+		frame.draw_style_box(o, pr))
+	_panel.add_child(frame)
+	# köşe bandı: DÜNYA n · AD
 	var side := str(info.get("side", ""))
 	var eyebrow := side if side != "" else ("DÜNYA " + str(wn) + " · " + str(info.get("world", "")))
-	var obj := str(info.get("obj", "")) if info.get("obj") != null else ""
-	_mk("eye", false, 700, 11.5, 3.2, wc.lerp(Color.WHITE, 0.45), "0 1px 4px rgba(0,0,0,0.8)", eyebrow)
-	_mk("title", true, 800, 44, 2.0, Color("#fff4e6"), "0 0 22px #" + wc.to_html(false) + ", 0 3px 8px rgba(0,0,0,0.85)", str(info.get("mission", "SAVAŞ")))
-	_mk("obj", false, 600, 13.5, 0.4, Color("#d9d1d6"), "0 1px 4px rgba(0,0,0,0.9)", obj)
-	_mk("tip", false, 500, 12, 0.3, Color("#9c94a3"), "0 1px 3px rgba(0,0,0,0.9)", TIPS[randi() % TIPS.size()])
-	_mk("step", false, 700, 10, 2.2, Color("#b9b1bd"), "", STEPS[0])
-	_mk("pct", true, 800, 13, 1.0, Color("#fff4e6"), "0 1px 3px rgba(0,0,0,0.8)", "0%")
-	(_txt.tip as UIText).nowrap = false
-	(_txt.tip as UIText).max_lines = 2
-	(_txt.step as UIText).align = 0.0
-	(_txt.pct as UIText).align = 1.0
-	_deco = Node2D.new()
-	_deco.draw.connect(_draw_deco)
-	_root.add_child(_deco)
-
-func _mk(key: String, disp: bool, w: int, sz: float, ls: float, col: Color, sh: String, s: String) -> void:
-	var t := UIText.new()
-	t.style(disp, w, sz, ls, col, sh)
-	t.align = 0.5
-	t.nowrap = true
-	t.wrap_w = _W.x - 48.0
-	t.text = s
-	_root.add_child(t)
-	_txt[key] = t
-
-## dikey yerleşim: başlık bloğu ekranın %56'sında, çubuk dipte; k = giriş ilerlemesi (0..1)
-func _layout(k: float) -> void:
-	var W := _W
-	var cy := W.y * 0.56
-	var rise := (1.0 - UIK.bez(0.2, 0.8, 0.2, 1.0, k)) * 18.0
-	var y := cy - 62.0 + rise
-	var obj_on := (_txt.obj as UIText).text != ""
-	(_txt.eye as UIText).position = Vector2(24, y)
-	(_txt.title as UIText).position = Vector2(24, y + 20)
-	(_txt.obj as UIText).position = Vector2(24, y + 96)
-	(_txt.obj as UIText).visible = obj_on
-	for kk in ["eye", "title", "obj"]:
-		(_txt[kk] as UIText).modulate.a = clampf(k * 1.4, 0.0, 1.0)
-	var by := W.y - 58.0
-	(_txt.tip as UIText).position = Vector2(24, by - 52)
-	(_txt.step as UIText).position = Vector2(32, by + 12)
-	(_txt.step as UIText).wrap_w = W.x - 64.0
-	(_txt.pct as UIText).position = Vector2(32, by + 9)
-	(_txt.pct as UIText).wrap_w = W.x - 64.0
-	_deco.queue_redraw()
-
-func _draw_deco() -> void:
-	var W := _W
-	var cy := W.y * 0.56
-	var y := cy - 62.0
-	var a := clampf((_t - 0.15) / 0.45, 0.0, 1.0)
-	# ayraç: ince altın çizgiler + ortada eşkenar dörtgen
-	var oy := y + 86.0
-	var cx := W.x * 0.5
-	var gold := Color(0.85, 0.64, 0.52, 0.9 * a)
-	for s in [-1.0, 1.0]:
-		var pts := PackedVector2Array([Vector2(cx + s * 12.0, oy), Vector2(cx + s * 92.0, oy)])
-		_deco.draw_polyline_colors(pts, PackedColorArray([gold, Color(gold, 0.0)]), 1.5, true)
-	var d := 4.5
-	_deco.draw_colored_polygon(PackedVector2Array([Vector2(cx, oy - d), Vector2(cx + d, oy), Vector2(cx, oy + d), Vector2(cx - d, oy)]), Color(wc.lerp(Color("#ff7a4c"), 0.3), a))
-	# yıldızlar (görev yıldızları; yoksa çizilmez)
-	if _stars >= 0:
-		var sy := y + (124.0 if (_txt.obj as UIText).text != "" else 104.0)
+	var band := Node2D.new()
+	band.position = pr.position + Vector2(-8, -14)
+	band.rotation = -0.05
+	var bt := UIText.new()
+	bt.style(false, 1000, 19, 1.4, YEL, "")
+	bt.nowrap = true
+	bt.text = eyebrow
+	bt.position = Vector2(12, 3)
+	bt.size = Vector2(W.x, 28)
+	var bw := bt.text_width() + 24.0
+	band.draw.connect(func():
+		band.draw_rect(Rect2(4, 5, bw, 30), Color(0, 0, 0, 0.5))
+		band.draw_rect(Rect2(0, 0, bw, 30), INK))
+	band.add_child(bt)
+	_panel.add_child(band)
+	# ── başlık: kırmızı patlama + sarı GÖREV ──
+	_title = Node2D.new()
+	_title.position = Vector2(W.x * 0.5, _panel_r.end.y + 66)
+	_title.draw.connect(func(): ScrCeremony._star(_title, Vector2.ZERO, 150, 112, 13, Color("#e8322c"), 5.0, 0.0, 0.42))
+	_root.add_child(_title)
+	var tt := UIText.new()
+	tt.style(false, 1000, 62, 2.0, YEL, UIK.ink_stroke(4.0, 5.0))
+	tt.align = 0.5
+	tt.nowrap = true
+	tt.wrap_w = W.x
+	tt.size = Vector2(W.x, 80)
+	tt.position = Vector2(-W.x * 0.5, -40)
+	tt.text = str(info.get("mission", "SAVAŞ"))
+	_title.add_child(tt)
+	# ── hedef balonu ──
+	_obj = str(info.get("obj", "")) if info.get("obj") != null else ""
+	_bubble = Node2D.new()
+	_bubble.position = Vector2(W.x * 0.5, _title.position.y + 92)
+	_root.add_child(_bubble)
+	if _obj != "":
+		var ot := UIText.new()
+		ot.style(false, 1000, 21, 1.0, INK, "")
+		ot.align = 0.5
+		ot.nowrap = true
+		ot.wrap_w = W.x - 60
+		ot.size = Vector2(W.x - 60, 30)
+		ot.position = Vector2(-(W.x - 60) * 0.5, -15)
+		ot.text = _obj.to_upper() + "!"
+		var ow := minf(W.x - 50, ot.text_width() + 44)
+		_bubble.draw.connect(func(): _draw_bubble(_bubble, ow))
+		_bubble.add_child(ot)
+	var st := Node2D.new()
+	st.position = Vector2(W.x * 0.5, _bubble.position.y + 58)
+	st.draw.connect(func():
+		if _stars < 0: return
 		for i in 3:
-			var c := Vector2(cx + (i - 1) * 26.0, sy)
 			var on := i < _stars
-			_star(c, 9.0, Color("#ffd27a", a) if on else Color(1, 1, 1, 0.16 * a), on)
-	# yükleme çubuğu: ince ray + dünya renginde dolum + uçta ışıma
-	var by := W.y - 58.0
-	var x0 := 32.0
-	var bw := W.x - 64.0
-	var tr := StyleBoxFlat.new()
-	tr.bg_color = Color(1, 1, 1, 0.08 * maxf(a, 0.6))
-	tr.set_corner_radius_all(3)
-	_deco.draw_style_box(tr, Rect2(x0, by, bw, 5))
-	var fw := bw * _p
-	if fw > 1.0:
-		var fl := StyleBoxFlat.new()
-		fl.bg_color = wc.lerp(Color("#ffb08a"), 0.25)
-		fl.set_corner_radius_all(3)
-		_deco.draw_style_box(fl, Rect2(x0, by, fw, 5))
-		_deco.draw_set_transform(Vector2(x0 + fw, by + 2.5), 0.0, Vector2(0.34, 0.16))
-		_deco.draw_texture(ClimbArt.glow_tex(), Vector2(-64, -64), Color(wc.lerp(Color.WHITE, 0.5), 0.9))
-		_deco.draw_set_transform(Vector2.ZERO)
+			ScrCeremony._star(st, Vector2((i - 1) * 40.0, -4.0 if i == 1 else 0.0), 16, 7.5, 5, YEL if on else Color("#4a4252"), 2.5))
+	_bubble.add_child(st)
+	st.position -= _bubble.position
+	# ── ipucu kutusu + çubuk ──
+	_bar = Node2D.new()
+	_bar.draw.connect(_draw_bar)
+	_root.add_child(_bar)
+	var tip := UIText.new()
+	tip.style(false, 800, 12.5, 0.2, Color("#2a1c24"), "")
+	tip.nowrap = false
+	tip.max_lines = 2
+	tip.wrap_w = W.x - 64 - 70
+	tip.size = Vector2(W.x - 134, 36)
+	tip.text = TIPS[randi() % TIPS.size()]
+	tip.position = Vector2(32 + 70, W.y - 150)
+	_root.add_child(tip)
+	_txt.tip = tip
+	var tl := UIText.new()
+	tl.style(false, 1000, 15, 1.0, YEL, "")
+	tl.nowrap = true
+	tl.text = "İPUCU"
+	tl.position = Vector2(38, W.y - 151)
+	tl.size = Vector2(60, 22)
+	_root.add_child(tl)
+	var step := UIText.new()
+	step.style(false, 1000, 16, 1.2, Color.WHITE, UIK.ink_stroke(1.8, 2.0))
+	step.nowrap = true
+	step.text = STEPS[0]
+	step.position = Vector2(28, W.y - 92)
+	step.size = Vector2(W.x, 24)
+	_root.add_child(step)
+	_txt.step = step
+	var pct := UIText.new()
+	pct.style(false, 1000, 18, 1.0, YEL, UIK.ink_stroke(1.8, 2.0))
+	pct.align = 1.0
+	pct.nowrap = true
+	pct.wrap_w = W.x - 56
+	pct.size = Vector2(W.x - 56, 26)
+	pct.position = Vector2(28, W.y - 94)
+	pct.text = "%0"
+	_root.add_child(pct)
+	_txt.pct = pct
+	_fx = Node2D.new()
+	_fx.draw.connect(_draw_fx)
+	add_child(_fx)
 
-func _star(c: Vector2, r: float, col: Color, filled: bool) -> void:
-	var pts := PackedVector2Array()
-	for i in 10:
-		var ang := -PI / 2.0 + i * PI / 5.0
-		var rr := r if i % 2 == 0 else r * 0.45
-		pts.append(c + Vector2(cos(ang), sin(ang)) * rr)
-	if filled: _deco.draw_colored_polygon(pts, col)
-	else:
-		pts.append(pts[0])
-		_deco.draw_polyline(pts, col, 1.2, true)
+func _draw_rays() -> void:
+	var R := maxf(_SR.size.x, _SR.size.y) * 1.2
+	for i in 22:
+		var a := i * TAU / 22.0
+		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * R, Vector2(cos(a + 0.07), sin(a + 0.07)) * R]), Color(wc.lightened(0.2), 0.10))
+
+func _draw_dots(n: Node2D) -> void:
+	# alt yarıda büyüyen yarım ton (tam ekran genişliğinde)
+	var x0 := _SR.position.x
+	var x1 := _SR.end.x
+	var y1 := _SR.end.y
+	for yy in 18:
+		var y := y1 - 8 - yy * 13.0
+		var r := 3.6 - yy * 0.19
+		if r <= 0.4: break
+		var x := x0 + (6.5 if yy % 2 else 0.0)
+		while x < x1:
+			n.draw_circle(Vector2(x, y), r, Color(0, 0, 0, 0.32))
+			x += 13.0
+
+func _draw_bubble(n: Node2D, w: float) -> void:
+	var r := Rect2(-w * 0.5, -24, w, 48)
+	var tail := PackedVector2Array([Vector2(-26, -20), Vector2(-4, -20), Vector2(-30, -46)])
+	var sh := StyleBoxFlat.new()
+	sh.bg_color = INK
+	sh.set_corner_radius_all(24)
+	n.draw_style_box(sh, Rect2(r.position + Vector2(4, 6), r.size))
+	n.draw_colored_polygon(PackedVector2Array([tail[0] + Vector2(-5, 2), tail[1] + Vector2(5, 2), tail[2] + Vector2(-3, -6)]), INK)
+	var b := StyleBoxFlat.new()
+	b.bg_color = Color.WHITE
+	b.set_corner_radius_all(24)
+	b.set_border_width_all(4)
+	b.border_color = INK
+	n.draw_style_box(b, r)
+	n.draw_colored_polygon(tail, Color.WHITE)
+	n.draw_line(Vector2(-w * 0.5 + 22, -14), Vector2(w * 0.1, -14), Color(0.85, 0.85, 0.9), 3.0)
+
+func _draw_bar() -> void:
+	var W := _W
+	# İPUCU kutusu (krem kâğıt, mürekkep konturlu, siyah etiket)
+	var tr := Rect2(24, W.y - 160, W.x - 48, 46)
+	var sh := StyleBoxFlat.new()
+	sh.bg_color = INK
+	sh.set_corner_radius_all(6)
+	_bar.draw_style_box(sh, Rect2(tr.position + Vector2(4, 5), tr.size))
+	var pb := StyleBoxFlat.new()
+	pb.bg_color = PAPER
+	pb.set_corner_radius_all(6)
+	pb.set_border_width_all(3)
+	pb.border_color = INK
+	_bar.draw_style_box(pb, tr)
+	_bar.draw_rect(Rect2(tr.position.x + 6, tr.position.y + 6, 62, 22), INK)
+	# yükleme çubuğu: kalın, şeritli
+	var br := Rect2(24, W.y - 64, W.x - 48, 26)
+	_bar.draw_style_box(_sb(INK, 13), Rect2(br.position + Vector2(3, 5), br.size))
+	_bar.draw_style_box(_sb(Color("#1d1624"), 13, 4, INK), br)
+	var fw := (br.size.x - 8) * _p
+	if fw > 6.0:
+		var fr := Rect2(br.position + Vector2(4, 4), Vector2(fw, br.size.y - 8))
+		_bar.draw_style_box(_sb(YEL, 9), fr)
+		# hareketli eğik şeritler (dolumun içine kırpılı)
+		var box := PackedVector2Array([fr.position, Vector2(fr.end.x, fr.position.y), fr.end, Vector2(fr.position.x, fr.end.y)])
+		var off := fmod(_t * 40.0, 22.0)
+		var x := fr.position.x - 22 + off
+		while x < fr.end.x:
+			var q := PackedVector2Array([Vector2(x, fr.end.y), Vector2(x + 10, fr.end.y), Vector2(x + 20, fr.position.y), Vector2(x + 10, fr.position.y)])
+			for c in Geometry2D.intersect_polygons(q, box):
+				if c.size() >= 3: _bar.draw_colored_polygon(c, Color("#ffb020"))
+			x += 22.0
+		_bar.draw_line(fr.position + Vector2(8, 4), Vector2(fr.end.x - 6, fr.position.y + 4), Color(1, 1, 1, 0.5), 2.5)
+
+static func _sb(c: Color, r: int, bw := 0, bc := Color.BLACK) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = c
+	s.set_corner_radius_all(r)
+	if bw > 0:
+		s.set_border_width_all(bw)
+		s.border_color = bc
+	return s
+
+func _draw_fx() -> void:
+	if _doneAt < 0: return
+	# "SAVAŞ!" patlaması
+	var k := clampf((_t - _doneAt) / 0.4, 0, 1)
+	var s := ScrLevelUp._back_ease(k) if k < 1.0 else 1.0
+	var c := Vector2(_W.x * 0.5, _W.y * 0.5)
+	ScrCeremony._star(_fx, c, 230 * s, 150 * s, 16, YEL, 6.0, 0.1)
+	ScrCeremony._star(_fx, c, 150 * s, 100 * s, 16, Color.WHITE, 0.0, 0.25)
 
 func _progress(pc: float) -> void:
 	_p = pc / 100.0
 	var pi := int(round(pc))
 	if pi != _lastPct:
 		_lastPct = pi
-		(_txt.pct as UIText).text = str(pi) + "%"
+		(_txt.pct as UIText).text = "%" + str(pi)
 	var si := 0 if pc < 34 else (1 if pc < 68 else (2 if pc < 99 else 3))
 	if si != _lastStep:
 		_lastStep = si
 		(_txt.step as UIText).text = STEPS[si]
 
+## giriş animasyonları: panel çarparak iner, başlık patlar, balon fırlar
+func _step_anim() -> void:
+	var kp := clampf(_t / 0.38, 0, 1)
+	_panel.scale = Vector2.ONE * lerpf(1.35, 1.0, ScrLevelUp._back_ease(kp) if kp < 1.0 else 1.0) if kp < 1.0 else Vector2.ONE
+	_panel.rotation = lerpf(-0.12, -0.015, minf(1.0, kp))
+	_panel.modulate.a = minf(1.0, kp * 2.5)
+	var kt := clampf((_t - 0.22) / 0.32, 0, 1)
+	_title.scale = Vector2.ONE * (ScrLevelUp._back_ease(kt) if kt < 1.0 else 1.0 + sin(_t * 3.0) * 0.02) if kt > 0.0 else Vector2.ZERO
+	_title.rotation = -0.05
+	var kb := clampf((_t - 0.4) / 0.3, 0, 1)
+	_bubble.scale = Vector2.ONE * (ScrLevelUp._back_ease(kb) if kb < 1.0 else 1.0) if kb > 0.0 else Vector2.ZERO
+	_bubble.rotation = 0.02
+	if _isle: _isle.position.y = (_panel_r.size.y - 10) * 0.42 + sin(_t * 1.6) * 5.0
+
 func _process(dt: float) -> void:
 	if not visible or _root == null: return
 	_t += dt
-	# gökyüzü yavaş yakınlaşır (Ken Burns)
-	if _sky: _sky.scale = Vector2.ONE * maxf(_W.x / _sky.texture.get_width(), _W.y / _sky.texture.get_height()) * (1.0 + _t * 0.012)
-	if _glow: _glow.modulate.a = 0.26 + 0.06 * sin(_t * 2.0)
-	if _isle: _isle.position.y = _W.y * 0.33 + sin(_t * 1.6) * 5.0 - minf(1.0, _t / 0.8) * 8.0
+	_rays.rotation += dt * 0.15
+	_step_anim()
+	_bar.queue_redraw()
 	if _doneAt >= 0:
-		# açılış: içerik büyüyerek söner, savaş belirir
 		var ko := clampf((_t - _doneAt) / OPEN, 0.0, 1.0)
-		var e := UIK.bez(0.4, 0.0, 0.2, 1.0, ko)
-		modulate.a = 1.0 - e
-		_root.scale = Vector2.ONE * (1.0 + 0.07 * e)
-		_root.position = -_W * 0.5 * 0.07 * e
+		_fx.queue_redraw()
+		# patlama 0,3 sn sonra her şey söner, savaş belirir
+		var e := clampf((_t - _doneAt - 0.3) / (OPEN - 0.3), 0.0, 1.0)
+		modulate.a = 1.0 - e * e
+		_root.scale = Vector2.ONE * (1.0 + 0.1 * e)
+		_root.position = -_W * 0.5 * 0.1 * e
 		if ko >= 1.0:
 			visible = false
 			for c in get_children():
@@ -268,8 +405,7 @@ func _process(dt: float) -> void:
 			_root = null
 			if on_done.is_valid(): on_done.call()
 		return
-	modulate.a = clampf(_t / 0.3, 0.0, 1.0)
-	_layout(clampf((_t - 0.12) / 0.6, 0.0, 1.0))
+	modulate.a = clampf(_t / 0.2, 0.0, 1.0)
 	if not _covered and _t >= COVER:
 		_covered = true
 		Input.vibrate_handheld(15)
@@ -281,4 +417,5 @@ func _process(dt: float) -> void:
 		_finished = true
 		_progress(100.0)
 		g.audio.play("start")
+		Input.vibrate_handheld(30)
 		_doneAt = _t
