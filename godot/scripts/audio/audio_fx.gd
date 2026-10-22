@@ -87,8 +87,24 @@ func _apply() -> void:
 
 func _stream(file: String) -> AudioStream:
 	if not _streams.has(file):
-		_streams[file] = load("res://assets/audio/sfx/" + file + ".wav") if ResourceLoader.exists("res://assets/audio/sfx/" + file + ".wav") else null
+		var path := "res://assets/audio/sfx/" + file + ".wav"
+		if _pending.has(file):
+			_streams[file] = ResourceLoader.load_threaded_get(path)
+			_pending.erase(file)
+		else:
+			_streams[file] = load(path) if ResourceLoader.exists(path) else null
 	return _streams[file]
+
+var _pending := {}
+
+## sesleri arka planda önceden yükle (ilk dokunuşta disk okuma takılması olmasın)
+func warm(names: Array) -> void:
+	for nm in names:
+		for k in int(variants.get(nm, 1)):
+			var file: String = str(nm) + "_" + str(k)
+			if _streams.has(file) or _pending.has(file): continue
+			var path := "res://assets/audio/sfx/" + file + ".wav"
+			if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path) == OK: _pending[file] = true
 
 ## audio.pick: rastgele, ardıl tekrar yok
 func _pick(nm: String, n: int) -> int:

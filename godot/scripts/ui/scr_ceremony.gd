@@ -1,15 +1,20 @@
 class_name ScrCeremony
 extends Scr
-## chests.js ceremony + revealRewards — sandık açılış töreni.
-## İniş (kameraya büyüyerek düşer, bounceOut zıplar) → "AÇMAK İÇİN EKRANA DOKUN" →
-## tırmanan sarsıntı (0,72 sn) → patlama (ışın yelpazesi, ışık sütunu, flaş, kıvılcım
-## şöleni) → ödüller TEK TEK: kart sandıktan yükselir, döne döne gelir (nadirlikle
-## uzayan dönüş; efsane bekletir, konfeti + gökkuşağı söz) → özet tepsisi → dokun → bitir.
-## Düzen ve kart şablonları web'den yakalandı (cer_idle · cer_rev_<k> · cer_back_<k> ·
-## cer_sum · cer_tray_<k>); 3B sandık ChestStage; efektler yerel.
+## Sandık açılış töreni (v2 · Clash Royale akışı, Borderlands çizgi roman dili).
+## İniş (sandık yukarıdan düşer, ezilip zıplar) → "AÇMAK İÇİN DOKUN!" → artan sarsıntı →
+## PATLAMA (flaş, sarı "POW" yıldızı, ışınlar, kıvılcım) → ödüller TEK TEK sandıktan fırlar:
+## kart yayla yükselir, arka yüzden ön yüze döner (nadirlikle uzayan dönüş, epik/efsanevi
+## için söz + flaş + konfeti), sayaç tıklar → dokun: kart kenara süzülür, sıradaki gelir →
+## KAZANDIKLARIN özeti (mini kartlar sırayla patlar) → dokun → bitir.
+## Takılmasızlık: tüm kartlar iniş sırasında (her karede bir tane) opak zeminin ARKASINDA
+## kurulup bir kez çizilir — dokular, yazı tipi glifleri, gölgelendiriciler açılıştan önce
+## hazırdır. 3B sandık (ChestStage) kalıcıdır; menü ısınması (UIPrewarm) onu önceden işler.
 
-const CW := 340.0
-const CH := 320.0
+const INK := Color(0.05, 0.03, 0.07)
+const PAPER := Color("#fff3d6")
+const YEL := Color("#ffd23a")
+const CARD := Vector2(196, 266)
+const STAGE := 300.0
 
 var type := ""
 var slot := -1
@@ -17,69 +22,55 @@ var done_cb: Callable
 var rewards: Array = []
 var C: Dictionary
 var peak := 0
-var em_color := Color.WHITE
-var em_glow := Color.WHITE
+var _forced := false          # geliştirici: zorlanmış ödüller uygulanmaz
+var _menu_vis := false
 
-var base: Lyr                 # cer_idle (iniş/bekleme düzeni)
-var rev: Lyr                  # cer_rev_<k> (kart sahnesi)
-var back: Lyr                 # cer_back_<k>
-var summ: Lyr                 # cer_sum
-var tray: Array = []          # [Lyr]
 var stage: ChestStage
-var fx: Node2D                # 2B kıvılcımlar
-var rays: ColorRect
-var rays_m: ShaderMaterial
-var beam: ColorRect
-var beam_m: ShaderMaterial
-var tension: ColorRect
-var flare: ColorRect
-var flash: ColorRect
-var spot: ColorRect
-var word: UIText
-var hint: UIText
+var _W := Vector2(390, 844)
+var _bg: ColorRect
+var _rays: Node2D            # zemin ışın yelpazesi (döner)
+var _fx: Node2D              # kıvılcımlar, POW yıldızı, halkalar
+var _flash: ColorRect
+var _title: UIText
+var _hint: UIText
+var _word: UIText
+var _badge: Node2D
+var _badge_t: UIText
+var _hold: Node2D            # kart kabı (zeminin üstü)
+var _warm: Node2D            # ısınma kabı (zeminin ARKASI — görünmez ama çizilir)
+var _sum_title: UIText
 
 var S := {}
-var parts: Array = []
-var confetti: Array = []
-var _rays_on := 0.0
-var _rays_target := 0.0
-var _beam_t := -1.0
-var _flash_t := -1.0
-var _flash_dur := 0.48
-var _flash_rb := false
-var _flash_c := Color.WHITE
-var _forced := false          # geliştirici: zorlanmış ödüller uygulanmaz
-var _word_t := -1.0
-var _word_rb := false
-var _tension := false
-var _flare_t := -1.0
-var _land_t := -1.0
 var _t := 0.0
+var parts: Array = []        # {p, v, life, max, size, col, star}
+var confetti: Array = []
+var _pow_t := -1.0
+var _flash_t := -1.0
+var _flash_dur := 0.4
+var _flash_c := Color.WHITE
+var _rays_a := 0.0
+var _rays_target := 0.0
+var _rays_col := Color.WHITE
+var _land_t := -1.0
 
-# ödül gösterimi
-var idx := 0
-var busy := false
-var awaiting := false
-var _show_t := 0.0
-var _spin_ms := 900.0
-var _hold_ms := 900.0
-var _drama := 0
-var _skip := false
+# kartlar
+var cards: Array = []        # {node, face, back, cnt, r, drama, col, built}
+var _build_i := 0
+var idx := -1
+var _ct := 0.0
+var _cstate := ""            # fly · rest · out
+var _fly_d := 0.6
+var _spin_d := 0.6
+var _turns := 1.0
+var _landed := false
 var _count_to := 0
 var _count_t := -1.0
-var _count_ms := 600.0
-# ── sahne cilası (Clash Royale düzeni): opak sahne, kart halesi, iniş vurgusu, kalan ödül rozeti ──
-var _bg: ColorRect
-var _halo: Sprite2D
-var _halo_c := Color.WHITE
-var _landed := false
-var _pop_t := -1.0             # kart oturma vurgusu (0,32 sn)
-var _cnt_pop := -1.0           # sayaç bitiş vurgusu (0,3 sn)
-var _left: Node2D              # kalan ödül rozeti
-var _left_lbl: UIText
-var _left_pop := -1.0
-var _menu_vis := false
-var _card_deco: Array = []
+var _word_t := -1.0
+var _out_from := Vector2.ZERO
+var _sum_t := -1.0
+var _sum_cards: Array = []
+var _left := 0
+var _badge_pop := -1.0
 
 func _init(game) -> void:
 	super(game)
@@ -94,149 +85,181 @@ static func rarity_of(r: Dictionary) -> Dictionary:
 
 static func drama_of(r: Dictionary) -> int:
 	if r.kind == "rubies" or r.kind == "stone": return 0
-	var is_char: bool = r.kind == "char"
-	var rar := int(r.get("rarity", 0))
-	if rar >= 4: return 3
-	if rar == 3: return 2
-	if rar == 2: return 2 if is_char else 1
-	return 1 if is_char else 0
+	var rk := ChestSystem.rk_of(r)
+	if rk >= 4: return 3
+	if rk >= 3: return 2
+	if r.kind == "char" or r.kind == "weapon" or rk >= 2: return 1
+	return 0
 
 static func color_of(r: Dictionary) -> Color:
-	if r.kind == "rubies": return Color("#ff3b4e")
+	if r.kind == "rubies": return Color("#ffb020")
 	if r.kind == "stone": return Color("#9d5cff")
-	return JS.col(rarity_of(r).get("color", "#ffffff"))
+	if r.kind == "weapon": return Color("#ff6a2a")
+	return rank_col(ChestSystem.rk_of(r), r.kind == "char")
 
-## yakalama anahtarı (ödül türü × nadirlik)
-static func key_of(r: Dictionary) -> String:
+## canlı çizgi roman nadirlik paleti (sıradan · yaygın · nadir · epik · efsanevi)
+static func rank_col(rk: float, is_char := false) -> Color:
+	if rk >= 4: return Color("#ffb020")
+	if rk >= 3: return Color("#a85cff")
+	if rk >= 2.5 or (is_char and rk >= 2): return Color("#3aa0ff")
+	if rk >= 2: return Color("#4cbf5e")
+	return Color("#8fb4cf")
+
+static func _tag_of(r: Dictionary) -> String:
 	match String(r.kind):
-		"rubies": return "rubies"
-		"stone": return "stone"
-		"weapon": return "weapon"
-		"char":
-			if r.get("isNew", false): return "cnew"
-			return "c" + str(clampi(int(r.get("rarity", 1)), 1, 4))
-		_:
-			if r.get("isNew", false): return "gnew"
-			return "g" + str(clampi(int(r.get("rarity", 1)), 1, 5))
+		"rubies": return "ALTIN"
+		"stone": return "GEM"
+		"weapon": return "YENİ SİLAH"
+	return str(rarity_of(r).get("name", ""))
+
+# ═════════════ ısınma (menü boştayken UIPrewarm çağırır) ═════════════
+
+## 3B sandığı önceden kur + birkaç kare işle (ilk açılışta model/gölgelendirici takılması olmasın)
+func warm(t: String) -> void:
+	_ensure_stage(t)
+
+func _ensure_stage(t: String) -> void:
+	if stage == null:
+		stage = ChestStage.new()
+		add_child(stage)
+		stage.setup(STAGE, STAGE)
+		stage.set_chest(t)
+	elif stage.tier != ChestStage.tier_of(t):
+		stage.set_chest(t)
+
+# ═════════════ başlat ═════════════
 
 func play(t: String, s: int, cb: Callable) -> void:
 	if g.chests.ceremonyActive: return
 	g.chests.ceremonyActive = true
+	if Prof.on: print("CER play @", Engine.get_process_frames())
 	type = t
 	slot = s
 	done_cb = cb
 	C = ChestSystem.chests()[t]
 	rewards = g.chests.apply_pity(g.chests.roll_rewards(t))
-	# geliştirici: ödülleri zorla — cerforce=c4,g5,rubies
+	# geliştirici: ödülleri zorla — cerforce=c4,g3,w,s,rubies
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("cerforce="):
 			_forced = true
 			rewards = []
 			for k in a.substr(9).split(","):
 				match k[0]:
-					"c": rewards.append({"kind": "char", "id": "seher", "rarity": int(k.substr(1)), "name": "SEHER", "cards": 3, "isNew": false})
-					"g": rewards.append({"kind": "gear", "icon": "kilic", "rarity": int(k.substr(1)), "name": "Demir Kılıç", "cards": 2, "isNew": false})
+					"c": rewards.append({"kind": "char", "id": "seher", "rarity": int(k.substr(1)), "name": "SEHER", "cards": 3, "isNew": k.ends_with("n")})
+					"g": rewards.append({"kind": "gear", "icon": "asa", "rarity": int(k.substr(1, 1)), "name": "Kadim Asa", "cards": 2, "isNew": k.ends_with("n")})
+					"w": rewards.append({"kind": "weapon", "icon": "kilic", "rarity": 3, "name": "Kılıç", "cards": 1, "isNew": true})
 					"s": rewards.append({"kind": "stone", "amount": 12})
 					_: rewards.append({"kind": "rubies", "amount": 250})
 	peak = 0
-	var peak_char := false
-	var peak_raw := 0
-	for r in rewards:
-		var rr := ChestSystem.rk_of(r)
-		if rr > peak:
-			peak = int(rr)
-			peak_char = r.kind == "char"
-			peak_raw = int(r.get("rarity", 0))
-	var prar: Dictionary = {}
-	if peak > 0:
-		var arr: Array = D.CHAR_RARITIES if peak_char else D.RARITIES
-		if peak_raw < arr.size(): prar = arr[peak_raw]
-	em_color = JS.col(prar.color) if peak >= 3 and prar.has("color") else JS.col(C.get("accent", C.color))
-	em_glow = JS.col(prar.glow) if peak >= 3 and prar.has("glow") else JS.col(C.glow)
+	for r in rewards: peak = maxi(peak, drama_of(r))
+	_W = UIK.ui_size(get_viewport())
 	_build()
-	# ayrı sahne: menü bu sürede çizilmez (opak zemin; performans)
 	_menu_vis = g.ui.menu.visible
 	g.ui.menu.visible = false
-	S = {"phase": "drop", "t": 0.0, "openT": 0.0, "shakeT": 0.0, "dropY": -560.0, "approach": 0.0, "landT": 0.0, "landed": false, "hopT": 0.0, "miniT": 0.0, "seam": 0.0, "punch": 0.0}
+	S = {"phase": "drop", "t": 0.0, "k": 0.0, "landed": false, "sq": 0.0, "shake": 0.0, "open": 0.0, "punch": 0.0}
+	visible = true
+	g.audio.play("throw")
+
+func _clear() -> void:
+	for n in get_children():
+		if n is Scr._Ticker or n == stage: continue
+		n.queue_free()
+	cards.clear()
+	_sum_cards.clear()
 	parts.clear()
 	confetti.clear()
-	idx = 0
-	busy = false
-	awaiting = false
-	visible = true
 
 func _build() -> void:
-	for n in get_children():
-		if not (n is Scr._Ticker): n.queue_free()
-	tray.clear()
-	rev = null; back = null; summ = null
-	var dh := Scr.dh_of(self)
-	var W := UIK.ui_size(get_viewport())
-	# opak sahne zemini: menü arkada görünmez; sandık renginde derin ışıma, kenarlar gece
+	_clear()
+	# ısınma kabı en altta: opak zeminin arkasında kalır
+	_warm = Node2D.new()
+	add_child(_warm)
 	var acc := JS.col(C.get("accent", C.color))
-	_bg = _rg(W, Vector2(0.5, 0.58), [Color(acc.darkened(0.62), 1.0), Color(acc.darkened(0.84), 1.0), Color("#07060a"), Color("#030304")], [0.0, 0.28, 0.72, 1.0], true)
+	var base := JS.col(C.color)
+	_bg = _rg(_W, Vector2(0.5, 0.62), [base.darkened(0.25), base.darkened(0.6), base.darkened(0.82), Color("#07050b")], [0.0, 0.3, 0.7, 1.0])
+	_bg.position = Vector2(0, -200)
+	_bg.size = _W + Vector2(0, 400)
 	add_child(_bg)
-	_halo = null
-	_left = null
-	base = Lyr.make("cer_idle")
-	add_child(base)
-	base.stretch_h(dh)
-	# efekt katmanları (z sırası: ışınlar/sütun → sandık → flaş → söz)
-	rays_m = UIK.shader_mat("res://shaders/ui/cer_rays.gdshader")
-	rays = ColorRect.new()
-	rays.material = rays_m
-	rays.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var vmax := maxf(W.x, W.y) * 1.6
-	rays.size = Vector2(vmax, vmax)
-	rays.pivot_offset = rays.size * 0.5
-	rays.position = Vector2(W.x * 0.5, W.y * 0.44) - rays.size * 0.5
-	add_child(rays)
-	rays_m.set_shader_parameter("col", Color(em_glow, em_glow.a))
-	_rays_on = 0.0
-	_rays_target = 0.0
-	beam_m = UIK.shader_mat("res://shaders/ui/cer_beam.gdshader")
-	beam = ColorRect.new()
-	beam.material = beam_m
-	beam.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	beam.size = Vector2(300, 0)
-	add_child(beam)
-	var bc := em_color
-	beam_m.set_shader_parameter("c0", bc.lerp(Color.WHITE, 0.15))
-	beam_m.set_shader_parameter("c1", bc.lerp(Color.WHITE, 0.30))
-	_beam_t = -1.0
-	tension = _rg(W, Vector2(0.5, 0.46), [Color(0, 0, 0, 0), Color(0, 0, 0, 0.38)], [0.42, 1.0], true)
-	tension.visible = false
-	add_child(tension)
-	# 3B sandık: sahne düğümünün yerinde
-	stage = ChestStage.new()
-	add_child(stage)
-	_place_stage(base)
-	stage.set_chest(type)
-	fx = Node2D.new()
-	fx.draw.connect(_draw_parts)
-	add_child(fx)
-	spot = _rg(W, Vector2(0.5, 0.40), [Color(0, 0, 0, 0), Color(0, 0, 0, 0.6)], [0.26, 0.76], true)
-	spot.visible = false
-	add_child(spot)
-	flare = _rg(W, Vector2(0.5, 0.48), [Color(1, 0.965, 0.878, 0.85), Color(1, 0.941, 0.804, 0.42), Color(1, 0.922, 0.745, 0.12), Color(1, 0.92, 0.75, 0)], [0.0, 0.34, 0.58, 0.82], true)
-	flare.visible = false
-	add_child(flare)
-	flash = _rg(W, Vector2(0.5, 0.42), [Color.WHITE, Color(1, 1, 1, 0)], [0.0, 0.62], true)
-	flash.visible = false
-	add_child(flash)
-	word = UIText.new()
-	word.style(true, 800, clampf(W.x * 0.10, 30, 58), clampf(W.x * 0.10, 30, 58) * 0.14, "#ffffff", "0 3px 10px rgba(0,0,0,0.6)")
-	word.align = 0.5
-	word.nowrap = true
-	add_child(word)
-	word.visible = false
-	hint = null
-	var hn := base.find_id("#chest-hint")
-	if hn:
-		base.set_hidden(hn, true)
+	_rays = Node2D.new()
+	_rays.draw.connect(_draw_rays)
+	add_child(_rays)
+	_rays_col = acc.lerp(Color.WHITE, 0.35)
+	_rays_a = 0.06
+	_rays_target = 0.06
+	_rays.position = Vector2(_W.x * 0.5, _W.y * 0.69)
+	_ensure_stage(type)
+	move_child(stage, get_child_count() - 1)
+	stage.position = Vector2(_W.x * 0.5 - STAGE * 0.5, _W.y * 0.73 - STAGE * 0.62)
+	stage.modulate = Color.WHITE
+	stage.visible = true
+	stage.p = {"posY": 150.0}
+	_hold = Node2D.new()
+	add_child(_hold)
+	_fx = Node2D.new()
+	_fx.draw.connect(_draw_fx)
+	add_child(_fx)
+	_flash = ColorRect.new()
+	_flash.color = Color.WHITE
+	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flash.position = Vector2(0, -200)
+	_flash.size = _W + Vector2(0, 400)
+	_flash.visible = false
+	add_child(_flash)
+	# sandık adı (çizgi roman başlığı)
+	_title = _txt(1000, 38, 1.5, YEL, UIK.ink_stroke(3.0, 4.0))
+	_title.text = str(C.get("name", "SANDIK"))
+	_title.position = Vector2(0, _W.y * 0.13)
+	_title.rotation = -0.04
+	_title.modulate.a = 0.0
+	_hint = _txt(1000, 26, 2.0, Color.WHITE, UIK.ink_stroke(2.5, 3.0))
+	_hint.visible = false
+	_word = _txt(1000, 56, 2.0, Color.WHITE, UIK.ink_stroke(4.0, 5.0))
+	_word.visible = false
+	_sum_title = _txt(1000, 42, 1.5, YEL, UIK.ink_stroke(3.5, 4.5))
+	_sum_title.text = "KAZANDIKLARIN!"
+	_sum_title.visible = false
+	# kalan ödül rozeti (sandığın sağ üstü)
+	_badge = Node2D.new()
+	_badge.draw.connect(_draw_badge)
+	_badge.position = Vector2(_W.x * 0.5 + 96, _W.y * 0.73 - 118)
+	_badge.visible = false
+	add_child(_badge)
+	_badge_t = UIText.new()
+	_badge_t.style(false, 1000, 26, 0.0, INK, "")
+	_badge_t.align = 0.5
+	_badge_t.nowrap = true
+	_badge_t.wrap_w = 60
+	_badge_t.size = Vector2(60, 34)
+	_badge_t.position = Vector2(-30, -16)
+	_badge.add_child(_badge_t)
+	# ödül dokuları arka planda çözülsün (kartlar inişte kurulur)
+	var want := []
+	for r in rewards:
+		var p := _art_path(r)
+		if p != "": want.append(p)
+	UITex.request(want, true)
+	_build_i = 0
+	idx = -1
+	_cstate = ""
+	_sum_t = -1.0
+	_word_t = -1.0
+	_count_t = -1.0
+	_pow_t = -1.0
+	_flash_t = -1.0
+
+func _txt(w: int, sz: float, ls: float, col: Color, sh: String) -> UIText:
+	var t := UIText.new()
+	t.style(false, w, sz, ls, col, sh)
+	t.align = 0.5
+	t.nowrap = true
+	t.wrap_w = _W.x
+	t.size = Vector2(_W.x, sz * 1.6)     # sıfır boyutlu Control ekran dışı sayılıp kırpılmasın
+	t.pivot_offset = t.size * 0.5
+	add_child(t)
+	return t
 
 ## CSS radial-gradient(circle at …, farthest-corner) tam ekran
-func _rg(W: Vector2, at: Vector2, cols: Array, st: Array, _full: bool) -> ColorRect:
+func _rg(W: Vector2, at: Vector2, cols: Array, st: Array) -> ColorRect:
 	var r := ColorRect.new()
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	r.size = W
@@ -245,21 +268,327 @@ func _rg(W: Vector2, at: Vector2, cols: Array, st: Array, _full: bool) -> ColorR
 	var c := W * at
 	var R := 0.0
 	for k in [Vector2.ZERO, Vector2(W.x, 0), Vector2(0, W.y), W]: R = maxf(R, c.distance_to(k))
-	m.set_shader_parameter("size", W)
-	m.set_shader_parameter("center", c)
+	m.set_shader_parameter("size", W + Vector2(0, 400))
+	m.set_shader_parameter("center", c + Vector2(0, 200))
 	m.set_shader_parameter("radius", R)
 	m.set_shader_parameter("n", cols.size())
 	for i in cols.size(): m.set_shader_parameter("c" + str(i), cols[i])
-	var sv := Vector4(st[0], st[1] if st.size() > 1 else 1.0, st[2] if st.size() > 2 else 1.0, st[3] if st.size() > 3 else 1.0)
-	m.set_shader_parameter("stops", sv)
+	m.set_shader_parameter("stops", Vector4(st[0], st[1], st[2], st[3]))
 	return r
 
-func _place_stage(L: Lyr) -> void:
-	var sn := L.find(".chest-stage")
-	if sn == null: return
-	var r := L.rect_of(sn)
-	stage.position = L.position + r.position
-	stage.setup(r.size.x, r.size.y)
+static func _art_path(r: Dictionary) -> String:
+	match String(r.kind):
+		"rubies": return "res://assets/fx/currency/coin.png"
+		"stone": return "res://assets/fx/currency/gem.png"
+		"char":
+			var hp := "res://assets/ui/art/herocard/" + str(r.get("id", "")) + ".png"
+			if ResourceLoader.exists(hp): return hp
+			var pp := "res://assets/ui/art/portrait/" + str(r.get("id", "")) + ".webp"
+			return pp if ResourceLoader.exists(pp) else ""
+	var gp := "res://assets/ui/art/gear/" + str(r.get("icon", "")) + ".png"
+	return gp if ResourceLoader.exists(gp) else ""
+
+# ═════════════ çizgi roman kartı ═════════════
+
+## w×h boyutlu kart (yerel merkez 0,0). mini: özet kartı (sade, sayaçlı)
+func _make_card(r: Dictionary, w: float, h: float, mini: bool) -> Dictionary:
+	var k := w / CARD.x
+	var col := color_of(r)
+	var node := Node2D.new()
+	var face := Node2D.new()
+	node.add_child(face)
+	var is_cur: bool = r.kind == "rubies" or r.kind == "stone"
+	var ic := Vector2(0, -h * 0.13)
+	var bg := Node2D.new()
+	bg.draw.connect(func(): _draw_face(bg, w, h, k, col, ic, r))
+	face.add_child(bg)
+	# görsel
+	var path := _art_path(r)
+	var tex: Texture2D = UITex.get_tex(path) if path != "" else null
+	if tex:
+		if r.kind == "char":
+			var pw := w * 0.70
+			var ph := pw * 1.12
+			var img := UIK.round_image(tex, pw, ph, 10.0 * k, Vector2(0.5, 0.18))
+			img.position = ic - Vector2(pw, ph) * 0.5
+			face.add_child(img)
+		else:
+			var sp := Sprite2D.new()
+			sp.texture = tex
+			var s := (w * (0.62 if is_cur else 0.66)) / maxf(tex.get_width(), tex.get_height())
+			sp.scale = Vector2.ONE * s
+			sp.position = ic
+			face.add_child(sp)
+	# kahraman portresinin mürekkep çerçevesi (görselin üstünde)
+	if r.kind == "char":
+		var fr := Node2D.new()
+		fr.draw.connect(func():
+			var pw := w * 0.70
+			var ph := pw * 1.12
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(0, 0, 0, 0)
+			sb.set_corner_radius_all(int(12 * k))
+			sb.set_border_width_all(maxi(2, int(5 * k)))
+			sb.border_color = INK
+			fr.draw_style_box(sb, Rect2(ic - Vector2(pw, ph) * 0.5 - Vector2(2, 2) * k, Vector2(pw, ph) + Vector2(4, 4) * k)))
+		face.add_child(fr)
+	# tür / nadirlik etiketi: eğik siyah bant, sarı yazı
+	var lbl := _tag_of(r)
+	if lbl != "":
+		var tag := Node2D.new()
+		tag.position = Vector2(-w * 0.5 + 7 * k, -h * 0.5 + 7 * k)
+		tag.rotation = -0.07
+		var fs := maxf(11.0, roundf(19.0 * k))
+		var tl := UIText.new()
+		tl.style(false, 1000, fs, 1.2, YEL, "")
+		tl.nowrap = true
+		tl.text = lbl
+		tl.position = Vector2(8 * k, 1)
+		tl.size = Vector2(w, fs * 1.5)
+		var tw := 16.0 * k + tl.text_width()
+		tag.draw.connect(func(): tag.draw_rect(Rect2(0, 0, tw, fs * 1.3), INK))
+		tag.add_child(tl)
+		face.add_child(tag)
+	# ad şeridi
+	var nm_s := str(r.get("name", ""))
+	if r.kind == "rubies": nm_s = "ALTIN"
+	elif r.kind == "stone": nm_s = "GEM"
+	var nfs := maxf(11.0, roundf(24.0 * k))
+	var nm := UIText.new()
+	nm.style(false, 1000, nfs, 0.8, Color.WHITE, UIK.ink_stroke(2.0 * k + 0.6, 2.5 * k + 0.5))
+	nm.align = 0.5
+	nm.nowrap = true
+	nm.wrap_w = w - 10 * k
+	nm.size = Vector2(w - 10 * k, nfs * 1.5)
+	nm.text = nm_s.to_upper()
+	nm.position = Vector2(-w * 0.5 + 5 * k, h * 0.5 - (0.36 if not mini else 0.40) * h)
+	face.add_child(nm)
+	# sayaç: büyük sarı "+250" / "×3" (mürekkep konturlu)
+	var cfs := maxf(13.0, roundf(40.0 * k))
+	var cnt := UIText.new()
+	cnt.style(false, 1000, cfs, 1.0, YEL, UIK.ink_stroke(3.0 * k + 0.6, 3.5 * k + 0.5))
+	cnt.align = 0.5
+	cnt.nowrap = true
+	cnt.wrap_w = w
+	cnt.size = Vector2(w, cfs * 1.4)
+	cnt.pivot_offset = cnt.size * 0.5
+	cnt.position = Vector2(-w * 0.5, h * 0.5 - 0.215 * h)
+	cnt.text = _count_str(r, -1)
+	face.add_child(cnt)
+	# YENİ! etiketi: kırmızı patlama yıldızı, sağ üst
+	if r.get("isNew", false):
+		var nw := Node2D.new()
+		nw.position = Vector2(w * 0.5 - 14 * k, -h * 0.5 + 16 * k)
+		nw.rotation = 0.22
+		nw.draw.connect(func(): _star(nw, Vector2.ZERO, 34 * k, 25 * k, 14, Color("#e8322c"), 3.0 * k))
+		var nt := UIText.new()
+		var nfz := maxf(10.0, roundf(19.0 * k))
+		nt.style(false, 1000, nfz, 0.8, Color.WHITE, UIK.ink_stroke(1.5 * k + 0.4, 1.5 * k))
+		nt.align = 0.5
+		nt.nowrap = true
+		nt.wrap_w = 80 * k
+		nt.size = Vector2(80 * k, nfz * 1.4)
+		nt.position = Vector2(-40 * k, -nfz * 0.62)
+		nt.text = "YENİ!"
+		nw.add_child(nt)
+		face.add_child(nw)
+	# arka yüz
+	var back := Node2D.new()
+	back.draw.connect(func(): _draw_back(back, w, h, k, JS.col(C.color)))
+	var q := UIText.new()
+	var qfs := roundf(58.0 * k)
+	q.style(false, 1000, qfs, 0.0, INK, "")
+	q.align = 0.5
+	q.nowrap = true
+	q.wrap_w = 80 * k
+	q.size = Vector2(80 * k, qfs * 1.3)
+	q.position = Vector2(-40 * k, -qfs * 0.6)
+	q.text = "?"
+	back.add_child(q)
+	back.visible = false
+	node.add_child(back)
+	return {"node": node, "face": face, "back": back, "cnt": cnt, "r": r, "drama": drama_of(r), "col": col}
+
+static func _count_str(r: Dictionary, v: int) -> String:
+	if r.kind == "rubies" or r.kind == "stone":
+		return "+" + str(v if v >= 0 else int(r.get("amount", 0)))
+	if r.kind == "weapon": return ""
+	return "×" + str(v if v >= 0 else int(r.get("cards", 1)))
+
+func _draw_face(n: Node2D, w: float, h: float, k: float, col: Color, ic: Vector2, r: Dictionary) -> void:
+	var rr := Rect2(-w * 0.5, -h * 0.5, w, h)
+	var rad := int(14 * k)
+	var dark := col.darkened(0.5)
+	var lite := col.lightened(0.38)
+	var sh := StyleBoxFlat.new()
+	sh.bg_color = INK
+	sh.set_corner_radius_all(rad)
+	n.draw_style_box(sh, Rect2(rr.position + Vector2(5, 7) * k, rr.size))
+	var b := StyleBoxFlat.new()
+	b.bg_color = col
+	b.set_corner_radius_all(rad)
+	n.draw_style_box(b, rr)
+	# aksiyon ışınları (kart içine kırpılı)
+	var box := PackedVector2Array([rr.position + Vector2(4, 4) * k, Vector2(rr.end.x - 4 * k, rr.position.y + 4 * k), rr.end - Vector2(4, 4) * k, Vector2(rr.position.x + 4 * k, rr.end.y - 4 * k)])
+	for i in 16:
+		var a := i * TAU / 16.0
+		var R := w * 1.3
+		var tri := PackedVector2Array([ic, ic + Vector2(cos(a - 0.11), sin(a - 0.11)) * R, ic + Vector2(cos(a + 0.11), sin(a + 0.11)) * R])
+		for q in Geometry2D.intersect_polygons(tri, box):
+			if q.size() >= 3: n.draw_colored_polygon(q, Color(lite, 0.5))
+	# yarım ton: alt yarıda büyüyen koyu noktalar
+	var step := 9.0 * k
+	var rows := int(h * 0.5 / step)
+	for yy in rows:
+		for xx in range(-int(w * 0.5 / step), int(w * 0.5 / step) + 1):
+			var p := Vector2(xx * step + (step * 0.5 if yy % 2 else 0.0), h * 0.02 + yy * step)
+			if absf(p.x) < w * 0.5 - 7 * k and p.y < h * 0.5 - 7 * k:
+				n.draw_circle(p, (0.5 + yy * 0.32) * k, Color(dark, 0.4))
+	# ad bandı (siyah, hafif eğik)
+	var by := h * 0.5 - 0.36 * h
+	n.draw_colored_polygon(PackedVector2Array([Vector2(-w * 0.5 + 3 * k, by - 2 * k), Vector2(w * 0.5 - 3 * k, by - 6 * k), Vector2(w * 0.5 - 3 * k, by + 30 * k), Vector2(-w * 0.5 + 3 * k, by + 33 * k)]), Color(INK, 0.82))
+	# para kartı: ikon ardında parlak hale
+	if r.kind == "rubies" or r.kind == "stone":
+		n.draw_circle(ic, w * 0.36, Color(1, 1, 1, 0.16))
+		n.draw_circle(ic, w * 0.28, Color(1, 1, 1, 0.14))
+	elif r.kind != "char":
+		# eşya: beyaz madalyon, kalın mürekkep
+		var mr := w * 0.36
+		n.draw_circle(ic + Vector2(4, 5) * k, mr, INK)
+		n.draw_circle(ic, mr, INK)
+		n.draw_circle(ic, mr - 5 * k, Color("#fffaf0"))
+		n.draw_arc(ic, mr - 5 * k, PI * 0.1, PI * 0.9, 20, Color(col, 0.45), 8.0 * k, true)
+		n.draw_circle(ic + Vector2(-mr * 0.4, -mr * 0.45), mr * 0.18, Color(1, 1, 1, 0.9))
+	# dış mürekkep kontur
+	var o := StyleBoxFlat.new()
+	o.bg_color = Color(0, 0, 0, 0)
+	o.set_corner_radius_all(rad)
+	o.set_border_width_all(maxi(2, int(6 * k)))
+	o.border_color = INK
+	n.draw_style_box(o, rr)
+	# üst parıltı çizgisi
+	n.draw_line(Vector2(-w * 0.5 + 16 * k, -h * 0.5 + 10 * k), Vector2(w * 0.1, -h * 0.5 + 10 * k), Color(1, 1, 1, 0.5), 3.0 * k)
+
+func _draw_back(n: Node2D, w: float, h: float, k: float, col: Color) -> void:
+	var rr := Rect2(-w * 0.5, -h * 0.5, w, h)
+	var sh := StyleBoxFlat.new()
+	sh.bg_color = INK
+	sh.set_corner_radius_all(int(14 * k))
+	n.draw_style_box(sh, Rect2(rr.position + Vector2(5, 7) * k, rr.size))
+	var b := StyleBoxFlat.new()
+	b.bg_color = col.darkened(0.2)
+	b.set_corner_radius_all(int(14 * k))
+	n.draw_style_box(b, rr)
+	var box := PackedVector2Array([rr.position + Vector2(4, 4) * k, Vector2(rr.end.x - 4 * k, rr.position.y + 4 * k), rr.end - Vector2(4, 4) * k, Vector2(rr.position.x + 4 * k, rr.end.y - 4 * k)])
+	for i in 14:
+		var a := i * TAU / 14.0
+		var tri := PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.12), sin(a - 0.12)) * w * 1.3, Vector2(cos(a + 0.12), sin(a + 0.12)) * w * 1.3])
+		for q in Geometry2D.intersect_polygons(tri, box):
+			if q.size() >= 3: n.draw_colored_polygon(q, Color(col.lightened(0.35), 0.5))
+	var o := StyleBoxFlat.new()
+	o.bg_color = Color(0, 0, 0, 0)
+	o.set_corner_radius_all(int(14 * k))
+	o.set_border_width_all(maxi(2, int(6 * k)))
+	o.border_color = INK
+	n.draw_style_box(o, rr)
+	n.draw_circle(Vector2(3, 4) * k, 46 * k, INK)
+	n.draw_circle(Vector2.ZERO, 46 * k, INK)
+	n.draw_circle(Vector2.ZERO, 40 * k, YEL)
+	n.draw_circle(Vector2(-14, -16) * k, 8 * k, Color(1, 1, 1, 0.7))
+
+## sivri patlama yıldızı (mürekkep gölgeli)
+static func _star(n: Node2D, c: Vector2, r0: float, r1: float, pts: int, col: Color, ink: float, rot := 0.0, sy := 1.0) -> void:
+	var P := PackedVector2Array()
+	var I := PackedVector2Array()
+	for i in pts * 2:
+		var a := rot - PI * 0.5 + i * PI / pts
+		var rr := r0 if i % 2 == 0 else r1
+		P.append(c + Vector2(cos(a) * rr, sin(a) * rr * sy))
+		I.append(c + Vector2(cos(a) * (rr + ink * 1.6), sin(a) * (rr + ink * 1.6) * sy) + Vector2(ink, ink * 1.3))
+	n.draw_colored_polygon(I, INK)
+	n.draw_colored_polygon(P, col)
+
+# ═════════════ çizim ═════════════
+
+func _draw_rays() -> void:
+	if _rays_a <= 0.004: return
+	var R := _W.y * 1.1
+	for i in 18:
+		var a := i * TAU / 18.0
+		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.08), sin(a - 0.08)) * R, Vector2(cos(a + 0.08), sin(a + 0.08)) * R]), Color(_rays_col, _rays_a))
+
+func _draw_badge() -> void:
+	_star(_badge, Vector2.ZERO, 30, 23, 12, YEL, 3.0, _t * 0.6)
+
+func _draw_fx() -> void:
+	# POW yıldızı (açılış patlaması)
+	if _pow_t >= 0.0:
+		var k := clampf(_pow_t / 0.55, 0, 1)
+		var s := ScrLevelUp._back_ease(minf(1.0, k / 0.35)) * (1.0 + k * 0.15)
+		var a := 1.0 - maxf(0.0, (k - 0.55) / 0.45)
+		var c := _chest_mouth()
+		_fx.modulate.a = 1.0
+		var P := PackedVector2Array()
+		var I := PackedVector2Array()
+		for i in 28:
+			var an := -PI * 0.5 + i * PI / 14.0
+			var rr := (150.0 if i % 2 == 0 else 96.0) * s
+			P.append(c + Vector2(cos(an) * rr, sin(an) * rr * 0.75))
+			I.append(c + Vector2(cos(an) * (rr + 7), sin(an) * (rr + 7) * 0.75) + Vector2(5, 6))
+		_fx.draw_colored_polygon(I, Color(INK, a))
+		_fx.draw_colored_polygon(P, Color(YEL, a))
+		var P2 := PackedVector2Array()
+		for i in 28:
+			var an := -PI * 0.5 + i * PI / 14.0 + 0.1
+			var rr := (100.0 if i % 2 == 0 else 66.0) * s
+			P2.append(c + Vector2(cos(an) * rr, sin(an) * rr * 0.75))
+		_fx.draw_colored_polygon(P2, Color(Color.WHITE, a * 0.9))
+		# genişleyen mürekkep halka
+		_fx.draw_arc(c, 60 + 220 * k, 0, TAU, 48, Color(INK, (1.0 - k) * 0.8), 6.0 * (1.0 - k) + 1.0, true)
+	# söz ardında patlama yıldızı
+	if _word_t >= 0.0 and _word.visible:
+		var kw := clampf(_word_t / 0.3, 0, 1)
+		var sw := ScrLevelUp._back_ease(kw) if kw < 1.0 else 1.0 + sin(_t * 3.0) * 0.02
+		var wc := _word.position + _word.size * 0.5
+		var cc: Color = cards[idx].col if idx >= 0 and idx < cards.size() else YEL
+		var P3 := PackedVector2Array()
+		var I3 := PackedVector2Array()
+		for i in 24:
+			var an := -PI * 0.5 + i * PI / 12.0 + 0.05
+			var rr := (170.0 if i % 2 == 0 else 128.0) * sw
+			P3.append(wc + Vector2(cos(an) * rr, sin(an) * rr * 0.36))
+			I3.append(wc + Vector2(cos(an) * rr * 1.05, sin(an) * rr * 0.36 * 1.05) + Vector2(5, 6))
+		_fx.draw_colored_polygon(I3, Color(INK, _word.modulate.a))
+		_fx.draw_colored_polygon(P3, Color(cc.darkened(0.15), _word.modulate.a))
+	# kıvılcımlar: dört köşeli yıldız / kare kırıntı
+	for p in parts:
+		var kk: float = 1.0 - float(p.life) / float(p.max)
+		var c2: Color = p.col
+		c2.a = minf(1.0, float(p.life) / 0.25)
+		var pp: Vector2 = p.p
+		var r: float = float(p.size) * (1.0 - kk * 0.5)
+		if p.star:
+			_fx.draw_colored_polygon(PackedVector2Array([pp + Vector2(0, -r * 2.2), pp + Vector2(r * 0.45, 0), pp + Vector2(0, r * 2.2), pp + Vector2(-r * 0.45, 0)]), c2)
+			_fx.draw_colored_polygon(PackedVector2Array([pp + Vector2(-r * 2.2, 0), pp + Vector2(0, r * 0.45), pp + Vector2(r * 2.2, 0), pp + Vector2(0, -r * 0.45)]), c2)
+		else:
+			_fx.draw_rect(Rect2(pp - Vector2.ONE * r * 0.5, Vector2.ONE * r), c2)
+	# konfeti
+	for q in confetti:
+		var u: float = (q.t - q.delay) / q.dur
+		if u < 0 or u > 1: continue
+		var c3: Color = q.col
+		c3.a = clampf((1.0 - u) * 3.0, 0, 1)
+		var pos := Vector2(q.x + q.drift * u + sin(u * 9.0 + q.ph) * 14.0, -20.0 + (_W.y * 0.9) * u)
+		_fx.draw_set_transform(pos, q.rot * u + q.ph, Vector2(1.0, absf(cos(u * 14.0 + q.ph))))
+		_fx.draw_rect(Rect2(-4, -6, 8, 12), c3)
+		_fx.draw_rect(Rect2(-4, -6, 8, 12), INK, false, 1.5)
+		_fx.draw_set_transform(Vector2.ZERO)
+
+func _chest_mouth() -> Vector2:
+	return stage.position + Vector2(STAGE * 0.5, STAGE * 0.52)
+
+func _card_home() -> Vector2:
+	return Vector2(_W.x * 0.5, _W.y * 0.345)
 
 # ═════════════ kare döngüsü ═════════════
 
@@ -276,642 +605,447 @@ static func _bounce_out(x: float) -> float:
 	x -= 2.625 / d1
 	return n1 * x * x + 0.984375
 
-func _spawn(n: int, power: float, up: bool) -> void:
-	var cc := [JS.col(C.get("accent", C.color)), Color("#ffe9a8"), JS.col(C.get("metal", "#888888"))]
-	var o := _stage_center()
+func _spark(at: Vector2, n: int, spd: float, cols: Array, up := false, star_k := 0.5) -> void:
 	for i in n:
-		var a := (-PI / 2 + (randf() - 0.5) * 1.6) if up else randf() * TAU
-		var v := power * (0.4 + randf() * 0.8)
-		var col: Color = cc[0] if randf() < 0.5 else (cc[1] if randf() < 0.5 else cc[2])
-		parts.append({"p": o + Vector2((randf() - 0.5) * 60, CH * 0.12), "v": Vector2(cos(a), sin(a)) * v, "life": 0.6 + randf() * 0.7, "size": 2 + randf() * 3.5, "spin": (randf() - 0.5) * 10, "rot": randf() * TAU, "col": col})
-
-func _stage_center() -> Vector2:
-	return stage.position + stage.size_l * Vector2(0.5, 0.5)
+		var a := (-PI * 0.5 + randf_range(-0.9, 0.9)) if up else randf() * TAU
+		var v := spd * randf_range(0.35, 1.0)
+		var life := randf_range(0.45, 0.95)
+		parts.append({"p": at + Vector2(randf_range(-20, 20), randf_range(-8, 8)), "v": Vector2(cos(a), sin(a)) * v, "life": life, "max": life,
+			"size": randf_range(2.5, 5.5), "col": cols[randi() % cols.size()], "star": randf() < star_k})
 
 func _process(dt: float) -> void:
 	if not visible: return
 	dt = minf(dt, 0.05)
 	_t += dt
 	S.t += dt
-	var sx := 0.0
-	var scale := 1.0
+	# kartları inişte kur (her karede bir tane; zeminin arkasında çizilip ısınır)
+	if _build_i < rewards.size():
+		var cd := _make_card(rewards[_build_i], CARD.x, CARD.y, false)
+		cd.node.position = _W * 0.5
+		cd.back.visible = true          # arka yüz de bir kez çizilsin
+		_warm.add_child(cd.node)
+		cards.append(cd)
+		_build_i += 1
+	elif _sum_cards.size() < rewards.size() and S.phase != "summary":
+		_build_mini()
+	var posY := 0.0
 	var sqx := 1.0
 	var sqy := 1.0
+	var sc := 1.0
+	var shx := 0.0
 	var rot := 0.0
 	match String(S.phase):
 		"drop":
-			S.approach = minf(1.0, S.approach + dt * 0.62)
-			S.dropY = -560.0 * (1.0 - _bounce_out(S.approach))
-			scale = 0.4 + 0.6 * minf(1.0, S.approach * 2.2)
-			rot = sin(S.approach * 7) * 0.05 * maxf(0, 1 - S.approach * 2.2)
-			if not S.landed and S.approach >= 0.3636:
+			S.k = minf(1.0, S.k + dt * 1.25)
+			posY = 150.0 * (1.0 - _bounce_out(S.k))
+			_title.modulate.a = minf(1.0, S.k * 2.0)
+			_title.scale = Vector2.ONE * ScrLevelUp._back_ease(minf(1.0, S.k * 1.6))
+			if not S.landed and S.k >= 0.3636:
 				S.landed = true
-				S.landT = 0.24
-				_spawn(26, 210, false)
+				S.sq = 0.26
 				_land_t = 0.0
+				_spark(_chest_mouth() + Vector2(0, 70), 22, 260, [Color.WHITE, JS.col(C.get("accent", C.color)), YEL], false, 0.3)
 				g.audio.play("chestthud")
-			if S.landT > 0:
-				S.landT = maxf(0, S.landT - dt)
-				var k: float = S.landT / 0.24
-				sqx = 1 + k * 0.16; sqy = 1 - k * 0.16
-			if S.approach >= 1.0:
+				Input.vibrate_handheld(20)
+			if S.k >= 1.0:
 				S.phase = "idle"
-				S.landT = 0.16
-				_show_hint("AÇMAK İÇİN EKRANA DOKUN")
-				_spawn(10, 130, false)
+				S.t = 0.0
+				_hint.text = "AÇMAK İÇİN DOKUN!"
+				_hint.position = Vector2(0, _W.y * 0.86)
+				_hint.visible = true
 		"idle":
-			if S.landT > 0:
-				S.landT = maxf(0, S.landT - dt)
-				var k: float = S.landT / 0.24
-				sqx = 1 + k * 0.16; sqy = 1 - k * 0.16
-			scale = 1 + sin(S.t * 2.4) * 0.012
-			if randf() < dt * 6:
-				var o := _stage_center()
-				parts.append({"p": o + Vector2((randf() - 0.5) * 130, CH * 0.18), "v": Vector2((randf() - 0.5) * 16, -26 - randf() * 22), "life": 1 + randf() * 0.8, "size": 1.5 + randf() * 2, "spin": 0.0, "rot": 0.0, "col": JS.col(C.color) if randf() < 0.6 else Color("#ffe9a8")})
+			sc = 1.0 + sin(S.t * 3.2) * 0.018
+			# ara sıra küçük "kıpırdama" (içinde bir şey var)
+			var wig := fmod(S.t, 2.2)
+			if wig < 0.3: rot = sin(wig / 0.3 * TAU * 2.0) * 0.05 * (1.0 - wig / 0.3)
+			_hint.scale = Vector2.ONE * (1.0 + sin(_t * 5.0) * 0.06)
+			_hint.modulate.a = minf(1.0, S.t * 3.0)
 		"shake":
-			S.shakeT -= dt
-			var prog := 1.0 - maxf(0, S.shakeT) / 0.85
-			var amp := 4 + prog * 8
-			sx = sin(S.t * 44) * amp
-			rot = sin(S.t * 44 + 0.6) * 0.04 * (0.4 + prog)
-			if randf() < dt * (14 + prog * 16): _spawn(2, 90, true)
-			if S.shakeT <= 0: _burst()
-		"burst":
-			S.openT = minf(1.0, S.openT + dt * 1.7)
-			S.punch = maxf(0, S.punch - dt * 2.2)
-			if S.hopT > 0: S.hopT = maxf(0, S.hopT - dt)
-			scale = 1 + S.punch * 0.09
-	var hopY: float = sin((1 - S.hopT / 0.55) * PI) * 9 if S.hopT > 0 else 0.0
-	stage.p = {"posY": maxf(0, -S.dropY) * (150.0 / 560.0) + hopY, "scaleX": scale * sqx, "scaleY": scale * sqy, "scaleZ": scale, "shakeX": sx * 0.34, "rotZ": rot, "open": S.openT, "seam": S.seam}
-	_fx_step(dt)
-	_reveal_step(dt)
+			S.shake += dt
+			var pr: float = minf(1.0, S.shake / 0.62)
+			var amp := 3.0 + pr * 9.0
+			shx = sin(S.t * 52.0) * amp * 0.34
+			rot = sin(S.t * 47.0 + 0.6) * 0.035 * (0.4 + pr)
+			sc = 1.0 + pr * 0.08
+			sqy = 1.0 - pr * 0.06
+			sqx = 1.0 + pr * 0.04
+			_rays_target = 0.06 + pr * 0.08
+			if randf() < dt * (10.0 + pr * 20.0): _spark(_chest_mouth(), 2, 140, [YEL, Color.WHITE], true, 0.8)
+			if S.shake >= 0.62: _burst()
+		"open":
+			S.open = minf(1.0, S.open + dt * 2.2)
+			S.punch = maxf(0.0, S.punch - dt * 3.0)
+			sc = 1.0 + S.punch * 0.12
+			if _cstate == "" and S.t > 0.38: _next()
+		"summary":
+			S.open = 1.0
+	if S.sq > 0.0:
+		S.sq = maxf(0.0, S.sq - dt)
+		var kq: float = S.sq / 0.26
+		sqx *= 1.0 + kq * 0.18
+		sqy *= 1.0 - kq * 0.18
+	stage.p = {"posY": posY, "scaleX": sc * sqx, "scaleY": sc * sqy, "scaleZ": sc, "shakeX": shx, "rotZ": rot, "open": S.open, "seam": minf(1.0, float(S.shake) / 0.62) if S.phase == "shake" else 0.0}
+	_step_fx(dt)
+	_step_card(dt)
+	_step_summary(dt)
 
-func _show_hint(s: String) -> void:
-	var hn := base.find_id("#chest-hint")
-	if hn:
-		base.set_hidden(hn, false)
-		base.set_text(hn, s)
-
-func _burst() -> void:
-	S.phase = "burst"
-	S.punch = 1.0
-	S.hopT = 0.55
-	_tension = false
-	_flare_t = 0.0
-	var boost := 1.0 + peak * 0.35
-	_spawn(int(round(52 * boost)), 360, true)
-	_spawn(int(round(24 * boost)), 210, false)
-	_rays_target = 0.16
-	_beam_t = 0.0
-	g.audio.play("chestburst")
-	if peak >= 3: _spawn(int(round(60 * boost)), 480, true)
-	get_tree().create_timer(0.65, true, false, true).timeout.connect(func(): if visible: _begin_reveal())
-
-func _fx_step(dt: float) -> void:
-	# ışın yelpazesi: opaklık geçişi 700 ms, 22 sn'de tam tur
-	_rays_on = move_toward(_rays_on, _rays_target, dt / 0.7 * 0.16)
-	rays_m.set_shader_parameter("opacity", _rays_on)
-	rays_m.set_shader_parameter("rot", fmod(_t / 22.0, 1.0) * TAU)
-	# ışık sütunu (chestBeam 900 ms)
-	if _beam_t >= 0:
-		_beam_t += dt
-		var k := clampf(_beam_t / 0.9, 0, 1)
-		var e := UIK.bez(0.1, 0.7, 0.25, 1.0, k)
-		var h := 0.0
-		var op := 0.0
-		if e < 0.1:
-			h = lerpf(0, 620, e / 0.1); op = lerpf(0, 0.85, e / 0.1)
-		elif e < 0.7:
-			h = lerpf(620, 700, (e - 0.1) / 0.6); op = lerpf(0.85, 0.6, (e - 0.1) / 0.6)
-		else:
-			h = lerpf(700, 780, (e - 0.7) / 0.3); op = lerpf(0.6, 0, (e - 0.7) / 0.3)
-		var W := UIK.ui_size(get_viewport())
-		beam.size = Vector2(300, h)
-		beam.position = Vector2(W.x * 0.5 - 150, W.y * 0.54 - h)
-		beam_m.set_shader_parameter("opacity", op)
-		if k >= 1: _beam_t = -1.0
-	# gerilim karartması (0,42 sn nabız) + patlama flaşı (0,5 sn)
-	tension.visible = _tension
-	if _tension: (tension.material as ShaderMaterial).set_shader_parameter("opacity", 0.85 + 0.15 * cos(_t / 0.42 * TAU))
-	if _flare_t >= 0:
-		_flare_t += dt
-		flare.visible = true
-		(flare.material as ShaderMaterial).set_shader_parameter("opacity", clampf(1 - _flare_t / 0.5, 0, 1))
-		if _flare_t >= 0.5:
-			_flare_t = -1.0
-			flare.visible = false
-	# iniş sarsıntısı (chestLandShake 260 ms)
-	if _land_t >= 0:
-		_land_t += dt
-		var k := clampf(_land_t / 0.26, 0, 1)
-		var off := Vector2.ZERO
-		if k < 0.3: off = Vector2(0, -4).lerp(Vector2(-3, 2), k / 0.3)
-		elif k < 0.55: off = Vector2(-3, 2).lerp(Vector2(3, 1), (k - 0.3) / 0.25)
-		else: off = Vector2(3, 1).lerp(Vector2.ZERO, (k - 0.55) / 0.45)
-		position = off
-		if k >= 1:
-			_land_t = -1.0
-			position = Vector2.ZERO
-	# flaş
-	if _flash_t >= 0:
+func _step_fx(dt: float) -> void:
+	_rays_a = move_toward(_rays_a, _rays_target, dt * 0.5)
+	_rays.rotation += dt * 0.12
+	_rays.queue_redraw()
+	if _pow_t >= 0.0:
+		_pow_t += dt
+		if _pow_t > 0.55: _pow_t = -1.0
+	if _flash_t >= 0.0:
 		_flash_t += dt
 		var k := clampf(_flash_t / _flash_dur, 0, 1)
-		var a := (k / 0.12 * 0.92) if k < 0.12 else lerpf(0.92, 0.0, (k - 0.12) / 0.88)
-		if _flash_rb:
-			a = (k / 0.10) if k < 0.10 else lerpf(1.0, 0.0, (k - 0.10) / 0.9)
-			# hue-rotate(0 → 320°): nadirlik renginin tonundan döner
-			var c := Color.from_hsv(fmod(_flash_c.h + k * 320.0 / 360.0, 1.0), _flash_c.s, _flash_c.v)
-			(flash.material as ShaderMaterial).set_shader_parameter("c0", c)
-		flash.visible = true
-		(flash.material as ShaderMaterial).set_shader_parameter("opacity", a)
-		if k >= 1:
+		_flash.visible = true
+		_flash.color = Color(_flash_c, (1.0 - k) * (1.0 - k) * 0.7)
+		if k >= 1.0:
 			_flash_t = -1.0
-			flash.visible = false
-	# nadirlik sözü (rarityWord 2 sn)
-	if _word_t >= 0:
+			_flash.visible = false
+	if _land_t >= 0.0:
+		_land_t += dt
+		var k := clampf(_land_t / 0.26, 0, 1)
+		position = Vector2(sin(k * 30.0) * 4.0, cos(k * 26.0) * 3.0) * (1.0 - k)
+		if k >= 1.0:
+			_land_t = -1.0
+			position = Vector2.ZERO
+	if _badge.visible:
+		_badge.queue_redraw()
+		if _badge_pop >= 0.0:
+			_badge_pop += dt
+			var kb := clampf(_badge_pop / 0.35, 0, 1)
+			_badge.scale = Vector2.ONE * (1.0 + 0.4 * sin(kb * PI) * (1.0 - kb))
+			if kb >= 1.0: _badge_pop = -1.0
+	# söz (EPİK! / EFSANEVİ!)
+	if _word_t >= 0.0:
 		_word_t += dt
-		var k := clampf(_word_t / 2.0, 0, 1)
-		var e := UIK.bez(0.16, 1, 0.3, 1, k)
-		var sc := 1.0
-		var r := 0.0
-		var op := 1.0
-		if e < 0.16:
-			var u := e / 0.16
-			sc = lerpf(0.4, 1.12, u); r = lerpf(-6, 0, u); op = u
-		elif e < 0.30: sc = lerpf(1.12, 1.0, (e - 0.16) / 0.14)
-		elif e < 0.78: sc = 1.0
-		else:
-			sc = lerpf(1.0, 1.04, (e - 0.78) / 0.22); op = lerpf(1, 0, (e - 0.78) / 0.22)
-		word.visible = true
-		word.scale = Vector2.ONE * sc
-		word.rotation = deg_to_rad(r)
-		word.modulate.a = op
-		if _word_rb:
-			word.color = Color.from_hsv(fmod(_t / 1.1, 1.0), 0.55, 1.0)
-		if k >= 1:
-			_word_t = -1.0
-			word.visible = false
-	# 2B kıvılcımlar
+		var kw := clampf(_word_t / 0.3, 0, 1)
+		_word.visible = true
+		_word.scale = Vector2.ONE * (ScrLevelUp._back_ease(kw) if kw < 1.0 else 1.0 + sin(_t * 4.0) * 0.025)
+		_word.rotation = -0.06 + sin(_t * 2.0) * 0.01
+		_word.modulate.a = minf(1.0, _word_t / 0.12)
 	for i in range(parts.size() - 1, -1, -1):
 		var p: Dictionary = parts[i]
-		p.life -= dt
-		if p.life <= 0:
+		p.life = float(p.life) - dt
+		if p.life <= 0.0:
 			parts.remove_at(i)
 			continue
 		var v: Vector2 = p.v
-		v.y += 420 * dt
+		v.y += 520.0 * dt
+		v *= exp(-1.2 * dt)
 		p.v = v
-		p.p += v * dt
-		p.rot += p.spin * dt
-	# konfeti
+		p.p = (p.p as Vector2) + v * dt
 	for i in range(confetti.size() - 1, -1, -1):
 		var q: Dictionary = confetti[i]
-		q.t += dt
-		if q.t > q.delay + q.dur:
-			confetti.remove_at(i)
-	fx.queue_redraw()
+		q.t = float(q.t) + dt
+		if q.t > q.delay + q.dur: confetti.remove_at(i)
+	_fx.queue_redraw()
 
-func _draw_parts() -> void:
-	for p in parts:
-		var c: Color = p.col
-		c.a = minf(1.0, p.life / 0.4)
-		if p.spin != 0.0:
-			fx.draw_set_transform(p.p, p.rot, Vector2.ONE)
-			fx.draw_rect(Rect2(-p.size / 2, -p.size / 2, p.size, p.size * 0.6), c)
-			fx.draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
-		else:
-			fx.draw_rect(Rect2(p.p - Vector2.ONE * p.size / 2, Vector2.ONE * p.size), c)
-	var W := UIK.ui_size(get_viewport())
-	for q in confetti:
-		var u: float = (q.t - q.delay) / q.dur
-		if u < 0: continue
-		var e := u * u     # ease-in
-		var op := (u / 0.08) if u < 0.08 else 1.0 - (u - 0.08) / 0.92
-		var c2: Color = q.col
-		c2.a = clampf(op, 0, 1)
-		var pos: Vector2 = Vector2(q.x * W.x / 100.0 + q.drift * e, -0.08 * q.h + 340.0 * e) + q.o
-		fx.draw_set_transform(pos, deg_to_rad(q.rot * e), Vector2.ONE)
-		fx.draw_rect(Rect2(-3.5, -5.5, 7, 11), c2)
-		fx.draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
-
-# ═════════════ dokunma ═════════════
+# ═════════════ açılış ═════════════
 
 func _input(ev: InputEvent) -> void:
 	if not visible: return
 	if ev is InputEventScreenTouch and (ev as InputEventScreenTouch).pressed:
 		get_viewport().set_input_as_handled()
-		if S.phase == "idle":
-			_start_open()
-		elif S.phase == "burst" and rev != null:
-			_advance()
+		_tap()
 		return
 	if ev is InputEventScreenTouch or ev is InputEventScreenDrag:
 		get_viewport().set_input_as_handled()
 
-func _start_open() -> void:
-	S.phase = "shake"
-	S.shakeT = 0.72
-	_tension = true
-	var hn := base.find_id("#chest-hint")
-	if hn: base.set_hidden(hn, true)
-	g.audio.play("chestlatch")
-	Input.vibrate_handheld(30)
+func _tap() -> void:
+	if Prof.on: print("CER tap ", S.phase, " ", _cstate, " @", Engine.get_process_frames())
+	match String(S.phase):
+		"drop":
+			# sabırsız dokunuş: inişi bitir
+			if S.k > 0.4: S.k = 1.0
+		"idle":
+			S.phase = "shake"
+			S.shake = 0.0
+			_hint.visible = false
+			g.audio.play("chestlatch")
+			Input.vibrate_handheld(30)
+		"open":
+			if _cstate == "fly":
+				# efsanevi ilk anı atlanmaz; diğerlerinde kart hemen yerine
+				if int(cards[idx].drama) < 3 or _ct > 1.0: _ct = maxf(_ct, _fly_d + _spin_d)
+			elif _cstate == "rest" and _ct > 0.15:
+				_out()
+		"summary":
+			if _sum_t > 0.5: _finish()
+
+func _burst() -> void:
+	if Prof.on: print("CER burst @", Engine.get_process_frames())
+	S.phase = "open"
+	S.t = 0.0
+	S.open = 0.0
+	S.punch = 1.0
+	_title.visible = false
+	_pow_t = 0.0
+	_flash_t = 0.0
+	_flash_dur = 0.35
+	_flash_c = Color.WHITE
+	_rays_target = 0.14
+	var acc := JS.col(C.get("accent", C.color))
+	_spark(_chest_mouth(), 46 + peak * 14, 520, [YEL, Color.WHITE, acc, Color("#ff8a3a")], true, 0.6)
+	_spark(_chest_mouth(), 20, 300, [YEL, Color.WHITE], false, 0.5)
+	g.audio.play("chestburst")
+	Input.vibrate_handheld(45)
 
 # ═════════════ ödüller ═════════════
 
-func _begin_reveal() -> void:
-	idx = 0
-	if OS.get_cmdline_user_args().has("cersum"):
-		# geliştirici: doğrudan özet
-		for r in rewards: _to_tray(r)
-		idx = rewards.size()
-		_summary()
-		return
-	_show()
-
-func _show() -> void:
-	var r: Dictionary = rewards[idx]
-	var k := key_of(r)
-	if rev:
-		rev.queue_free()
-	if back:
-		back.queue_free()
-	rev = Lyr.make("cer_rev_" + k)
-	add_child(rev)
-	move_child(rev, base.get_index() + 1)
-	rev.stretch_h(Scr.dh_of(self))
-	base.visible = false
-	_layout_tray(rev, false)
-	# yakalamada CSS backface-visibility yoktu: kartın arka yüzü ön yüzün ÜSTÜNE çizilmiş
-	# (ön yüz hiç görünmüyordu) — gizle; dönüşte ayrı arka yüz katmanı (cer_back_*) kullanılır.
-	# Yakalanmış nadirlik yazısı da gizlenir (kendi 'word' düğümümüz çizer; üst üste binmesin).
-	for hk in [".cr-card-back", "#chest-rarity-word"]:
-		var hn := rev.find_id(hk) if hk.begins_with("#") else rev.find(hk)
-		if hn: rev.set_hidden(hn, true)
-	word.visible = false
-	_word_t = -1.0
-	# kartın çerçeve süsleri (.cr-card::before/::after: efsane/epik ışıltı çerçevesi) yalnız ön
-	# yüzle görünür — arka yüz dönerken taşıp kartı "yamuk" gösteriyordu
-	_card_deco.clear()
-	var crd := rev.find(".cr-card")
-	if crd:
-		for kd in crd.kids:
-			if String(kd.d.get("kind", "el")) != "el": _card_deco.append(kd)
-	# kart arka yüzü (dönüşte)
-	back = Lyr.make("cer_back_" + k)
-	var card := rev.find(".cr-card")
-	if card: card.node.add_child(back)
-	back.visible = false
-	_drama = drama_of(r)
-	var color := color_of(r)
-	var rar := rarity_of(r)
-	_halo_c = color
-	_landed = false
-	_pop_t = -1.0
-	_cnt_pop = -1.0
-	if _halo == null:
-		_halo = Sprite2D.new()
-		_halo.texture = ClimbArt.glow_tex()
-		var hm := CanvasItemMaterial.new()
-		hm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		_halo.material = hm
-		add_child(_halo)
-	move_child(_halo, rev.get_index())
-	_halo.modulate.a = 0.0
-	_left_set(rewards.size() - idx)
-	# metinler
-	var tag := rev.find(".cr-card-tag")
-	if tag: rev.set_text(tag, _tag_of(r, rar))
-	var nm := rev.find(".rw-name")
-	if nm: rev.set_text(nm, str(r.get("name", "")))
-	_count_t = -1.0
-	var cnt := rev.find(".rw-count")
-	if cnt and not cnt.d.key.contains(".new"):
-		if r.kind == "rubies" or r.kind == "stone":
-			_count_to = int(r.get("amount", 0)); _count_ms = 620.0; _count_t = 0.0
-		else:
-			_count_to = int(r.get("cards", 1)); _count_ms = 480.0; _count_t = 0.0
-		rev.set_text(cnt, "+0")
-	# görsel: eşya/silah çizimi ya da kahraman portresi
-	var gl := rev.find(".rw-glyph")
-	if gl and (r.kind == "rubies" or r.kind == "stone"):
-		# para kartı: yakalamadaki 20 px ikon kartın ortasında büyük, parlak (Clash Royale yığını gibi)
-		gl.extra = Transform2D(0, Vector2.ONE * 2.1, 0, Vector2(0, 6))
-		rev.set_dyn(gl)
-	if gl and r.kind != "rubies" and r.kind != "stone":
-		var tex: Texture2D = null
-		if r.kind == "char":
-			var pp := "res://assets/ui/art/portrait/" + str(r.get("id", "")) + ".webp"
-			if ResourceLoader.exists(pp): tex = UITex.get_tex(pp)
-		else:
-			var gp := "res://assets/ui/art/gear/" + str(r.get("icon", "")) + ".png"
-			if ResourceLoader.exists(gp): tex = UITex.get_tex(gp)
-		if tex and r.kind == "char":
-			# img.rw-portrait.is-art: 78 px, cover center 12%, köşe 16 px, 2 px nadirlik halkası
-			var cc := color_of(r)
-			var pr := UIK.round_image(tex, 78, 78, 16, Vector2(0.5, 0.12), 2.0, Color(cc.lerp(Color("#0b090e"), 0.3), 1.0))
-			pr.position = gl.size * 0.5 - Vector2(39, 39)
-			gl.node.add_child(pr)
-		elif tex:
-			var sp := Sprite2D.new()
-			sp.texture = tex
-			sp.scale = Vector2.ONE * (58.0 / maxf(tex.get_width(), tex.get_height()))
-			sp.position = gl.size * 0.5
-			gl.node.add_child(sp)
-	# büyük an
-	spot.visible = _drama >= 2
-	if _drama >= 2:
-		rays_m.set_shader_parameter("col", JS.col(rar.get("glow", "#ffffff")) if rar.has("glow") else color)
-		_rays_on = 0.0
-		_rays_target = 0.16
-	else:
-		_rays_target = 0.0
-		_rays_on = 0.0
-	if _drama >= 1:
-		_flash_t = 0.0
-		_flash_dur = 1.4 if _drama >= 3 else (0.7 if _drama == 2 else 0.48)
-		_flash_rb = _drama >= 3
-		(flash.material as ShaderMaterial).set_shader_parameter("c0", color)
-		_flash_c = color
-	if _drama >= 2:
-		word.text = "EFSANEVİ!" if _drama >= 3 else str(rar.get("name", "")) + "!"
-		word.color = color
-		word.shadow_list = UIK.shadows("0 0 24px #" + color.to_html(false) + ", 0 3px 10px rgba(0,0,0,0.6)")
-		var W := UIK.ui_size(get_viewport())
-		word.wrap_w = W.x
-		word.position = Vector2(0, maxf(14.0, W.y * 0.045))
-		word.size = Vector2(W.x, word.size_px * 1.3)
-		word.pivot_offset = word.size * 0.5
-		_word_rb = _drama >= 3
-		_word_t = 0.0
-	if _drama >= 3: _spawn_confetti(46)
-	if _drama >= 3: g.audio.play("legendary")
-	elif _drama == 2: g.audio.play("epicpull")
-	elif _drama == 1: g.audio.play("chestrare")
-	else: g.audio.play("reveal")
-	_spin_ms = 3000.0 if _drama >= 3 else (1700.0 if _drama == 2 else 900.0)
-	_hold_ms = 3700.0 if _drama >= 3 else _spin_ms
-	_show_t = 0.0
-	_skip = false
-	busy = true
-	var rh := rev.find_id("#reveal-hint")
-	if rh: rev.set_hidden(rh, true)
-
-static func _tag_of(r: Dictionary, rar: Dictionary) -> String:
-	if r.kind == "rubies": return "ALTIN"
-	if r.kind == "stone": return "GEM"
-	if r.kind == "char": return str(rar.get("name", "")) + (" KAHRAMAN" if r.get("isNew", false) else " KART")
-	if r.kind == "weapon": return "YENİ SİLAH"
-	return str(rar.get("name", "")) + (" EKİPMAN" if r.get("isNew", false) else " KART")
-
-## kartın merkezi (bu ekranın yerel uzayı)
-func _card_center(card: Lyr.N) -> Vector2:
-	return get_global_transform().affine_inverse() * (card.node.get_global_transform() * (card.size * 0.5))
-
-## kart oturunca çevresine saçılan kıvılcımlar (nadirlik renginde + beyaz)
-func _card_sparks(o: Vector2, n: int) -> void:
-	for i in n:
-		var a := randf() * TAU
-		var v := 180.0 + randf() * 260.0
-		var col := _halo_c.lerp(Color.WHITE, randf() * 0.6)
-		parts.append({"p": o + Vector2(cos(a), sin(a)) * Vector2(70, 95), "v": Vector2(cos(a), sin(a) - 0.4) * v,
-			"life": 0.5 + randf() * 0.6, "size": 2.0 + randf() * 3.0, "spin": 0.0, "rot": 0.0, "col": col})
-
-## kalan ödül rozeti (sandığın sağ üstünde; Clash Royale sayacı)
-func _left_set(n: int) -> void:
-	if _left == null:
-		_left = Node2D.new()
-		_left.draw.connect(func():
-			_left.draw_circle(Vector2(0, 2), 19, Color(0, 0, 0, 0.45))
-			_left.draw_circle(Vector2.ZERO, 18, Color("#1b1522"))
-			_left.draw_arc(Vector2.ZERO, 17, 0, TAU, 40, Color("#e9b86a"), 2.5, true)
-			_left.draw_arc(Vector2.ZERO, 13.5, PI * 1.1, PI * 1.9, 16, Color(1, 1, 1, 0.18), 2.0, true))
-		_left_lbl = UIText.new()
-		_left_lbl.style(false, 700, 17, 0, "#fff3dc", "0 2px 4px rgba(0,0,0,0.7)")
-		_left_lbl.align = 0.5
-		_left_lbl.nowrap = true
-		_left_lbl.wrap_w = 40
-		_left_lbl.position = Vector2(-20, -12)
-		_left.add_child(_left_lbl)
-		add_child(_left)
-	_left.position = stage.position + stage.size_l * Vector2(0.74, 0.22)
-	_left.visible = n > 0
-	_left_lbl.text = str(n)
-	_left_pop = 0.0
-
-func _left_step(dt: float) -> void:
-	if _left == null or _left_pop < 0.0: return
-	_left_pop += dt
-	var k := clampf(_left_pop / 0.35, 0, 1)
-	_left.scale = Vector2.ONE * (1.0 + 0.35 * sin(k * PI) * (1.0 - k))
-	if k >= 1.0: _left_pop = -1.0
-
-func _spawn_confetti(n: int) -> void:
-	var pal := ["#ff5a2c", "#ff9a5c", "#cfd6e2", "#9b6cff", "#8b93a6", "#ffffff"]
-	var stg := rev.find(".reveal-stage")
-	var o := Vector2.ZERO
-	var h := 235.0
-	if stg:
-		var rr := rev.rect_of(stg)
-		o = rr.position
-		h = rr.size.y
-	var W := UIK.ui_size(get_viewport())
-	for i in n:
-		confetti.append({"x": 6 + randf() * 88, "delay": randf() * 0.5, "dur": 1.8 + randf() * 1.4, "rot": randf() * 720 - 360, "drift": randf() * 60 - 30, "col": Color(pal[randi() % pal.size()]), "t": 0.0, "o": Vector2(0, o.y), "h": h})
-
-func _reveal_step(dt: float) -> void:
-	if rev == null or awaiting: return
-	_show_t += dt
-	var card := rev.find(".cr-rise")
-	var spin := rev.find(".cr-spinner")
-	var vh := UIK.ui_size(get_viewport()).y
-	# yükseliş (crRise 680 ms) + dönüş (rotateY n·360° → 0)
-	var kr := clampf(_show_t / 0.68, 0, 1) if not _skip else 1.0
-	var er := UIK.bez(0.18, 0.9, 0.3, 1.06, kr)
-	var ks := clampf(_show_t * 1000.0 / _spin_ms, 0, 1) if not _skip else 1.0
-	# kart oturunca: kısa büyüme vurgusu + kıvılcım halkası; sonra hafif süzülme
-	if ks >= 1.0 and not _landed:
-		_landed = true
-		_pop_t = 0.0
-		if card: _card_sparks(_card_center(card), 18 + _drama * 10)
-		Input.vibrate_handheld(18 if _drama < 2 else 40)
-	var pop := 1.0
-	if _pop_t >= 0.0:
-		_pop_t += dt
-		var kp := clampf(_pop_t / 0.32, 0, 1)
-		pop = 1.0 + 0.09 * sin(kp * PI) * (1.0 - kp * 0.4)
-		if kp >= 1.0: _pop_t = -1.0
-	var bob := sin(_t * 2.1) * 3.0 if _landed else 0.0
-	if card:
-		card.extra = Transform2D(0, Vector2.ONE * lerpf(0.28, 1.0, er) * pop, 0, Vector2(0, lerpf(vh * 0.44, 0, er) + bob))
-		card.op_mul = clampf(kr / 0.3, 0, 1)
-		rev.set_dyn(card)
-		# hale: kartın ardında nadirlik renginde nabız atan ışıma
-		if _halo:
-			_halo.position = _card_center(card)
-			var hs := card.size.x * (2.5 + 0.35 * _drama) / 128.0 * lerpf(0.4, 1.0, er) * pop
-			_halo.scale = Vector2.ONE * hs
-			_halo.modulate = Color(_halo_c, (0.30 + 0.12 * _drama) * er * (0.82 + 0.18 * sin(_t * 3.2)))
-	var turns := 2.0 if _drama < 2 else (4.0 if _drama == 2 else 6.0)
-	var es := UIK.bez(0.22, 0.68, 0.3, 1.0, ks) if _drama < 2 else (UIK.bez(0.2, 0.6, 0.24, 1.0, ks) if _drama == 2 else UIK.bez(0.16, 0.52, 0.2, 1.0, ks))
-	var ang := (1.0 - es) * turns * TAU
-	var cs := cos(ang)
-	if spin:
-		# dönüşte perspektif: kenara dönerken kart hafif büyür (yakın kenar)
-		spin.extra = Transform2D(0, Vector2(maxf(0.02, absf(cs)), 1.0 + 0.07 * absf(sin(ang))), 0, Vector2.ZERO)
-		rev.set_dyn(spin)
-		var face := rev.find(".cr-card-face")
-		if face: face.node.visible = cs >= 0
-		for kd in _card_deco: (kd as Lyr.N).node.visible = cs >= 0
-		if back: back.visible = cs < 0
-	# sayaç
-	if _count_t >= 0:
-		_count_t += dt
-		var k := clampf(_count_t * 1000.0 / _count_ms, 0, 1)
-		var cnt := rev.find(".rw-count")
-		if cnt: rev.set_text(cnt, "+" + str(int(round(_count_to * (1 - pow(1 - k, 3))))))
-		if k >= 1:
-			_count_t = -1.0
-			_cnt_pop = 0.0
-	if _cnt_pop >= 0.0:
-		_cnt_pop += dt
-		var kc := clampf(_cnt_pop / 0.3, 0, 1)
-		var cnt2 := rev.find(".rw-count")
-		if cnt2:
-			cnt2.extra = Transform2D(0, Vector2.ONE * (1.0 + 0.28 * sin(kc * PI)), 0, Vector2.ZERO)
-			rev.set_dyn(cnt2)
-		if kc >= 1.0: _cnt_pop = -1.0
-	_left_step(dt)
-	if busy and (_show_t * 1000.0 >= _hold_ms or _skip):
-		busy = false
-		var rh := rev.find_id("#reveal-hint")
-		if rh: rev.set_hidden(rh, false)
-		if _drama >= 3:
-			_rays_target = 0.0
-			spot.visible = false
-
-func _advance() -> void:
-	if busy:
-		if _drama < 3:
-			_skip = true
-			_show_t = maxf(_show_t, 0.68)
-		return
-	if awaiting:
-		_finish()
-		return
-	_to_tray(rewards[idx])
+func _next() -> void:
 	idx += 1
 	if idx >= rewards.size():
 		_summary()
 		return
-	_show()
+	# kart henüz kurulmadıysa (çok hızlı dokunuş) şimdi kur
+	while cards.size() <= idx:
+		var cd := _make_card(rewards[cards.size()], CARD.x, CARD.y, false)
+		_warm.add_child(cd.node)
+		cards.append(cd)
+		_build_i = cards.size()
+	var c: Dictionary = cards[idx]
+	var n: Node2D = c.node
+	n.reparent(_hold, false)
+	n.position = _chest_mouth()
+	n.scale = Vector2.ONE * 0.12
+	n.rotation = 0.0
+	n.modulate.a = 1.0
+	c.face.visible = false
+	c.back.visible = true
+	var dr := int(c.drama)
+	_fly_d = 0.42
+	_spin_d = [0.35, 0.6, 1.0, 1.5][dr]
+	_turns = [1.0, 2.0, 3.0, 5.0][dr]
+	_ct = 0.0
+	_cstate = "fly"
+	_landed = false
+	_word_t = -1.0
+	_word.visible = false
+	var r: Dictionary = c.r
+	_count_to = int(r.get("amount", 0)) if (r.kind == "rubies" or r.kind == "stone") else int(r.get("cards", 1))
+	_count_t = -1.0
+	(c.cnt as UIText).text = ""
+	_left = rewards.size() - idx - 1
+	_badge.visible = _left > 0
+	_badge_t.text = str(_left)
+	_badge_pop = 0.0
+	_rays_col = (c.col as Color).lerp(Color.WHITE, 0.3)
+	_rays_target = 0.08 + dr * 0.04
+	_spark(_chest_mouth(), 14 + dr * 6, 300, [c.col, Color.WHITE, YEL], true, 0.7)
+	g.audio.play("throw")
+	S.punch = 0.6
+
+func _step_card(dt: float) -> void:
+	if idx < 0 or idx >= cards.size() or _cstate == "": return
+	var c: Dictionary = cards[idx]
+	var n: Node2D = c.node
+	_ct += dt
+	var home := _card_home()
+	match _cstate:
+		"fly":
+			# yay: sandıktan yukarı fırla, hafif sağa kavis, hedefe otur
+			var kf := clampf(_ct / _fly_d, 0, 1)
+			var e := 1.0 - pow(1.0 - kf, 3.0)
+			var a := _chest_mouth()
+			var ctrl := Vector2((a.x + home.x) * 0.5 + 40.0, home.y - 90.0)
+			var q := 1.0 - e
+			n.position = a * q * q + ctrl * 2.0 * q * e + home * e * e
+			# dönüş: uçuşla başlar, nadirlikle uzar (ease-out)
+			var ks := clampf(_ct / (_fly_d + _spin_d), 0, 1)
+			var es := 1.0 - pow(1.0 - ks, 2.6)
+			var ang := (1.0 - es) * _turns * TAU
+			var cs := cos(ang)
+			var base_s := lerpf(0.12, 1.0, ScrLevelUp._back_ease(kf) if kf < 1.0 else 1.0)
+			# efsanevi: arka yüzde titreyerek bekler, sonra döner
+			n.scale = Vector2(base_s * maxf(0.03, absf(cs)), base_s * (1.0 + 0.06 * absf(sin(ang))))
+			n.rotation = sin(ang) * 0.05
+			c.face.visible = cs >= 0.0 and ks > 0.5
+			c.back.visible = not c.face.visible
+			if int(c.drama) >= 2 and not c.face.visible and randf() < dt * 30.0:
+				_spark(n.position, 1, 160, [c.col, Color.WHITE], false, 1.0)
+			if ks >= 1.0: _land()
+		"rest":
+			var kp := clampf(_ct / 0.3, 0, 1)
+			var pop := 1.0 + 0.12 * sin(kp * PI) * (1.0 - kp * 0.3)
+			n.scale = Vector2.ONE * pop
+			n.position = home + Vector2(0, sin(_t * 2.2) * 4.0)
+			n.rotation = sin(_t * 1.3) * 0.015
+			if _count_t >= 0.0:
+				_count_t += dt
+				var kc := clampf(_count_t / (0.6 if _count_to > 20 else 0.35), 0, 1)
+				var v := int(round(_count_to * (1.0 - pow(1.0 - kc, 3.0))))
+				var cn: UIText = c.cnt
+				cn.text = _count_str(c.r, v)
+				if kc >= 1.0:
+					_count_t = -1.0
+					cn.scale = Vector2.ONE * 1.35
+					g.audio.play("coin" if (c.r.kind == "rubies" or c.r.kind == "stone") else "tally")
+			var cn2: UIText = c.cnt
+			if cn2.scale.x > 1.0: cn2.scale = Vector2.ONE * move_toward(cn2.scale.x, 1.0, dt * 2.5)
+			if _ct > 0.9 and not _hint.visible:
+				_hint.text = "DOKUN!"
+				_hint.position = Vector2(0, _W.y * 0.89)
+				_hint.visible = true
+				_hint.modulate.a = 0.0
+			if _hint.visible:
+				_hint.modulate.a = minf(1.0, _hint.modulate.a + dt * 4.0)
+				_hint.scale = Vector2.ONE * (0.8 + sin(_t * 5.0) * 0.05)
+		"out":
+			# kart küçülerek sola yukarı süzülür (özet için kenara konur)
+			var ko := clampf(_ct / 0.22, 0, 1)
+			var e2 := ko * ko
+			n.position = _out_from.lerp(Vector2(_W.x * 0.5 - 150, _W.y * 0.12), e2)
+			n.scale = Vector2.ONE * lerpf(1.0, 0.25, e2)
+			n.rotation = lerpf(0.0, -0.4, e2)
+			n.modulate.a = 1.0 - e2
+			if ko >= 1.0:
+				n.visible = false
+				_cstate = ""
+				_next()
+
+func _land() -> void:
+	if Prof.on: print("CER land @", Engine.get_process_frames())
+	var c: Dictionary = cards[idx]
+	var n: Node2D = c.node
+	_cstate = "rest"
+	_ct = 0.0
+	n.scale = Vector2.ONE
+	n.rotation = 0.0
+	c.face.visible = true
+	c.back.visible = false
+	var dr := int(c.drama)
+	var col: Color = c.col
+	_spark(_card_home(), 18 + dr * 14, 380 + dr * 60, [col.lerp(Color.WHITE, 0.3), Color.WHITE, YEL], false, 0.8)
+	if dr >= 1:
+		_flash_t = 0.0
+		_flash_dur = [0.3, 0.3, 0.5, 0.8][dr]
+		_flash_c = col.lerp(Color.WHITE, 0.5)
+	if dr >= 2:
+		_word.text = ("EFSANEVİ!" if dr >= 3 else _tag_of(c.r) + "!")
+		_word.color = col.lightened(0.35)
+		_word.position = Vector2(0, _card_home().y - CARD.y * 0.5 - 88.0)
+		_word_t = 0.0
+		if dr >= 3: _confetti(56)
+	if r_is_cur(c.r) or int(c.r.get("cards", 0)) > 0: _count_t = 0.0
+	match dr:
+		3: g.audio.play("legendary")
+		2: g.audio.play("epicpull")
+		1: g.audio.play("chestrare")
+		_: g.audio.play("reveal")
+	Input.vibrate_handheld(18 if dr < 2 else 40)
+
+static func r_is_cur(r: Dictionary) -> bool:
+	return r.kind == "rubies" or r.kind == "stone"
+
+func _out() -> void:
+	_cstate = "out"
+	_ct = 0.0
+	_out_from = (cards[idx].node as Node2D).position
+	_hint.visible = false
+	_word_t = -1.0
+	_word.visible = false
+	g.audio.play("select")
+
+func _confetti(n: int) -> void:
+	var pal := [YEL, Color("#ff5a2c"), Color("#3aa0ff"), Color("#a85cff"), Color("#5fd35a"), Color.WHITE]
+	for i in n:
+		confetti.append({"x": randf() * _W.x, "delay": randf() * 0.5, "dur": randf_range(1.8, 3.0), "rot": randf_range(-8, 8),
+			"drift": randf_range(-40, 40), "ph": randf() * TAU, "col": pal[randi() % pal.size()], "t": 0.0})
+
+# ═════════════ özet ═════════════
+
+## özet ızgarası: [sütun, kart genişliği, yükseklik, aralık, üst]
+func _sum_layout() -> Array:
+	var n := rewards.size()
+	var cols := 3 if n > 4 else maxi(1, n)
+	if n == 4: cols = 2
+	var rows := int(ceil(float(n) / cols))
+	var gap := 14.0
+	var cw := minf(108.0, (_W.x - 40.0 - (cols - 1) * gap) / cols)
+	var ch := cw * CARD.y / CARD.x
+	var avail := _W.y * 0.56
+	if rows * ch + (rows - 1) * gap > avail:
+		ch = (avail - (rows - 1) * gap) / rows
+		cw = ch * CARD.x / CARD.y
+	return [cols, cw, ch, gap, _W.y * 0.20]
+
+## özet kartını kur (ısınma kabında; iniş/gösterim sırasında her karede bir tane)
+func _build_mini() -> void:
+	var L := _sum_layout()
+	var cd := _make_card(rewards[_sum_cards.size()], L[1], L[2], true)
+	cd.node.position = _W * 0.5
+	_warm.add_child(cd.node)
+	_sum_cards.append(cd)
 
 func _summary() -> void:
-	awaiting = true
-	if _halo: _halo.visible = false
-	if _left: _left.visible = false
-	if rev: rev.visible = false
-	if back: back.visible = false
-	spot.visible = false
-	_rays_target = 0.0
-	summ = Lyr.make("cer_sum")
-	add_child(summ)
-	move_child(summ, base.get_index() + 1)
-	summ.stretch_h(Scr.dh_of(self))
-	_layout_tray(summ, true)
-
-## Biriken tepsi kartlarını yerleştir (flex-wrap, ortalı). Tepsi büyüdükçe sütun
-## (ödüller + sahne + ipucu) dikeyde yeniden ortalanır: kök dT/2 yukarı, tepsiden
-## sonraki öğeler dT aşağı. final: özet kipi (78 px kart, 9 px aralık, 380 px satır).
-func _layout_tray(L: Lyr, final: bool) -> void:
-	var tn := L.find_id("#reveal-tray")
-	if tn == null:
-		_place_stage(L)
-		return
-	for k in tn.kids: L.set_hidden(k, true)
-	var gap := 9.0 if final else 8.0
-	var maxw := 380.0 if final else 340.0
-	var cw := 78.0
-	var ch := 0.0
-	for T in tray:
-		ch = maxf(ch, (T as Lyr).nodes[0].size.y)
-		cw = (T as Lyr).nodes[0].size.x
-	var n := tray.size()
-	# satır genişliği: tepsinin max-width'i ile ödül kabının (#chest-rewards) genişliğinin küçüğü
-	var cont := L.find_id("#chest-rewards")
-	var availw := minf(maxw, cont.size.x if cont else maxw)
-	var per := maxi(1, int(floor((availw + gap) / (cw + gap))))
-	var rows := int(ceil(float(n) / per))
-	var newH := maxf(28.0, rows * ch + maxi(0, rows - 1) * gap) if n > 0 else 28.0
-	var h0: float = tn.d.get("_h0", tn.size.y)
-	var dT := newH - h0
-	L.position.y = -dT * 0.5
-	tn.size.y = newH
-	for key in ["#reveal-hint", "#chest-hint"]:
-		var q := L.find_id(key)
-		if q:
-			if not q.d.has("_mv0"): q.d["_mv0"] = q.pos
-			L.move(q, q.d["_mv0"] + Vector2(0, dT))
-	var sn := L.find(".chest-stage")
-	if sn:
-		if not sn.d.has("_mv0"): sn.d["_mv0"] = sn.pos
-		L.move(sn, sn.d["_mv0"] + Vector2(0, dT))
-	_place_stage(L)
-	var tr := L.rect_of(tn)
-	var origin := L.position + tr.position
+	if Prof.on: print("CER summary @", Engine.get_process_frames())
+	S.phase = "summary"
+	_cstate = ""
+	_badge.visible = false
+	_hint.visible = false
+	_rays_col = YEL
+	_rays_target = 0.08
+	_sum_t = 0.0
+	var n := rewards.size()
+	while _sum_cards.size() < n: _build_mini()
+	var L := _sum_layout()
+	var cols: int = L[0]
+	var cw: float = L[1]
+	var ch: float = L[2]
+	var gap: float = L[3]
+	var top: float = L[4]
 	for i in n:
-		var T: Lyr = tray[i]
-		var row := i / per
-		var in_row := mini(per, n - row * per)
+		var row := i / cols
+		var in_row := mini(cols, n - row * cols)
 		var rw := in_row * cw + (in_row - 1) * gap
-		var col := i % per
-		# yatayda ödül kabının ortası (tepsi içeriğe göre daralır, kap ortalar)
-		var cx: float = (L.position.x + L.rect_of(cont).position.x + cont.size.x * 0.5) if cont else origin.x + tr.size.x * 0.5
-		T.position = Vector2(cx - rw * 0.5 + col * (cw + gap), origin.y + row * (ch + gap))
-		T.visible = true
+		var cd: Dictionary = _sum_cards[i]
+		cd.node.reparent(_hold, false)
+		cd.node.position = Vector2(_W.x * 0.5 - rw * 0.5 + (i % cols) * (cw + gap) + cw * 0.5, top + row * (ch + gap) + ch * 0.5)
+		cd.node.scale = Vector2.ZERO
+		cd["t0"] = 0.15 + i * 0.09
+		cd["popped"] = false
+	_sum_title.position = Vector2(0, top - 78.0)
+	_sum_title.visible = true
+	_sum_title.scale = Vector2.ZERO
+	g.audio.play("levelup")
 
-func _to_tray(r: Dictionary) -> void:
-	var T := Lyr.make("cer_tray_" + key_of(r))
-	add_child(T)
-	_tray_texts(T, r)
-	tray.append(T)
-
-func _tray_texts(T: Lyr, r: Dictionary) -> void:
-	var rar := rarity_of(r)
-	var is_cur: bool = r.kind == "rubies" or r.kind == "stone"
-	var tag := T.find(".tc-tag")
-	if tag:
-		var s := "ALTIN" if r.kind == "rubies" else ("GEM" if r.kind == "stone" else (str(rar.get("name", "")) + (" KAHRAMAN" if r.kind == "char" and r.get("isNew", false) else "")))
-		T.set_text(tag, s)
-	var lb := T.find(".tray-card-label")
-	if lb: T.set_text(lb, ("Altın" if r.kind == "rubies" else "Gem") if is_cur else str(r.get("name", "")))
-	var cn := T.find(".tc-count")
-	if cn: T.set_text(cn, ("+" + str(int(r.get("amount", 0)))) if is_cur else ("YENİ!" if r.get("isNew", false) else "×" + str(int(r.get("cards", 1)))))
-	var gl := T.find(".tray-card-glyph")
-	if gl and not is_cur:
-		var tex: Texture2D = null
-		if r.kind == "char":
-			var pp := "res://assets/ui/art/portrait/" + str(r.get("id", "")) + ".webp"
-			if ResourceLoader.exists(pp): tex = UITex.get_tex(pp)
-		else:
-			var gp := "res://assets/ui/art/gear/" + str(r.get("icon", "")) + ".png"
-			if ResourceLoader.exists(gp): tex = UITex.get_tex(gp)
-		if tex and r.kind == "char":
-			# .tc-portrait: 44 px daire, radyal zemin, 1 px nadirlik kenarı, cover center 10%
-			var cc := color_of(r)
-			var pr := UIK.round_image(tex, 44, 44, 22, Vector2(0.5, 0.1), 1.0, cc.lerp(Color("#232938"), 0.45), cc.lerp(Color("#10131d"), 0.7), Color("#0b0e16"))
-			pr.position = gl.size * 0.5 - Vector2(22, 22)
-			gl.node.add_child(pr)
-		elif tex:
-			var sp := Sprite2D.new()
-			sp.texture = tex
-			sp.scale = Vector2.ONE * (40.0 / maxf(tex.get_width(), tex.get_height()))
-			sp.position = gl.size * 0.5
-			gl.node.add_child(sp)
+func _step_summary(dt: float) -> void:
+	if _sum_t < 0.0: return
+	_sum_t += dt
+	var kt := clampf(_sum_t / 0.35, 0, 1)
+	_sum_title.scale = Vector2.ONE * (ScrLevelUp._back_ease(kt) if kt < 1.0 else 1.0 + sin(_t * 3.0) * 0.02)
+	_sum_title.rotation = -0.04
+	# sandık aşağı kayıp söner
+	var ks := clampf(_sum_t / 0.4, 0, 1)
+	stage.modulate.a = 1.0 - ks * 0.75
+	for cd in _sum_cards:
+		var lt: float = _sum_t - float(cd.t0)
+		var n: Node2D = cd.node
+		if lt < 0.0: continue
+		var k := clampf(lt / 0.3, 0, 1)
+		n.scale = Vector2.ONE * (ScrLevelUp._back_ease(k) if k < 1.0 else 1.0)
+		n.rotation = (1.0 - k) * 0.3
+		if not cd.popped:
+			cd.popped = true
+			_spark(n.position, 8, 200, [cd.col, Color.WHITE, YEL], false, 0.8)
+			g.audio.play("star")
+	var last: float = float(_sum_cards[-1].t0) if not _sum_cards.is_empty() else 0.0
+	if _sum_t > last + 0.5 and not _hint.visible:
+		_hint.text = "DEVAM İÇİN DOKUN"
+		_hint.position = Vector2(0, _W.y * 0.88)
+		_hint.visible = true
+		_hint.modulate.a = 0.0
+	if _hint.visible:
+		_hint.modulate.a = minf(1.0, _hint.modulate.a + dt * 3.0)
+		_hint.scale = Vector2.ONE * (0.85 + sin(_t * 4.0) * 0.04)
 
 func _finish() -> void:
 	if UITex.rec == "_cer": UITex.rec = ""
 	visible = false
+	position = Vector2.ZERO
 	if _menu_vis: g.ui.menu.visible = true
 	if not _forced: g.chests.apply_rewards(rewards)
 	if slot >= 0:
@@ -919,7 +1053,6 @@ func _finish() -> void:
 		g.chests.save()
 	g.chests.ceremonyActive = false
 	g.audio.play("collect")
-	for n in get_children():
-		if not (n is Scr._Ticker): n.queue_free()
-	base = null; rev = null; back = null; summ = null; tray.clear()
+	_clear()
+	if stage: stage.visible = false
 	if done_cb.is_valid(): done_cb.call()

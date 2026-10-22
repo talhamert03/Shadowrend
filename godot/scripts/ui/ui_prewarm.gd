@@ -137,6 +137,10 @@ func _process(dt: float) -> void:
 	if not _ui_warmed:
 		_ui_warmed = true
 		_start_ui_warm()
+		# arayüz + tören sesleri arka planda yüklensin (ilk dokunuşta disk okuması olmasın)
+		menu.g.audio.warm(["click", "tab", "panel", "select", "buy", "collect", "claim", "coin", "gem", "walletin", "error",
+			"equip", "reveal", "chestthud", "chestlatch", "chestburst", "chestrare", "epicpull", "legendary", "throw", "tally",
+			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy"])
 		return
 	# kurulacak sayfa: dokuları hazırsa (ya da yükleyici boşaldıysa)
 	while not _queue.is_empty() and menu.pages.has(_queue[0]): _queue.pop_front()
@@ -190,13 +194,19 @@ func _start_chest_warm() -> void:
 		if c != null:
 			t = str(c.t)
 			break
+	# törenin KALICI 3B sandığı burada (görünür ama neredeyse saydam) birkaç kare işlenir:
+	# model, malzemeler, açık kapak / huzme / kıvılcım gölgelendiricileri derlenir; sonra törene geçer.
+	# (Gizli düğüm hiç işlenmez — eski ısınma bu yüzden etkisizdi.)
+	var cer = g.ui.ceremony
+	if cer == null or cer.stage != null: return
 	var st := ChestStage.new()
-	st.visible = false
+	st.modulate.a = 0.01
 	add_child(st)
-	st.setup(120, 120)
+	st.setup(ScrCeremony.STAGE, ScrCeremony.STAGE)
 	st.set_chest(t)
+	st.p = {"open": 0.0, "seam": 0.5}
 	_warm_chest = st
-	_warm_chest_n = 4
+	_warm_chest_n = 6
 
 func _tick_warm() -> void:
 	if _warm_ui > 0:
@@ -206,8 +216,18 @@ func _tick_warm() -> void:
 			_warm_nodes.clear()
 	if _warm_chest:
 		_warm_chest_n -= 1
+		var st: ChestStage = _warm_chest
+		st.p = {"open": clampf(1.0 - _warm_chest_n / 5.0, 0.0, 1.0), "seam": 0.5}
 		if _warm_chest_n <= 0:
-			(_warm_chest as Node).queue_free()
+			var cer = menu.g.ui.ceremony
+			if cer and cer.stage == null:
+				st.reparent(cer, false)
+				st.modulate.a = 1.0
+				st.p = {}
+				cer.stage = st
+				st.visible = cer.visible
+			else:
+				st.queue_free()
 			_warm_chest = null
 
 ## iş parçacığı: JSON ayrıştır + doku yollarını topla (sahne ağacına ve üyelere dokunmaz;

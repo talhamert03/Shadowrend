@@ -217,8 +217,16 @@ static func _owns(S_lyr: Node, B) -> bool:
 	var bl: Node = B.lyr
 	return bl == S_lyr or S_lyr.is_ancestor_of(bl)
 
+## açılış (intro + yükleme ekranı) sürerken ve kapandıktan kısa süre sonra menü dokunuş almaz:
+## introyu geçmek için yapılan dokunuş alttaki SAVAŞ düğmesine düşüp savaşı başlatmasın
+static var locked_until_ms := 0
+static var boot_lock := false
+
 func _input(ev: InputEvent) -> void:
 	if not visible or not is_visible_in_tree(): return
+	if boot_lock or Time.get_ticks_msec() < locked_until_ms:
+		if ev is InputEventScreenTouch and not (ev as InputEventScreenTouch).pressed and _gid >= 0: _reset_gesture()
+		return
 	if ev is InputEventScreenTouch:
 		var st := ev as InputEventScreenTouch
 		if st.pressed:

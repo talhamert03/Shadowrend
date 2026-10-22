@@ -175,6 +175,9 @@ func boot() -> void:
 		if _arg("stones") != "":
 			g.add_stones(float(_arg("stones")))
 			menu.refresh_wallet(true)
+		# geliştirici: gearall=N — her eşyadan N kart (çanta testi)
+		if _arg("gearall") != "":
+			for e in D.EQUIPMENT: g.add_gear_cards(e.id, int(_arg("gearall")) + randi() % 3)
 		if _arg("page") != "":
 			menu.set_page(_arg("page"), true)
 			var pg = menu.pages.get(_arg("page"))
@@ -206,7 +209,11 @@ func boot() -> void:
 		elif ov == "gift": celebrate.gift({"h": 6.5, "gold": 240, "chest": "ahsap", "full": false})
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
-		if _arg("ceremony") != "": chest_ceremony(_arg("ceremony"), -1, func(): pass)
+		if _arg("ceremony") != "":
+			# cerwait=sn: menü ısınması bittikten sonra (gerçek dokunuş gibi) aç
+			var cw := float(_arg("cerwait")) if _arg("cerwait") != "" else 0.0
+			if cw > 0.0: get_tree().create_timer(cw).timeout.connect(func(): chest_ceremony(_arg("ceremony"), -1, func(): pass))
+			else: chest_ceremony(_arg("ceremony"), -1, func(): pass)
 		# geliştirici: yuvaları doldur — slots=ahsap:locked,kan:unlocking,kadim:ready
 		if _arg("slots") != "":
 			var sl := _arg("slots").split(",")
@@ -318,7 +325,8 @@ func show_bless_pick(list, cb: Callable, opt = null) -> void:
 	if _arg("autopick") != "" or _arg("autorun") != "" and _arg("bless") == "":
 		if list is Array and list.size(): cb.call(list[0])
 		return
-	bless.show_pick(list, cb, opt)
+	hud.banner.visible = false
+	levelup.show_bless(list, cb, opt)      # çizgi roman kart ekranı (eski kutsama ekranı yerine)
 func show_level_up(choices) -> void:
 	if _arg("autopick") != "" and choices is Array and choices.size():
 		g.call_deferred("pick_upgrade", choices[0])

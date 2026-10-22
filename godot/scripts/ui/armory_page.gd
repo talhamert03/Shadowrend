@@ -422,49 +422,44 @@ func _process(_dt: float) -> void:
 func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 	var rk: int = KZ_RANK.get(int(x.rarity), 1)
 	var key := ""
+	var on := false
+	var wear := false
 	if locked: key = "kc" + str(rk) + "_lock"
 	else:
-		var on: bool = g.is_equipped(x.id)
-		var wear: bool = g.can_wear(x.id)
+		on = g.is_equipped(x.id)
+		wear = g.can_wear(x.id)
 		key = "kc" + str(rk) + "_" + ("on" if on else ("own" if wear else "cant")) + ("_sel" if sel_id == x.id else "")
+	# yakalanan kart yalnız düzen + dokunma alanları için; görüntü yerel çizgi roman kartı
 	var C := _add(key, grid, pos)
 	if C == null: return null
-	var art := C.find(".kc-art")
-	if art: _art_into(C, art, str(x.icon), 0.62, locked)
+	var root_n: Lyr.N = C.nodes[0]
+	if root_n.img: root_n.img.visible = false
+	for k in root_n.kids: C.set_hidden(k, true)
+	var info := {"x": x, "locked": locked, "on": on, "wear": wear, "rk": rk, "sel": not locked and sel_id == x.id,
+		"lv": g.gear_level(x.id) if not locked else 0, "need": null, "cards": 0, "better": false, "acts": []}
 	if not locked:
-		var nm := C.find(".kc-name")
-		if nm: C.set_text(nm, str(x.name))
-		var lv := C.find(".kc-lv")
-		if lv: C.set_text(lv, "Sv " + str(g.gear_level(x.id)))
-		var need = g.cards_for_next_gear(x.id)
-		var cards: int = g.gear_card_count(x.id)
-		var maxed := need == null
-		var ready := not maxed and cards >= int(need)
-		var on: bool = g.is_equipped(x.id)
-		var better: bool = not on and g.can_wear(x.id) and _better(x)
-		# ilerleme çubuğu bindirmesi (kart şablonunda atlandı)
-		var bar_key := "kcb_max" if maxed else ("kcb_ready" if ready else "kcb_norm")
-		var B := _sub(C, bar_key, _rel(key, bar_key))
-		if B:
-			var bb := B.find_exact("b")
-			if bb: B.set_text(bb, "MAKS" if maxed else str(cards) + "/" + str(int(need)))
-			var bf: Lyr.N = null
-			for k in B.nodes[0].kids:
-				if k.d.get("tag") == "i": bf = k
-			if bf and not maxed: UIK.set_fill(B, bf, B.nodes[0].size.x, float(cards) / maxf(1.0, float(need)))
-		var flag := "kcf_on" if on else ("kcf_ready" if ready else ("kcf_up" if better else ""))
-		if flag != "": _sub(C, flag, _rel(key, flag))
+		info.need = g.cards_for_next_gear(x.id)
+		info.cards = g.gear_card_count(x.id)
+		info.better = not on and wear and _better(x)
 	var gid: String = x.id
-	menu.btn(C, C.nodes[0], func(): _card_tap(gid, locked), 0.97)
+	menu.btn(C, root_n, func(): _card_tap(gid, locked), 0.97)
 	# tepsi düğmeleri (seçili kartta)
-	if not locked and sel_id == x.id:
-		var act := C.find(".kc-act")
-		var info := C.find(".kc-act.info")
+	if info.sel:
+		var o := C.rect_of(root_n).position
 		for b in C.find_all(".kc-act"):
 			var k: String = b.d.key
-			if k.contains("info"): menu.btn(C, b, func(): g.audio.play("click"); g.ui.open_gear_detail(gid))
-			elif k.contains(".eq"): menu.btn(C, b, func(): _equip(gid))
-			elif k.contains(".out"): menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid); render())
+			var r := C.rect_of(b)
+			r.position -= o
+			if k.contains("info"):
+				menu.btn(C, b, func(): g.audio.play("click"); g.ui.open_gear_detail(gid))
+				info.acts.append([r, "İNCELE", Color("#3aa0ff")])
+			elif k.contains(".eq"):
+				menu.btn(C, b, func(): _equip(gid))
+				info.acts.append([r, "KUŞAN", ScrLevelUp.YEL])
+			elif k.contains(".out"):
+				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid); render())
+				info.acts.append([r, "ÇIKAR", Color("#e8463c")])
+	GearCard.build(root_n.node, root_n.size, info, _gear_tex(str(x.icon)))
 	return C
 
 ## kart içine yakalanmış küçük bir bileşen bindir (kart köküne göre konum)

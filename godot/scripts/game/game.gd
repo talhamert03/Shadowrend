@@ -175,6 +175,7 @@ func _ready() -> void:
 	set_physics_process(false)
 	# firma introsu (ALPHA WOLF GAMES), ardından yükleme ekranı. Geliştirici: nointro / autorun atlar
 	var ua := OS.get_cmdline_user_args()
+	Scr.boot_lock = true
 	if not (ua.has("nointro") or ua.has("autorun")):
 		var intro := ScrIntro.new()
 		add_child(intro)
@@ -257,7 +258,11 @@ func _ready() -> void:
 	# menü kuruldu; ilk kareler (doku yükleme, ilk çizim) da açılış ekranının ardında geçsin
 	await _boot_step(0.9)
 	await get_tree().process_frame
-	boot_screen.finish(func(): if audio: audio.play("boot"))
+	boot_screen.finish(func():
+		if audio: audio.play("boot")
+		# yükleme ekranı sönerken (0,6 sn) ve hemen sonrasında dokunuş menüye geçmez
+		Scr.boot_lock = false
+		Scr.locked_until_ms = Time.get_ticks_msec() + 900)
 
 func _guess_tier() -> String:
 	# web: bellek + çekirdek + dokunmatik + GPU ailesi; yerelde aynı mantık
@@ -709,7 +714,8 @@ func game_over() -> void:
 	freeze = 0
 	add_shake(D.FX.shakeBoss)
 	audio.play("death")
-	music.fade_out(0.7)
+	music.fade_out(0.5)
+	get_tree().create_timer(0.9).timeout.connect(func(): if state == "gameover": music.sting("defeat"))
 	if not reviveUsed: dyn_nudge(-D.DYN.onDeath)
 	save_record()
 	var frac := minf(1.0, (wave - 1 + (1 - waveTimer / wave_duration(wave))) / msn.waves)

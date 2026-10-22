@@ -34,6 +34,8 @@ var _press := -1
 var _press_i := -1
 var _spark: Node2D
 var _sparks: Array = []
+var _mode := "level"          # "level" · "bless" (savaş öncesi kutsama / sunak)
+var _cb := Callable()
 static var _glyphs := {}
 
 func _init(game) -> void:
@@ -98,6 +100,7 @@ static func rank(c: Dictionary) -> int:
 
 
 static func _type_label(c: Dictionary, K: Dictionary) -> String:
+	if c.get("bless", false): return str(c.get("label", "KUTSAMA"))
 	if c.get("curse", false): return "LANET"
 	if c.get("evo", false): return "EVRİM"
 	if c.get("myth", false): return "YETENEK"
@@ -107,6 +110,9 @@ static func _type_label(c: Dictionary, K: Dictionary) -> String:
 	return "NİMET"
 
 static func _card_col(c: Dictionary, K: Dictionary) -> Color:
+	if c.get("bless", false):
+		var bc := Color(str(c.get("bcol", "#d8a284")))
+		return Color.from_hsv(bc.h, clampf(bc.s * 1.6, 0.45, 0.85), clampf(bc.v * 1.05, 0.7, 0.95))
 	if c.get("curse", false): return Color("#ff4a5e")
 	if c.get("evo", false): return Color("#ffcf5a")
 	if c.get("myth", false): return Color("#ff7a3c")
@@ -153,7 +159,29 @@ func _mk_text(disp: bool, w: int, sz: float, ls: float, col: Color, sh: String) 
 	add_child(t)
 	return t
 
+## savaş öncesi KUTSAMA / sunak seçimi: aynı çizgi roman kartları, artı/eksi satırları
+func show_bless(blist: Array, cb: Callable, opt = null) -> void:
+	var o: Dictionary = opt if opt is Dictionary else {}
+	_mode = "bless"
+	_cb = cb
+	var conv := []
+	for b in blist:
+		conv.append({"id": b.get("id", ""), "name": b.get("name", ""), "plus": b.get("plus", ""), "minus": b.get("minus", ""),
+			"bless": true, "bcol": b.get("col", "#d8a284"), "kind": "guc", "_b": b, "label": "SUNAK" if o.get("k", "") == "SUNAK" else "KUTSAMA"})
+	_ensure_shell()
+	_title.text = str(o.get("t", "BİR KUTSAMA SEÇ")) + "!"
+	_sub.text = str(o.get("k", "SAVAŞTAN ÖNCE"))
+	_show(conv)
+
 func show_choices(choices: Array) -> void:
+	_mode = "level"
+	_cb = Callable()
+	_ensure_shell()
+	_title.text = "SEVİYE ATLADIN!"
+	_sub.text = "BİR GÜÇ SEÇ!"
+	_show(choices)
+
+func _show(choices: Array) -> void:
 	var seen := {}
 	var list := []
 	for c in choices:
@@ -327,6 +355,19 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 	ds.text = str(c.get("desc", ""))
 	ds.position = Vector2(-w * 0.5 + 13, -h * 0.5 + 170)
 	face.add_child(ds)
+	if c.get("bless", false):
+		ds.text = "+ " + str(c.get("plus", ""))
+		ds.color = Color("#1d7a34")
+		ds.max_lines = 3
+		var mi := UIText.new()
+		mi.style(false, 800, 11, 0.1, Color("#b8202c"), "")
+		mi.align = 0.5
+		mi.nowrap = false
+		mi.max_lines = 2
+		mi.wrap_w = w - 26
+		mi.text = "− " + str(c.get("minus", ""))
+		mi.position = Vector2(-w * 0.5 + 13, -h * 0.5 + 170 + 15.0 * maxf(1.0, float(ds.line_count())) + 6.0)
+		face.add_child(mi)
 	# parıltı süpürmesi (kartın içine kırpılı)
 	var shine := Node2D.new()
 	shine.name = "shine"
@@ -449,6 +490,7 @@ func _process(dt: float) -> void:
 	_title.rotation = -0.05
 	_title.modulate.a = kt
 	_sub.modulate.a = clampf((_t - 0.2) / 0.3, 0.0, 1.0)
+	_reroll.visible = _mode == "level"
 	_reroll.modulate.a = clampf((_t - 0.9) / 0.3, 0.0, 1.0) * (0.0 if _pick >= 0 else 1.0)
 	for i in cards.size():
 		var C: Dictionary = cards[i]
@@ -498,7 +540,12 @@ func _process(dt: float) -> void:
 	if _pick >= 0 and _t - _pick_t >= 0.5:
 		var choice: Dictionary = cards[_pick].choice
 		_pick = -2
-		g.call_deferred("pick_upgrade", choice)
+		if _mode == "bless":
+			hide_screen()
+			g.audio.play("bless")
+			if _cb.is_valid(): _cb.call(choice.get("_b"))
+		else:
+			g.call_deferred("pick_upgrade", choice)
 	_spark.queue_redraw()
 	for s in _sparks.duplicate():
 		if _t - float(s[2]) > float(s[3]): _sparks.erase(s)
@@ -529,7 +576,7 @@ func _input(ev: InputEvent) -> void:
 			(cards[i].node as Node2D).modulate = Color(0.9, 0.9, 0.9)
 			get_viewport().set_input_as_handled()
 			return
-		if int(g.rerolls) > 0 and _t > 0.9 and Rect2(_reroll.position - Vector2(80, 24), Vector2(160, 48)).has_point(lp):
+		if _mode == "level" and int(g.rerolls) > 0 and _t > 0.9 and Rect2(_reroll.position - Vector2(80, 24), Vector2(160, 48)).has_point(lp):
 			_press = st.index
 			_press_i = -2
 			get_viewport().set_input_as_handled()
