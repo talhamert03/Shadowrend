@@ -167,7 +167,12 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 		var sks := inst.find_children("*", "Skeleton3D", true, false)
 		var sk: Skeleton3D = sks[0] if sks.size() else null
 		if int(def.get("cast", 0)) and sk:
-			var b := {"arm": sk.find_bone("R_Upperarm"), "fore": sk.find_bone("R_Forearm"), "spine": sk.find_bone("Spine01"), "head": sk.find_bone("Head")}
+			# kemik adları: Tripo (R_Upperarm/R_Forearm) · Meshy (RightArm/RightForeArm)
+			var arm := sk.find_bone("R_Upperarm")
+			if arm < 0: arm = sk.find_bone("RightArm")
+			var fore := sk.find_bone("R_Forearm")
+			if fore < 0: fore = sk.find_bone("RightForeArm")
+			var b := {"arm": arm, "fore": fore, "spine": sk.find_bone("Spine01"), "head": sk.find_bone("Head")}
 			if b.arm >= 0 or b.spine >= 0:
 				bones = b
 				for k in ["arm", "fore", "spine", "head"]:

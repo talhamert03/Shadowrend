@@ -6,8 +6,8 @@
    "scale": 44.4,
    "pos": [
     0.009434998766744446,
-    -1.1064240771346849e-7,
-    -4.974172945759747e-8
+    -1.1064240771346849e-07,
+    -4.974172945759747e-08
    ],
    "topY": 0.7547996771869876,
    "walkClip": "Armature|walking_man|baselayer",
@@ -67,7 +67,7 @@
    "scale": 91.2,
    "pos": [
     0.0005354094721372604,
-    0.00007889137045865731,
+    7.889137045865731e-05,
     -0.001210751607768401
    ],
    "topY": 91.02192711820817,
@@ -87,8 +87,8 @@
    "scale": 91.2,
    "pos": [
     0.0012637008357607726,
-    -0.000008821216377945025,
-    0.00006237065085024085
+    -8.821216377945025e-06,
+    6.237065085024085e-05
    ],
    "topY": 91.0218928851506,
    "walkClip": "NlaTrack",
@@ -166,9 +166,9 @@
    "height": 88.8,
    "scale": 88.8,
    "pos": [
-    0.0000032124583793091688,
-    0.000060158843088019586,
-    -0.0000011517629490143122
+    3.2124583793091688e-06,
+    6.0158843088019586e-05,
+    -1.1517629490143122e-06
    ],
    "topY": 88.62657130869074,
    "walkClip": "NlaTrack",
@@ -702,6 +702,104 @@
    "castBones": [],
    "restT": null,
    "tris": 3021
+  },
+  "katedral_tovbekar": {
+   "floor": "katedral",
+   "file": "enemies/katedral_tovbekar.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 92.0,
+   "baseScale": 57.5,
+   "rigPos": [
+    0.014,
+    0.0,
+    -0.028
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 0.6667,
+   "share": 0.54,
+   "shadowR": 13.0,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 5723,
+   "src": "meshy"
+  },
+  "katedral_cirak": {
+   "floor": "katedral",
+   "file": "enemies/katedral_cirak.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 100.0,
+   "baseScale": 62.5,
+   "rigPos": [
+    -0.021,
+    0.0,
+    -0.014
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 12.0,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 5693,
+   "src": "meshy"
+  },
+  "katedral_gargoyle": {
+   "floor": "katedral",
+   "file": "enemies/katedral_gargoyle.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 138.0,
+   "baseScale": 62.72727272727272,
+   "rigPos": [
+    -0.063,
+    0.0,
+    -0.187
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 19.0,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6334,
+   "src": "meshy"
   }
  },
  "bosses": {
