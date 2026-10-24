@@ -898,6 +898,104 @@
    "restT": null,
    "tris": 5989,
    "src": "meshy"
+  },
+  "dokum_cirak": {
+   "floor": "gokcark",
+   "file": "enemies/dokum_cirak.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 80.0,
+   "baseScale": 61.53846153846153,
+   "rigPos": [
+    0.006,
+    0.0,
+    0.019
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 0.6667,
+   "share": 0.54,
+   "shadowR": 12.0,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6103,
+   "src": "meshy"
+  },
+  "dokum_dokumcu": {
+   "floor": "gokcark",
+   "file": "enemies/dokum_dokumcu.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 104.0,
+   "baseScale": 61.1764705882353,
+   "rigPos": [
+    -0.001,
+    0.0,
+    -0.146
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 14.0,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6330,
+   "src": "meshy"
+  },
+  "dokum_cark": {
+   "floor": "gokcark",
+   "file": "enemies/dokum_cark.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 138.0,
+   "baseScale": 62.72727272727272,
+   "rigPos": [
+    0.004,
+    0.0,
+    0.055
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 19.0,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6339,
+   "src": "meshy"
   }
  },
  "bosses": {
