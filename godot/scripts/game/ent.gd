@@ -110,10 +110,13 @@ class EBullet:
 	var pi := -1
 	var x := 0.0; var y := 0.0; var vx := 0.0; var vy := 0.0
 	var dmg := 0.0; var life := 0.0; var r := 5.0; var hue := 0; var ph := 0.0
+	var kind := 0          # 0 yalım (varsayılan) · 1 ok · 2 büyü küresi (pal renginde)
+	var pal := ""          # R3Fx.FIRE_PAL anahtarı (kind 2)
 	func setup(px, py, pvx, pvy, pdmg, plife, pr, phue) -> EBullet:
 		x = px; y = py; vx = pvx; vy = pvy
 		dmg = pdmg; life = plife; r = pr
 		hue = JS.i(phue)
+		kind = 0; pal = ""
 		ph = randf() * 6.283
 		return self
 

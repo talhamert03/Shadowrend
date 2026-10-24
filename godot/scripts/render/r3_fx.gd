@@ -16,6 +16,16 @@ const FIRE_PAL := {
 	"blue": {"cr": 0.94, "cg": 0.98, "cb": 1.00, "gx": 0.13, "gy": 0.46, "gz": 0.96, "tx": 0.34, "ty": 0.78, "tz": 1.00, "fx": 0.10, "fy": 0.40, "fz": 0.92},
 	"necro": {"cr": 0.84, "cg": 1.00, "cb": 0.88, "gx": 0.14, "gy": 0.82, "gz": 0.42, "tx": 0.30, "ty": 0.96, "tz": 0.50, "fx": 0.08, "fy": 0.62, "fz": 0.32},
 	"harvest": {"cr": 1.00, "cg": 0.93, "cb": 0.72, "gx": 0.86, "gy": 0.16, "gz": 0.20, "tx": 1.00, "ty": 0.42, "tz": 0.24, "fx": 0.72, "fy": 0.14, "fz": 0.16},
+	# düşman atıcı büyüleri (models_meta "shot.pal") — modelin elindeki asa/kürenin rengi
+	"blood": {"cr": 1.00, "cg": 0.84, "cb": 0.84, "gx": 0.90, "gy": 0.08, "gz": 0.14, "tx": 1.00, "ty": 0.24, "tz": 0.28, "fx": 0.70, "fy": 0.04, "fz": 0.10},
+	"ember": {"cr": 1.00, "cg": 0.96, "cb": 0.76, "gx": 1.00, "gy": 0.50, "gz": 0.08, "tx": 1.00, "ty": 0.66, "tz": 0.20, "fx": 0.92, "fy": 0.34, "fz": 0.04},
+	"toxic": {"cr": 0.90, "cg": 1.00, "cb": 0.70, "gx": 0.42, "gy": 0.95, "gz": 0.18, "tx": 0.62, "ty": 1.00, "tz": 0.30, "fx": 0.28, "fy": 0.72, "fz": 0.10},
+	"violet": {"cr": 1.00, "cg": 0.86, "cb": 1.00, "gx": 0.62, "gy": 0.22, "gz": 0.96, "tx": 0.86, "ty": 0.36, "tz": 1.00, "fx": 0.70, "fy": 0.08, "fz": 0.40},
+	"void": {"cr": 0.98, "cg": 0.95, "cb": 0.88, "gx": 0.40, "gy": 0.18, "gz": 0.72, "tx": 0.92, "ty": 0.86, "tz": 0.70, "fx": 0.22, "fy": 0.08, "fz": 0.42},
+	"seed": {"cr": 0.96, "cg": 1.00, "cb": 0.86, "gx": 0.50, "gy": 0.95, "gz": 0.34, "tx": 1.00, "ty": 0.62, "tz": 0.82, "fx": 0.40, "fy": 0.85, "fz": 0.30},
+	"crystal": {"cr": 1.00, "cg": 0.99, "cb": 0.92, "gx": 0.96, "gy": 0.76, "gz": 0.30, "tx": 1.00, "ty": 0.88, "tz": 0.50, "fx": 0.86, "fy": 0.60, "fz": 0.20},
+	"bone": {"cr": 1.00, "cg": 0.97, "cb": 0.88, "gx": 0.94, "gy": 0.84, "gz": 0.48, "tx": 1.00, "ty": 0.90, "tz": 0.62, "fx": 0.78, "fy": 0.66, "fz": 0.36},
+	"ice": {"cr": 0.92, "cg": 0.98, "cb": 1.00, "gx": 0.40, "gy": 0.80, "gz": 1.00, "tx": 0.60, "ty": 0.90, "tz": 1.00, "fx": 0.30, "fy": 0.62, "fz": 0.96},
 }
 const MAX_PARTICLES := 700
 const HAZARD_CAP := 8
@@ -368,7 +378,19 @@ func _update_projectiles(g) -> void:
 			bulletMesh.set_col(idx, c.r, c.g, c.b)
 			idx += 1
 	for b in g.pools.eBullets.active:
-		_add_fire(b, FIRE_PAL.harvest if b.hue else FIRE_PAL.necro, 1.45, T, lite)
+		if b.kind == 1:
+			# düşman oku: renkli şaft + ucunda sönük hale (uzaktan seçilsin)
+			if ai >= 140: continue
+			var P: Dictionary = FIRE_PAL.get(b.pal, FIRE_PAL.ice)
+			arrowMesh.set_ys(ai, b.x, 20, b.y, atan2(b.vx, b.vy), 1.3, 1.3, 1.3)
+			arrowMesh.set_col(ai, P.tx, P.ty, P.tz)
+			ai += 1
+			if _fg < FIRE_GLOW_MAX:
+				_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, 22, 22, 0, P.gx * 0.35, P.gy * 0.35, P.gz * 0.35); _fg += 1
+		elif b.pal != "":
+			_add_fire(b, FIRE_PAL.get(b.pal, FIRE_PAL.necro), 1.45, T, lite)
+		else:
+			_add_fire(b, FIRE_PAL.harvest if b.hue else FIRE_PAL.necro, 1.45, T, lite)
 	bulletMesh.commit(idx)
 	bulletMetal.commit(mi)
 	arrowMesh.commit(ai)

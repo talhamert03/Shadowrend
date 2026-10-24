@@ -72,6 +72,8 @@ var bossDefeated := false
 var boss: Ent.Enemy = null
 var bossCount := 0
 var killSndT := 0.0
+var _shotFloor = null
+var _shot := {"kind": 0, "pal": "", "c": Color(0.42, 1.0, 0.56)}
 var waveT := 0.0
 var queue := 0.0
 var qTimer := 0.0
@@ -508,11 +510,15 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 			e.atkAnim = 0.55
 			var ux := dx / d
 			var uy := dy / d
-			g.pools.eBullets.take().setup(e.x + ux * 20, e.y + uy * 20,
+			var S := shot_style()
+			var eb = g.pools.eBullets.take().setup(e.x + ux * 20, e.y + uy * 20,
 				ux * e.bulletSpeed, uy * e.bulletSpeed, e.bulletDmg, 6, 5, 0)
+			eb.kind = S.kind
+			eb.pal = S.pal
+			var c: Color = S.c
 			if g.renderer3d:
-				g.renderer3d.spawn_hit(e.x + ux * 20, e.y + uy * 20, atan2(uy, ux), 0, 0.34, 1.0, 0.52)
-			g.spawn_burst(e.x + ux * 18, e.y + uy * 18 - 4, D.COLORS.atici, 5, 95, 2.4, 0.28, true)
+				g.renderer3d.spawn_hit(e.x + ux * 20, e.y + uy * 20, atan2(uy, ux), 0, c.r, c.g, c.b)
+			g.spawn_burst(e.x + ux * 18, e.y + uy * 18 - 4, "#" + c.to_html(false), 5, 95, 2.4, 0.28, true)
 	else:
 		var d := sqrt(d2) if d2 > 0 else 1.0
 		mvx = dx / d * e.speed
@@ -536,8 +542,40 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		if e.isBoss: g.props.damage_area(e.x, e.y, e.radius + 18, 9999)
 		else: g.props.resolve(e, e.radius * 0.62)
 	var rr2: float = e.radius + p.radius
-	if d2 < rr2 * rr2: Combat.damage_player(g, e.dmg, e.x, e.y)
+	if d2 < rr2 * rr2:
+		var hp0: float = p.hp
+		Combat.damage_player(g, e.dmg, e.x, e.y)
+		if p.hp < hp0: melee_hit_fx(e, p)
 	return false
+
+## yakın dövüşçü oyuncuya değince: temas noktasında çizgi roman darbe (kesik + POW kıvılcımı)
+func melee_hit_fx(e, p) -> void:
+	var g = game
+	if not g.renderer3d: return
+	var a := atan2(p.y - e.y, p.x - e.x)
+	var k: float = e.radius / (e.radius + p.radius)
+	var hx: float = e.x + (p.x - e.x) * k
+	var hy: float = e.y + (p.y - e.y) * k
+	g.renderer3d.spawn_hit(hx, hy, a, 2 if e.type == "muhafiz" or e.type == "agir" else 1, 1.0, 0.86, 0.62)
+	g.renderer3d.spawn_pow(hx, hy)
+
+## bu dünyanın atıcı modeline göre mermi biçimi (models_meta "shot": yay → ok, asa → büyü küresi)
+func shot_style() -> Dictionary:
+	var wd = game.world_def()
+	var fl = wd.get("floor") if wd else null
+	if fl == _shotFloor: return _shot
+	_shotFloor = fl
+	_shot = {"kind": 0, "pal": "", "c": Color(0.42, 1.0, 0.56)}
+	var r3 = game.renderer3d
+	if r3 == null or not r3.MODELS.has("enemies"): return _shot
+	for id in r3.MODELS.enemies:
+		var m: Dictionary = r3.MODELS.enemies[id]
+		if m.get("floor") == fl and m.types.has("atici") and m.has("shot"):
+			var pal: String = m.shot.pal
+			var P: Dictionary = R3Fx.FIRE_PAL.get(pal, R3Fx.FIRE_PAL.necro)
+			_shot = {"kind": 1 if m.shot.kind == "arrow" else 2, "pal": pal, "c": Color(P.tx, P.ty, P.tz)}
+			break
+	return _shot
 
 func boss_phase(e: Ent.Enemy, dt: float) -> bool:
 	if e.weakT > 0:
@@ -796,6 +834,9 @@ func update_bullet(b, dt: float) -> bool:
 		if g.renderer3d:
 			var ang := atan2(b.vy, b.vx)
 			if b.hue: g.renderer3d.spawn_hit(b.x, b.y, ang, 1, 1.0, 0.42, 0.24)
+			elif b.pal != "":
+				var c: Color = _shot.c
+				g.renderer3d.spawn_hit(b.x, b.y, ang, 1, c.r, c.g, c.b)
 			else: g.renderer3d.spawn_hit(b.x, b.y, ang, 1, 0.42, 1.0, 0.56)
 		return true
 	return false

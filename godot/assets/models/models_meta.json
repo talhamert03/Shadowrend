@@ -279,7 +279,11 @@
    ],
    "restT": null,
    "tris": 6325,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "blood"
+   }
   },
   "iskelet_kral": {
    "floor": "mezarlik",
@@ -408,7 +412,11 @@
    ],
    "restT": null,
    "tris": 5172,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "ember"
+   }
   },
   "batak_yaratigi": {
    "floor": "bataklik",
@@ -692,7 +700,11 @@
    ],
    "restT": null,
    "tris": 6239,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "arrow",
+    "pal": "ice"
+   }
   },
   "void_biped": {
    "floor": "hiclik",
@@ -790,7 +802,11 @@
    ],
    "restT": null,
    "tris": 5693,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "violet"
+   }
   },
   "katedral_gargoyle": {
    "floor": "katedral",
@@ -888,7 +904,11 @@
    ],
    "restT": null,
    "tris": 6248,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "bone"
+   }
   },
   "kemik_bekci": {
    "floor": "kemikbahce",
@@ -986,7 +1006,11 @@
    ],
    "restT": null,
    "tris": 6330,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "blue"
+   }
   },
   "dokum_cark": {
    "floor": "gokcark",
@@ -1084,7 +1108,11 @@
    ],
    "restT": null,
    "tris": 6279,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "seed"
+   }
   },
   "bahce_golem": {
    "floor": "gokada",
@@ -1151,7 +1179,11 @@
    ],
    "restT": null,
    "tris": 6337,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "void"
+   }
   },
   "hiclik_muhafiz": {
    "floor": "hiclik",
@@ -1218,7 +1250,11 @@
    ],
    "restT": null,
    "tris": 6332,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "toxic"
+   }
   },
   "tuz_kahin": {
    "floor": "tuzla",
@@ -1254,7 +1290,11 @@
    ],
    "restT": null,
    "tris": 6399,
-   "src": "meshy"
+   "src": "meshy",
+   "shot": {
+    "kind": "orb",
+    "pal": "crystal"
+   }
   }
  },
  "bosses": {
