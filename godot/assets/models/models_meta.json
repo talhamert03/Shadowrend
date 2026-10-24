@@ -452,12 +452,12 @@
    "rigPos": [
     0.004,
     0.0,
-    -0.062
+    0.068
    ],
    "yawFix": 0,
    "clip": null,
    "clipDur": 1.0667,
-   "share": 1,
+   "share": 0.22,
    "shadowR": 13.0,
    "stepRate": 0.55,
    "stepMin": 0.45,
@@ -469,7 +469,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5701,
+   "tris": 6004,
    "src": "meshy"
   },
   "tuz_bocegi": {
