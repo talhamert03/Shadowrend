@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/demirhan.png-12e4a1c22892392e080c093ff24a4a9d
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.86
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
