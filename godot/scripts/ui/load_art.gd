@@ -209,7 +209,7 @@ func _process(dt: float) -> void:
 	_logo.scale = Vector2.ONE * (ScrLevelUp._back_ease(kl) if kl < 1.0 else 1.0 + sin(_t * 2.4) * 0.015)
 	# arena yukarıdan iner, oturur, sonra süzülür
 	var ka := clampf((_t - 0.12) / 0.55, 0, 1)
-	_arena.position.y = lerpf(_arena_y - 260.0, _arena_y, ScrLevelUp._back_ease(ka))
+	_arena.position.y = lerpf(_arena_y - 260.0, _arena_y, ScrLevelUp._back_ease(ka)) + (sin(_t * 1.5) * 5.0 if ka >= 1.0 else 0.0)
 	_arena.modulate.a = minf(1.0, ka * 3.0)
 	var kr := clampf((_t - 0.55) / 0.3, 0, 1)
 	_ribbon.scale = Vector2.ONE * (ScrLevelUp._back_ease(kr) if kr < 1.0 else 1.0) if kr > 0.0 else Vector2.ZERO

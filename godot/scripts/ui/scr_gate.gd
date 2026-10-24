@@ -145,7 +145,7 @@ func _build(info: Dictionary) -> void:
 		var shd := Node2D.new()
 		shd.draw.connect(func():
 			var B2 := TriBatch.new()
-			B2.radial(Vector2(0, ts.y * isc * 0.47), ts.x * isc * 0.52, Color(0, 0, 0, 0.55), Color(0, 0, 0, 0), 0.2)
+			B2.radial(Vector2(0, ts.y * isc * 0.5), ts.x * isc * 0.34, Color(0, 0, 0, 0.42), Color(0, 0, 0, 0), 0.2)
 			B2.flush(shd))
 		_isle.add_child(shd)
 		var sp := Sprite2D.new()
