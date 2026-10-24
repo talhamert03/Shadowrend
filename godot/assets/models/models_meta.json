@@ -1205,11 +1205,11 @@
     "atici"
    ],
    "height": 104.0,
-   "baseScale": 61.176467263574985,
+   "baseScale": 61.17647396651966,
    "rigPos": [
-    0.025,
+    -0.001,
     0.0,
-    -0.043
+    -0.044
    ],
    "yawFix": 0,
    "clip": null,
@@ -1231,7 +1231,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6379,
+   "tris": 6399,
    "src": "meshy"
   }
  },
