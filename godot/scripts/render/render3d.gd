@@ -98,6 +98,7 @@ var fieldChestView      # R3FieldChest
 var playerRoot: Node3D
 var playerShadow: MeshInstance3D
 var heroMesh: Node3D
+var _heroInst: Node3D        # kahraman sahnesinin kökü (playerRoot'un çocuğu) — değişimde bu silinir
 var heroAnim: AnimationPlayer
 var walkClip := ""
 var walkRate := 1.0
@@ -351,9 +352,13 @@ func _hero_scene(path: String) -> PackedScene:
 func load_character(char_id: String) -> void:
 	if _currentCharId == char_id: return
 	_currentCharId = char_id
-	if heroMesh:
-		heroMesh.get_parent().queue_free()
-		heroMesh = null
+	# eski kahraman: sahne kökü silinir. (heroMesh'in ebeveyni silinmez — Meshy kahramanlarında
+	# heroMesh sahne kökünün kendisi, ebeveyni playerRoot: silinince oyuncu düğümü giderdi ve
+	# sonraki kahraman görünmez kalırdı)
+	if _heroInst and is_instance_valid(_heroInst):
+		_heroInst.queue_free()
+	_heroInst = null
+	heroMesh = null
 	heroAnim = null; heroSkel = null; idleBones = null; _poseBase = []; _armFix = []
 	heroReady = false; _heroBaseValid = false
 	var md = MODELS.heroes.get(char_id)
@@ -363,6 +368,7 @@ func load_character(char_id: String) -> void:
 	if ps == null: return
 	var inst: Node3D = ps.instantiate()
 	playerRoot.add_child(inst)
+	_heroInst = inst
 	# GLB kökü → hero_<id> grubu → ölçekli/konumlu model düğümü (bake'te uygulandı)
 	var grp := inst.find_child("hero_" + char_id, true, false) as Node3D
 	heroMesh = (grp.get_child(0) as Node3D) if grp and grp.get_child_count() > 0 else inst

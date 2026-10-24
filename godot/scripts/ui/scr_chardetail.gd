@@ -352,11 +352,11 @@ func _action(panel: Node2D, y: float, owned: bool, lvl: int) -> float:
 	if need != null:
 		var gold = g.gold_for_next(id)
 		var ub := _big_btn(panel, Vector2(14, y), Vector2(half, 56), Color("#3fbf55") if can else Color("#5a5466"), "GELİŞTİR", "◆ " + str(int(gold)) if gold != null else "")
-		_btn(ub, Rect2(0, 0, half, 56), func(): _upgrade())
+		_btn(ub, Rect2(-half * 0.5, -28, half, 56), func(): _upgrade())     # düğüm merkezde (yay ölçeği)
 	var sx := 14.0 + (half + 10.0 if need != null else 0.0)
 	var swd := half if need != null else bw
 	var sb := _big_btn(panel, Vector2(sx, y), Vector2(swd, 56), Color("#ffb020") if not sel else Color("#3a2f4a"), "SEÇİLİ" if sel else "SEÇ", "")
-	_btn(sb, Rect2(0, 0, swd, 56), func():
+	_btn(sb, Rect2(-swd * 0.5, -28, swd, 56), func():
 		g.audio.play("click")
 		if not sel: g.select_char(id)
 		close())
@@ -462,7 +462,7 @@ func _hit(pos: Vector2):
 		if not is_instance_valid(nd) or not nd.is_visible_in_tree(): continue
 		if not _cdclip.get_global_rect().has_point(pos): continue
 		var lp: Vector2 = nd.get_global_transform_with_canvas().affine_inverse() * pos
-		if (B.rect as Rect2).grow(6.0).has_point(lp): return B
+		if (B.rect as Rect2).grow(10.0).has_point(lp): return B
 	return null
 
 func _input(ev: InputEvent) -> void:
@@ -485,14 +485,14 @@ func _input(ev: InputEvent) -> void:
 			_cpress = null
 			if B:
 				_spring(B.node, 1.0)
-				if not _dragging and not st.canceled and _hit(st.position) == B:
+				if not _dragging and not st.canceled and (_hit(st.position) == B or _hit(_p0) == B):
 					TapFx.pop(st.position)
 					(B.cb as Callable).call()
 	elif ev is InputEventScreenDrag:
 		var sd := ev as InputEventScreenDrag
 		get_viewport().set_input_as_handled()
 		if sd.index != _pid: return
-		if not _dragging and (sd.position - _p0).length() > 10.0:
+		if not _dragging and (sd.position - _p0).length() > (18.0 if _cpress else 10.0):
 			_dragging = true
 			if _cpress:
 				_spring(_cpress.node, 1.0)
