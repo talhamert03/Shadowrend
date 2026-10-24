@@ -189,29 +189,30 @@
    "types": [
     "zombi"
    ],
-   "height": 91.2,
-   "baseScale": 55.74115955443103,
+   "height": 90.0,
+   "baseScale": 59.9999976158145,
    "rigPos": [
-    -0.004443391522028051,
-    0.041915606646569924,
-    0.1301257477060589
+    -0.009,
+    0.0,
+    0.006
    ],
    "yawFix": 0,
-   "clip": "Running",
-   "clipDur": 0.6333333253860474,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.54,
-   "shadowR": 13.2,
+   "shadowR": 13.5,
    "stepRate": 0.62,
    "stepMin": 0.5,
    "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0.54,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3060
+   "tris": 6388,
+   "src": "meshy"
   },
   "muhafiz": {
    "floor": "mezarlik",
@@ -219,29 +220,30 @@
    "types": [
     "muhafiz"
    ],
-   "height": 124.8,
-   "baseScale": 71.77821942363545,
+   "height": 128.0,
+   "baseScale": 58.181813571078976,
    "rigPos": [
-    0.030473174574032313,
-    0.029985406491378243,
-    -0.06255501373701167
+    0.023,
+    0.0,
+    -0.02
    ],
    "yawFix": 0,
-   "clip": "Walking",
-   "clipDur": 1.0333333015441895,
-   "share": 0.18,
-   "shadowR": 18,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 12.8,
    "stepRate": 0.55,
    "stepMin": 0.45,
    "stepMax": 0.75,
    "idleRate": null,
-   "emissiveIntensity": 0.85,
-   "lift": 0.46,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3866
+   "tris": 6311,
+   "src": "meshy"
   },
   "buyucu": {
    "floor": "mezarlik",
@@ -249,34 +251,35 @@
    "types": [
     "atici"
    ],
-   "height": 98.39999999999999,
-   "baseScale": 102.06365467615565,
+   "height": 100.0,
+   "baseScale": 58.82352621497595,
    "rigPos": [
-    0.030910003742380898,
-    0.022770736303266495,
-    -0.053020597700223465
+    -0.012,
+    0.0,
+    0.011
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.18,
-   "shadowR": 12,
+   "shadowR": 13.5,
    "stepRate": 0.58,
    "stepMin": 0.45,
    "stepMax": 0.8,
    "idleRate": 0.14,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 1,
    "castAxis": "z",
    "castBones": [
     "Spine01",
     "Head",
-    "R_Upperarm",
-    "R_Forearm"
+    "RightArm",
+    "RightForeArm"
    ],
-   "restT": 1.8802083333333333,
-   "tris": 4392
+   "restT": null,
+   "tris": 6325,
+   "src": "meshy"
   },
   "iskelet_kral": {
    "floor": "mezarlik",
@@ -284,29 +287,30 @@
    "types": [
     "kral"
    ],
-   "height": 151.2,
-   "baseScale": 126.21490553189224,
+   "height": 150.0,
+   "baseScale": 68.18181277860818,
    "rigPos": [
-    0.020195460046130598,
-    0.19659384547580622,
-    -0.01851661798101567
+    0.009,
+    0.0,
+    -0.092
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.1,
-   "shadowR": 25.2,
-   "stepRate": 0.62,
-   "stepMin": 0.42,
-   "stepMax": 0.62,
+   "shadowR": 15.0,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
    "idleRate": null,
-   "emissiveIntensity": 0.95,
-   "lift": 0.36,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6486
+   "tris": 5920,
+   "src": "meshy"
   },
   "alev_deli": {
    "floor": "kul",
@@ -314,29 +318,30 @@
    "types": [
     "zombi"
    ],
-   "height": 93.6,
-   "baseScale": 87.19986984681586,
+   "height": 92.0,
+   "baseScale": 61.33333470424009,
    "rigPos": [
-    0.002264150129972997,
-    0.09933573677454717,
-    -0.13215487374815582
+    0.001,
+    0.0,
+    0.014
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.58,
-   "shadowR": 13.2,
+   "shadowR": 13.8,
    "stepRate": 0.62,
    "stepMin": 0.5,
    "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3145
+   "tris": 6329,
+   "src": "meshy"
   },
   "kor_lordu": {
    "floor": "kul",
@@ -344,29 +349,30 @@
    "types": [
     "muhafiz"
    ],
-   "height": 134.4,
-   "baseScale": 122.25461858151947,
+   "height": 136.0,
+   "baseScale": 61.8181821531501,
    "rigPos": [
-    -0.02684187839633749,
-    0.08456173202414108,
-    -0.11232804859646295
+    -0.001,
+    0.0,
+    -0.031
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.22,
-   "shadowR": 19.2,
+   "shadowR": 13.6,
    "stepRate": 0.55,
    "stepMin": 0.45,
    "stepMax": 0.75,
    "idleRate": null,
    "emissiveIntensity": 0.9,
-   "lift": 0.58,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3903
+   "tris": 6317,
+   "src": "meshy"
   },
   "mum_buyucu": {
    "floor": "kul",
@@ -374,34 +380,35 @@
    "types": [
     "atici"
    ],
-   "height": 103.2,
-   "baseScale": 101.9988725383201,
+   "height": 102.0,
+   "baseScale": 59.99999673927547,
    "rigPos": [
-    -0.016515059104815835,
-    0.007343415004330835,
-    0.028926732977552216
+    0.007,
+    0.0,
+    -0.032
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.2,
-   "shadowR": 12,
+   "shadowR": 13.8,
    "stepRate": 0.58,
    "stepMin": 0.45,
    "stepMax": 0.8,
    "idleRate": 0.14,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 1,
    "castAxis": "z",
    "castBones": [
     "Spine01",
     "Head",
-    "R_Upperarm",
-    "R_Forearm"
+    "RightArm",
+    "RightForeArm"
    ],
-   "restT": 1.8802083333333333,
-   "tris": 3595
+   "restT": null,
+   "tris": 5172,
+   "src": "meshy"
   },
   "batak_yaratigi": {
    "floor": "bataklik",
@@ -409,29 +416,30 @@
    "types": [
     "zombi"
    ],
-   "height": 88.8,
-   "baseScale": 82.76621294948932,
+   "height": 88.0,
+   "baseScale": 62.85713673550337,
    "rigPos": [
-    0.07157646498237966,
-    0.2000595950188749,
-    -0.3676997709089629
+    -0.005,
+    0.0,
+    0.025
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 1.2916666269302368,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.62,
-   "shadowR": 14.399999999999999,
-   "stepRate": 0.66,
+   "shadowR": 13.2,
+   "stepRate": 0.62,
    "stepMin": 0.5,
-   "stepMax": 0.9,
+   "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3116
+   "tris": 5904,
+   "src": "meshy"
   },
   "batak_devi": {
    "floor": "bataklik",
@@ -439,29 +447,30 @@
    "types": [
     "muhafiz"
    ],
-   "height": 127.19999999999999,
-   "baseScale": 127.09691862909698,
+   "height": 130.0,
+   "baseScale": 59.090909411099354,
    "rigPos": [
-    0.008111522254388465,
-    0.048491984062020634,
-    -0.17719210940215863
+    0.004,
+    0.0,
+    -0.062
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 1,
-   "shadowR": 11,
-   "stepRate": 0.54,
+   "shadowR": 13.0,
+   "stepRate": 0.55,
    "stepMin": 0.45,
-   "stepMax": 0.74,
+   "stepMax": 0.75,
    "idleRate": null,
    "emissiveIntensity": 0.9,
-   "lift": 0.4,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 4930
+   "tris": 5701,
+   "src": "meshy"
   },
   "tuz_bocegi": {
    "floor": "tuzla",
@@ -469,29 +478,30 @@
    "types": [
     "zombi"
    ],
-   "height": 55.199999999999996,
-   "baseScale": 62.47886821676046,
+   "height": 70.0,
+   "baseScale": 58.33333282628006,
    "rigPos": [
-    0.04497845340194992,
-    0.2023607728119318,
-    -0.048321160382242434
+    0.0,
+    0.0,
+    -0.081
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.5999999046325684,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.46,
-   "shadowR": 14.399999999999999,
-   "stepRate": 0.8,
-   "stepMin": 0.6,
-   "stepMax": 1.1,
+   "shadowR": 10.5,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0.56,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3067
+   "tris": 6314,
+   "src": "meshy"
   },
   "tuz_pencesi": {
    "floor": "tuzla",
@@ -499,29 +509,30 @@
    "types": [
     "muhafiz"
    ],
-   "height": 110.39999999999999,
-   "baseScale": 123.69819748296003,
+   "height": 116.0,
+   "baseScale": 58.00000129640095,
    "rigPos": [
-    -0.11563296147040994,
-    0.05528083175411724,
-    -0.09091840205592919
+    -0.001,
+    0.0,
+    -0.113
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.24,
-   "shadowR": 18,
-   "stepRate": 0.56,
+   "shadowR": 11.6,
+   "stepRate": 0.55,
    "stepMin": 0.45,
-   "stepMax": 0.78,
+   "stepMax": 0.75,
    "idleRate": null,
    "emissiveIntensity": 0.9,
-   "lift": 0.4,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 4682
+   "tris": 6318,
+   "src": "meshy"
   },
   "kosucu": {
    "floor": "tuzla",
@@ -529,29 +540,30 @@
    "types": [
     "patlayici"
    ],
-   "height": 79.2,
-   "baseScale": 75.47135751867796,
+   "height": 76.0,
+   "baseScale": 63.33333769813186,
    "rigPos": [
-    -0.047365829972519674,
-    0.2562276664074649,
-    -0.8170862812043386
+    0.0,
+    0.0,
+    0.045
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 1.2916666269302368,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.3,
-   "shadowR": 13.2,
-   "stepRate": 0.95,
-   "stepMin": 0.7,
-   "stepMax": 1.3,
+   "shadowR": 11.4,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1.1,
-   "lift": 0.62,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3432
+   "tris": 6347,
+   "src": "meshy"
   },
   "buz_kurdu": {
    "floor": "buzul",
@@ -559,29 +571,30 @@
    "types": [
     "zombi"
    ],
-   "height": 62.4,
-   "baseScale": 73.5856000949219,
+   "height": 84.0,
+   "baseScale": 52.49999750638399,
    "rigPos": [
-    -0.017279885099957204,
-    0.013401265633910987,
-    0.023712203751801275
+    -0.003,
+    0.0,
+    0.088
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.5999999046325684,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 0.5,
-   "shadowR": 15.6,
-   "stepRate": 0.75,
-   "stepMin": 0.6,
-   "stepMax": 1.05,
+   "shadowR": 12.6,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 2782
+   "tris": 6329,
+   "src": "meshy"
   },
   "buz_ayisi": {
    "floor": "buzul",
@@ -589,29 +602,30 @@
    "types": [
     "muhafiz"
    ],
-   "height": 91.2,
-   "baseScale": 119.51225850850652,
+   "height": 120.0,
+   "baseScale": 54.545450222886544,
    "rigPos": [
-    0.006533019255091199,
-    0.09332813971060012,
-    -0.0006486235797340534
+    0.004,
+    0.0,
+    0.065
    ],
-   "yawFix": 1.5707963267948966,
-   "clip": "NlaTrack",
-   "clipDur": 2.5999999046325684,
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 1,
-   "shadowR": 11,
-   "stepRate": 0.6,
+   "shadowR": 12.0,
+   "stepRate": 0.55,
    "stepMin": 0.45,
-   "stepMax": 0.8,
+   "stepMax": 0.75,
    "idleRate": null,
    "emissiveIntensity": 0.9,
-   "lift": 0.38,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 4268
+   "tris": 6330,
+   "src": "meshy"
   },
   "yeti": {
    "floor": "buzul",
@@ -619,29 +633,30 @@
    "types": [
     "agir"
    ],
-   "height": 141.6,
-   "baseScale": 140.3019089244619,
+   "height": 142.0,
+   "baseScale": 59.16666615236955,
    "rigPos": [
-    -0.006662109801125915,
-    0.014927118537320021,
-    -0.04395162121769289
+    -0.011,
+    0.0,
+    0.023
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.375,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.16,
-   "shadowR": 22.8,
-   "stepRate": 0.5,
-   "stepMin": 0.4,
-   "stepMax": 0.7,
+   "shadowR": 14.2,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
    "idleRate": null,
    "emissiveIntensity": 0.9,
-   "lift": 0.34,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5306
+   "tris": 6328,
+   "src": "meshy"
   },
   "kar_tilkisi": {
    "floor": "buzul",
@@ -649,29 +664,35 @@
    "types": [
     "atici"
    ],
-   "height": 74.39999999999999,
-   "baseScale": 77.80418314384377,
+   "height": 90.0,
+   "baseScale": 56.24999732826856,
    "rigPos": [
-    -0.028779602998181303,
-    -0.42853704162204387,
-    -0.0067330737200839985
+    -0.001,
+    0.0,
+    -0.152
    ],
    "yawFix": 0,
-   "clip": "NlaTrack",
-   "clipDur": 2.5416667461395264,
+   "clip": null,
+   "clipDur": 1.0667,
    "share": 0.16,
-   "shadowR": 14.399999999999999,
-   "stepRate": 0.62,
-   "stepMin": 0.5,
-   "stepMax": 0.85,
-   "idleRate": 0.22,
-   "emissiveIntensity": 1,
-   "lift": 0.42,
-   "cast": 0,
+   "shadowR": 12.2,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
    "castAxis": "z",
-   "castBones": [],
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
    "restT": null,
-   "tris": 3220
+   "tris": 6239,
+   "src": "meshy"
   },
   "void_biped": {
    "floor": "hiclik",
@@ -679,29 +700,30 @@
    "types": [
     "zombi"
    ],
-   "height": 91.2,
-   "baseScale": 54.95076938812147,
+   "height": 92.0,
+   "baseScale": 57.500010656660606,
    "rigPos": [
-    -0.0026361724328230474,
-    0.06238648084192493,
-    0.0006019728832534765
+    0.001,
+    0.0,
+    0.02
    ],
    "yawFix": 0,
-   "clip": "Running",
-   "clipDur": 0.6333333253860474,
+   "clip": null,
+   "clipDur": 0.6667,
    "share": 1,
-   "shadowR": 13.2,
+   "shadowR": 13.8,
    "stepRate": 0.62,
    "stepMin": 0.5,
    "stepMax": 0.85,
    "idleRate": null,
-   "emissiveIntensity": 1,
-   "lift": 0,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
    "cast": 0,
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 3021
+   "tris": 6314,
+   "src": "meshy"
   },
   "katedral_tovbekar": {
    "floor": "katedral",

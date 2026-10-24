@@ -106,7 +106,7 @@ def cmd_concept(args):
     """konsept görsel (A-poz, saydam zemin) — görselden 3B için"""
     s = load(args, args.name)
     s["cprompt"] = prompt_of(args.prompt)
-    body = {"ai_model": args.img_model, "prompt": s["cprompt"], "pose_mode": "a-pose", "remove_background": True}
+    body = {"ai_model": args.img_model, "prompt": s["cprompt"], "pose_mode": "a-pose", "remove_background": not args.keep_bg}
     tid = req(args, "POST", "/openapi/v1/text-to-image", body)["result"]
     print("concept", tid)
     t = wait(args, "/openapi/v1/text-to-image", tid)
@@ -166,6 +166,7 @@ def main():
         p.add_argument("--std", default="", help="standart model (örn. meshy-6) — karmaşık tarifler")
     p = sub.add_parser("concept"); p.add_argument("name"); p.add_argument("prompt")
     p.add_argument("--img-model", default="nano-banana-2")
+    p.add_argument("--keep-bg", action="store_true", help="arka planı silme (beyaz karakterler silinmesin)")
     p = sub.add_parser("img3d"); p.add_argument("name"); p.add_argument("--poly", type=int, default=6000)
     p.add_argument("--image", default="", help="konsept görevi yerine yerel PNG")
     p = sub.add_parser("refine"); p.add_argument("name")
