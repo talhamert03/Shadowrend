@@ -59,17 +59,32 @@ func render() -> void:
 		(it as Node).queue_free()
 	_items.clear()
 	if wb == null: return
-	var bottom := _hero()
 	var dLeft: int = Journey.daily_left(g.meta)
 	var kReady := _kupa_ready()
-	if tab == "": tab = "kupa" if kReady else ("gunluk" if dLeft else "kupa")
-	bottom = maxf(bottom, _tabs(dLeft, kReady))
-	match tab:
-		"gunluk": bottom = maxf(bottom, _gunluk())
-		"muhur": bottom = maxf(bottom, _muhur())
-		"kupa": bottom = maxf(bottom, _kupa())
-		"zirve": bottom = maxf(bottom, _zirve())
-		"album": bottom = maxf(bottom, _album())
+	var bottom := 0.0
+	if tab == "":
+		# ana görünüm: BU HAFTA afişi + her etkinlik tek büyük afiş (Clash Royale etkinlik sekmesi)
+		bottom = _hero()
+		bottom = maxf(bottom, _home(dLeft, kReady))
+	else:
+		# etkinlik ekranı: geri düğmeli başlık + yalnız o etkinliğin içeriği
+		bottom = _detail_head()
+		var n0 := _items.size()
+		match tab:
+			"gunluk": bottom = maxf(bottom, _gunluk())
+			"muhur": bottom = maxf(bottom, _muhur())
+			"kupa": bottom = maxf(bottom, _kupa())
+			"zirve": bottom = maxf(bottom, _zirve())
+			"album": bottom = maxf(bottom, _album())
+		# bileşenler yakalama konumunda (eski afiş + karo şeridinin altı) → başlığın hemen altına
+		var miny := INF
+		for i in range(n0, _items.size()):
+			if _items[i] is Node2D: miny = minf(miny, (_items[i] as Node2D).position.y)
+		if miny < INF:
+			var dy := (HERO_Y + 62.0 - _wb0.y) - miny
+			for i in range(n0, _items.size()):
+				if _items[i] is Node2D: (_items[i] as Node2D).position.y += dy
+			bottom += dy
 	# kaydırma içeriği: #week-box yüksekliği içeriğe göre
 	var dh := bottom - _wb_h0
 	var S = root.d.get("scroll")
@@ -314,10 +329,148 @@ func _tabs(dLeft: int, kReady: int) -> float:
 func _tab_tap(t: String) -> void:
 	if t == tab: return
 	tab = t
-	g.audio.play("tab")
-	var nav_y := TILE_Y - _wb0.y + wb.pos.y
-	if root.scroll_y > nav_y: shell.set_scroll(root, maxf(0.0, nav_y - 8.0))
+	g.audio.play("tab" if t != "" else "click")
+	shell.set_scroll(root, 0.0)
 	render()
+
+# ═════════════ ana görünüm: büyük etkinlik afişleri ═════════════
+
+const BANNERS := [
+	{"t": "kupa", "n": "HAYATTA KALMA KUPASI", "w": 2, "col": "#ffb43c", "art": "res://assets/ui/art/icon/kadeh.png"},
+	{"t": "zirve", "n": "ZİRVE KULESİ", "w": 10, "col": "#7fa8ff", "art": "res://assets/ui/art/icon/tac.png"},
+	{"t": "muhur", "n": "HAFTALIK MÜHÜR", "w": 1, "col": "#ff5468", "art": "res://assets/ui/art/icon/tilsim.png"},
+	{"t": "gunluk", "n": "GÜNLÜK HEDEFLER", "w": 6, "col": "#ff9ec4", "art": "res://assets/ui/art/chest/t1.png"},
+	{"t": "album", "n": "ALBÜM", "w": 4, "col": "#b98cff", "art": "res://assets/ui/art/icon/star.png"},
+]
+const BAN_H := 104.0
+const BAN_GAP := 12.0
+
+func _sub_of(t: String, dLeft: int, kReady: int) -> String:
+	match t:
+		"kupa": return (str(kReady) + " ÖDÜL HAZIR") if kReady > 0 else "Hayatta kal · ödül yolunu ilerlet"
+		"zirve": return "Sonsuz kule · rekorunu geç"
+		"muhur": return "Haftalık mühürü doldur"
+		"gunluk": return (str(3 - dLeft) + " / 3 tamamlandı") if dLeft > 0 else "Bugünlük tamam · yarın yenilenir"
+		"album": return "Dünya rozetleri ve başarımlar"
+	return ""
+
+func _home(dLeft: int, kReady: int) -> float:
+	var y := HERO_Y + HERO_H + 16.0
+	var W := 362.0
+	for B in BANNERS:
+		var t: String = B.t
+		var col := Color(String(B.col))
+		var hot := (t == "kupa" and kReady > 0) or (t == "gunluk" and dLeft > 0)
+		var L := Lyr.new()
+		L.build({"nodes": [{"id": "0", "key": ".ev-ban", "box": [0, 0, W, BAN_H], "origin": [W * 0.5, BAN_H * 0.5]}]})
+		L.position = Vector2(14.0, y) - _wb0
+		wb.host.add_child(L)
+		_items.append(L)
+		var host: Node2D = L.nodes[0].node
+		# zemin: dünyanın göğü + soldan koyu perde + dünya renginde kenar
+		var sky := UITex.get_tex(ClimbArt.BASE + "w" + str(int(B.w)) + "/tall_back.png")
+		if sky: host.add_child(UIK.round_image(sky, W, BAN_H, 16, Vector2(0.5, 0.35)))
+		var gr := Gradient.new()
+		gr.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+		gr.colors = PackedColorArray([Color(0.03, 0.02, 0.05, 0.86), Color(0.03, 0.02, 0.05, 0.4), Color(0.03, 0.02, 0.05, 0.0)])
+		var gt := GradientTexture2D.new()
+		gt.gradient = gr
+		gt.width = 256
+		gt.height = 64
+		host.add_child(UIK.round_image(gt, W, BAN_H, 16, Vector2(0.5, 0.5)))
+		var gl := Sprite2D.new()
+		gl.texture = ClimbArt.glow_tex()
+		var gm := CanvasItemMaterial.new()
+		gm.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		gl.material = gm
+		gl.modulate = Color(col, 0.55)
+		gl.scale = Vector2.ONE * (150.0 / 128.0)
+		gl.position = Vector2(W - 62, BAN_H * 0.5)
+		host.add_child(gl)
+		var tex := UITex.get_tex(String(B.art))
+		if tex:
+			var sp := Sprite2D.new()
+			sp.texture = tex
+			sp.scale = Vector2.ONE * (66.0 / maxf(tex.get_width(), tex.get_height()))
+			sp.position = Vector2(W - 62, BAN_H * 0.5)
+			if t != "gunluk": sp.modulate = col.lerp(Color.WHITE, 0.45) * Color(1.25, 1.25, 1.25)
+			host.add_child(sp)
+		var fr := Node2D.new()
+		host.add_child(fr)
+		fr.draw.connect(func():
+			var bd := StyleBoxFlat.new()
+			bd.bg_color = Color(0, 0, 0, 0)
+			bd.set_corner_radius_all(16)
+			bd.set_border_width_all(2)
+			bd.border_color = Color(col, 0.8) if hot else Color(col.lerp(Color("#e9b86a"), 0.4), 0.45)
+			bd.shadow_color = Color(col, 0.3) if hot else Color(0, 0, 0, 0.45)
+			bd.shadow_size = 10 if hot else 5
+			fr.draw_style_box(bd, Rect2(0, 0, W, BAN_H))
+			# sol renk şeridi
+			var st := StyleBoxFlat.new()
+			st.bg_color = col
+			st.corner_radius_top_left = 16
+			st.corner_radius_bottom_left = 16
+			fr.draw_style_box(st, Rect2(0, 0, 6, BAN_H))
+			# sağ alt ok
+			var a := Vector2(W - 18, BAN_H - 18)
+			fr.draw_polyline(PackedVector2Array([a + Vector2(-5, -7), a, a + Vector2(-5, 7)]), Color(1, 1, 1, 0.75), 3.0, true))
+		var ti := _ut(true, 800, 22, 1.0, "#fff4e6", String(B.n), "0 0 14px #" + col.to_html(false) + ", 0 2px 5px rgba(0,0,0,0.9)")
+		ti.position = Vector2(20, 26)
+		host.add_child(ti)
+		var sb := _ut(false, 700, 12, 0.4, col.lerp(Color.WHITE, 0.55) if not hot else Color("#ffe27a"), _sub_of(t, dLeft, kReady))
+		sb.position = Vector2(21, 60)
+		host.add_child(sb)
+		if hot:
+			var bd2 := Node2D.new()
+			bd2.position = Vector2(W - 20, 18)
+			host.add_child(bd2)
+			bd2.draw.connect(func():
+				bd2.draw_circle(Vector2.ZERO, 10.0, Color("#ff3b4e"))
+				bd2.draw_arc(Vector2.ZERO, 10.0, 0, TAU, 24, Color(1, 1, 1, 0.6), 1.4, true))
+			var bt := _ut(false, 800, 12, 0, "#ffffff", "!")
+			bt.align = 0.5
+			bt.wrap_w = 20
+			bt.position = Vector2(-10, -9)
+			bd2.add_child(bt)
+		var tt := t
+		menu.btn(L, L.nodes[0], func(): _tab_tap(tt), 0.96)
+		y += BAN_H + BAN_GAP
+	return y - _wb0.y
+
+## etkinlik ekranı başlığı: geri düğmesi + etkinlik adı (renkli şerit)
+func _detail_head() -> float:
+	var info: Dictionary = {}
+	for B in BANNERS:
+		if B.t == tab: info = B
+	var col := Color(String(info.get("col", "#e9b86a")))
+	var W := 362.0
+	var L := Lyr.new()
+	L.build({"nodes": [{"id": "0", "key": ".ev-back", "box": [0, 0, 48, 48], "origin": [24, 24]}]})
+	L.position = Vector2(14.0, HERO_Y) - _wb0
+	wb.host.add_child(L)
+	_items.append(L)
+	var bh: Node2D = L.nodes[0].node
+	bh.draw.connect(func():
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color("#211a27")
+		sb.set_corner_radius_all(14)
+		sb.set_border_width_all(2)
+		sb.border_color = Color(1, 1, 1, 0.14)
+		bh.draw_style_box(sb, Rect2(0, 0, 48, 48))
+		var a := Vector2(20, 24)
+		bh.draw_polyline(PackedVector2Array([a + Vector2(8, -10), a, a + Vector2(8, 10)]), Color.WHITE, 4.0, true))
+	menu.btn(L, L.nodes[0], func(): _tab_tap(""), 0.92, 10.0)
+	var R := _hdr(HERO_Y)
+	R.position.x += 58.0
+	var nm := String(info.get("n", ""))
+	var ti := _ut(true, 800, 24 if nm.length() <= 15 else 19, 1.0, "#fff4e6", nm, "0 0 14px #" + col.to_html(false) + ", 0 2px 5px rgba(0,0,0,0.9)")
+	ti.position = Vector2(0, 8 if nm.length() <= 15 else 12)
+	R.add_child(ti)
+	var ln := Node2D.new()
+	R.add_child(ln)
+	ln.draw.connect(func(): ln.draw_rect(Rect2(0, 44, W - 58, 3), Color(col, 0.7)))
+	return HERO_Y + 52.0 - _wb0.y
 
 # ═════════════ GÜNLÜK ═════════════
 

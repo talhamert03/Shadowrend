@@ -401,6 +401,9 @@ func _process(_dt: float) -> void:
 	if _arg("drawprobe") != "" and Engine.get_process_frames() == int(_arg("drawprobe")): _draw_probe()
 	if _arg("procprobe") != "" and Engine.get_process_frames() == int(_arg("procprobe")): _proc_probe()
 	if _arg("proctime") != "" and Engine.get_process_frames() == int(_arg("proctime")): _proc_time()
+	# geliştirici: perfmon — profilleyicisiz kare işlem süresi (PROF'un kendi yükü olmadan)
+	if _arg("perfmon") != "" and Engine.get_process_frames() % 60 == 0:
+		print("PERFMON proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " st=", g.state, " en=", g.enemies.list.size() if g.enemies and "list" in g.enemies else -1)
 	if Prof.on and Engine.get_process_frames() % 30 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())

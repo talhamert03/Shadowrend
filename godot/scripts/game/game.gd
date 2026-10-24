@@ -166,9 +166,53 @@ var boot_screen: ScrBoot
 var booted := false
 
 ## yükleme adımı: açılış ekranı ilerler, bir kare çizilir (ekran donmaz, çubuk akar)
+## ── arka plan ön yükleme (ResourceLoader iş parçacıkları) ──
+var _pre: Array = []          # istenen yollar
+var _keep: Array = []         # yüklenen kaynaklar (önbellekte kalsınlar diye tutulur)
+
+func _boot_paths() -> Array:
+	var out: Array = ["res://scripts/ui/ui.gd", "res://scripts/render/render3d.gd", "res://scripts/render/overlay2d.gd",
+		"res://scripts/render/r3_weapons.gd", "res://scripts/render/r3_fx.gd", "res://scripts/render/r3_enemies.gd"]
+	var f := FileAccess.open("res://assets/models/models_meta.json", FileAccess.READ)
+	var M = JSON.parse_string(f.get_as_text()) if f else null
+	if M is Dictionary:
+		for k in M.get("weapons", {}):
+			out.append("res://assets/models/" + str(M.weapons[k].get("file", "")))
+		# kayıttaki seçili kahramanın modeli
+		var mj = JSON.parse_string(str(Store.get_item("kh_meta", "{}")))
+		var sel := str(mj.get("selectedChar", "")) if mj is Dictionary else ""
+		if sel != "" and M.get("heroes", {}).has(sel): out.append("res://assets/models/" + str(M.heroes[sel].file))
+	return out
+
+func _preload(paths: Array) -> void:
+	for p in paths:
+		if p in _pre or not ResourceLoader.exists(p): continue
+		if ResourceLoader.load_threaded_request(p, "", true) == OK: _pre.append(p)
+
+## istenenler bitene dek kare kare bekle (başlık ekranı akmaya devam eder); bitenleri tut
+func _await_preload(max_s: float) -> void:
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < int(max_s * 1000.0):
+		var busy := false
+		for p in _pre:
+			if ResourceLoader.load_threaded_get_status(p) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				busy = true
+				break
+		if not busy: break
+		await get_tree().process_frame
+	for p in _pre:
+		if ResourceLoader.load_threaded_get_status(p) == ResourceLoader.THREAD_LOAD_LOADED:
+			_keep.append(ResourceLoader.load_threaded_get(p))
+	_pre.clear()
+
+var _boot_us := 0
 func _boot_step(p: float) -> void:
 	if boot_screen: boot_screen.set_progress(p)
+	if Prof.on:
+		var now := Time.get_ticks_usec()
+		if _boot_us > 0: print("BOOTSTEP ", p, " ", snappedf((now - _boot_us) / 1000.0, 0.1), " ms")
 	await get_tree().process_frame
+	if Prof.on: _boot_us = Time.get_ticks_usec()
 
 func _ready() -> void:
 	# açılış ekranı ilk karede: kurulum bitene dek oyun döngüsü kapalı
@@ -177,6 +221,9 @@ func _ready() -> void:
 	# firma introsu (ALPHA WOLF GAMES), ardından yükleme ekranı. Geliştirici: nointro / autorun atlar
 	var ua := OS.get_cmdline_user_args()
 	Scr.boot_lock = true
+	# ağır kaynaklar (arayüz betik ağacı, 3B betikler, silah modelleri) firma introsu oynarken arka
+	# planda yüklenir/derlenir — başlık ekranı geldiğinde ana iş parçacığını saniyelerce kilitlemezler
+	_preload(_boot_paths())
 	if not (ua.has("nointro") or ua.has("autorun")):
 		var intro := ScrIntro.new()
 		add_child(intro)
@@ -235,6 +282,7 @@ func _ready() -> void:
 	pools.rings.prewarm(60)
 	await _boot_step(0.4)
 
+	await _await_preload(4.0)
 	renderer3d = Render3D.new(self)
 	add_child(renderer3d)
 	await _boot_step(0.58)
@@ -266,6 +314,8 @@ func _ready() -> void:
 		if n % 8 == 0:
 			UITex.poll()
 			await _boot_step(0.8 + minf(0.08, n * 0.0012))
+	# ana sayfanın dokuları hazır olsun (kurulum karesi eşzamanlı çözme yapmasın)
+	await UITex.await_ready(self, UITex.manifest("savas") + range(1, 11).map(func(i): return ArenaArt.path_of(i)), 2.0)
 	ui.boot()
 	# alt menü sekmeleri (kuşanım, kahraman, mağaza, etkinlik) yükleme ekranının ardında kurulur:
 	# menüde ilk kaydırmada sayfa kurulumu / eşzamanlı doku yüklemesi takılması olmaz
@@ -273,7 +323,9 @@ func _ready() -> void:
 		var k := 0
 		for pg in BOOT_PAGES:
 			if ui.menu.pages.has(pg) or ui.menu.pages.size() >= ui.menu.page_cap(): continue
-			await UITex.await_ready(self, UITex.manifest(pg), 1.5)
+			var need: Array = UITex.manifest(pg)
+			if ui.menu.prewarm: need.append_array(ui.menu.prewarm._extra(pg))
+			await UITex.await_ready(self, need, 2.0)
 			ui.menu.prebuild(pg)
 			k += 1
 			await _boot_step(0.88 + k * 0.005)
@@ -406,6 +458,7 @@ func start_run(wi: int = 0, mi: int = 0, seal = null) -> void:
 ## saatiyle biter (2400 ms) — kare döngüsünden bağımsız.
 func _intro_mid() -> void:
 	_start_run_now(_intro_wi, _intro_mi)
+	if renderer3d and not OS.get_cmdline_user_args().has("nowarm"): renderer3d.warm_scene()      # ilk çizim derlemeleri perdenin ardında
 	freeze = maxf(freeze, 2.3)
 	_curtain_at = _now_ms() + 2400.0
 

@@ -9,9 +9,12 @@ static var _last := 0.0
 static func b(k: String) -> void:
 	if on: _t0[k] = Time.get_ticks_usec()
 
+static var _mx := {}
 static func e(k: String) -> void:
 	if not on or not _t0.has(k): return
-	_acc[k] = float(_acc.get(k, 0.0)) + (Time.get_ticks_usec() - int(_t0[k])) / 1000.0
+	var ms := (Time.get_ticks_usec() - int(_t0[k])) / 1000.0
+	_acc[k] = float(_acc.get(k, 0.0)) + ms
+	if ms > float(_mx.get(k, 0.0)): _mx[k] = ms
 
 static func frame() -> void:
 	if not on: return
@@ -24,6 +27,12 @@ static func frame() -> void:
 	var s := "PROF"
 	for k in keys: s += " " + k + "=" + str(snappedf(_acc[k] / maxf(1, _frames), 0.01))
 	print(s)
+	var mk := _mx.keys()
+	mk.sort_custom(func(a, c): return _mx[a] > _mx[c])
+	var s2 := "PROFMAX"
+	for k in mk.slice(0, 8): s2 += " " + k + "=" + str(snappedf(_mx[k], 0.1))
+	print(s2)
+	_mx.clear()
 	_acc.clear()
 	_frames = 0
 

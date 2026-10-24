@@ -204,20 +204,20 @@
     "LeftArm": [
      0,
      0,
-     -14
+     -12
     ],
     "RightArm": [
      0,
      0,
-     14
+     12
     ],
     "LeftForeArm": [
-     12,
+     10,
      0,
      0
     ],
     "RightForeArm": [
-     12,
+     10,
      0,
      0
     ],
@@ -233,7 +233,8 @@
      0,
      0.78
     ]
-   }
+   },
+   "armHold": true
   },
   "fenerci": {
    "file": "heroes/fenerci.glb",

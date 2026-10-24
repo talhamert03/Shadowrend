@@ -108,6 +108,10 @@ var idleBones = null
 var _poseBase: Array = []
 ## Meshy kahramanları: animasyonun üstüne kol/el düzeltmesi [kemik, ek dönüş, ölçek]
 var _armFix: Array = []
+## armHold (meta): yürüyüşün kol hareketi yerine sabit, rahat kol duruşu + bacaklara eşlenen
+## sade ileri-geri sallanma (Meshy yürüyüşünde eller bilekten kıvrılıp gövdeye giriyordu)
+var _hold: Array = []         # [kemik, taban dönüşü]
+var _holdArm := [-1, -1]      # LeftArm, RightArm
 var _heroBaseY := 0.0
 var _heroBaseValid := false
 var _heroTopY := 91.0
@@ -359,7 +363,7 @@ func load_character(char_id: String) -> void:
 		_heroInst.queue_free()
 	_heroInst = null
 	heroMesh = null
-	heroAnim = null; heroSkel = null; idleBones = null; _poseBase = []; _armFix = []
+	heroAnim = null; heroSkel = null; idleBones = null; _poseBase = []; _armFix = []; _hold = []; _holdArm = [-1, -1]
 	heroReady = false; _heroBaseValid = false
 	var md = MODELS.heroes.get(char_id)
 	if wpn: wpn.on_character(char_id, md)
@@ -402,6 +406,11 @@ func load_character(char_id: String) -> void:
 	if heroSkel:
 		# armFix: {"LeftArm": [x°, y°, z°, ölçek?]} — A-pozdan gelen açık kol ve avucu yukarı
 		# bakan elleri gövdeye yaklaştırır (yerel eksende, animasyondan sonra çarpılır)
+		if md.get("armHold", false):
+			for bn in ["LeftShoulder", "RightShoulder", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm", "LeftHand", "RightHand"]:
+				var hb := heroSkel.find_bone(bn)
+				if hb >= 0: _hold.append([hb, heroSkel.get_bone_pose_rotation(hb)])
+			_holdArm = [heroSkel.find_bone("LeftArm"), heroSkel.find_bone("RightArm")]
 		var af: Dictionary = md.get("armFix", {})
 		for bn in af:
 			var bix := heroSkel.find_bone(bn)
@@ -478,18 +487,20 @@ func render(g) -> void:
 	if g.player.charId and g.player.charId != _currentCharId:
 		load_character(g.player.charId)
 	_update_camera(g)
-	_update_ground(g)
-	_update_props(g)
-	_update_decor(g)
+	Prof.b("r3.ground"); _update_ground(g); Prof.e("r3.ground")
+	Prof.b("r3.props"); _update_props(g); Prof.e("r3.props")
+	Prof.b("r3.decor"); _update_decor(g); Prof.e("r3.decor")
 	_update_objective(g)
-	if fieldChestView: fieldChestView.update(g)
+	Prof.b("r3.fchest"); if fieldChestView: fieldChestView.update(g)
+	Prof.e("r3.fchest")
 	_update_atmosphere(g, dt)
 	if isles: isles.update(now / 1000.0, dt)
-	_update_player(g, dt)
-	wpn.update(g, dt)
-	en.update(g, dt)
-	fx.update(g, dt)
-	death.update(dt, fx.cam)
+	Prof.b("r3.player"); _update_player(g, dt); Prof.e("r3.player")
+	Prof.b("r3.wpn"); wpn.update(g, dt); Prof.e("r3.wpn")
+	Prof.b("r3.en"); en.update(g, dt); Prof.e("r3.en")
+	Prof.b("r3.fx"); fx.update(g, dt); Prof.e("r3.fx")
+	Prof.b("r3.death"); death.update(dt, fx.cam); Prof.e("r3.death")
+	if _warmN > 0: _warm_tick()
 
 func _update_camera(g) -> void:
 	var cx: float = g.cam.x + g.shakeX
@@ -834,6 +845,18 @@ func _update_player(g, dt: float) -> void:
 				heroAnim.seek(0, true)
 				_walkPaused = true
 			heroAnim.advance(0)
+	if not _hold.is_empty():
+		# animasyonun kol salınımından ileri-geri bileşeni (bacaklarla eş zamanlı) → sade salınım
+		var sw := 0.0
+		if p.moving and _holdArm[0] >= 0:
+			for e in _hold:
+				if e[0] == _holdArm[0]:
+					var d: Quaternion = (e[1] as Quaternion).inverse() * heroSkel.get_bone_pose_rotation(e[0])
+					sw = clampf(d.get_euler().x * 0.8, -0.3, 0.3)
+		for e in _hold: heroSkel.set_bone_pose_rotation(e[0], e[1])
+		if sw != 0.0:
+			if _holdArm[0] >= 0: heroSkel.set_bone_pose_rotation(_holdArm[0], heroSkel.get_bone_pose_rotation(_holdArm[0]) * Quaternion(Vector3.RIGHT, sw))
+			if _holdArm[1] >= 0: heroSkel.set_bone_pose_rotation(_holdArm[1], heroSkel.get_bone_pose_rotation(_holdArm[1]) * Quaternion(Vector3.RIGHT, -sw))
 	for e in _armFix:
 		heroSkel.set_bone_pose_rotation(e[0], heroSkel.get_bone_pose_rotation(e[0]) * e[1])
 		if e[2] != 1.0: heroSkel.set_bone_pose_scale(e[0], Vector3.ONE * e[2])
@@ -878,4 +901,48 @@ func spawn_judgement(x: float, y: float) -> void: wpn.spawn_judgement(x, y)
 func spawn_lightning_arc(x1: float, y1: float, x2: float, y2: float) -> void: wpn.spawn_lightning_arc(x1, y1, x2, y2)
 func spawn_storm_strike(x: float, y: float) -> void: wpn.spawn_storm_strike(x, y)
 func enemy_death(e, ang: float, quiet := false) -> void: en.enemy_death(e, ang, quiet)
+# ═══════════ GÖLGELENDİRİCİ ISITMA (savaş perdesi altında) ═══════════
+# Uyumluluk çizicisi gölgelendiricileri İLK ÇİZİMDE derler (mobilde 30–300 ms): ilk düşman modeli,
+# ilk vuruş kıvılcımı, ilk silah efekti savaşın ortasında takılma yapıyordu. Perde kapalıyken
+# sahnedeki tüm gizli düğümler ve boş örnek ağları birkaç kare görünür/1 örnekli çizilir, sonra
+# eski hâline döner (ağlarda kesme payı geniş → ekran dışında da çizilir).
+var _warmN := 0
+var _warmList: Array = []
+
+func warm_scene(frames := 3) -> void:
+	_warm_restore()
+	_warmN = frames
+	_warm_collect(scene)
+
+func _warm_collect(n: Node) -> void:
+	for c in n.get_children():
+		if c == vp: continue
+		if c is Node3D and not (c as Node3D).visible:
+			_warmList.append([c, "vis"])
+		if c is MultiMeshInstance3D:
+			var mm := (c as MultiMeshInstance3D).multimesh
+			if mm and mm.instance_count > 0 and mm.visible_instance_count == 0: _warmList.append([c, "mm"])
+		_warm_collect(c)
+
+func _warm_tick() -> void:
+	_warmN -= 1
+	if _warmN <= 0:
+		_warm_restore()
+		return
+	# mantık her kare görünürlüğü/sayıyı yeniden yazabilir → her ısıtma karesinde yeniden zorla
+	for e in _warmList:
+		var n = e[0]
+		if not is_instance_valid(n): continue
+		if e[1] == "vis": (n as Node3D).visible = true
+		else: (n as MultiMeshInstance3D).multimesh.visible_instance_count = 1
+
+func _warm_restore() -> void:
+	for e in _warmList:
+		var n = e[0]
+		if not is_instance_valid(n): continue
+		if e[1] == "vis": (n as Node3D).visible = false
+		else: (n as MultiMeshInstance3D).multimesh.visible_instance_count = 0
+	_warmList.clear()
+	_warmN = 0
+
 func prewarm_field_chests() -> void: if fieldChestView: fieldChestView.prewarm()

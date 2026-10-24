@@ -95,6 +95,9 @@ static func make(name: String, skip_keys: Array = []) -> Lyr:
 	n_make += 1
 	L.build(J, skip_keys)
 	if ComicSkin.auto_on(name): ComicSkin.auto(L)
+	if Prof.on:
+		var ms := (Time.get_ticks_usec() - t0) / 1000.0
+		if ms > 2.0: print("LYRMAKE ", name, " ", snappedf(ms, 0.1), " ms")
 	return L
 
 func _init() -> void:
