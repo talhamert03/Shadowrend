@@ -59,7 +59,7 @@ var _ruby := 0.0
 var _stone := 0.0
 var _tw := {}                # düğüm anahtarı → [from, to, t0]
 var home: Lyr
-var _map: ClimbArt
+var _map: ArenaArt
 var _mapN: Lyr.N
 var _slotL: Array = [null, null, null, null]     # dolu yuva katmanı (cs_<tür>_<durum>)
 var _slotKey: Array = ["", "", "", ""]
@@ -561,8 +561,8 @@ func _bind_home(L: Lyr) -> void:
 	# gök tırmanışı önizlemesi (#map-canvas-3d'nin yerine, .map-float içinde)
 	_mapN = L.find(".map-float")
 	if _mapN:
-		_map = ClimbArt.new()
-		_map.set_clip(L.clip_mat(_mapN), L.clip_mat(_mapN, true))
+		_map = ArenaArt.new()      # CR arena kartı gibi: oyunun kendi 3B dioraması
+		_map.set_clip(L.clip_mat(_mapN))
 		_mapN.node.add_child(_map)
 
 func _render(p: String) -> void:
@@ -591,7 +591,7 @@ func _render_home() -> void:
 	var mk := [int(nm.w), cleared, _mapN.size if _map else Vector2.ZERO]
 	if _map and mk != _mapKey:
 		_mapKey = mk
-		_map.paint(wd, cleared, _mapN.size.x, _mapN.size.y)
+		_map.setup(wd, _mapN.size)
 	L.set_text(L.find_id("#map-world-no"), str(nm.w))
 	L.set_text(L.find_id("#map-world-name"), str(wd.name))
 	_fill(L, "#map-world-fill", float(cleared) / D.MISSIONS_PER_WORLD)
@@ -696,7 +696,7 @@ func render_slots() -> void:
 		var mk := [hw, hc, _mapN.size]
 		if mk != _mapKey:
 			_mapKey = mk
-			_map.paint(D.WORLDS[hw - 1], hc, _mapN.size.x, _mapN.size.y)
+			_map.setup(D.WORLDS[hw - 1], _mapN.size)
 	_slot_texts()
 	ComicSkin.refresh(L)
 

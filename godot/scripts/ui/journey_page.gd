@@ -147,10 +147,13 @@ func render_worlds() -> void:
 		# uzaklaşınca bırakılır (10 dünyanın tüm çizimleri ~120 MB doku)
 		var an := C.find(".wsel-art")
 		if an:
-			var art := ClimbArt.new()
-			art.set_clip(C.clip_mat(an), C.clip_mat(an, true))
+			# Clash Royale arena kartı: dünya renginde sade zemin + oyunun kendi 3B dioraması
+			if an.img: an.img.visible = false
+			var art := ArenaArt.new()
+			art.set_clip(C.clip_mat(an))
 			an.node.add_child(art)
-			_lazy.append({"art": art, "wd": wd, "cleared": cleared, "w": an.size.x, "h": an.size.y, "y0": y, "y1": y + C.nodes[0].size.y, "st": 0, "paths": []})
+			var info := C.find(".wsel-info")
+			art.setup(wd, an.size, (info.pos.y - 2.0) if info else an.size.y * 0.6, st == "locked")
 		var cnt := C.find(".wsel-count")
 		if cnt: C.set_text(cnt, str(cleared) + "/" + str(MPW))
 		var pr := C.find(".wsel-progress")

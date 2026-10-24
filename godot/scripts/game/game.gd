@@ -209,6 +209,7 @@ func _ready() -> void:
 	await _boot_step(0.12)
 	# ana sayfa dokuları arka planda çözülmeye başlasın (menü kurulurken hazır olsun)
 	UITex.request(UITex.manifest("savas"), true)
+	UITex.request(range(1, 11).map(func(i): return ArenaArt.path_of(i)), true)
 	_build_pools()
 	await _boot_step(0.2)
 

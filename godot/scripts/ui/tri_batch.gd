@@ -29,6 +29,16 @@ func circle(c: Vector2, r: float, col: Color, seg := 0) -> void:
 		_tri(c, p0, p1, col)
 		p0 = p1
 
+## yumuşak hale/gölge: merkez rengi kenara doğru sönen elips (sy: dikey basıklık)
+func radial(c: Vector2, r: float, cin: Color, cout: Color, sy := 1.0, seg := 36) -> void:
+	var p0 := c + Vector2(r, 0)
+	for i in seg:
+		var a := (i + 1) * TAU / seg
+		var p1 := c + Vector2(cos(a) * r, sin(a) * r * sy)
+		V.append(c); V.append(p0); V.append(p1)
+		C.append(cin); C.append(cout); C.append(cout)
+		p0 = p1
+
 func rect(r: Rect2, col: Color, xf := Transform2D.IDENTITY) -> void:
 	var a := xf * r.position
 	var b := xf * Vector2(r.end.x, r.position.y)

@@ -97,10 +97,7 @@ func _extra(pg: String) -> Array:
 		"magaza":
 			for k in D.CHARACTERS: out.append("res://assets/ui/art/portrait/" + str(k) + ".webp")
 		"dunyalar":
-			var w: int = int(menu.home_target().w)
-			var sz := JourneyPage.art_size()
-			for ww in [w, w + 1, w - 1]:
-				if ww >= 1 and ww <= D.WORLDS.size(): out.append_array(ClimbArt.card_paths(ww, sz.x, sz.y))
+			for ww in range(1, D.WORLDS.size() + 1): out.append(ArenaArt.path_of(ww))
 	return out
 
 func _process(dt: float) -> void:
