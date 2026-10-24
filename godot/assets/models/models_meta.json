@@ -800,6 +800,104 @@
    "restT": null,
    "tris": 6334,
    "src": "meshy"
+  },
+  "kemik_filiz": {
+   "floor": "kemikbahce",
+   "file": "enemies/kemik_filiz.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 80.0,
+   "baseScale": 61.53846153846153,
+   "rigPos": [
+    -0.007,
+    0.0,
+    0.065
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 0.6667,
+   "share": 0.54,
+   "shadowR": 12.0,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6364,
+   "src": "meshy"
+  },
+  "kemik_budayici": {
+   "floor": "kemikbahce",
+   "file": "enemies/kemik_budayici.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 100.0,
+   "baseScale": 62.5,
+   "rigPos": [
+    0.013,
+    0.0,
+    -0.048
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 12.0,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6248,
+   "src": "meshy"
+  },
+  "kemik_bekci": {
+   "floor": "kemikbahce",
+   "file": "enemies/kemik_bekci.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 140.0,
+   "baseScale": 63.63636363636363,
+   "rigPos": [
+    -0.006,
+    0.0,
+    0.062
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 20.0,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 5989,
+   "src": "meshy"
   }
  },
  "bosses": {
