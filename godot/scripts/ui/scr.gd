@@ -32,9 +32,9 @@ class _Ticker extends Node:
 	func _init() -> void: process_mode = Node.PROCESS_MODE_ALWAYS
 	func _process(dt: float) -> void: cb.call(dt)
 
-func btn(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 4.0) -> void:
+func btn(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 4.0, hit := Rect2()) -> void:
 	if n == null: return
-	_btns.append({"lyr": L, "n": n, "cb": cb, "scale": press_scale, "grow": grow})
+	_btns.append({"lyr": L, "n": n, "cb": cb, "scale": press_scale, "grow": grow, "hit": hit})
 
 ## kaydırılabilir alan (yakalamadaki overflow-y:auto düğümü)
 func scroll_area(L: Lyr, n: Lyr.N) -> void:
@@ -92,7 +92,8 @@ func clear_btns() -> void:
 
 func _rect(B: Dictionary) -> Rect2:
 	var L: Lyr = B.lyr
-	var r := L.visible_rect_of(B.n)
+	# hit: katman yerelinde elle verilen dokunma kutusu (çizim dönüşümüyle kayan düğümler için)
+	var r: Rect2 = B.hit if B.get("hit", Rect2()).has_area() else L.visible_rect_of(B.n)
 	if r.size.x <= 0 or r.size.y <= 0: return Rect2()
 	return _clip(L, (L.get_global_transform() * r).grow(B.grow))
 

@@ -223,7 +223,8 @@ func render_chapters(w: int) -> void:
 		if nxt or (boss and target_y < 0 and not done): target_y = top
 		if done or nxt:
 			var mm := m
-			menu.btn(Nn, Nn.nodes[0], func(): _pick(w, mm), 0.92)
+			# daire + OYNA etiketi birlikte, cömert dokunma kutusu
+			menu.btn(Nn, Nn.nodes[0], func(): _pick(w, mm), 0.92, 12.0, _node_hit(Nn))
 	var foot := Lyr.make("cn_foot")
 	holder.add_child(foot)
 	_items.append(foot)
@@ -232,6 +233,24 @@ func render_chapters(w: int) -> void:
 	if target_y < 0: target_y = H
 	var visH := maxf(120.0, root.size.y - PAD_T - PAD_B)
 	shell.set_scroll(root, clampf(top0 + target_y - (PAD_T + visH / 2.0), 0, shell.scroll_max(root)))
+
+## düğümün ÇİZİLDİĞİ kutu: kökün ve çocukların öteleme dönüşümleri dahil (rect_of bunları
+## içermez; yakalamadaki translate(-50%,-50%) yüzünden dokunma kutusu daireden kayıyordu)
+static func _tf_off(q: Lyr.N) -> Vector2:
+	var o := Vector2.ZERO
+	for f in q.d.get("tf", []):
+		if f is Array and f.size() >= 7 and String(f[0]) == "matrix": o += Vector2(float(f[5]), float(f[6]))
+	return o
+
+func _node_hit(L: Lyr) -> Rect2:
+	var o0 := _tf_off(L.nodes[0])
+	var r := Rect2()
+	for q in L.nodes:
+		var o := o0 + (_tf_off(q) if q != L.nodes[0] else Vector2.ZERO)
+		var qr := L.rect_of(q)
+		qr.position += o
+		r = qr if not r.has_area() else r.merge(qr)
+	return r.grow(6)
 
 func _pick(w: int, m: int) -> void:
 	g.audio.play("click")

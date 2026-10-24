@@ -184,6 +184,8 @@ func boot() -> void:
 			if pg and _arg("evtab") != "" and "tab" in pg:
 				pg.tab = _arg("evtab")
 				pg.render()
+			if pg and _arg("chw") != "" and pg.has_method("render_chapters"):
+				pg.render_chapters(int(_arg("chw")))   # geliştirici: bölüm seçimini aç
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
