@@ -9,6 +9,8 @@ Komutlar:
   preview <ad> <prompt-dosyası>   düşük poligonlu ağ (smart-topology, A-poz) + küçük resim
   refine  <ad>                    doku (2K) — prompt aynı dosyadan
   rig     <ad> [--height 1.7]     iskelet + hazır yürüme/koşu animasyonlu GLB'ler
+  concept <ad> <prompt-dosyası>   konsept görsel (A-poz, saydam zemin)
+  img3d   <ad> [--image png]      konsept görevinden (ya da yerel PNG'den) dokulu model
   all     <ad> <prompt-dosyası>   preview → refine → rig
 Her adım harcanan krediyi (consumed_credits) yazar.
 """
@@ -118,7 +120,11 @@ def cmd_concept(args):
 def cmd_img3d(args):
     """konsept görselden dokulu düşük poligon model (tek adım: ağ + doku)"""
     s = load(args, args.name)
-    body = {"input_task_id": s["concept"], "model_type": "smart-topology", "ai_model": "meshy-t2.5",
+    src = {"input_task_id": s["concept"]}
+    if args.image:   # yerelde temizlenmiş görsel (örn. zemin/yazı silinmiş) → base64 veri adresi
+        import base64
+        src = {"image_url": "data:image/png;base64," + base64.b64encode(open(args.image, "rb").read()).decode()}
+    body = {**src, "model_type": "smart-topology", "ai_model": "meshy-t2.5",
             "target_polycount": args.poly, "should_texture": True, "texture_resolution": "2k", "pose_mode": "a-pose"}
     tid = req(args, "POST", "/openapi/v1/image-to-3d", body)["result"]
     print("img3d", tid)
@@ -161,6 +167,7 @@ def main():
     p = sub.add_parser("concept"); p.add_argument("name"); p.add_argument("prompt")
     p.add_argument("--img-model", default="nano-banana-2")
     p = sub.add_parser("img3d"); p.add_argument("name"); p.add_argument("--poly", type=int, default=6000)
+    p.add_argument("--image", default="", help="konsept görevi yerine yerel PNG")
     p = sub.add_parser("refine"); p.add_argument("name")
     p = sub.add_parser("rig"); p.add_argument("name"); p.add_argument("--height", type=float, default=1.7)
     args = ap.parse_args()

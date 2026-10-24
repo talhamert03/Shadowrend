@@ -996,6 +996,243 @@
    "restT": null,
    "tris": 6339,
    "src": "meshy"
+  },
+  "bahce_kukla": {
+   "floor": "gokada",
+   "file": "enemies/bahce_kukla.glb",
+   "types": [
+    "zombi"
+   ],
+   "height": 86.0,
+   "baseScale": 57.33333461483312,
+   "rigPos": [
+    0.004,
+    0.0,
+    -0.051
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 0.6667,
+   "share": 0.54,
+   "shadowR": 12.9,
+   "stepRate": 0.62,
+   "stepMin": 0.5,
+   "stepMax": 0.85,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 5526,
+   "src": "meshy"
+  },
+  "bahce_cuce": {
+   "floor": "gokada",
+   "file": "enemies/bahce_cuce.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 90.0,
+   "baseScale": 69.23077276208024,
+   "rigPos": [
+    0.002,
+    0.0,
+    0.061
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 12.2,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6279,
+   "src": "meshy"
+  },
+  "bahce_golem": {
+   "floor": "gokada",
+   "file": "enemies/bahce_golem.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 142.0,
+   "baseScale": 64.54545489520083,
+   "rigPos": [
+    -0.01,
+    0.0,
+    -0.005
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 14.2,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 5667,
+   "src": "meshy"
+  },
+  "hiclik_haberci": {
+   "floor": "hiclik",
+   "file": "enemies/hiclik_haberci.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 108.0,
+   "baseScale": 60.00001500050609,
+   "rigPos": [
+    0.011,
+    0.0,
+    -0.086
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 14.6,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6337,
+   "src": "meshy"
+  },
+  "hiclik_muhafiz": {
+   "floor": "hiclik",
+   "file": "enemies/hiclik_muhafiz.glb",
+   "types": [
+    "muhafiz"
+   ],
+   "height": 140.0,
+   "baseScale": 63.636363981183926,
+   "rigPos": [
+    -0.034,
+    0.0,
+    -0.065
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 14.0,
+   "stepRate": 0.55,
+   "stepMin": 0.45,
+   "stepMax": 0.75,
+   "idleRate": null,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 0,
+   "castAxis": "z",
+   "castBones": [],
+   "restT": null,
+   "tris": 6205,
+   "src": "meshy"
+  },
+  "batak_saman": {
+   "floor": "bataklik",
+   "file": "enemies/batak_saman.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 98.0,
+   "baseScale": 65.33333073722024,
+   "rigPos": [
+    0.003,
+    0.0,
+    -0.0
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 13.2,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6332,
+   "src": "meshy"
+  },
+  "tuz_kahin": {
+   "floor": "tuzla",
+   "file": "enemies/tuz_kahin.glb",
+   "types": [
+    "atici"
+   ],
+   "height": 104.0,
+   "baseScale": 61.176467263574985,
+   "rigPos": [
+    0.025,
+    0.0,
+    -0.043
+   ],
+   "yawFix": 0,
+   "clip": null,
+   "clipDur": 1.0667,
+   "share": 0.22,
+   "shadowR": 14.0,
+   "stepRate": 0.58,
+   "stepMin": 0.45,
+   "stepMax": 0.8,
+   "idleRate": 0.14,
+   "emissiveIntensity": 0.9,
+   "lift": 0.5,
+   "cast": 1,
+   "castAxis": "z",
+   "castBones": [
+    "Spine01",
+    "Head",
+    "RightArm",
+    "RightForeArm"
+   ],
+   "restT": null,
+   "tris": 6379,
+   "src": "meshy"
   }
  },
  "bosses": {

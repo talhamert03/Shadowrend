@@ -72,6 +72,7 @@
    "hue": 105,
    "roster": {
     "zombi": 1,
+    "atici": 0.8,
     "muhafiz": 1.25
    },
    "hpMul": 1.87,
@@ -176,6 +177,7 @@
    "hue": 40,
    "roster": {
     "zombi": 1,
+    "atici": 0.8,
     "muhafiz": 1,
     "patlayici": 1
    },
