@@ -433,12 +433,13 @@ func _draw_face(n: Node2D, w: float, h: float, k: float, col: Color, ic: Vector2
 	n.draw_style_box(b, rr)
 	# aksiyon ışınları (kart içine kırpılı)
 	var box := PackedVector2Array([rr.position + Vector2(4, 4) * k, Vector2(rr.end.x - 4 * k, rr.position.y + 4 * k), rr.end - Vector2(4, 4) * k, Vector2(rr.position.x + 4 * k, rr.end.y - 4 * k)])
+	var B := TriBatch.new()
 	for i in 16:
 		var a := i * TAU / 16.0
 		var R := w * 1.3
 		var tri := PackedVector2Array([ic, ic + Vector2(cos(a - 0.11), sin(a - 0.11)) * R, ic + Vector2(cos(a + 0.11), sin(a + 0.11)) * R])
 		for q in Geometry2D.intersect_polygons(tri, box):
-			if q.size() >= 3: n.draw_colored_polygon(q, Color(lite, 0.5))
+			if q.size() >= 3: B.poly(q, Color(lite, 0.5))
 	# yarım ton: alt yarıda büyüyen koyu noktalar
 	var step := 9.0 * k
 	var rows := int(h * 0.5 / step)
@@ -446,7 +447,8 @@ func _draw_face(n: Node2D, w: float, h: float, k: float, col: Color, ic: Vector2
 		for xx in range(-int(w * 0.5 / step), int(w * 0.5 / step) + 1):
 			var p := Vector2(xx * step + (step * 0.5 if yy % 2 else 0.0), h * 0.02 + yy * step)
 			if absf(p.x) < w * 0.5 - 7 * k and p.y < h * 0.5 - 7 * k:
-				n.draw_circle(p, (0.5 + yy * 0.32) * k, Color(dark, 0.4))
+				B.circle(p, (0.5 + yy * 0.32) * k, Color(dark, 0.4), 8)
+	B.flush(n)
 	# ad bandı (siyah, hafif eğik)
 	var by := h * 0.5 - 0.36 * h
 	n.draw_colored_polygon(PackedVector2Array([Vector2(-w * 0.5 + 3 * k, by - 2 * k), Vector2(w * 0.5 - 3 * k, by - 6 * k), Vector2(w * 0.5 - 3 * k, by + 30 * k), Vector2(-w * 0.5 + 3 * k, by + 33 * k)]), Color(INK, 0.82))
@@ -483,11 +485,13 @@ func _draw_back(n: Node2D, w: float, h: float, k: float, col: Color) -> void:
 	b.set_corner_radius_all(int(14 * k))
 	n.draw_style_box(b, rr)
 	var box := PackedVector2Array([rr.position + Vector2(4, 4) * k, Vector2(rr.end.x - 4 * k, rr.position.y + 4 * k), rr.end - Vector2(4, 4) * k, Vector2(rr.position.x + 4 * k, rr.end.y - 4 * k)])
+	var B := TriBatch.new()
 	for i in 14:
 		var a := i * TAU / 14.0
 		var tri := PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.12), sin(a - 0.12)) * w * 1.3, Vector2(cos(a + 0.12), sin(a + 0.12)) * w * 1.3])
 		for q in Geometry2D.intersect_polygons(tri, box):
-			if q.size() >= 3: n.draw_colored_polygon(q, Color(col.lightened(0.35), 0.5))
+			if q.size() >= 3: B.poly(q, Color(col.lightened(0.35), 0.5))
+	B.flush(n)
 	var o := StyleBoxFlat.new()
 	o.bg_color = Color(0, 0, 0, 0)
 	o.set_corner_radius_all(int(14 * k))
@@ -516,9 +520,11 @@ static func _star(n: Node2D, c: Vector2, r0: float, r1: float, pts: int, col: Co
 func _draw_rays() -> void:
 	if _rays_a <= 0.004: return
 	var R := _W.y * 1.1
+	var B := TriBatch.new()
 	for i in 18:
 		var a := i * TAU / 18.0
-		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.08), sin(a - 0.08)) * R, Vector2(cos(a + 0.08), sin(a + 0.08)) * R]), Color(_rays_col, _rays_a))
+		B._tri(Vector2.ZERO, Vector2(cos(a - 0.08), sin(a - 0.08)) * R, Vector2(cos(a + 0.08), sin(a + 0.08)) * R, Color(_rays_col, _rays_a))
+	B.flush(_rays)
 
 func _draw_badge() -> void:
 	_star(_badge, Vector2.ZERO, 30, 23, 12, YEL, 3.0, _t * 0.6)
@@ -563,7 +569,8 @@ func _draw_fx() -> void:
 			I3.append(wc + Vector2(cos(an) * rr * 1.05, sin(an) * rr * 0.36 * 1.05) + Vector2(5, 6))
 		_fx.draw_colored_polygon(I3, Color(INK, _word.modulate.a))
 		_fx.draw_colored_polygon(P3, Color(cc.darkened(0.15), _word.modulate.a))
-	# kıvılcımlar: dört köşeli yıldız / kare kırıntı
+	# kıvılcımlar + konfeti: tek üçgen ağı (yüzlerce parça → tek çizim çağrısı)
+	var B := TriBatch.new()
 	for p in parts:
 		var kk: float = 1.0 - float(p.life) / float(p.max)
 		var c2: Color = p.col
@@ -571,21 +578,20 @@ func _draw_fx() -> void:
 		var pp: Vector2 = p.p
 		var r: float = float(p.size) * (1.0 - kk * 0.5)
 		if p.star:
-			_fx.draw_colored_polygon(PackedVector2Array([pp + Vector2(0, -r * 2.2), pp + Vector2(r * 0.45, 0), pp + Vector2(0, r * 2.2), pp + Vector2(-r * 0.45, 0)]), c2)
-			_fx.draw_colored_polygon(PackedVector2Array([pp + Vector2(-r * 2.2, 0), pp + Vector2(0, r * 0.45), pp + Vector2(r * 2.2, 0), pp + Vector2(0, -r * 0.45)]), c2)
+			B.poly(PackedVector2Array([pp + Vector2(0, -r * 2.2), pp + Vector2(r * 0.45, 0), pp + Vector2(0, r * 2.2), pp + Vector2(-r * 0.45, 0)]), c2)
+			B.poly(PackedVector2Array([pp + Vector2(-r * 2.2, 0), pp + Vector2(0, r * 0.45), pp + Vector2(r * 2.2, 0), pp + Vector2(0, -r * 0.45)]), c2)
 		else:
-			_fx.draw_rect(Rect2(pp - Vector2.ONE * r * 0.5, Vector2.ONE * r), c2)
-	# konfeti
+			B.rect(Rect2(pp - Vector2.ONE * r * 0.5, Vector2.ONE * r), c2)
 	for q in confetti:
 		var u: float = (q.t - q.delay) / q.dur
 		if u < 0 or u > 1: continue
 		var c3: Color = q.col
 		c3.a = clampf((1.0 - u) * 3.0, 0, 1)
 		var pos := Vector2(q.x + q.drift * u + sin(u * 9.0 + q.ph) * 14.0, -20.0 + (_W.y * 0.9) * u)
-		_fx.draw_set_transform(pos, q.rot * u + q.ph, Vector2(1.0, absf(cos(u * 14.0 + q.ph))))
-		_fx.draw_rect(Rect2(-4, -6, 8, 12), c3)
-		_fx.draw_rect(Rect2(-4, -6, 8, 12), INK, false, 1.5)
-		_fx.draw_set_transform(Vector2.ZERO)
+		var xf := Transform2D(q.rot * u + q.ph, Vector2(1.0, absf(cos(u * 14.0 + q.ph))), 0.0, pos)
+		B.rect(Rect2(-4, -6, 8, 12), c3, xf)
+		B.frame(Rect2(-4.75, -6.75, 9.5, 13.5), Color(INK, c3.a), 1.5, xf)
+	B.flush(_fx)
 
 func _chest_mouth() -> Vector2:
 	return stage.position + Vector2(STAGE * 0.5, STAGE * 0.52)
