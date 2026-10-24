@@ -21,6 +21,10 @@ const ULT_ID := {
 	"sovalye": {"name": "AYAZ SURU",     "col": "#e6f8ff", "c2": "#8fd6ff", "k": "spike",  "base": 0,  "hr": 70.0,  "desc": "Buz surları dışa doğru üç halka hâlinde fışkırır."},
 	"seher":   {"name": "SEHER GİRDABI", "col": "#fff0c4", "c2": "#ff9a4a", "k": "vortex", "base": 0,  "hr": 0.0,   "desc": "Üç güneş kılıcı dönerek genişler, her şeyi süpürür."},
 	"savasci": {"name": "KALE ÇIĞLIĞI",  "col": "#ffd8bf", "c2": "#d8623a", "k": "slam",   "base": 0,  "hr": 0.0,   "desc": "Kalkan yere iner; çatlaklı şok dalgası yayılır."},
+	"mezarci": {"name": "MEZAR ÇUKURU",  "col": "#f0e2c4", "c2": "#8a5a32", "k": "slam",   "base": 0,  "hr": 0.0,   "desc": "Kürek yere iner; toprak dalga dalga kabarır, sürüyü savurur."},
+	"fenerci": {"name": "RUH AYI",       "col": "#d8ffe8", "c2": "#3fdc8a", "k": "moon",   "base": 14, "hr": 70.0,  "desc": "Gökte yeşil bir ay doğar; ruh okları yağar."},
+	"zehra":   {"name": "ZEHİR YAĞMURU", "col": "#e4ffc8", "c2": "#6fd83a", "k": "meteor", "base": 8,  "hr": 110.0, "desc": "Gökten zehirli damlalar çapraz düşer, geniş patlar."},
+	"demirhan": {"name": "YILDIZ SURU",  "col": "#fff4c8", "c2": "#ffb43a", "k": "spike",  "base": 0,  "hr": 70.0,  "desc": "Çekiç iner; yıldız kristalleri dışa doğru üç halka hâlinde fışkırır."},
 }
 const KIND := {
 	"moon":   {"fall": 0.26, "spread": 1.0,  "linger": 0.55},

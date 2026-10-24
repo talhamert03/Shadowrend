@@ -95,6 +95,7 @@ class PBullet:
 	var explode := 0; var split := 0; var frag := false; var smoke := 0; var metal := false
 	var fireball := false; var ph := 0.0; var nova := 0; var burned := false; var critAdd := 0.0
 	var stone := false; var shatter := 0
+	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
 	func setup(px, py, pvx, pvy, pdmg, ppierce, plife, pr, pcolor) -> PBullet:
 		x = px; y = py; vx = pvx; vy = pvy
@@ -103,7 +104,7 @@ class PBullet:
 		color = pcolor if pcolor else "#59e3c8"
 		lastHit = null
 		split = 0; frag = false; smoke = 0; metal = false
-		fireball = false; ph = 0.0; burned = false; nova = 0
+		fireball = false; ph = 0.0; burned = false; nova = 0; pal = ""
 		return self
 
 class EBullet:

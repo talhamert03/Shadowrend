@@ -76,9 +76,11 @@ def cmd_preview(args):
         body = {"mode": "preview", "prompt": s["prompt"], "model_type": "standard", "ai_model": args.std,
                 "should_remesh": True, "topology": "triangle", "target_polycount": args.poly,
                 "pose_mode": "a-pose", "target_formats": ["glb"], "origin_at": "bottom"}
+        if getattr(args, "nopose", False): body.pop("pose_mode")
     else:
         body = {"mode": "preview", "prompt": s["prompt"], "model_type": "smart-topology", "ai_model": args.model,
                 "target_polycount": args.poly, "pose_mode": "a-pose", "target_formats": ["glb"], "origin_at": "bottom"}
+        if getattr(args, "nopose", False): body.pop("pose_mode")
     tid = req(args, "POST", "/openapi/v2/text-to-3d", body)["result"]
     print("preview", tid)
     t = wait(args, "/openapi/v2/text-to-3d", tid)
@@ -164,6 +166,7 @@ def main():
         p.add_argument("--model", default="meshy-t2.5"); p.add_argument("--poly", type=int, default=6000)
         p.add_argument("--height", type=float, default=1.7)
         p.add_argument("--std", default="", help="standart model (örn. meshy-6) — karmaşık tarifler")
+        p.add_argument("--nopose", action="store_true", help="A-poz isteme (silah/eşya)")
     p = sub.add_parser("concept"); p.add_argument("name"); p.add_argument("prompt")
     p.add_argument("--img-model", default="nano-banana-2")
     p.add_argument("--keep-bg", action="store_true", help="arka planı silme (beyaz karakterler silinmesin)")

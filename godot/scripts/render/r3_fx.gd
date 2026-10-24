@@ -25,6 +25,7 @@ const FIRE_PAL := {
 	"seed": {"cr": 0.96, "cg": 1.00, "cb": 0.86, "gx": 0.50, "gy": 0.95, "gz": 0.34, "tx": 1.00, "ty": 0.62, "tz": 0.82, "fx": 0.40, "fy": 0.85, "fz": 0.30},
 	"crystal": {"cr": 1.00, "cg": 0.99, "cb": 0.92, "gx": 0.96, "gy": 0.76, "gz": 0.30, "tx": 1.00, "ty": 0.88, "tz": 0.50, "fx": 0.86, "fy": 0.60, "fz": 0.20},
 	"bone": {"cr": 1.00, "cg": 0.97, "cb": 0.88, "gx": 0.94, "gy": 0.84, "gz": 0.48, "tx": 1.00, "ty": 0.90, "tz": 0.62, "fx": 0.78, "fy": 0.66, "fz": 0.36},
+	"spirit": {"cr": 0.92, "cg": 1.00, "cb": 0.94, "gx": 0.26, "gy": 0.92, "gz": 0.58, "tx": 0.50, "ty": 1.00, "tz": 0.74, "fx": 0.16, "fy": 0.70, "fz": 0.46},
 	"ice": {"cr": 0.92, "cg": 0.98, "cb": 1.00, "gx": 0.40, "gy": 0.80, "gz": 1.00, "tx": 0.60, "ty": 0.90, "tz": 1.00, "fx": 0.30, "fy": 0.62, "fz": 0.96},
 }
 const MAX_PARTICLES := 700
@@ -353,7 +354,7 @@ func _update_projectiles(g) -> void:
 	var T: float = g.time
 	for b in g.pools.pBullets.active:
 		if b.fireball:
-			_add_fire(b, FIRE_PAL.blue, 1.0, T, lite)
+			_add_fire(b, FIRE_PAL.get(b.pal, FIRE_PAL.blue) if b.pal != "" else FIRE_PAL.blue, 1.0, T, lite)
 		elif b.isArrow:
 			if ai >= 140: continue
 			var yaw := atan2(b.vx, b.vy)

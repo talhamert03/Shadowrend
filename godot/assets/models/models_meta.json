@@ -180,6 +180,86 @@
     "NlaTrack"
    ],
    "hasBones": true
+  },
+  "mezarci": {
+   "file": "heroes/mezarci.glb",
+   "height": 91.2,
+   "baseScale": 52.114285714285714,
+   "rigPos": [
+    -0.0007,
+    0.0,
+    -0.0061
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "kurek",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy"
+  },
+  "fenerci": {
+   "file": "heroes/fenerci.glb",
+   "height": 91.2,
+   "baseScale": 52.114285714285714,
+   "rigPos": [
+    0.003,
+    0.0,
+    -0.1937
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "fener",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy"
+  },
+  "zehra": {
+   "file": "heroes/zehra.glb",
+   "height": 91.2,
+   "baseScale": 52.114285714285714,
+   "rigPos": [
+    0.003,
+    0.0,
+    -0.2228
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "kazan",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy"
+  },
+  "demirhan": {
+   "file": "heroes/demirhan.glb",
+   "height": 91.2,
+   "baseScale": 52.114285714285714,
+   "rigPos": [
+    0.0106,
+    0.0,
+    -0.0759
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "cekic",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy"
   }
  },
  "enemies": {
@@ -1348,6 +1428,44 @@
    "file": "weapons/topatar.glb",
    "barrelLen": 46,
    "LEN": 46
+  },
+  "kurek": {
+   "file": "weapons/kurek.glb",
+   "bladeLen": 69,
+   "xf": {
+    "s": 72.0,
+    "rotY": 180,
+    "pos": [
+     34.2,
+     0,
+     0
+    ]
+   }
+  },
+  "cekic": {
+   "file": "weapons/cekic.glb",
+   "bladeLen": 76,
+   "xf": {
+    "s": 80.0,
+    "rotY": 180,
+    "pos": [
+     38.3,
+     0,
+     0
+    ]
+   }
+  },
+  "fener": {
+   "file": "weapons/fener.glb",
+   "xf": {
+    "s": 38.0
+   }
+  },
+  "kazan": {
+   "file": "weapons/kazan.glb",
+   "xf": {
+    "s": 36.0
+   }
   }
  }
 }

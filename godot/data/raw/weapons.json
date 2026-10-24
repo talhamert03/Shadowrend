@@ -152,6 +152,50 @@
     "armorAdd": 2,
     "arc": 1.08
    }
+  },
+  "mezarci": {
+   "weapon": "kurek",
+   "pas": "demir",
+   "name": "Kıyamet Küreği",
+   "desc": "Mezar Küreği evrimleşir: savuruş daha geniş, toprak daha sert iter.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "arc": 1.1
+   }
+  },
+  "fenerci": {
+   "weapon": "fener",
+   "pas": "hasatrun",
+   "name": "Ruhlar Feneri",
+   "desc": "Ruh Feneri evrimleşir: her salışta bir ışık daha.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
+  },
+  "zehra": {
+   "weapon": "kazan",
+   "pas": "kulkani",
+   "name": "Kıyamet Kazanı",
+   "desc": "Cadı Kazanı evrimleşir: damlalar delip geçer, daha sık fokurdar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "demirhan": {
+   "weapon": "cekic",
+   "pas": "keskinlik",
+   "name": "Gök Örsü",
+   "desc": "Yıldız Çekici evrimleşir: daha sık, daha geniş iner.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "arc": 1.1
+   }
   }
  },
  "TAGS": {

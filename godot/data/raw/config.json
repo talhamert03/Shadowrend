@@ -853,6 +853,127 @@
     "rim": "rgba(150,232,255,0.5)"
    },
    "emblem": "shield"
+  },
+  "mezarci": {
+   "id": "mezarci",
+   "rarity": 1,
+   "name": "MEZARCI",
+   "title": "Kürek Ustası",
+   "price": 80,
+   "stonePrice": 13,
+   "style": "melee",
+   "startWeapon": "kurek",
+   "lore": "Solgun Mezarlık'ın yaşlı bekçisi. Kırk yıl boyunca ölüleri gömdü; Kızıl Ay doğunca hepsi geri kalktı. Şimdi aynı küreği bu kez onları yeniden yatırmak için savuruyor — kürek yanında havada süzülüyor, o eğildikçe toprağa iniyor.",
+   "mods": {
+    "maxHp": 10,
+    "dmgPct": 0.04
+   },
+   "perks": [
+    "İmza: Mezar Küreği — yanında süzülen paslı kürek",
+    "Geniş savuruş, en güçlü geri itme",
+    "Azami can +10, hasar +%4",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#5a3a26",
+    "hood": "#7a5236",
+    "eye": "#ffe6b0",
+    "emblem": "#c9a77a",
+    "rim": "rgba(201,167,122,0.45)"
+   },
+   "emblem": "shield"
+  },
+  "fenerci": {
+   "id": "fenerci",
+   "rarity": 2,
+   "name": "FENERCİ",
+   "title": "Ruh Feneri",
+   "price": 240,
+   "stonePrice": 42,
+   "style": "ranged",
+   "startWeapon": "fener",
+   "lore": "Kaybolan ruhlara yol gösteren fenerin son bekçisi. Feneri bir gece elinden kaydı ama düşmedi — o günden beri yanında süzülüyor, içindeki yeşil alev kendi kendine av seçiyor ve ruh ışıklarını hedefin peşine salıyor.",
+   "mods": {
+    "atkPct": 0.12,
+    "speedPct": 0.06,
+    "maxHp": -6
+   },
+   "perks": [
+    "İmza: Ruh Feneri — yanında süzülen yeşil alevli fener",
+    "Ruh ışıkları hedefi kovalar, ıskalamaz",
+    "Saldırı hızı +%12, hız +%6, azami can −6",
+    "Nadir — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#1f5a5a",
+    "hood": "#2d7a72",
+    "eye": "#9dffc8",
+    "emblem": "#7dffb8",
+    "rim": "rgba(125,255,184,0.48)"
+   },
+   "emblem": "star"
+  },
+  "zehra": {
+   "id": "zehra",
+   "rarity": 3,
+   "name": "ZEHRA",
+   "title": "Kazan Cadısı",
+   "price": 920,
+   "stonePrice": 100,
+   "style": "ranged",
+   "startWeapon": "kazan",
+   "lore": "Zehir Bataklığı'nın sisinden çıkan cadı. Kazanını kimse ona taşımadı; o yürüdükçe peşinden süzülerek gelir. Her fokurtusu bir damla zehir fırlatır, damla düştüğü yerde patlar ve sürüyü kavurur.",
+   "mods": {
+    "dmgPct": 0.1,
+    "atkPct": 0.07,
+    "critChance": 0.03,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: Cadı Kazanı — yanında süzülen fokurdayan kazan",
+    "Zehir damlaları çarptığında patlar (alan hasarı)",
+    "Hasar +%10, saldırı hızı +%7, kritik +%3, azami can +6",
+    "Destan — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#3a2a4a",
+    "hood": "#4a3a62",
+    "eye": "#9cff5a",
+    "emblem": "#9cff5a",
+    "rim": "rgba(156,255,90,0.5)"
+   },
+   "emblem": "flame"
+  },
+  "demirhan": {
+   "id": "demirhan",
+   "rarity": 4,
+   "name": "DEMİRHAN",
+   "title": "Yıldız Döven",
+   "price": 1550,
+   "stonePrice": 165,
+   "style": "melee",
+   "startWeapon": "cekic",
+   "lore": "Yıldız Dökümhanesi'nin son ustası; gökten düşen yıldızları örsünde dövdü. Çekici artık elinde değil yanında süzülüyor ve her inişinde zemine bir yıldız halkası yayıyor — Kızıl Ay'a karşı dövülen ilk silah.",
+   "mods": {
+    "dmgPct": 0.16,
+    "critChance": 0.05,
+    "maxHp": 14,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Yıldız Çekici — yanında süzülen ağır savaş çekici",
+    "Her darbe zemine şok halkası yayar",
+    "Hasar +%16, kritik +%5, azami can +14, zırh +1",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#1f2e5a",
+    "hood": "#2c4280",
+    "eye": "#9fd4ff",
+    "emblem": "#ffd36a",
+    "rim": "rgba(255,211,106,0.52)"
+   },
+   "emblem": "bolt"
   }
  },
  "CHAR_CARD_REQ": [
@@ -3300,6 +3421,487 @@
      "critMultAdd": 0.45
     }
    }
+  ],
+  "mezarci": [
+   {
+    "id": "sig_m1",
+    "name": "Ağır Kürek",
+    "desc": "Kürek hasarı +%20.",
+    "boost": {
+     "weapon": "kurek",
+     "dmg": 1.2
+    }
+   },
+   {
+    "id": "sig_m2",
+    "name": "Kazı Ritmi",
+    "desc": "Kürek %15 daha sık savrulur.",
+    "boost": {
+     "weapon": "kurek",
+     "cd": 0.85
+    }
+   },
+   {
+    "id": "sig_m3",
+    "name": "Geniş Savuruş",
+    "desc": "Savuruş yayı %12 genişler.",
+    "boost": {
+     "weapon": "kurek",
+     "arc": 1.12
+    }
+   },
+   {
+    "id": "sig_m4",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%8, hasar +%6.",
+    "boost": {
+     "weapon": "kurek",
+     "range": 1.08,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_m5",
+    "name": "Toprak Tepmesi",
+    "desc": "Geri itme +%35, hasar +%8.",
+    "boost": {
+     "weapon": "kurek",
+     "knock": 1.35,
+     "dmg": 1.08
+    }
+   },
+   {
+    "id": "sig_m6",
+    "name": "Mezar Taşı Kafa",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kurek",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_m7",
+    "name": "Toprak Sarsıntısı",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sarsinti",
+    "desc": "Her savuruş küçük bir şok dalgası bırakır.",
+    "boost": {
+     "weapon": "kurek",
+     "shockAdd": 1
+    }
+   },
+   {
+    "id": "sig_m8",
+    "name": "Kürek Kasırgası",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "cevirme",
+    "desc": "Aralıklı geniş bir çevirme vuruşu savurur.",
+    "boost": {
+     "weapon": "kurek",
+     "spinAdd": 1
+    }
+   },
+   {
+    "id": "sig_m9",
+    "name": "Çifte Kazı",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikincidarbe",
+    "desc": "Ters yönden gecikmeli ikinci bir vuruş gelir.",
+    "boost": {
+     "weapon": "kurek",
+     "twinAdd": 1
+    }
+   },
+   {
+    "id": "sig_m10",
+    "name": "Mezar Kabuğu",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "kalkan",
+    "desc": "Zırh +2, kalıcı olarak yerleşir.",
+    "boost": {
+     "weapon": "kurek",
+     "armorAdd": 2
+    }
+   },
+   {
+    "id": "sig_m11",
+    "name": "Son Toprak",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nobetson",
+    "desc": "Kritik şansı +%12, kritik hasarı +%45.",
+    "boost": {
+     "weapon": "kurek",
+     "critAdd": 0.12,
+     "critMultAdd": 0.45
+    }
+   }
+  ],
+  "fenerci": [
+   {
+    "id": "sig_f1",
+    "name": "Parlak Fitil",
+    "desc": "Ruh ışığı hasarı +%12.",
+    "boost": {
+     "weapon": "fener",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_f2",
+    "name": "Hızlı Yakış",
+    "desc": "Fener %10 daha sık ışık salar.",
+    "boost": {
+     "weapon": "fener",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_f3",
+    "name": "Delici Ruh",
+    "desc": "Işık bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "fener",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_f4",
+    "name": "Hafif Ruh",
+    "desc": "Uçuş hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "fener",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_f5",
+    "name": "Uzun Yanış",
+    "desc": "Işıklar %25 daha uzun yaşar.",
+    "boost": {
+     "weapon": "fener",
+     "life": 1.25
+    }
+   },
+   {
+    "id": "sig_f6",
+    "name": "Mezar Işığı",
+    "desc": "Kritik şansı +%5, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "fener",
+     "critAdd": 0.05,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_f7",
+    "name": "Ruh Patlaması",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlayici",
+    "desc": "Işık son hedefte patlar, çevreyi biçer.",
+    "boost": {
+     "weapon": "fener",
+     "explodeAdd": 1
+    }
+   },
+   {
+    "id": "sig_f8",
+    "name": "Seken Ruh",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sacilan",
+    "desc": "Işık çarptıktan sonra bir hedefe daha seker.",
+    "boost": {
+     "weapon": "fener",
+     "bounceAdd": 1
+    }
+   },
+   {
+    "id": "sig_f9",
+    "name": "Fener Gözü",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "nisan",
+    "desc": "Kritik şansı +%7, kritik hasarı +%25.",
+    "boost": {
+     "weapon": "fener",
+     "critAdd": 0.07,
+     "critMultAdd": 0.25
+    }
+   },
+   {
+    "id": "sig_f10",
+    "name": "Ruh Sağanağı",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yagmur",
+    "desc": "Her 4. salışta gökten ruh ışıkları yağar.",
+    "boost": {
+     "weapon": "fener",
+     "rainAdd": 1
+    }
+   },
+   {
+    "id": "sig_f11",
+    "name": "Fener Alayı",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "salvo",
+    "desc": "Her salışta +1 ışık, yelpaze genişler.",
+    "boost": {
+     "weapon": "fener",
+     "volley": 1,
+     "spreadMul": 1.15
+    }
+   }
+  ],
+  "zehra": [
+   {
+    "id": "sig_c1",
+    "name": "Koyu Demleme",
+    "desc": "Zehir hasarı +%12.",
+    "boost": {
+     "weapon": "kazan",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_c2",
+    "name": "Kaynar Kazan",
+    "desc": "Kazan %10 daha sık fokurdar.",
+    "boost": {
+     "weapon": "kazan",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_c3",
+    "name": "Taşan Zehir",
+    "desc": "Damla bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "kazan",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_c4",
+    "name": "Uzak Atış",
+    "desc": "Damla uçuş hızı +%12, hasar +%6.",
+    "boost": {
+     "weapon": "kazan",
+     "speed": 1.12,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_c5",
+    "name": "Yapışkan Damla",
+    "desc": "Damlalar %20 daha uzun yaşar, hasar +%5.",
+    "boost": {
+     "weapon": "kazan",
+     "life": 1.2,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_c6",
+    "name": "Cadı Sezgisi",
+    "desc": "Kritik şansı +%5, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kazan",
+     "critAdd": 0.05,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_c7",
+    "name": "Bölünen Damla",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sacilan",
+    "desc": "Damla patlayınca küçük damlalara bölünür.",
+    "boost": {
+     "weapon": "kazan",
+     "splitAdd": 1
+    }
+   },
+   {
+    "id": "sig_c8",
+    "name": "Kokan İz",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "takipci",
+    "desc": "Damlalar hedefi kovalar.",
+    "boost": {
+     "weapon": "kazan",
+     "homingAdd": 1
+    }
+   },
+   {
+    "id": "sig_c9",
+    "name": "Zehir Sağanağı",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur",
+    "desc": "Her 4. atışta gökten zehir yağar.",
+    "boost": {
+     "weapon": "kazan",
+     "rainAdd": 1
+    }
+   },
+   {
+    "id": "sig_c10",
+    "name": "İkiz Kepçe",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "ciftnamlu",
+    "desc": "Her atışta +1 damla, yelpaze genişler.",
+    "boost": {
+     "weapon": "kazan",
+     "volley": 1,
+     "spreadMul": 1.2
+    }
+   },
+   {
+    "id": "sig_c11",
+    "name": "Cadı Gözü",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci",
+    "desc": "Kritik şansı +%10, kritik hasarı +%40.",
+    "boost": {
+     "weapon": "kazan",
+     "critAdd": 0.1,
+     "critMultAdd": 0.4
+    }
+   }
+  ],
+  "demirhan": [
+   {
+    "id": "sig_d1",
+    "name": "Ağır Örs",
+    "desc": "Çekiç hasarı +%20.",
+    "boost": {
+     "weapon": "cekic",
+     "dmg": 1.2
+    }
+   },
+   {
+    "id": "sig_d2",
+    "name": "Dövme Ritmi",
+    "desc": "Çekiç %12 daha sık iner.",
+    "boost": {
+     "weapon": "cekic",
+     "cd": 0.88
+    }
+   },
+   {
+    "id": "sig_d3",
+    "name": "Geniş Darbe",
+    "desc": "Darbe yayı %10 genişler.",
+    "boost": {
+     "weapon": "cekic",
+     "arc": 1.1
+    }
+   },
+   {
+    "id": "sig_d4",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%8, hasar +%6.",
+    "boost": {
+     "weapon": "cekic",
+     "range": 1.08,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_d5",
+    "name": "Yıldız Darbesi",
+    "desc": "Geri itme +%30, hasar +%10.",
+    "boost": {
+     "weapon": "cekic",
+     "knock": 1.3,
+     "dmg": 1.1
+    }
+   },
+   {
+    "id": "sig_d6",
+    "name": "Kıvılcım",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "cekic",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_d7",
+    "name": "Yıldız Dalgası",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik",
+    "desc": "Her darbe ileriye bir yıldız dalgası fırlatır.",
+    "boost": {
+     "weapon": "cekic",
+     "waveAdd": 1
+    }
+   },
+   {
+    "id": "sig_d8",
+    "name": "Yörünge Çekici",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga",
+    "desc": "Aralıklı geniş bir çevirme darbesi savurur.",
+    "boost": {
+     "weapon": "cekic",
+     "spinAdd": 1
+    }
+   },
+   {
+    "id": "sig_d9",
+    "name": "İkiz Örs",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikiz",
+    "desc": "Ters yönden gecikmeli ikinci bir darbe iner.",
+    "boost": {
+     "weapon": "cekic",
+     "twinAdd": 1
+    }
+   },
+   {
+    "id": "sig_d10",
+    "name": "Gök Yankısı",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yanki",
+    "desc": "Darbenin hayalet yankısı bir kez daha vurur.",
+    "boost": {
+     "weapon": "cekic",
+     "echoAdd": 1
+    }
+   },
+   {
+    "id": "sig_d11",
+    "name": "Yıldız Kıran",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "cekic",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    }
+   }
   ]
  },
  "SPECIAL_PERKS": [
@@ -4388,6 +4990,227 @@
    "shock": 0,
    "knock": 0,
    "storm": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kurek": {
+   "name": "Mezar Küreği",
+   "melee": true,
+   "descNew": "Mezarcı'nın yanında süzülen paslı kürek — geniş savurur, önüne geleni toprağa geri gömer.",
+   "descUp": [
+    "Hasar +6, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +11, darbe sertleşir",
+    "Ağır toprak, geri itme +"
+   ],
+   "dmg": [
+    16,
+    22,
+    30,
+    40,
+    53
+   ],
+   "cooldown": [
+    0.96,
+    0.88,
+    0.8,
+    0.72,
+    0.64
+   ],
+   "range": [
+    116,
+    120,
+    124,
+    128,
+    132
+   ],
+   "arc": [
+    2.2,
+    2.2,
+    2.2,
+    2.2,
+    2.2
+   ],
+   "knock": [
+    320,
+    350,
+    380,
+    420,
+    470
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "cekic": {
+   "name": "Yıldız Çekici",
+   "melee": true,
+   "descNew": "Demirhan'ın yanında süzülen yıldız çekici — ağır iner, her darbede zemine şok halkası yayar.",
+   "descUp": [
+    "Hasar +10, menzil biraz uzar",
+    "Daha çabuk iner",
+    "Hasar +18, darbe sertleşir",
+    "Yıldız kıran, geri itme +"
+   ],
+   "dmg": [
+    26,
+    36,
+    50,
+    68,
+    90
+   ],
+   "cooldown": [
+    1.15,
+    1.06,
+    0.98,
+    0.9,
+    0.82
+   ],
+   "range": [
+    124,
+    128,
+    132,
+    136,
+    142
+   ],
+   "arc": [
+    1.9,
+    1.9,
+    1.9,
+    1.9,
+    1.9
+   ],
+   "knock": [
+    340,
+    370,
+    400,
+    440,
+    500
+   ],
+   "shock": 1,
+   "spin": 0,
+   "twin": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "fener": {
+   "name": "Ruh Feneri",
+   "kind": "gun",
+   "class": "ruh",
+   "orb": true,
+   "floatVisual": true,
+   "fireball": true,
+   "firePal": "spirit",
+   "sfx": "shoot",
+   "descNew": "Fenerci'nin yanında süzülen fener — hedefi kovalayan ruh ışıkları salar, ıskalamaz.",
+   "descUp": [
+    "Hasar +, +1 delme",
+    "Daha çabuk salar",
+    "+1 delme, hasar +",
+    "Çifte ruh ışığı"
+   ],
+   "dmg": [
+    20,
+    28,
+    38,
+    52,
+    70
+   ],
+   "pierce": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "cooldown": [
+    0.95,
+    0.88,
+    0.8,
+    0.72,
+    0.64
+   ],
+   "speed": 340,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.3,
+   "bulletLife": 2.3,
+   "color": "#9dffc8",
+   "r": 9,
+   "rainColor": "#9dffc8",
+   "homing": 1,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kazan": {
+   "name": "Cadı Kazanı",
+   "kind": "gun",
+   "class": "buyu",
+   "orb": true,
+   "floatVisual": true,
+   "fireball": true,
+   "firePal": "toxic",
+   "sfx": "shoot",
+   "descNew": "Zehra'nın yanında süzülen kazan — en yakın düşmana zehir damlası fırlatır, damla çarpınca patlar.",
+   "descUp": [
+    "Hasar +, patlama büyür",
+    "Daha sık fokurdar",
+    "+1 delme, hasar +",
+    "İkiz damla"
+   ],
+   "dmg": [
+    22,
+    30,
+    41,
+    55,
+    74
+   ],
+   "pierce": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "cooldown": [
+    1.1,
+    1.0,
+    0.92,
+    0.84,
+    0.76
+   ],
+   "speed": 380,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.18,
+   "bulletLife": 1.6,
+   "color": "#9cff5a",
+   "r": 10,
+   "rainColor": "#b6ff7a",
+   "explode": 1,
+   "homing": 0,
+   "flame": 0,
+   "bounce": 0,
+   "rain": 0,
+   "split": 0,
    "critAdd": 0,
    "critMultAdd": 0
   }

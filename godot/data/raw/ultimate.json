@@ -80,6 +80,42 @@
    "base": 0,
    "hr": 0,
    "desc": "Kalkan yere iner; çatlaklı şok dalgası yayılır."
+  },
+  "mezarci": {
+   "name": "MEZAR ÇUKURU",
+   "col": "#f0e2c4",
+   "c2": "#8a5a32",
+   "k": "slam",
+   "base": 0,
+   "hr": 0,
+   "desc": "Kürek yere iner; toprak dalga dalga kabarır, sürüyü savurur."
+  },
+  "fenerci": {
+   "name": "RUH AYI",
+   "col": "#d8ffe8",
+   "c2": "#3fdc8a",
+   "k": "moon",
+   "base": 14,
+   "hr": 70,
+   "desc": "Gökte yeşil bir ay doğar; ruh okları yağar."
+  },
+  "zehra": {
+   "name": "ZEHİR YAĞMURU",
+   "col": "#e4ffc8",
+   "c2": "#6fd83a",
+   "k": "meteor",
+   "base": 8,
+   "hr": 110,
+   "desc": "Gökten zehirli damlalar çapraz düşer, geniş patlar."
+  },
+  "demirhan": {
+   "name": "YILDIZ SURU",
+   "col": "#fff4c8",
+   "c2": "#ffb43a",
+   "k": "spike",
+   "base": 0,
+   "hr": 70,
+   "desc": "Çekiç iner; yıldız kristalleri dışa doğru üç halka hâlinde fışkırır."
   }
  },
  "ULT_NEED": 80,

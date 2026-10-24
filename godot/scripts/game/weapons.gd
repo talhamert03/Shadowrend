@@ -25,7 +25,8 @@ const EXTRA_PASSIVES := {
 }
 const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukluk": "YILDIRIM", "miknatis": "RUH", "keskinlik": "AYAZ", "gazap": "KOR",
 	"kiragi": "AYAZ", "buzkalp": "AYAZ", "hayalet": "AYAZ", "hasatrun": "RUH", "kanemici": "RUH", "statik": "YILDIRIM", "demir": "CELIK", "kulkani": "KOR"}
-const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ"}
+const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ",
+	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM"}
 
 const MUL_MAP_BASE := {"cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
@@ -84,6 +85,8 @@ var nearestD2 := INF
 var pending: Array = []
 
 var flamePos := Vector2.ZERO
+var floatPos := Vector2.ZERO          # veriyle tanımlı süzülen silah (fener, kazan…) — çizici yazar
+var floatFireCount := 0
 var flameFireCount := 0
 var cycloneOrbs: Array = []
 var cycloneN := 0
@@ -150,6 +153,7 @@ func reset() -> void:
 	nearest = null; nearestD2 = INF
 	pending = []
 	flamePos = Vector2.ZERO; flameFireCount = 0
+	floatPos = Vector2.ZERO; floatFireCount = 0
 	cycloneOrbs = []
 	for i in 6: cycloneOrbs.append({"x": 0.0, "y": 0.0, "a": 0.0})
 	cycloneN = 0; cycloneAng = 0; cycloneT = 0
@@ -179,6 +183,12 @@ func update(dt: float) -> void:
 	elif lvl("tackilic") > 0: meleeId = "tackilic"
 	elif lvl("pala") > 0: meleeId = "pala"
 	elif lvl("yemin") > 0: meleeId = "yemin"
+	else:
+		# veriyle tanımlı yakın dövüş imzaları (WEAPONS.<id>.melee) — ör. kürek, çekiç
+		for id in slots:
+			if slots[id] > 0 and W.has(id) and W[id].get("melee", false):
+				meleeId = id
+				break
 	if meleeId != "": update_sword(dt, meleeId)
 	if lvl("bicak"): update_orbit(dt)
 	if lvl("kor"): update_kor(dt)
@@ -645,13 +655,14 @@ func fire_gun(id: String) -> void:
 	if JS.truthy(Wd.get("bowVisual")): ox = bowPos.x; oy = bowPos.y
 	elif JS.truthy(Wd.get("slingVisual")): ox = slingPos.x; oy = slingPos.y
 	elif JS.truthy(Wd.get("flameVisual")): ox = flamePos.x; oy = flamePos.y
+	elif JS.truthy(Wd.get("floatVisual")) and floatPos != Vector2.ZERO: ox = floatPos.x; oy = floatPos.y
 	elif JS.truthy(Wd.get("cannonVisual")): ox = cannonPos.x; oy = cannonPos.y
 	var ang := atan2(nearest.y - oy, nearest.x - ox)
 	p.faceLeft = cos(ang) < 0
 	var volley: int = int(Wd.volley[L])
 	var spread := JS.num(Wd, "spread", 0.14)
 	var br := JS.num(Wd, "r", 6.0)
-	if JS.truthy(Wd.get("orb")) and not JS.truthy(Wd.get("flameVisual")) and not JS.truthy(Wd.get("cannonVisual")):
+	if JS.truthy(Wd.get("orb")) and not JS.truthy(Wd.get("flameVisual")) and not JS.truthy(Wd.get("cannonVisual")) and not JS.truthy(Wd.get("floatVisual")):
 		ox = p.x + cos(ang) * 16; oy = p.y + sin(ang) * 16 - 6
 	elif JS.truthy(Wd.get("arrow")) and not JS.truthy(Wd.get("bowVisual")):
 		ox = p.x + cos(ang) * 30; oy = p.y - 16 + sin(ang) * 14
@@ -676,6 +687,7 @@ func fire_gun(id: String) -> void:
 		b.smoke = 1 if JS.truthy(Wd.get("smokeTrail")) else 0
 		b.metal = JS.truthy(Wd.get("metallic"))
 		b.fireball = JS.truthy(Wd.get("fireball"))
+		b.pal = str(Wd.get("firePal", ""))
 		b.ph = randf() * 6.2831
 		b.nova = wi(Wd, "nova")
 		b.critAdd = JS.num(Wd, "critAdd")
@@ -688,6 +700,7 @@ func fire_gun(id: String) -> void:
 		slingFireCount += 1
 		_slWindT = 0
 	if JS.truthy(Wd.get("flameVisual")): flameFireCount += 1
+	if JS.truthy(Wd.get("floatVisual")): floatFireCount += 1
 	if JS.truthy(Wd.get("cannonVisual")):
 		cannonFireCount += 1
 		var nS := mini(9, maxi(3, Quality.budget("particles") >> 6))
@@ -723,6 +736,7 @@ func fire_arrow_rain(_id: String, Wd: Dictionary, L: int) -> void:
 		b.split = wi(Wd, "split")
 		b.frag = false
 		b.fireball = JS.truthy(Wd.get("fireball"))
+		b.pal = str(Wd.get("firePal", ""))
 		b.ph = randf() * 6.2831
 		b.nova = wi(Wd, "nova")
 		b.critAdd = JS.num(Wd, "critAdd")
@@ -835,7 +849,7 @@ func update_arrow(b, dt: float) -> bool:
 		var P = g.pools.particles
 		if P.count < (250 if g.isMobile else 640) and g.in_view(b.x, b.y, 20):
 			P.take().setup(b.x - b.vx * 0.012, b.y - b.vy * 0.012, -b.vx * 0.08, -b.vy * 0.08, 0.22,
-				3.2 if b.fireball else 2.2, "#ffb45a" if b.fireball else "#dfe6f0", 0.7, 0, true)
+				3.2 if b.fireball else 2.2, (b.color if b.pal != "" else "#ffb45a") if b.fireball else "#dfe6f0", 0.7, 0, true)
 	if g.props and g.props.n:
 		var pi_: int = g.props.hit_scan(b.x, b.y, b.r if b.r else 5.0)
 		if pi_ >= 0:
@@ -853,7 +867,14 @@ func update_arrow(b, dt: float) -> bool:
 		if dx * dx + dy * dy > rr * rr: continue
 		b.lastHit = e
 		Combat.apply_hit(g, e, b.dmg, b.angle, 130, b.critAdd, false)
-		if b.fireball and not (b.nova > 0 and not b.burned):
+		if b.fireball and b.pal != "":
+			# renkli büyü (ruh ışığı, zehir damlası): kendi renginde isabet
+			if g.renderer3d:
+				var hc := Color(b.color)
+				g.renderer3d.spawn_hit(e.x, e.y, b.angle, 1, hc.r, hc.g, hc.b)
+			g.spawn_burst(e.x, e.y, b.color, 6, 170, 2.2, 0.28, true)
+			g.spawn_burst(e.x, e.y, "#f4fff0", 3, 110, 1.7, 0.20, true)
+		elif b.fireball and not (b.nova > 0 and not b.burned):
 			if g.renderer3d: g.renderer3d.spawn_flame_impact(e.x, e.y, b.angle)
 			g.spawn_burst(e.x, e.y, "#8fd0ff", 5, 180, 2.2, 0.26, true)
 			g.spawn_burst(e.x, e.y, "#eaf6ff", 3, 110, 1.7, 0.20, true)
@@ -914,7 +935,7 @@ func update_arrow(b, dt: float) -> bool:
 	elif b.fireball:
 		if randf() < dt * 34:
 			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 30, -14 - randf() * 22,
-				0.30, 2.2, "#dff1ff" if randf() < 0.30 else "#5cb2ff", 0.95, -14, true)
+				0.30, 2.2, ("#f4fff0" if randf() < 0.30 else b.color) if b.pal != "" else ("#dff1ff" if randf() < 0.30 else "#5cb2ff"), 0.95, -14, true)
 	elif ft > 0:
 		if randf() < dt * (26 + ft * 24):
 			var c := "#ffe6a0" if ft >= 3 else ("#ff6a2c" if ft == 2 else "#ffb24d")

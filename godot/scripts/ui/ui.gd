@@ -190,6 +190,7 @@ func boot() -> void:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
 		var ov := _arg("ov")
+		if _arg("cd") != "": open_char_detail(_arg("cd"))      # geliştirici: kahraman detayı
 		if ov == "drawer": show_daily_drawer()
 		elif ov == "aj": show_account_journey()
 		elif ov == "quests": show_quests()

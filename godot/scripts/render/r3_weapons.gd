@@ -13,6 +13,10 @@ const SWORD_SPECS := {
 		"trailInner": [0.44, 0.36, 1.00], "trailOuter": [0.66, 0.92, 1.00], "echoHex": "#a88cff", "shockHex": ["#cfe4ff", "#9a8cff"], "waveHex": "#8fd4ff", "trailFade": 12},
 	"yemin": {"weapon": "yemin", "flameHex": ["#2fd0ff", "#7ae4ff", "#c6f4ff"], "coreHex": "#ffffff",
 		"trailInner": [0.32, 0.86, 1.00], "trailOuter": [0.92, 1.00, 1.00], "echoHex": "#9fe4ff", "shockHex": ["#eafcff", "#6fc8ff"], "waveHex": "#a8eeff", "trailFade": 10},
+	"kurek": {"weapon": "kurek", "flameHex": ["#8a6a4a", "#a8845a", "#c9a77a"], "coreHex": "#f0e2c4",
+		"trailInner": [0.62, 0.46, 0.30], "trailOuter": [0.96, 0.88, 0.70], "echoHex": "#c9a77a", "shockHex": ["#f0e2c4", "#a8845a"], "waveHex": "#e8d4b0", "trailFade": 9},
+	"cekic": {"weapon": "cekic", "flameHex": ["#ffb43a", "#ffd36a", "#fff0b0"], "coreHex": "#fff8e0",
+		"trailInner": [1.00, 0.70, 0.22], "trailOuter": [0.70, 0.86, 1.00], "echoHex": "#9fd4ff", "shockHex": ["#fff4c8", "#7fb8ff"], "waveHex": "#ffe08a", "trailFade": 11},
 }
 const TRAIL_SEGS := 48
 
@@ -37,7 +41,19 @@ func _wscene(k: String) -> Node3D:
 	var m = r3.MODELS.weapons.get(k)
 	if m == null: return null
 	var ps: PackedScene = load("res://assets/models/" + str(m.file))
-	return ps.instantiate() if ps else null
+	if ps == null: return null
+	var inst: Node3D = ps.instantiate()
+	var xf = m.get("xf")
+	if xf is Dictionary:
+		# pişirilmemiş model (Meshy): ölçek/dönüş/öteleme sarmalayıcıda (kılıç düzeni: sap orijinde, +X)
+		var holder := Node3D.new()
+		holder.add_child(inst)
+		inst.scale = Vector3.ONE * float(xf.get("s", 1.0))
+		inst.rotation_degrees = Vector3(float(xf.get("rotX", 0)), float(xf.get("rotY", 0)), float(xf.get("rotZ", 0)))
+		var p: Array = xf.get("pos", [0, 0, 0])
+		inst.position = Vector3(float(p[0]), float(p[1]), float(p[2]))
+		return holder
+	return inst
 
 func _add_mat(texp: String, col, opacity: float, cull_none := true, order := 0) -> ShaderMaterial:
 	# Borderlands tarzı: dokunun çizgi roman karşılığı varsa konturlu malzeme
@@ -80,6 +96,8 @@ func on_character(_id: String, md) -> void:
 	if curW != newW:
 		_dispose_sword()
 		if newW != "": _build_sword(SWORD_SPECS[newW])
+	var Wd = D.WEAPONS.get(fw) if fw != "" else null
+	_float_rebuild(fw if Wd is Dictionary and Wd.get("floatVisual", false) else "")
 
 # ═══════════ KARE ═══════════
 
@@ -92,8 +110,86 @@ func update(g, dt: float) -> void:
 	_update_blade(g, dt)
 	_update_flame(g, dt)
 	_update_cannon(g, dt)
+	_update_float(g, dt)
 	_update_judgement(dt)
 	_update_arcs(dt)
+
+# ═══════════ SÜZÜLEN ODAK (veriyle: WEAPONS.<id>.floatVisual — Ruh Feneri, Cadı Kazanı) ═══════════
+# Kahramanın omzu üstünde yay-sönümle süzülür, hafifçe sallanır; atışta geri teper, şişer ve
+# kendi renginde parlar. Mermi çıkış noktası (weapons.floatPos) buradan yazılır.
+var floatPivot: Node3D
+var floatInner: Node3D
+var floatGlow: IMesh
+var _foId := ""
+var _foCol := Color.WHITE
+var _foX := 0.0; var _foY := 62.0; var _foZ := 0.0
+var _foVX := 0.0; var _foVY := 0.0; var _foVZ := 0.0
+var _foInit := false
+var _foT := 0.0
+var _foRecoil := 0.0
+var _foYaw := 0.0
+var _foLastFire := 0
+
+func _float_rebuild(id: String) -> void:
+	if id == _foId: return
+	_foId = id
+	if floatPivot:
+		floatPivot.queue_free()
+		floatPivot = null
+	if floatGlow == null:
+		floatGlow = _quad_inst("res://assets/fx/glow.png", 3, 3)
+	floatGlow.commit(0)
+	if id == "": return
+	var m := _wscene(id)
+	if m == null: return
+	_foCol = Color(str(D.WEAPONS[id].get("color", "#ffffff")))
+	Shd.convert_tree(m, {"rim": true, "metal": 0.18, "rough": 0.5, "emissive": _foCol.darkened(0.6), "emissive_k": 1.0, "keep_emap": false, "outline": 1.4})
+	floatInner = Render3D.node()
+	floatInner.add_child(m)
+	floatPivot = Render3D.node(S)
+	floatPivot.add_child(floatInner)
+	_foInit = false
+	_foLastFire = 0
+
+func _update_float(g, dt: float) -> void:
+	if floatPivot == null:
+		return
+	var W = g.weapons
+	var show: bool = W != null and W.lvl(_foId) > 0
+	floatPivot.visible = show
+	if not show:
+		floatGlow.commit(0)
+		return
+	var p = g.player
+	_foT += dt
+	var side := -1.0 if p.faceLeft else 1.0
+	var ax: float = p.x - side * 40.0
+	var az: float = p.y + 18.0
+	var ay := 66.0 + sin(_foT * 1.6) * 7.0
+	if not _foInit:
+		_foInit = true
+		_foX = ax; _foZ = az; _foY = ay
+	var sdt := minf(dt, 0.05)
+	_foVX += ((ax - _foX) * 42.0 - _foVX * 9.0) * sdt
+	_foVZ += ((az - _foZ) * 42.0 - _foVZ * 9.0) * sdt
+	_foVY += ((ay - _foY) * 42.0 - _foVY * 9.0) * sdt
+	_foX += _foVX * sdt; _foZ += _foVZ * sdt; _foY += _foVY * sdt
+	floatPivot.position = Vector3(_foX, _foY, _foZ)
+	W.floatPos = Vector2(_foX, _foZ)
+	var fc: int = W.floatFireCount
+	if fc != _foLastFire:
+		_foLastFire = fc
+		_foRecoil = 1.0
+	_foRecoil = maxf(0.0, _foRecoil - dt * 4.0)
+	# hedefe dönük; salınım + atışta geri tepme ve şişme
+	var tgt = W.nearest
+	if tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
+	floatInner.rotation = Vector3(-_foRecoil * 0.35, _foYaw, sin(_foT * 2.2) * 0.12)
+	floatInner.scale = Vector3.ONE * (1.0 + _foRecoil * 0.16)
+	var k := 0.55 + 0.25 * sin(_foT * 3.1) + _foRecoil * 0.9
+	_bb(floatGlow, 0, _foX, _foY, _foZ, 46 + _foRecoil * 40, 46 + _foRecoil * 40, 0, _foCol.r * k, _foCol.g * k, _foCol.b * k)
+	_bb(floatGlow, 1, _foX, _foY, _foZ, 110, 110, 0, _foCol.r * 0.18, _foCol.g * 0.18, _foCol.b * 0.18)
+	floatGlow.commit(2)
 
 # ═══════════ AY YAYI ═══════════
 var bowRig: Node3D

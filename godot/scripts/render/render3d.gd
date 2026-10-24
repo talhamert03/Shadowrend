@@ -364,6 +364,13 @@ func load_character(char_id: String) -> void:
 	# GLB kökü → hero_<id> grubu → ölçekli/konumlu model düğümü (bake'te uygulandı)
 	var grp := inst.find_child("hero_" + char_id, true, false) as Node3D
 	heroMesh = (grp.get_child(0) as Node3D) if grp and grp.get_child_count() > 0 else inst
+	if md.has("baseScale"):
+		# Meshy iskeletli model (pişirilmemiş): oyun boyuna ölçekle, kalçayı merkeze al
+		var bs := float(md.baseScale)
+		var rp: Array = md.get("rigPos", [0, 0, 0])
+		inst.scale = Vector3.ONE * bs
+		inst.position = Vector3(float(rp[0]), float(rp[1]), float(rp[2])) * bs
+		heroMesh = inst
 	heroMesh.rotation_order = EULER_ORDER_XYZ
 	_heroBaseY = heroMesh.position.y
 	_heroBaseValid = true
