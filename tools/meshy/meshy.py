@@ -69,8 +69,14 @@ def cmd_balance(args):
 def cmd_preview(args):
     s = load(args, args.name)
     s["prompt"] = prompt_of(args.prompt)
-    body = {"mode": "preview", "prompt": s["prompt"], "model_type": "smart-topology", "ai_model": args.model,
-            "target_polycount": args.poly, "pose_mode": "a-pose", "target_formats": ["glb"], "origin_at": "bottom"}
+    if args.std:
+        # güçlü model (karmaşık tarifler için, 20 kredi) + üçgen ağa yeniden örme
+        body = {"mode": "preview", "prompt": s["prompt"], "model_type": "standard", "ai_model": args.std,
+                "should_remesh": True, "topology": "triangle", "target_polycount": args.poly,
+                "pose_mode": "a-pose", "target_formats": ["glb"], "origin_at": "bottom"}
+    else:
+        body = {"mode": "preview", "prompt": s["prompt"], "model_type": "smart-topology", "ai_model": args.model,
+                "target_polycount": args.poly, "pose_mode": "a-pose", "target_formats": ["glb"], "origin_at": "bottom"}
     tid = req(args, "POST", "/openapi/v2/text-to-3d", body)["result"]
     print("preview", tid)
     t = wait(args, "/openapi/v2/text-to-3d", tid)
@@ -88,6 +94,36 @@ def cmd_refine(args):
     print("refine", tid)
     t = wait(args, "/openapi/v2/text-to-3d", tid)
     s["refine"] = tid
+    s["credits"] = s.get("credits", 0) + int(t.get("consumed_credits", 0))
+    download(t["model_urls"]["glb"], os.path.join(args.out, args.name, "textured.glb"))
+    if t.get("thumbnail_url"): download(t["thumbnail_url"], os.path.join(args.out, args.name, "textured.png"))
+    save(args, args.name, s)
+    print("kredi:", t.get("consumed_credits"), "toplam:", s["credits"])
+
+def cmd_concept(args):
+    """konsept görsel (A-poz, saydam zemin) — görselden 3B için"""
+    s = load(args, args.name)
+    s["cprompt"] = prompt_of(args.prompt)
+    body = {"ai_model": args.img_model, "prompt": s["cprompt"], "pose_mode": "a-pose", "remove_background": True}
+    tid = req(args, "POST", "/openapi/v1/text-to-image", body)["result"]
+    print("concept", tid)
+    t = wait(args, "/openapi/v1/text-to-image", tid)
+    s["concept"] = tid
+    s["credits"] = s.get("credits", 0) + int(t.get("consumed_credits", 0))
+    urls = t.get("image_urls") or []
+    if urls: download(urls[0], os.path.join(args.out, args.name, "concept.png"))
+    save(args, args.name, s)
+    print("kredi:", t.get("consumed_credits"), "toplam:", s["credits"])
+
+def cmd_img3d(args):
+    """konsept görselden dokulu düşük poligon model (tek adım: ağ + doku)"""
+    s = load(args, args.name)
+    body = {"input_task_id": s["concept"], "model_type": "smart-topology", "ai_model": "meshy-t2.5",
+            "target_polycount": args.poly, "should_texture": True, "texture_resolution": "2k", "pose_mode": "a-pose"}
+    tid = req(args, "POST", "/openapi/v1/image-to-3d", body)["result"]
+    print("img3d", tid)
+    t = wait(args, "/openapi/v1/image-to-3d", tid)
+    s["refine"] = tid            # iskelet bu görevin modelini kullanır
     s["credits"] = s.get("credits", 0) + int(t.get("consumed_credits", 0))
     download(t["model_urls"]["glb"], os.path.join(args.out, args.name, "textured.glb"))
     if t.get("thumbnail_url"): download(t["thumbnail_url"], os.path.join(args.out, args.name, "textured.png"))
@@ -121,12 +157,18 @@ def main():
         p = sub.add_parser(c); p.add_argument("name"); p.add_argument("prompt")
         p.add_argument("--model", default="meshy-t2.5"); p.add_argument("--poly", type=int, default=6000)
         p.add_argument("--height", type=float, default=1.7)
+        p.add_argument("--std", default="", help="standart model (örn. meshy-6) — karmaşık tarifler")
+    p = sub.add_parser("concept"); p.add_argument("name"); p.add_argument("prompt")
+    p.add_argument("--img-model", default="nano-banana-2")
+    p = sub.add_parser("img3d"); p.add_argument("name"); p.add_argument("--poly", type=int, default=6000)
     p = sub.add_parser("refine"); p.add_argument("name")
     p = sub.add_parser("rig"); p.add_argument("name"); p.add_argument("--height", type=float, default=1.7)
     args = ap.parse_args()
     if args.cmd == "balance": cmd_balance(args)
     elif args.cmd == "preview": cmd_preview(args)
     elif args.cmd == "refine": cmd_refine(args)
+    elif args.cmd == "concept": cmd_concept(args)
+    elif args.cmd == "img3d": cmd_img3d(args)
     elif args.cmd == "rig": cmd_rig(args)
     elif args.cmd == "all":
         cmd_preview(args); cmd_refine(args); cmd_rig(args)
