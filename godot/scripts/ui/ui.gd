@@ -291,6 +291,36 @@ func _draw_probe() -> void:
 	for r in res.slice(0, 40): print("PROBE ", r[0], " ", r[2], " ", r[1])
 
 ## geliştirici: betik sınıfı başına _process kapatılıp TIME_PROCESS düşüşü ölçülür — procprobe=<kare>
+## geliştirici: her işleyen düğümün _process'ini 40 kez doğrudan çağırıp süre ölçer (betiğe göre toplam,
+## µs/kare) — proctime=<kare>. Yan etkili; ölçümden sonra oyun kapatılmalı.
+func _proc_time() -> void:
+	var by := {}
+	var cnt := {}
+	var st: Array = [get_tree().root]
+	while st.size():
+		var x: Node = st.pop_back()
+		for c in x.get_children(): st.append(c)
+		if x == self or not x.is_processing() or not x.has_method("_process"): continue
+		var sc = x.get_script()
+		var nm: String = sc.resource_path.get_file() if sc and sc.resource_path != "" else ("inner:" + str(x.get_parent().get_script().resource_path.get_file() if x.get_parent() and x.get_parent().get_script() else "?"))
+		var t0 := Time.get_ticks_usec()
+		for i in 40: x.call("_process", 0.016)
+		by[nm] = float(by.get(nm, 0.0)) + (Time.get_ticks_usec() - t0) / 40.0
+		cnt[nm] = int(cnt.get(nm, 0)) + 1
+	var ks := by.keys()
+	ks.sort_custom(func(a, b): return by[a] > by[b])
+	var tot := 0.0
+	for k in ks: tot += by[k]
+	print("PTIME total_us=", snappedf(tot, 1))
+	# canlı (oturmamış) animasyonlu düğümler: katman → [düğüm anahtarı, animasyon adları]
+	for L in get_tree().root.find_children("*", "Lyr", true, false):
+		if not (L as Lyr).is_visible_in_tree(): continue
+		var live := []
+		for n in (L as Lyr)._dyn:
+			if not n.settled: live.append(str(n.d.get("key", "?")) + ":" + ",".join((n.anims as Array).map(func(A): return str(A.get("name", "")) + "/" + str(A.get("iter", 1)))))
+		if live.size(): print("PLIVE ", L.data.get("name", "?"), " n=", live.size(), " ", live.slice(0, 8))
+	for k in ks.slice(0, 25): print("PTIME ", snappedf(by[k], 0.1), " us ", k, " x", cnt[k])
+
 func _proc_probe() -> void:
 	var groups := {}
 	var st: Array = [get_tree().root]
@@ -370,6 +400,7 @@ func _process(_dt: float) -> void:
 	if _arg("dumpci") != "" and Engine.get_process_frames() == int(_arg("dumpci")): _dump_ci()
 	if _arg("drawprobe") != "" and Engine.get_process_frames() == int(_arg("drawprobe")): _draw_probe()
 	if _arg("procprobe") != "" and Engine.get_process_frames() == int(_arg("procprobe")): _proc_probe()
+	if _arg("proctime") != "" and Engine.get_process_frames() == int(_arg("proctime")): _proc_time()
 	if Prof.on and Engine.get_process_frames() % 30 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())

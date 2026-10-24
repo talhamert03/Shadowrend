@@ -168,6 +168,24 @@ func setup(w: float, h: float) -> void:
 	cam.position = Vector3(0, dist * CAM_DIR.x, dist * CAM_DIR.y)
 	cam.look_at(Vector3(0, 25, 0))
 
+## tam ekran sahne: görüntü kutusu (size_l, ekranda box_pos'ta) aynı ölçek ve yerde kalır ama
+## görüntü alanı tüm ekranı kaplar — sandık zıplarken / ışıma ve kıvılcımlar kutu kenarında
+## kesilmez. Eksen dışı (frustum) izdüşüm: kamera kutu merkezine bakmaya devam eder.
+func set_screen(scr: Vector2, box_pos: Vector2) -> void:
+	var k := _dpr()
+	vp.size = Vector2i(maxi(2, int(scr.x * k)), maxi(2, int(scr.y * k)))
+	spr.scale = Vector2.ONE / k
+	spr.position = -box_pos
+	# tam ekran görüntü alanı: yüksek kademe dışında 2× MSAA (dolgu maliyeti)
+	vp.msaa_3d = Viewport.MSAA_4X if Quality.tier == "high" else Viewport.MSAA_2X
+	var tn := tan(deg_to_rad(30.0 / 2.0))
+	var sz := 2.0 * cam.near * tn * scr.y / size_l.y
+	cam.keep_aspect = Camera3D.KEEP_HEIGHT
+	cam.projection = Camera3D.PROJECTION_FRUSTUM
+	cam.size = sz
+	var c := box_pos + size_l * 0.5 - scr * 0.5
+	cam.frustum_offset = Vector2(-c.x, c.y) * sz / scr.y
+
 ## mantıksal px → ekran pikseli (en çok 2, web setPixelRatio sınırı)
 func _dpr() -> float:
 	var win := DisplayServer.window_get_size()

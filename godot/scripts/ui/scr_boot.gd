@@ -1,11 +1,11 @@
 class_name ScrBoot
 extends CanvasLayer
-## AÇILIŞ EKRANI (sade): kahraman konsept tablosu tam ekran + altta "YÜKLENİYOR" ve ince çubuk
-## (LoadArt). Oyun kurulumu adım adım ilerler (game._ready → set_progress); çubuk iki kapının
+## AÇILIŞ EKRANI: firma introsundan sonra başlık sahnesi (TitleArt — Kızıl Ay, logo, ada siluetleri,
+## ince yükleme çubuğu); savaş yükleme ekranından (LoadArt) ayrıdır. Oyun kurulumu adım adım ilerler (game._ready → set_progress); çubuk iki kapının
 ## GERİDE olanını gösterir: en az MIN sn + gerçek ilerleme — %100'de oyun gerçekten hazırdır.
 
 const MIN := 2.6
-var _view: LoadArt
+var _view: TitleArt
 var _bg: ColorRect
 var _target := 0.0
 var _shown := 0.0
@@ -28,7 +28,7 @@ func _ready() -> void:
 	_bg.size = vs
 	_bg.mouse_filter = Control.MOUSE_FILTER_STOP     # açılışta dokunuş alttaki menüye geçmez
 	add_child(_bg)
-	_view = LoadArt.new()
+	_view = TitleArt.new()
 	_view.bottom_pad = sa[2]
 	_view.top_pad = sa[0]
 	add_child(_view)

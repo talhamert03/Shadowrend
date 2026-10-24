@@ -173,7 +173,7 @@ def compose(P, props, seed):
     s = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">'
     s += DEFS.replace("CLIFF", CLIFF).replace("TOP", TOP)
     s += f'<g stroke="{INK}" stroke-linejoin="round" stroke-linecap="round">'
-    s += moon(*P.get("moon", (760, 200)))
+    if not os.environ.get("NOMOON"): s += moon(*P.get("moon", (760, 200)))
     s += P.get("back", "")
     s += cloud(90, 650, 1.0, P["cloud"], P["cloudhi"], back=True)
     s += cloud(752, 640, 1.0, P["cloud"], P["cloudhi"], back=True)

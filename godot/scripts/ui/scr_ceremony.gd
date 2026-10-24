@@ -192,6 +192,7 @@ func _build() -> void:
 	_ensure_stage(type)
 	move_child(stage, get_child_count() - 1)
 	stage.position = Vector2(_W.x * 0.5 - STAGE * 0.5, _W.y * 0.73 - STAGE * 0.62)
+	stage.set_screen(_W, stage.position)     # tam ekran: animasyon kutu kenarında kesilmez
 	stage.modulate = Color.WHITE
 	stage.visible = true
 	stage.p = {"posY": 150.0}

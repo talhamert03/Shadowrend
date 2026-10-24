@@ -167,6 +167,22 @@ func _tex_ready(pg: String) -> bool:
 # saydam bir dikdörtgenle iki kare çizilir; 3B sandık sahnesi görünmez bir alt görünümde
 # üç kare işlenir (malzemeler + gökyüzü ışıması). Sonra hepsi bırakılır.
 
+## açılış yükleme ekranının ardında: arayüz gölgelendiricileri + 3B sandık + sesler hemen ısınır
+## (menü açıldıktan sonra boşta ısıtma ilk saniyelerde takılma yapıyordu)
+func boot_warm() -> void:
+	if not _ui_warmed:
+		_ui_warmed = true
+		_start_ui_warm()
+		menu.g.audio.warm(["click", "tab", "panel", "select", "buy", "collect", "claim", "coin", "gem", "walletin", "error",
+			"equip", "reveal", "chestthud", "chestlatch", "chestburst", "chestrare", "epicpull", "legendary", "throw", "tally",
+			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy"])
+	if not _chest_warmed:
+		_chest_warmed = true
+		_start_chest_warm()
+
+func busy_warming() -> bool:
+	return _warm_ui > 0 or _warm_chest != null
+
 func _start_ui_warm() -> void:
 	var host: Node = menu
 	for n in CANVAS_SHADERS:
@@ -197,7 +213,9 @@ func _start_chest_warm() -> void:
 	var cer = g.ui.ceremony
 	if cer == null or cer.stage != null: return
 	var st := ChestStage.new()
-	st.modulate.a = 0.01
+	# ön-çarpımlı karışım: yalnız alfa düşürmek rengi yine ekler (hayalet sandık silüeti) →
+	# renk de sıfır: çizilir (gölgelendiriciler derlenir) ama ekrana hiçbir şey eklemez
+	st.modulate = Color(0, 0, 0, 0.01)
 	add_child(st)
 	st.setup(ScrCeremony.STAGE, ScrCeremony.STAGE)
 	st.set_chest(t)
@@ -219,7 +237,7 @@ func _tick_warm() -> void:
 			var cer = menu.g.ui.ceremony
 			if cer and cer.stage == null:
 				st.reparent(cer, false)
-				st.modulate.a = 1.0
+				st.modulate = Color.WHITE
 				st.p = {}
 				cer.stage = st
 				st.visible = cer.visible

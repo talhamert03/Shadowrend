@@ -37,6 +37,17 @@ class N:
 	var co: N                    # en içteki kırpan ata (yoksa null)
 	var scroller: Node2D         # kaydırma kapsayıcısında çocukların taşıyıcısı
 	var scroll_y := 0.0
+	# oturmuş düğüm: tüm animasyonları bitmiş (sonlu), geçişi yok → girdileri değişmedikçe yeniden
+	# hesaplanmaz (kare başı _apply maliyeti)
+	var settled := false
+	var slow := false            # yalnız yavaş (≥1,2 sn) sonsuz döngüler → 30 Hz yeter
+	var s_extra := Transform2D.IDENTITY
+	var s_op := 1.0
+	var s_hid := false
+	var s_na := -1
+	var s_t0 := 0.0
+	var s_btf: Array = []
+	var s_bop := 1.0
 
 var data: Dictionary
 var nodes: Array = []            # N
@@ -373,7 +384,14 @@ func visible_rect_of(n: N) -> Rect2:
 func _process(dt: float) -> void:
 	if not playing or not is_visible_in_tree(): return
 	t += dt
-	for n in _dyn: _apply(n, t)
+	var fr := Engine.get_process_frames()
+	var i := 0
+	for n in _dyn:
+		i += 1
+		if (n.settled or (n.slow and (fr + i) % 2 == 1)) and n.s_extra == n.extra and n.s_op == n.op_mul and n.s_hid == n.hidden \
+				and n.s_na == n.anims.size() and n.s_t0 == n.t0 and is_same(n.s_btf, n.base_tf) and n.s_bop == n.base_op:
+			continue
+		_apply(n, t)
 	_update_clips()
 
 
@@ -437,6 +455,8 @@ static func lerp_list(a: Array, b: Array, k: float) -> Transform2D:
 	var B := list_tf(b)
 	return Transform2D(lerp_angle(A.get_rotation(), B.get_rotation(), k), A.get_scale().lerp(B.get_scale(), k), lerpf(A.get_skew(), B.get_skew(), k), A.origin.lerp(B.origin, k))
 
+static var _bez_cache := {}
+
 ## CSS zamanlama eğrisi dizesi
 static func ease_css(e: String, x: float) -> float:
 	match e:
@@ -448,8 +468,12 @@ static func ease_css(e: String, x: float) -> float:
 		"step-start": return 1.0 if x > 0 else 0.0
 		"step-end": return 1.0 if x >= 1 else 0.0
 	if e.begins_with("cubic-bezier("):
-		var a := e.substr(13, e.length() - 14).split(",")
-		return UIK.bez(float(a[0]), float(a[1]), float(a[2]), float(a[3]), x)
+		var c = _bez_cache.get(e)
+		if c == null:
+			var a := e.substr(13, e.length() - 14).split(",")
+			c = PackedFloat32Array([float(a[0]), float(a[1]), float(a[2]), float(a[3])])
+			_bez_cache[e] = c
+		return UIK.bez(c[0], c[1], c[2], c[3], x)
 	if e.begins_with("steps("):
 		var a2 := e.substr(6, e.length() - 7).split(",")
 		var n := maxi(1, int(a2[0]))
@@ -499,6 +523,15 @@ static func progress(A: Dictionary, t_ms: float) -> float:
 
 ## özellik için kare listesi (eksik 0/1 uçları taban değerle)
 static func _prop_frames(A: Dictionary, key: String, base) -> Array:
+	# önbellek: anahtar kareler değişmez; taban (base_tf dizisi / opaklık) aynı kaldıkça yeniden kurulmaz
+	var ck := "_pf_" + key
+	var C = A.get(ck)
+	if C is Array and (is_same(C[0], base) if base is Array else C[0] == base): return C[1]
+	var out := _prop_frames_build(A, key, base)
+	A[ck] = [base, out]
+	return out
+
+static func _prop_frames_build(A: Dictionary, key: String, base) -> Array:
 	var out := []
 	for k in A.kfs:
 		if k.has(key): out.append([float(k.off), k[key], String(k.get("ease", "linear"))])
@@ -526,7 +559,13 @@ func _apply(n: N, tt: float) -> void:
 	var indiv_t := Transform2D.IDENTITY
 	var op := n.base_op
 	var tms := (tt - n.t0) * 1000.0
+	var done := true
+	var slow := not n.anims.is_empty()
 	for A in n.anims:
+		var it: float = A.get("iter", 1)
+		var du: float = A.get("dur", 0)
+		if it < 0 or tms - float(A.get("delay", 0)) < du * it: done = false
+		if it >= 0 or du < 1200.0: slow = false
 		var p := progress(A, tms)
 		if p < 0: continue
 		var props: Array = A.props
@@ -546,7 +585,8 @@ func _apply(n: N, tt: float) -> void:
 			if fr3.size():
 				var s3 := _seg(fr3, p)
 				op = lerpf(float(s3[0]), float(s3[1]), s3[2])
-	var base_t := list_tf(n.base_tf)
+	var base_t := Transform2D.IDENTITY
+	if not have_tf or n.trs.has("tf"): base_t = list_tf(n.base_tf)
 	if n.trs.has("tf"):
 		var R: Array = n.trs.tf
 		var k := clampf((tt - float(R[2]) - float(R[4])) / maxf(0.001, float(R[3])), 0.0, 1.0)
@@ -561,10 +601,18 @@ func _apply(n: N, tt: float) -> void:
 	var M := indiv_t * (tf_list_t if have_tf else base_t)
 	M = n.extra * M
 	var o := n.origin
-	n.node.transform = Transform2D(0, n.pos) * Transform2D(0, o) * M * Transform2D(0, -o)
+	# yalnız değişince ata: dönüşüm/opaklık ataması alt ağaca bildirim yayar (kare başı maliyet)
+	var xf := Transform2D(0, n.pos) * Transform2D(0, o) * M * Transform2D(0, -o)
+	if not n.node.transform.is_equal_approx(xf): n.node.transform = xf
 	var a := clampf(op, 0, 1) * n.op_mul
-	n.node.modulate.a = a
-	n.node.visible = not n.hidden and a > 0.001
+	if not is_equal_approx(n.node.modulate.a, a): n.node.modulate.a = a
+	var vis := not n.hidden and a > 0.001
+	if n.node.visible != vis: n.node.visible = vis
+	n.settled = done and n.trs.is_empty()
+	n.slow = slow and not done and n.trs.is_empty()
+	if n.settled or n.slow:
+		n.s_extra = n.extra; n.s_op = n.op_mul; n.s_hid = n.hidden; n.s_na = n.anims.size()
+		n.s_t0 = n.t0; n.s_btf = n.base_tf; n.s_bop = n.base_op
 
 func _desc_of(n: N) -> Array:
 	var out := []
@@ -733,8 +781,14 @@ func set_hidden(n: N, h: bool) -> void:
 	n.hidden = h
 	_apply(n, t)
 
+## gizli katman kare başı çağrılmaz (menüde ~110 katman; görünür olunca yeniden açılır)
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		set_process(is_visible_in_tree() and (not _dyn.is_empty() or not _clips.is_empty()))
+
 func set_dyn(n: N) -> void:
-	if not is_processing(): set_process(true)
+	if not is_processing() and (not is_inside_tree() or is_visible_in_tree()): set_process(true)
+	if n: n.settled = false
 	if n and not _dyn.has(n):
 		n.dyn = true
 		_dyn.append(n)

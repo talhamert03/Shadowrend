@@ -277,6 +277,13 @@ func _ready() -> void:
 			ui.menu.prebuild(pg)
 			k += 1
 			await _boot_step(0.88 + k * 0.005)
+		# gölgelendirici / sandık / ses ısıtması da yükleme ekranının ardında biter
+		if ui.menu.prewarm:
+			ui.menu.prewarm.boot_warm()
+			var nf := 0
+			while ui.menu.prewarm.busy_warming() and nf < 20:
+				await get_tree().process_frame
+				nf += 1
 	last = _now_ms()
 	set_process(true)
 	set_physics_process(true)
