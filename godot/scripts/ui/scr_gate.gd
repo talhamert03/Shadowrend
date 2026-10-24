@@ -122,43 +122,40 @@ func _build(info: Dictionary) -> void:
 	clip.size = pr.size - Vector2(10, 10)
 	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(clip)
-	var sky_t := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/tall_back.png")
-	if sky_t:
-		var sk := Sprite2D.new()
-		sk.texture = sky_t
-		sk.centered = false
-		var sc := maxf(clip.size.x / sky_t.get_width(), clip.size.y / (sky_t.get_height() * 0.55))
-		sk.scale = Vector2.ONE * sc
-		sk.position = Vector2((clip.size.x - sky_t.get_width() * sc) * 0.5, 0)
-		clip.add_child(sk)
-	# panel içi aksiyon ışınları + yarım ton (çizgi roman baskısı)
+	# panel içi: dünya renginde gece zemini, ışınlar + hale + yarım ton, ortada arena dioraması
 	var pfx := Node2D.new()
+	var csz := clip.size
 	pfx.draw.connect(func():
-		var c := Vector2(clip.size.x * 0.5, clip.size.y * 0.55)
+		var top := wc.darkened(0.55)
+		var bot := Color("#0d0816")
+		pfx.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(csz.x, 0), csz, Vector2(0, csz.y)]), PackedColorArray([top, top, bot, bot]))
+		var c := Vector2(csz.x * 0.5, csz.y * 0.48)
+		var B := TriBatch.new()
 		for i in 20:
 			var a := i * TAU / 20.0
-			pfx.draw_colored_polygon(PackedVector2Array([c, c + Vector2(cos(a - 0.05), sin(a - 0.05)) * 600, c + Vector2(cos(a + 0.05), sin(a + 0.05)) * 600]), Color(1, 1, 1, 0.05))
+			B._tri(c, c + Vector2(cos(a - 0.05), sin(a - 0.05)) * 600, c + Vector2(cos(a + 0.05), sin(a + 0.05)) * 600, Color(1, 1, 1, 0.05))
+		B.radial(c, csz.x * 0.55, Color(wc, 0.4), Color(wc, 0.0))
 		for yy in 9:
-			for xx in int(clip.size.x / 9) + 1:
-				var p := Vector2(xx * 9.0 + (4.5 if yy % 2 else 0.0), clip.size.y - 6 - yy * 8.0)
-				pfx.draw_circle(p, 2.6 - yy * 0.28, Color(INK, 0.35)))
+			for xx in int(csz.x / 9) + 1:
+				B.circle(Vector2(xx * 9.0 + (4.5 if yy % 2 else 0.0), csz.y - 6 - yy * 8.0), 2.6 - yy * 0.28, Color(INK, 0.35), 6)
+		B.flush(pfx))
 	clip.add_child(pfx)
 	_isle = Node2D.new()
-	var slot: Dictionary = ClimbArt.meta().get("worlds", {}).get(str(wn), {}).get("slots", {}).get("b9", {})
-	var R0: float = float(ClimbArt.meta().get("R0", 90))
-	var dpr: float = float(ClimbArt.meta().get("dpr", 2))
-	var isc := (clip.size.x * 0.30) / R0 / dpr
-	for part in [["body", "_b"], ["top", "_s"]]:
-		var mm = slot.get(part[0])
-		var tx := UITex.get_tex(ClimbArt.BASE + "w" + str(wn) + "/b9" + part[1] + ".png")
-		if mm is Dictionary and tx:
-			var sp := Sprite2D.new()
-			sp.texture = tx
-			sp.centered = false
-			sp.scale = Vector2(float(mm.w) / tx.get_width(), float(mm.h) / tx.get_height()) * isc
-			sp.position = -Vector2(float(mm.ax), float(mm.ay)) * isc
-			_isle.add_child(sp)
-	_isle.position = Vector2(clip.size.x * 0.5, clip.size.y * 0.42)
+	var at: Texture2D = UITex.get_tex(ArenaArt.path_of(wn))
+	if at:
+		var ts := Vector2(at.get_size())
+		var isc := minf(csz.x * 0.94 / ts.x, csz.y * 0.86 / ts.y)
+		var shd := Node2D.new()
+		shd.draw.connect(func():
+			var B2 := TriBatch.new()
+			B2.radial(Vector2(0, ts.y * isc * 0.47), ts.x * isc * 0.52, Color(0, 0, 0, 0.55), Color(0, 0, 0, 0), 0.2)
+			B2.flush(shd))
+		_isle.add_child(shd)
+		var sp := Sprite2D.new()
+		sp.texture = at
+		sp.scale = Vector2.ONE * isc
+		_isle.add_child(sp)
+	_isle.position = Vector2(csz.x * 0.5, csz.y * 0.47)
 	clip.add_child(_isle)
 	var frame := Node2D.new()
 	frame.draw.connect(func():
@@ -272,23 +269,27 @@ func _build(info: Dictionary) -> void:
 
 func _draw_rays() -> void:
 	var R := maxf(_SR.size.x, _SR.size.y) * 1.2
+	var B := TriBatch.new()
 	for i in 22:
 		var a := i * TAU / 22.0
-		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * R, Vector2(cos(a + 0.07), sin(a + 0.07)) * R]), Color(wc.lightened(0.2), 0.10))
+		B._tri(Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * R, Vector2(cos(a + 0.07), sin(a + 0.07)) * R, Color(wc.lightened(0.2), 0.10))
+	B.flush(_rays)
 
 func _draw_dots(n: Node2D) -> void:
 	# alt yarıda büyüyen yarım ton (tam ekran genişliğinde)
 	var x0 := _SR.position.x
 	var x1 := _SR.end.x
 	var y1 := _SR.end.y
+	var B := TriBatch.new()
 	for yy in 18:
 		var y := y1 - 8 - yy * 13.0
 		var r := 3.6 - yy * 0.19
 		if r <= 0.4: break
 		var x := x0 + (6.5 if yy % 2 else 0.0)
 		while x < x1:
-			n.draw_circle(Vector2(x, y), r, Color(0, 0, 0, 0.32))
+			B.circle(Vector2(x, y), r, Color(0, 0, 0, 0.32), 8)
 			x += 13.0
+	B.flush(n)
 
 func _draw_bubble(n: Node2D, w: float) -> void:
 	var r := Rect2(-w * 0.5, -24, w, 48)
@@ -334,11 +335,13 @@ func _draw_bar() -> void:
 		var box := PackedVector2Array([fr.position, Vector2(fr.end.x, fr.position.y), fr.end, Vector2(fr.position.x, fr.end.y)])
 		var off := fmod(_t * 40.0, 22.0)
 		var x := fr.position.x - 22 + off
+		var B := TriBatch.new()
 		while x < fr.end.x:
 			var q := PackedVector2Array([Vector2(x, fr.end.y), Vector2(x + 10, fr.end.y), Vector2(x + 20, fr.position.y), Vector2(x + 10, fr.position.y)])
 			for c in Geometry2D.intersect_polygons(q, box):
-				if c.size() >= 3: _bar.draw_colored_polygon(c, Color("#ffb020"))
+				if c.size() >= 3: B.poly(c, Color("#ffb020"))
 			x += 22.0
+		B.flush(_bar)
 		_bar.draw_line(fr.position + Vector2(8, 4), Vector2(fr.end.x - 6, fr.position.y + 4), Color(1, 1, 1, 0.5), 2.5)
 
 static func _sb(c: Color, r: int, bw := 0, bc := Color.BLACK) -> StyleBoxFlat:
@@ -382,7 +385,7 @@ func _step_anim() -> void:
 	var kb := clampf((_t - 0.4) / 0.3, 0, 1)
 	_bubble.scale = Vector2.ONE * (ScrLevelUp._back_ease(kb) if kb < 1.0 else 1.0) if kb > 0.0 else Vector2.ZERO
 	_bubble.rotation = 0.02
-	if _isle: _isle.position.y = (_panel_r.size.y - 10) * 0.42 + sin(_t * 1.6) * 5.0
+	if _isle: _isle.position.y = (_panel_r.size.y - 10) * 0.47 + sin(_t * 1.6) * 4.0
 
 func _process(dt: float) -> void:
 	if not visible or _root == null: return
