@@ -105,6 +105,8 @@ var _walkPaused := false
 var heroSkel: Skeleton3D
 var idleBones = null
 var _poseBase: Array = []
+## Meshy kahramanları: animasyonun üstüne kol/el düzeltmesi [kemik, ek dönüş, ölçek]
+var _armFix: Array = []
 var _heroBaseY := 0.0
 var _heroBaseValid := false
 var _heroTopY := 91.0
@@ -352,7 +354,7 @@ func load_character(char_id: String) -> void:
 	if heroMesh:
 		heroMesh.get_parent().queue_free()
 		heroMesh = null
-	heroAnim = null; heroSkel = null; idleBones = null; _poseBase = []
+	heroAnim = null; heroSkel = null; idleBones = null; _poseBase = []; _armFix = []
 	heroReady = false; _heroBaseValid = false
 	var md = MODELS.heroes.get(char_id)
 	if wpn: wpn.on_character(char_id, md)
@@ -392,6 +394,15 @@ func load_character(char_id: String) -> void:
 	var sk := inst.find_children("*", "Skeleton3D", true, false)
 	heroSkel = sk[0] if sk.size() else null
 	if heroSkel:
+		# armFix: {"LeftArm": [x°, y°, z°, ölçek?]} — A-pozdan gelen açık kol ve avucu yukarı
+		# bakan elleri gövdeye yaklaştırır (yerel eksende, animasyondan sonra çarpılır)
+		var af: Dictionary = md.get("armFix", {})
+		for bn in af:
+			var bix := heroSkel.find_bone(bn)
+			if bix < 0: continue
+			var r: Array = af[bn]
+			var q := Quaternion.from_euler(Vector3(deg_to_rad(r[0]), deg_to_rad(r[1]), deg_to_rad(r[2])))
+			_armFix.append([bix, q, float(r[3]) if r.size() > 3 else 1.0])
 		var bi := func(names: Array) -> int:
 			for n in names:
 				var i := heroSkel.find_bone(n)
@@ -817,6 +828,9 @@ func _update_player(g, dt: float) -> void:
 				heroAnim.seek(0, true)
 				_walkPaused = true
 			heroAnim.advance(0)
+	for e in _armFix:
+		heroSkel.set_bone_pose_rotation(e[0], heroSkel.get_bone_pose_rotation(e[0]) * e[1])
+		if e[2] != 1.0: heroSkel.set_bone_pose_scale(e[0], Vector3.ONE * e[2])
 	if not p.moving and idleBones and heroSkel:
 		var t: float = g.time
 		var breathe := sin(t * 1.7)

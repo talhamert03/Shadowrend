@@ -199,7 +199,41 @@
     "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "src": "meshy"
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   },
   "fenerci": {
    "file": "heroes/fenerci.glb",
@@ -219,7 +253,41 @@
     "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "src": "meshy"
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   },
   "zehra": {
    "file": "heroes/zehra.glb",
@@ -239,7 +307,41 @@
     "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "src": "meshy"
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   },
   "demirhan": {
    "file": "heroes/demirhan.glb",
@@ -259,7 +361,41 @@
     "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "src": "meshy"
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   }
  },
  "enemies": {

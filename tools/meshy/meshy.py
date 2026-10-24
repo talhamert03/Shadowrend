@@ -11,6 +11,7 @@ Komutlar:
   rig     <ad> [--height 1.7]     iskelet + hazır yürüme/koşu animasyonlu GLB'ler
   concept <ad> <prompt-dosyası>   konsept görsel (A-poz, saydam zemin)
   img3d   <ad> [--image png]      konsept görevinden (ya da yerel PNG'den) dokulu model
+  art     <ad> <prompt-dosyası> --ref a.png [--ref b.png]   referanslı 2B görsel (kart/portre)
   all     <ad> <prompt-dosyası>   preview → refine → rig
 Her adım harcanan krediyi (consumed_credits) yazar.
 """
@@ -119,6 +120,22 @@ def cmd_concept(args):
     save(args, args.name, s)
     print("kredi:", t.get("consumed_credits"), "toplam:", s["credits"])
 
+def cmd_art(args):
+    """referans görsellerden (model çekimi + stil örneği) boyalı kart/portre görseli"""
+    import base64
+    s = load(args, args.name)
+    refs = ["data:image/png;base64," + base64.b64encode(open(r, "rb").read()).decode() for r in args.ref]
+    body = {"ai_model": args.img_model, "prompt": prompt_of(args.prompt), "reference_image_urls": refs}
+    tid = req(args, "POST", "/openapi/v1/image-to-image", body)["result"]
+    print("art", tid)
+    t = wait(args, "/openapi/v1/image-to-image", tid)
+    s["art"] = tid
+    s["credits"] = s.get("credits", 0) + int(t.get("consumed_credits", 0))
+    urls = t.get("image_urls") or []
+    for i, u in enumerate(urls): download(u, os.path.join(args.out, args.name, f"art{i}.png"))
+    save(args, args.name, s)
+    print("kredi:", t.get("consumed_credits"), "toplam:", s["credits"])
+
 def cmd_img3d(args):
     """konsept görselden dokulu düşük poligon model (tek adım: ağ + doku)"""
     s = load(args, args.name)
@@ -170,6 +187,8 @@ def main():
     p = sub.add_parser("concept"); p.add_argument("name"); p.add_argument("prompt")
     p.add_argument("--img-model", default="nano-banana-2")
     p.add_argument("--keep-bg", action="store_true", help="arka planı silme (beyaz karakterler silinmesin)")
+    p = sub.add_parser("art"); p.add_argument("name"); p.add_argument("prompt")
+    p.add_argument("--ref", action="append", default=[]); p.add_argument("--img-model", default="nano-banana-pro")
     p = sub.add_parser("img3d"); p.add_argument("name"); p.add_argument("--poly", type=int, default=6000)
     p.add_argument("--image", default="", help="konsept görevi yerine yerel PNG")
     p = sub.add_parser("refine"); p.add_argument("name")
@@ -180,6 +199,7 @@ def main():
     elif args.cmd == "refine": cmd_refine(args)
     elif args.cmd == "concept": cmd_concept(args)
     elif args.cmd == "img3d": cmd_img3d(args)
+    elif args.cmd == "art": cmd_art(args)
     elif args.cmd == "rig": cmd_rig(args)
     elif args.cmd == "all":
         cmd_preview(args); cmd_refine(args); cmd_rig(args)
