@@ -262,8 +262,113 @@ func boot() -> void:
 var _taps: Array = []
 var _gest: Array = []
 
+## geliştirici: her alt ağacı tek tek gizleyip çizim çağrısı düşüşünü ölçer — drawprobe=<kare>
+func _draw_probe() -> void:
+	var cands: Array = []
+	var st: Array = [[get_tree().root, 0]]
+	while st.size():
+		var it: Array = st.pop_back()
+		var x: Node = it[0]
+		if x is CanvasItem and not (x as CanvasItem).visible: continue
+		if x is CanvasItem and int(it[1]) >= 2: cands.append(x)
+		if int(it[1]) < 9:
+			for c in x.get_children(): st.append([c, int(it[1]) + (1 if x is CanvasItem else 0)])
+	var base := 0.0
+	for k in 3: await get_tree().process_frame
+	base = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	var res: Array = []
+	for x in cands:
+		if not is_instance_valid(x) or not (x as CanvasItem).visible: continue
+		(x as CanvasItem).visible = false
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var d := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		(x as CanvasItem).visible = true
+		if base - d >= 40: res.append([base - d, str(x.get_path()).replace("/root/Main/UI/", ""), x.get_class()])
+	res.sort_custom(func(a, b): return a[0] > b[0])
+	print("PROBE base=", base, " cands=", cands.size())
+	for r in res.slice(0, 40): print("PROBE ", r[0], " ", r[2], " ", r[1])
+
+## geliştirici: betik sınıfı başına _process kapatılıp TIME_PROCESS düşüşü ölçülür — procprobe=<kare>
+func _proc_probe() -> void:
+	var groups := {}
+	var st: Array = [get_tree().root]
+	while st.size():
+		var x: Node = st.pop_back()
+		for c in x.get_children(): st.append(c)
+		if x == self: continue
+		if x.is_processing():
+			var sc = x.get_script()
+			var nm: String = sc.resource_path.get_file() if sc and sc.resource_path != "" else ("inner:" + x.get_class() + ":" + str(x.get_parent().get_script().resource_path.get_file() if x.get_parent() and x.get_parent().get_script() else ""))
+			if not groups.has(nm): groups[nm] = []
+			groups[nm].append(x)
+	var meas := func(n: int) -> float:
+		var t := 0.0
+		for k in n:
+			await get_tree().process_frame
+			t += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+		return t / n
+	var base: float = await meas.call(30)
+	print("PPROBE base=", snappedf(base, 0.1))
+	for nm in groups:
+		for x in groups[nm]: if is_instance_valid(x): x.set_process(false)
+		var v: float = await meas.call(20)
+		for x in groups[nm]: if is_instance_valid(x): x.set_process(true)
+		await meas.call(4)
+		print("PPROBE ", snappedf(base - v, 0.1), " ", nm, " x", groups[nm].size())
+
+## geliştirici: görünür tuval öğelerinin dökümü (çizim çağrısı kaynağı) — dumpci=<kare>
+func _dump_ci() -> void:
+	var by := {}
+	var mats := {}
+	var n := 0
+	var st: Array = [get_tree().root]
+	while st.size():
+		var x: Node = st.pop_back()
+		if x is CanvasItem and not (x as CanvasItem).visible: continue
+		if x is CanvasLayer and not (x as CanvasLayer).visible: continue
+		for c in x.get_children(): st.append(c)
+		if x is Node3D and not (x as Node3D).visible: continue
+		if x is VisualInstance3D:
+			var p3 := str(x.get_path()).split("/")
+			var t3 := "3D " + "/".join(p3.slice(0, mini(5, p3.size())))
+			by[t3] = int(by.get(t3, 0)) + 1
+		if x is Viewport and x != get_tree().root: by["VP " + str(x.get_path())] = 1
+		if not (x is CanvasItem): continue
+		n += 1
+		var path := str(x.get_path())
+		var parts := path.split("/")
+		var top := "/".join(parts.slice(0, mini(6, parts.size())))
+		by[top] = int(by.get(top, 0)) + 1
+		var ci := x as CanvasItem
+		if ci.material: mats[x.get_class() + (":" + ci.material.shader.resource_path.get_file() if ci.material is ShaderMaterial and ci.material.shader else "")] = int(mats.get(x.get_class(), 0)) + 1
+	var ks := by.keys()
+	ks.sort_custom(func(a, b): return by[a] > by[b])
+	print("CI total=", n)
+	for k in ks.slice(0, 25): print("CI ", by[k], " ", k)
+	# her karede çalışan düğümler (betik sınıfına göre)
+	var pr := {}
+	var st2: Array = [get_tree().root]
+	while st2.size():
+		var x: Node = st2.pop_back()
+		for c in x.get_children(): st2.append(c)
+		if x.is_processing() or x.is_physics_processing():
+			var sc = x.get_script()
+			var nm: String = (sc.resource_path.get_file() if sc and sc.resource_path != "" else (sc.get_global_name() if sc else x.get_class())) if sc else x.get_class()
+			if sc and nm == "": nm = "inner:" + x.get_class()
+			pr[nm] = int(pr.get(nm, 0)) + 1
+	var pk := pr.keys()
+	pk.sort_custom(func(a, b): return pr[a] > pr[b])
+	for k in pk.slice(0, 25): print("PROC ", pr[k], " ", k)
+	var mk := mats.keys()
+	mk.sort_custom(func(a, b): return mats[a] > mats[b])
+	for k in mk.slice(0, 15): print("MAT ", mats[k], " ", k)
+
 func _process(_dt: float) -> void:
 	Prof.hitch(_dt)
+	if _arg("dumpci") != "" and Engine.get_process_frames() == int(_arg("dumpci")): _dump_ci()
+	if _arg("drawprobe") != "" and Engine.get_process_frames() == int(_arg("drawprobe")): _draw_probe()
+	if _arg("procprobe") != "" and Engine.get_process_frames() == int(_arg("procprobe")): _proc_probe()
 	if Prof.on and g.state == "menu" and Engine.get_process_frames() % 120 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())
@@ -422,7 +527,15 @@ func toast(s) -> void: hud.toast(str(s))
 
 ## katman açılışı: süre ölçümü + kullandığı dokuların kaydı (UIPrewarm bir sonraki sefer ön yükler)
 const OVERLAYS := ["_cb", "_ci", "_cd", "_gd", "_dd", "_qx", "_bp", "_aj", "_set"]
+var _ovWait := false
 func _ov(k: String, f: Callable) -> void:
+	# dokuları önbellekte değilse önce arka planda yüklenir (en çok ~0,45 sn); bu sürede ana iş
+	# parçacığı çözme yapmaz, düğme basış animasyonu akmaya devam eder (dondurma yerine kısa gecikme)
+	if _ovWait: return
+	if g.state == "menu":
+		_ovWait = true
+		await UITex.await_ready(self, UITex.manifest("_" + k), 0.45)
+		_ovWait = false
 	Prof.s("ov:" + k)
 	var rk := UITex.rec_begin("_" + k)
 	f.call()

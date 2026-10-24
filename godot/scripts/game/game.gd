@@ -207,6 +207,8 @@ func _ready() -> void:
 	msn = D.missionDef(1, 1)
 
 	await _boot_step(0.12)
+	# ana sayfa dokuları arka planda çözülmeye başlasın (menü kurulurken hazır olsun)
+	UITex.request(UITex.manifest("savas"), true)
 	_build_pools()
 	await _boot_step(0.2)
 
@@ -250,6 +252,16 @@ func _ready() -> void:
 	resize()
 	Settings.apply_all()
 	await _boot_step(0.8)
+	# arayüz betikleri önden derlensin: ilk sekme/katman açılışında GDScript derleme takılması olmaz
+	var n := 0
+	for f in DirAccess.get_files_at("res://scripts/ui"):
+		var fn := f.trim_suffix(".remap")
+		if not fn.ends_with(".gd"): continue
+		load("res://scripts/ui/" + fn)
+		n += 1
+		if n % 8 == 0:
+			UITex.poll()
+			await _boot_step(0.8 + minf(0.08, n * 0.0012))
 	ui.boot()
 	last = _now_ms()
 	set_process(true)

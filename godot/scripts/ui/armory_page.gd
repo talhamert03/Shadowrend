@@ -392,7 +392,9 @@ func _bag(dy: float) -> void:
 	var S0 = root.d.get("scroll")
 	if S0 is Dictionary:
 		S0.h = 4.0 + (bag.pos.y if bag else 0.0) + bag_h + 18.0 + 96.0
-	_build_lazy(1000)
+	# gizli ön kurulumda (UIPrewarm) kartlar burada değil, _process'te karede bir kurulur —
+	# tek karede ~30 kart kurulumu, kullanıcının o anki dokunuşunu dondurmasın
+	_build_lazy(1000 if menu.page == "cephane" else 0)
 
 ## görünür alana (kaydırma ± ekran) yakın kartları kur; en çok n kart
 func _build_lazy(n: int) -> void:

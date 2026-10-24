@@ -101,22 +101,62 @@ static func panel(d: CanvasItem, r: Rect2, fill: Color, rad := 12.0, bw := 4.0, 
 static func rays(d: CanvasItem, r: Rect2, c: Vector2, col: Color, n := 16, wdt := 0.11, inset := 3.0) -> void:
 	var box := PackedVector2Array([r.position + Vector2(inset, inset), Vector2(r.end.x - inset, r.position.y + inset), r.end - Vector2(inset, inset), Vector2(r.position.x + inset, r.end.y - inset)])
 	var R := r.size.length() * 1.2
+	var V := PackedVector2Array()
 	for i in n:
 		var a := i * TAU / n
 		var tri := PackedVector2Array([c, c + Vector2(cos(a - wdt), sin(a - wdt)) * R, c + Vector2(cos(a + wdt), sin(a + wdt)) * R])
 		for q in Geometry2D.intersect_polygons(tri, box):
-			if q.size() >= 3: d.draw_colored_polygon(q, col)
+			if q.size() >= 3: _fan(V, q)
+	draw_tris(d, V, col)
 
 ## yarım ton: alttan yukarı küçülen noktalar (dikdörtgen içinde)
 static func halftone(d: CanvasItem, r: Rect2, col: Color, step := 8.0, rows := 6, r0 := 2.4) -> void:
+	var V := PackedVector2Array()
 	for yy in rows:
 		var rr := r0 * (1.0 - float(yy) / rows)
 		if rr < 0.4: break
 		var y := r.end.y - step * 0.6 - yy * step
 		var x := r.position.x + step * 0.6 + (step * 0.5 if yy % 2 else 0.0)
+		var seg := 8 if rr > 2.0 else 6
 		while x < r.end.x - step * 0.4:
-			d.draw_circle(Vector2(x, y), rr, col)
+			_disc(V, Vector2(x, y), rr, seg)
 			x += step
+	draw_tris(d, V, col)
+
+# ── toplu çizim: Uyumluluk çizicisinde her çokgen/daire AYRI çizim çağrısıdır (birleştirilmez);
+# yüzlerce nokta/ışın tek bir üçgen ağında tek çağrıyla çizilir ──
+static func _fan(V: PackedVector2Array, q: PackedVector2Array) -> void:
+	for i in range(1, q.size() - 1):
+		V.append(q[0]); V.append(q[i]); V.append(q[i + 1])
+
+static func _disc(V: PackedVector2Array, c: Vector2, r: float, seg: int) -> void:
+	var p0 := c + Vector2(r, 0)
+	for i in seg:
+		var a := (i + 1) * TAU / seg
+		var p1 := c + Vector2(cos(a), sin(a)) * r
+		V.append(c); V.append(p0); V.append(p1)
+		p0 = p1
+
+## üçgen listesi → tek draw_mesh (tek renk); cols verilirse köşe başı renk
+static func draw_tris(d: CanvasItem, V: PackedVector2Array, col: Color, cols := PackedColorArray()) -> void:
+	if V.size() < 3: return
+	if cols.is_empty():
+		cols.resize(V.size())
+		cols.fill(col)
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = V
+	arr[Mesh.ARRAY_COLOR] = cols
+	var m := ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	d.draw_mesh(m, null)
+	# çizim komutu yalnız RID tutar: ağ, çizen düğümde saklanmazsa hemen silinir ("mesh is null").
+	# Aynı karedeki çizimler birikir; yeni bir karede yeniden çizilince eskiler bırakılır.
+	var f := Engine.get_frames_drawn()
+	if int(d.get_meta("_tris_f", -1)) != f:
+		d.set_meta("_tris_f", f)
+		d.set_meta("_tris", [])
+	(d.get_meta("_tris") as Array).append(m)
 
 ## yakalanan metni çizgi roman yazısına çevir (Bangers + mürekkep kontur)
 static func font(n: Lyr.N, mul := 1.1, col = null, stroke := 1.6, drop := 2.0) -> void:
@@ -197,9 +237,11 @@ static func skin_shell(L: Lyr) -> void:
 		var rs := Node2D.new()
 		rs.position = Vector2(sky.size.x * 0.5, sky.size.y * 0.42)
 		rs.draw.connect(func():
+			var V := PackedVector2Array()
 			for i in 22:
 				var a := i * TAU / 22.0
-				rs.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * 1400, Vector2(cos(a + 0.07), sin(a + 0.07)) * 1400]), Color(1, 0.85, 1, 0.035)))
+				V.append_array([Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * 1400, Vector2(cos(a + 0.07), sin(a + 0.07)) * 1400])
+			draw_tris(rs, V, Color(1, 0.85, 1, 0.035)))
 		sky.node.add_child(rs)
 		sky.node.move_child(rs, 1)
 		var tw := rs.create_tween().set_loops()

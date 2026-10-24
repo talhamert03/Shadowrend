@@ -89,12 +89,14 @@ static func get_tex(path: String) -> Texture2D:
 		_touch(path)
 		return _cache[path]
 	var tx: Texture2D = null
+	var t0 := Time.get_ticks_usec()
 	if _pending.has(path):
 		_pending.erase(path)
 		tx = ResourceLoader.load_threaded_get(path) as Texture2D
 	else:
 		if not ResourceLoader.exists(path): return null
 		tx = load(path) as Texture2D
+	if Prof.on and Time.get_ticks_usec() - t0 > 15000: print("SLOWTEX ", path, " ", (Time.get_ticks_usec() - t0) / 1000, " ms", " (bekleyen)" if not _cache.has(path) and tx and false else "")
 	if tx: _put(path, tx)
 	return tx
 
@@ -108,6 +110,21 @@ static func request(paths: Array, front := false) -> void:
 		add.append(s)
 	if front: _queue = add + _queue
 	else: _queue.append_array(add)
+
+## yolların hepsi önbelleğe gelene (ya da süre dolana) dek kareleri bekler; bekleme olduysa true
+static var waiting := 0
+static func await_ready(n: Node, paths: Array, max_s := 0.45) -> bool:
+	var need: Array = paths.filter(func(p): return not _cache.has(str(p)) and ResourceLoader.exists(str(p)))
+	if need.is_empty(): return false
+	request(need, true)
+	waiting += 1
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < int(max_s * 1000.0):
+		await n.get_tree().process_frame
+		poll()
+		if need.all(func(p): return _cache.has(str(p))): break
+	waiting -= 1
+	return true
 
 static func busy() -> bool:
 	return not _queue.is_empty() or not _pending.is_empty()

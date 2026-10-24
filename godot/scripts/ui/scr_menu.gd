@@ -167,12 +167,19 @@ func _dock_fx(p: String) -> void:
 	tw.tween_method(func(_v): rip.queue_redraw(), 0.0, 1.0, 0.62)
 	tw.tween_callback(rip.queue_free)
 
+var _tapWait := false
 func _tap(p: String) -> void:
 	g.audio.play("click")
 	_dock_fx(p)
 	if p != "savas" and not FileAccess.file_exists(Lyr.BASE + "pg_" + p + ".json"):
 		g.ui.toast("YAKINDA")
 		return
+	# sayfa ilk kez kurulacaksa dokuları önce arka planda gelsin (kurulum karesi çözme yapmasın)
+	if not pages.has(p) or int(_rendered.get(p, -1)) != Store.rev:
+		if _tapWait: return
+		_tapWait = true
+		await UITex.await_ready(self, UITex.manifest(p) if p != "dunyalar" else UITex.manifest(p).filter(func(q): return not str(q).contains("/climb/")), 0.4)
+		_tapWait = false
 	set_page(p)
 
 func set_page(p: String, instant := false) -> void:
@@ -376,11 +383,11 @@ func _process(dt: float) -> void:
 				L.visible = false
 				_reset_page(L)
 	for S2 in _stg.duplicate():
-		var L2: Lyr = S2.L
-		var N3: Lyr.N = S2.n
-		if not is_instance_valid(L2):
+		if not is_instance_valid(S2.L):
 			_stg.erase(S2)
 			continue
+		var L2: Lyr = S2.L
+		var N3: Lyr.N = S2.n
 		var ks := (_t - float(S2.t0)) / 0.34
 		if ks < 0.0: continue
 		if ks >= 1.0:
@@ -573,13 +580,18 @@ func _fill(L: Lyr, id: String, frac: float) -> void:
 	var full: float = (par.size.x - n.pos.x * 2.0) if par else n.size.x
 	L.fit_width(n, maxf(0.001, full * clampf(frac, 0, 1)), false)
 
+var _mapKey: Array = []
 func _render_home() -> void:
 	var L := home
 	if L == null: return
 	var nm := home_target()
 	var wd: Dictionary = D.WORLDS[int(nm.w) - 1]
 	var cleared := int(g.progress.get(int(nm.w), 0))
-	if _map: _map.paint(wd, cleared, _mapN.size.x, _mapN.size.y)
+	# harita çizimi yalnız dünya/ilerleme/boyut değişince yeniden kurulur (her ana sayfa dönüşünde değil)
+	var mk := [int(nm.w), cleared, _mapN.size if _map else Vector2.ZERO]
+	if _map and mk != _mapKey:
+		_mapKey = mk
+		_map.paint(wd, cleared, _mapN.size.x, _mapN.size.y)
 	L.set_text(L.find_id("#map-world-no"), str(nm.w))
 	L.set_text(L.find_id("#map-world-name"), str(wd.name))
 	_fill(L, "#map-world-fill", float(cleared) / D.MISSIONS_PER_WORLD)
@@ -678,7 +690,13 @@ func render_slots() -> void:
 			S.resize_h(S.nodes[0], rowH)
 		else:
 			L.resize_h(E, rowH)
-	if _map: _map.paint(D.WORLDS[int(home_target().w) - 1], int(g.progress.get(int(home_target().w), 0)), _mapN.size.x, _mapN.size.y)
+	if _map:
+		var hw := int(home_target().w)
+		var hc := int(g.progress.get(hw, 0))
+		var mk := [hw, hc, _mapN.size]
+		if mk != _mapKey:
+			_mapKey = mk
+			_map.paint(D.WORLDS[hw - 1], hc, _mapN.size.x, _mapN.size.y)
 	_slot_texts()
 	ComicSkin.refresh(L)
 
