@@ -1,16 +1,23 @@
 extends SceneTree
-## Geliştirici aracı: dünya önizlemesi — gökte süzülen fantastik ADA dioraması.
-## Üst yüz: oyunun kendi zemin dokusu (organik oval kenar); altında yontulu, sivrilen kaya gövde
-## (düz gölgeli alçak poligon), dünya renginde parlayan kristaller ve yanda süzülen kaya
-## parçaları; üstte o dünyanın objeleri ve üç düşmanı. Saydam PNG yazar.
+## Geliştirici aracı: dünya önizlemesi — Clash Royale arenası gibi SİMETRİK, çerçeveli arena.
+## Kalın taş kaide üstünde oyunun kendi zemin dokusu (makro × ayrıntı); çevresinde alçak blok
+## duvar, dört köşede dünya renginde meşaleli kule, arkada kemerli kapı, köşelerde dünyanın kendi
+## engelleri (ağaç, mezar taşı…) ayna simetrisiyle, ortada sönük parlayan dünya mührü. Düşman yok.
+## Çıktı: assets/ui/arena/w<n>.png (saydam, 1200×1000).
 ## Çalıştırma (ekranlı): godot --path . -s res://tools/diorama.gd -- <çıktı_klasörü> [dünya...]
 
-const W := 500.0      # ada üst yüz genişliği (oyun birimi, elips çapı)
-const DP := 380.0     # derinlik (elips çapı)
-const H := 70.0       # (eski blok) toprak yüksekliği
-const LIP := 10.0
-const DEPTH := 330.0  # alt kaya gövdenin boyu
-const OUT := Vector2i(1024, 1024)
+const OUT := Vector2i(1200, 1000)
+const AW := 560.0        # arena iç genişliği (oyun birimi)
+const AD := 640.0        # arena iç derinliği
+const WALL := 34.0       # duvar kalınlığı
+const WH := 38.0         # duvar yüksekliği
+const BASE := 64.0       # kaide kalınlığı
+const GPX := 1024
+const DECOR_SCALE := {"ot": 2.4, "cicek": 2.3, "tas": 2.1, "mum": 1.9, "mantar": 1.9, "saz": 1.8, "kazik": 1.35, "kristal": 2.1, "kor": 2.0, "kemikP": 2.0, "disliP": 1.9, "yaprakP": 2.3, "kar": 2.1, "nilufer": 2.3}
+
+var _stone: Material
+var _stone_d: Material
+var _trim: Material
 
 func _init() -> void:
 	var a := OS.get_cmdline_user_args()
@@ -19,183 +26,115 @@ func _init() -> void:
 	var worlds: Array = []
 	for i in range(1, a.size()): worlds.append(int(a[i]))
 	if worlds.is_empty(): worlds = range(1, 11)
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/models_meta.json"))
 	var wj: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/raw/worlds.json"))
 	for w in worlds:
 		var wd: Dictionary = wj.WORLDS[w - 1]
-		var img := await _render(w, wd, meta)
+		var img := await _render(w, wd)
 		img.save_png(out + "/w" + str(w) + ".png")
 		print("yazıldı w", w)
 	quit()
 
-func _mat_col(c: Color) -> StandardMaterial3D:
+## düz gölgeli taş malzemesi + çizgi roman konturu
+var _noise: NoiseTexture2D
+
+func _mat(c: Color, outline := true) -> Material:
+	if _noise == null:
+		var fn := FastNoiseLite.new()
+		fn.frequency = 0.035
+		fn.fractal_octaves = 4
+		_noise = NoiseTexture2D.new()
+		_noise.width = 256
+		_noise.height = 256
+		_noise.seamless = true
+		_noise.noise = fn
+		var gr := Gradient.new()
+		gr.set_color(0, Color(0.72, 0.72, 0.72))
+		gr.set_color(1, Color(1.0, 1.0, 1.0))
+		_noise.color_ramp = gr
 	var m := StandardMaterial3D.new()
 	m.albedo_color = c
-	m.roughness = 1.0
+	m.albedo_texture = _noise
+	m.uv1_triplanar = true
+	m.uv1_scale = Vector3(0.02, 0.02, 0.02)
+	m.roughness = 0.9
+	if outline: m.next_pass = Shd.outline(null, c.darkened(0.6), 1.7)
 	return m
 
-func _unl(c: Color) -> StandardMaterial3D:
-	var m := _mat_col(c)
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	return m
-
-func _box(sz: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
+func _box(sz: Vector3, pos: Vector3, mat: Material, rot := 0.0) -> MeshInstance3D:
+	var bm := BoxMesh.new()
+	bm.size = sz
 	var mi := MeshInstance3D.new()
-	var b := BoxMesh.new()
-	b.size = sz
-	mi.mesh = b
+	mi.mesh = bm
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation.y = rot
+	return mi
+
+func _cyl(r: float, h: float, pos: Vector3, mat: Material, seg := 8, r2 := -1.0) -> MeshInstance3D:
+	var cm := CylinderMesh.new()
+	cm.top_radius = r if r2 < 0 else r2
+	cm.bottom_radius = r
+	cm.height = h
+	cm.radial_segments = seg
+	cm.rings = 1
+	var mi := MeshInstance3D.new()
+	mi.mesh = cm
 	mi.material_override = mat
 	mi.position = pos
 	return mi
 
-## organik oval kenar: elips × yumuşak gürültü
-func _outline_pts(rng: RandomNumberGenerator) -> PackedVector2Array:
-	var P := PackedVector2Array()
-	var n := 72
-	var ph := [rng.randf() * TAU, rng.randf() * TAU, rng.randf() * TAU]
-	for i in n:
-		var a := i * TAU / n
-		var k := 1.0 + 0.035 * sin(a * 3.0 + ph[0]) + 0.025 * sin(a * 5.0 + ph[1]) + 0.015 * sin(a * 9.0 + ph[2])
-		P.append(Vector2(cos(a) * W * 0.5 * k, sin(a) * DP * 0.5 * k))
-	return P
+## oyun zemini gibi: makro renk × (ayrıntı / orta değer), haritanın ortasından AW×AD
+func _ground_img(w: int, lay: Dictionary) -> Image:
+	var full: float = float(lay.play) + 2.0 * float(lay.border)
+	var mimg: Image = (load("res://assets/arena/w" + str(w) + "/macro.png") as Texture2D).get_image()
+	var dimg: Image = (load("res://assets/arena/w" + str(w) + "/detail.png") as Texture2D).get_image()
+	for im in [mimg, dimg]:
+		if im.is_compressed(): im.decompress()
+	var mid := float(lay.get("detailMid", 0.216))
+	var tile := float(lay.get("tile", 900.0)) * 0.7
+	var mw := mimg.get_width()
+	var dw := dimg.get_width()
+	var GY := int(GPX * AD / AW)
+	var img := Image.create(GPX, GY, false, Image.FORMAT_RGB8)
+	for y in GY:
+		var uz := (float(y) / GY - 0.5) * AD
+		var my := clampi(int((uz / full + 0.5) * mw), 0, mw - 1)
+		var dy := posmod(int(uz / tile * dw), dw)
+		for x in GPX:
+			var ux := (float(x) / GPX - 0.5) * AW
+			var mc := mimg.get_pixel(clampi(int((ux / full + 0.5) * mw), 0, mw - 1), my).srgb_to_linear()
+			var dc := dimg.get_pixel(posmod(int(ux / tile * dw), dw), dy).srgb_to_linear()
+			var k := Color(0.1 + 0.9 * dc.r / mid, 0.1 + 0.9 * dc.g / mid, 0.1 + 0.9 * dc.b / mid)
+			# duvar diplerinde ortam gölgesi (hacim)
+			var ex := 1.0 - clampf((AW * 0.5 - absf(ux)) / 60.0, 0.0, 1.0)
+			var ez := 1.0 - clampf((AD * 0.5 - absf(uz)) / 60.0, 0.0, 1.0)
+			var ao := 1.0 - 0.42 * maxf(ex, ez)
+			var lit := 1.25 * ao
+			img.set_pixel(x, y, Color(mc.r * k.r * lit, mc.g * k.g * lit, mc.b * k.b * lit).linear_to_srgb())
+	img.generate_mipmaps()
+	return img
 
-func _island_top(rim: PackedVector2Array, img: Image) -> MeshInstance3D:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := rim.size()
-	for i in n:
-		var a: Vector2 = rim[i]
-		var b: Vector2 = rim[(i + 1) % n]
-		for v in [Vector2.ZERO, a, b]:
-			st.set_uv(Vector2(v.x / W + 0.5, v.y / DP + 0.5))
-			st.set_normal(Vector3.UP)
-			st.add_vertex(Vector3(v.x, 0.4, v.y))
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_texture = ImageTexture.create_from_image(img)
-	m.texture_repeat = false
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mi.material_override = m
-	return mi
+## dünyanın en sık engel türleri (büyükten küçüğe)
+func _kinds(lay: Dictionary, key: String) -> Array:
+	var cnt := {}
+	for p in lay[key]: cnt[str(p.get("kind", ""))] = int(cnt.get(str(p.get("kind", "")), 0)) + 1
+	var ks := cnt.keys()
+	ks.sort_custom(func(a, b): return cnt[a] > cnt[b])
+	return ks
 
-## alt gövde: zemin rengi toprak kuşağı + aşağı sivrilen yontulu kaya halkaları (düz gölge)
-func _island_body(rim: PackedVector2Array, ground: Color, tint: Color, rng: RandomNumberGenerator) -> MeshInstance3D:
-	var n := rim.size()
-	var K := 7
-	var rings: Array = []
-	var soil := ground.darkened(0.5).lerp(Color("#3a281c"), 0.4)
-	var rock_hi := Color("#6e626c").lerp(tint, 0.14)
-	var rock_lo := Color("#1e1822").lerp(tint, 0.1)
-	for k in K + 1:
-		var t := float(k) / K
-		var y := -2.0 - (14.0 if k >= 1 else 0.0) - DEPTH * pow(maxf(0.0, t - 0.08) / 0.92, 1.1) * (1.0 if k >= 1 else 0.0)
-		var sc := 1.0 if k == 0 else (1.03 if k == 1 else _body_sc(t))
-		var R := []
-		for i in n:
-			var jit := 1.0 if k <= 1 else 1.0 + rng.randf_range(-0.10, 0.10)
-			var v: Vector2 = rim[i] * sc * jit
-			R.append(Vector3(v.x, y + (rng.randf_range(-10, 10) if k > 1 and k < K else 0.0), v.y))
-		rings.append(R)
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_smooth_group(-1)
-	for k in K:
-		for i in n:
-			var a: Vector3 = rings[k][i]
-			var b: Vector3 = rings[k][(i + 1) % n]
-			var c: Vector3 = rings[k + 1][(i + 1) % n]
-			var d: Vector3 = rings[k + 1][i]
-			var col: Color = soil if k == 0 else rock_hi.lerp(rock_lo, float(k) / K)
-			if k > 0: col = col.lightened(rng.randf_range(-0.05, 0.07) + (0.06 if k % 2 == 0 else -0.04))
-			st.set_color(col)
-			st.add_vertex(a); st.add_vertex(b); st.add_vertex(c)
-			st.add_vertex(a); st.add_vertex(c); st.add_vertex(d)
-	# dip ucu
-	var tip := Vector3(0, -DEPTH * 1.08, 0)
-	for i in n:
-		st.set_color(rock_lo)
-		st.add_vertex(rings[K][i]); st.add_vertex(rings[K][(i + 1) % n]); st.add_vertex(tip)
-	st.generate_normals()
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
-	var m := StandardMaterial3D.new()
-	m.vertex_color_use_as_albedo = true
-	m.roughness = 1.0
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mi.material_override = m
-	return mi
-
-## gövde yarıçap çarpanı (t: 0 üst → 1 dip): önce dolgun, sonra sivrilir
-static func _body_sc(t: float) -> float:
-	var u := clampf((t - 0.14) / 0.86, 0.0, 1.0)
-	return (1.0 - pow(u, 1.0)) * 0.97 + 0.03 - 0.12 * sin(u * PI) * -1.0 * 0.0 + 0.10 * sin(u * PI) * (1.0 - u)
-
-## gövdeden dışarı-aşağı uzanan parlayan kristal kümesi
-func _crystal(rim: PackedVector2Array, col: Color, rng: RandomNumberGenerator, i: int) -> Node3D:
-	var root := Node3D.new()
-	# gövde yüzeyine otur: kameraya bakan yarı (z > 0), derinlik t'de gövde yarıçapı
-	var a := PI * (0.12 + 0.76 * (i + rng.randf_range(0.1, 0.9)) / 6.0)
-	var ri := int(posmod(int(a / TAU * rim.size()), rim.size()))
-	var e: Vector2 = rim[ri]
-	var t := rng.randf_range(0.3, 0.7)
-	var sc := _body_sc(t)
-	root.position = Vector3(e.x * sc * 0.93, -16.0 - DEPTH * pow((t - 0.08) / 0.92, 1.1), e.y * sc * 0.93)
-	var m := StandardMaterial3D.new()
-	m.albedo_color = col.darkened(0.2)
-	m.emission_enabled = true
-	m.emission = col
-	m.emission_energy_multiplier = 0.9
-	m.roughness = 0.3
-	for j in 3:
-		var c := MeshInstance3D.new()
-		var cm := CylinderMesh.new()
-		var h := rng.randf_range(34, 70) * (1.0 if j == 0 else 0.6)
-		cm.top_radius = 0.0
-		cm.bottom_radius = rng.randf_range(7, 12) * (1.0 if j == 0 else 0.7)
-		cm.height = h
-		cm.radial_segments = 5
-		cm.rings = 1
-		c.mesh = cm
-		c.material_override = m
-		var out := Vector3(e.x, 0, e.y).normalized()
-		var tiltv := (out * 1.1 + Vector3(0, -0.55, 0) + Vector3(rng.randf_range(-0.35, 0.35), rng.randf_range(-0.2, 0.2), rng.randf_range(-0.25, 0.25))).normalized()
-		var bas := Basis(Quaternion(Vector3.UP, tiltv))
-		c.transform = Transform3D(bas, tiltv * h * 0.45)
-		root.add_child(c)
-	return root
-
-## yanda süzülen küçük kaya parçası
-func _float_rock(tint: Color, rng: RandomNumberGenerator, i: int) -> MeshInstance3D:
-	var mi := MeshInstance3D.new()
-	var sm := SphereMesh.new()
-	var r := rng.randf_range(20, 34)
-	sm.radius = r
-	sm.height = r * 1.5
-	sm.radial_segments = 6
-	sm.rings = 3
-	mi.mesh = sm
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color("#6a5a68").lerp(tint, 0.25)
-	m.roughness = 1.0
-	mi.material_override = m
-	var side := -1.0 if i % 2 == 0 else 1.0
-	mi.position = Vector3(side * W * rng.randf_range(0.5, 0.56), -DEPTH * rng.randf_range(0.2, 0.5), rng.randf_range(0, 90))
-	mi.rotation = Vector3(rng.randf() * TAU, rng.randf() * TAU, 0)
-	mi.scale = Vector3(1, 0.7, 1)
-	return mi
-
-func _render(w: int, wd: Dictionary, meta: Dictionary) -> Image:
+func _render(w: int, wd: Dictionary) -> Image:
 	var floor_id: String = wd.floor
-	# oyunun çizgi roman ışığı (Render3D._build_lights ile aynı globaller; dünya ay/kontur rengi)
+	var wc := Color(wd.color)
+	var moon: Array = wd.get("moon", ["#888", "#666", "#444", "#222"])
 	RenderingServer.global_shader_parameter_set("r3_hemi_sky", Shd.lin3(Color("#6f7590"), 1.55))
 	RenderingServer.global_shader_parameter_set("r3_hemi_ground", Shd.lin3(Color("#221d22"), 1.55))
 	RenderingServer.global_shader_parameter_set("r3_ambient", Shd.lin3(Color("#8f94ae"), 0.65))
 	RenderingServer.global_shader_parameter_set("r3_rim_dir", Vector3(320, 160, 260).normalized())
-	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(Color("#fbf6f0").srgb_to_linear().lerp(Color(wd.moon[0]).srgb_to_linear(), 0.12).linear_to_srgb(), 1.75))
-	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(Color(wd.color), 0.3))
+	RenderingServer.global_shader_parameter_set("r3_moon_col", Shd.lin3(Color("#fbf6f0").srgb_to_linear().lerp(Color(moon[0]).srgb_to_linear(), 0.12).linear_to_srgb(), 1.75))
+	RenderingServer.global_shader_parameter_set("r3_rim_col", Shd.lin3(wc, 0.3))
 	RenderingServer.global_shader_parameter_set("r3_moon_dir", Vector3(-260, 420, 380).normalized())
+	var lay: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/arena/w" + str(w) + "/layout.json"))
+
 	var vp := SubViewport.new()
 	vp.size = OUT
 	vp.transparent_bg = true
@@ -207,161 +146,252 @@ func _render(w: int, wd: Dictionary, meta: Dictionary) -> Image:
 	env.environment = Environment.new()
 	env.environment.background_mode = Environment.BG_CLEAR_COLOR
 	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.environment.ambient_light_color = Color(0.86, 0.82, 0.92)
-	env.environment.ambient_light_energy = 0.95
+	env.environment.ambient_light_color = Color(0.86, 0.84, 0.95)
+	env.environment.ambient_light_energy = 0.5
 	env.environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	vp.add_child(env)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -38, 0)
-	sun.light_energy = 1.35
-	sun.light_color = Color(1.0, 0.94, 0.84)
+	sun.rotation_degrees = Vector3(-55, -30, 0)
+	sun.light_energy = 1.05
+	sun.light_color = Color(1.0, 0.95, 0.86)
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 3000
 	vp.add_child(sun)
 	var back := DirectionalLight3D.new()       # dünya renginde arka kontur
-	back.rotation_degrees = Vector3(-18, 160, 0)
-	back.light_energy = 0.9
-	back.light_color = Color(wd.color).lightened(0.25)
+	back.rotation_degrees = Vector3(-22, 170, 0)
+	back.light_energy = 0.45
+	back.light_color = wc.lightened(0.3)
 	vp.add_child(back)
 	var S := Node3D.new()
 	vp.add_child(S)
+
+	# ── malzemeler: dünyanın ay paletinden taş tonları ──
+	var stone_c := Color("#57534f")
+	_stone = _mat(stone_c)
+	_stone_d = _mat(stone_c.darkened(0.35))
+	_trim = _mat(Color("#7d766e"))
+	var glow_m := StandardMaterial3D.new()
+	glow_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow_m.albedo_color = wc.lightened(0.35)
+
+	# ── kaide + zemin ──
+	var OW := AW + WALL * 2.0
+	var OD := AD + WALL * 2.0
+	S.add_child(_box(Vector3(OW + 16, BASE, OD + 16), Vector3(0, -BASE * 0.5 - 1.0, 0), _stone_d))
+	S.add_child(_box(Vector3(OW + 30, 14, OD + 30), Vector3(0, -BASE - 6.0, 0), _stone))
+	# kaide ön yüzü: dünya renginde kuşak + ortada amblem plakası (CR arena tabelası gibi)
+	var band := StandardMaterial3D.new()
+	band.albedo_color = wc.darkened(0.35)
+	band.roughness = 0.7
+	band.next_pass = Shd.outline(null, wc.darkened(0.75), 1.6)
+	S.add_child(_box(Vector3(OW + 18, 12, 4), Vector3(0, -BASE * 0.42, OD * 0.5 + 9.0), band))
+	S.add_child(_box(Vector3(120, 44, 8), Vector3(0, -BASE * 0.45, OD * 0.5 + 11.0), _trim))
+	var em := StandardMaterial3D.new()
+	em.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	em.albedo_color = wc.lightened(0.2)
+	var gem := _box(Vector3(22, 22, 6), Vector3(0, -BASE * 0.45, OD * 0.5 + 15.5), em)
+	gem.rotation.z = PI * 0.25
+	S.add_child(gem)
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(AW, AD)
+	var gmat := StandardMaterial3D.new()
+	gmat.albedo_texture = ImageTexture.create_from_image(_ground_img(w, lay))
+	gmat.roughness = 0.95
+	gmat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	var gm := MeshInstance3D.new()
+	gm.mesh = pm
+	gm.material_override = gmat
+	S.add_child(gm)
+
+	# ── duvar: blok sıraları (hafif düzensiz), arkada kapı boşluğu ──
 	var rng := RandomNumberGenerator.new()
 	rng.seed = w * 7919
+	var gate := 120.0
+	var sides := [
+		[Vector3(-OW * 0.5 + WALL * 0.5, 0, 0), AD + WALL * 2.0, true],
+		[Vector3(OW * 0.5 - WALL * 0.5, 0, 0), AD + WALL * 2.0, true],
+		[Vector3(0, 0, OD * 0.5 - WALL * 0.5), AW, false],
+		[Vector3(0, 0, -OD * 0.5 + WALL * 0.5), AW, false],
+	]
+	for si in sides.size():
+		var sd: Array = sides[si]
+		var c0: Vector3 = sd[0]
+		var L: float = sd[1]
+		var vert: bool = sd[2]
+		var n := int(L / 52.0)
+		var bl := L / n
+		for i in n:
+			var t := -L * 0.5 + bl * (i + 0.5)
+			if si == 3 and absf(t) < gate * 0.5 + 6.0: continue
+			var hh := WH + rng.randf_range(-3.0, 4.0)
+			var pos := c0 + (Vector3(0, hh * 0.5, t) if vert else Vector3(t, hh * 0.5, 0))
+			var sz := Vector3(WALL, hh, bl - 3.0) if vert else Vector3(bl - 3.0, hh, WALL)
+			S.add_child(_box(sz, pos, _stone if (i % 3) else _stone_d, rng.randf_range(-0.02, 0.02)))
+		# taç kuşağı (açık renk) + mazgal dişleri
+		if si < 3:
+			var cap := Vector3(WALL + 6, 6, L + 4) if vert else Vector3(L + 4, 6, WALL + 6)
+			S.add_child(_box(cap, c0 + Vector3(0, WH + 4.0, 0), _trim))
+			var nm := int(L / 46.0)
+			for j in nm:
+				if j % 2: continue
+				var tt := -L * 0.5 + (L / nm) * (j + 0.5)
+				var mp := c0 + (Vector3(0, WH + 15.0, tt) if vert else Vector3(tt, WH + 15.0, 0))
+				S.add_child(_box(Vector3(WALL - 4, 16, 22) if vert else Vector3(22, 16, WALL - 4), mp, _stone))
+	# arka kapı: iki ayak + kemer lentosu + dünya renginde parlak kilit taşı
+	for sx in [-1.0, 1.0]:
+		S.add_child(_box(Vector3(34, 120, 40), Vector3(sx * (gate * 0.5 + 17.0), 60, -OD * 0.5 + WALL * 0.5), _stone))
+		S.add_child(_box(Vector3(40, 10, 46), Vector3(sx * (gate * 0.5 + 17.0), 125, -OD * 0.5 + WALL * 0.5), _trim))
+		# kapı yanı duvar parçaları
+		var segL := (AW - gate) * 0.5 - 34.0
+		S.add_child(_box(Vector3(segL, 5, WALL + 6), Vector3(sx * (gate * 0.5 + 34.0 + segL * 0.5), WH + 4.0, -OD * 0.5 + WALL * 0.5), _trim))
+	S.add_child(_box(Vector3(gate + 80, 26, 44), Vector3(0, 142, -OD * 0.5 + WALL * 0.5), _stone_d))
+	# kapı ayaklarında dünya renginde sancaklar
+	var ban := StandardMaterial3D.new()
+	ban.albedo_color = wc.darkened(0.15)
+	ban.roughness = 0.8
+	ban.cull_mode = BaseMaterial3D.CULL_DISABLED
+	ban.next_pass = Shd.outline(null, wc.darkened(0.7), 1.5)
+	for sx2: float in [-1.0, 1.0]:
+		var bx: float = sx2 * (gate * 0.5 + 17.0)
+		var bz := -OD * 0.5 + WALL * 0.5 + 22.0
+		S.add_child(_box(Vector3(28, 64, 2), Vector3(bx, 84, bz), ban))
+		var tip := _box(Vector3(20, 20, 2), Vector3(bx, 52, bz), ban)
+		tip.rotation.z = PI * 0.25
+		S.add_child(tip)
+		S.add_child(_box(Vector3(8, 8, 3), Vector3(bx, 90, bz + 1.5), em))
+	S.add_child(_box(Vector3(gate + 92, 7, 50), Vector3(0, 158, -OD * 0.5 + WALL * 0.5), _trim))
+	var ks := _box(Vector3(26, 30, 10), Vector3(0, 142, -OD * 0.5 + WALL * 0.5 + 23.0), glow_m)
+	ks.rotation.z = PI * 0.25
+	S.add_child(ks)
+	var gl0 := OmniLight3D.new()
+	gl0.position = Vector3(0, 130, -OD * 0.5 + 60.0)
+	gl0.light_color = wc.lightened(0.2)
+	gl0.light_energy = 0.8
+	gl0.omni_range = 140.0
+	S.add_child(gl0)
 
-	# ── blok: zemin dilimi (dünya dokusu) + toprak gövde + alt taş kuşak ──
-	var moon: Array = wd.get("moon", ["#888", "#666", "#444", "#222"])
-	var dirt := Color("#4a3426").lerp(Color(moon[2]), 0.22)
-	var tex: Texture2D = load("res://assets/arena/w" + str(w) + "/detail.png")
-	# üst yüz dokusu: oyun zemini gibi makro renk × ayrıntı/orta (shaders/ground.gdshader), arena ortasından
-	var lay0: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/arena/w" + str(w) + "/layout.json"))
-	var full: float = float(lay0.play) + 2.0 * float(lay0.border)
-	var mimg: Image = (load("res://assets/arena/w" + str(w) + "/macro.png") as Texture2D).get_image()
-	var dimg: Image = tex.get_image()
-	for im in [mimg, dimg]:
-		if im.is_compressed(): im.decompress()
-	var PX := 700
-	var PY := int(PX * DP / W)
-	var top := Image.create(PX, PY, false, Image.FORMAT_RGB8)
-	var mid := float(lay0.get("detailMid", 0.216))
-	var mw := mimg.get_width()
-	var dw := dimg.get_width()
-	for y in PY:
-		for x in PX:
-			var ux := (float(x) / PX - 0.5) * W
-			var uz := (float(y) / PY - 0.5) * DP
-			var mc := mimg.get_pixel(clampi(int((ux / full + 0.5) * mw), 0, mw - 1), clampi(int((uz / full + 0.5) * mw), 0, mw - 1)).srgb_to_linear()
-			var dc := dimg.get_pixel(posmod(int(ux / 900.0 * dw), dw), posmod(int(uz / 900.0 * dw), dw)).srgb_to_linear()
-			var k := Color(0.1 + 0.9 * dc.r / mid, 0.1 + 0.9 * dc.g / mid, 0.1 + 0.9 * dc.b / mid)
-			# kenara doğru hafif koyulaşma (hacim)
-			var e := Vector2(ux / (W * 0.5), uz / (DP * 0.5)).length()
-			var lit := 1.8 * (1.0 - 0.28 * clampf((e - 0.55) / 0.45, 0.0, 1.0))
-			top.set_pixel(x, y, Color(mc.r * k.r * lit, mc.g * k.g * lit, mc.b * k.b * lit).linear_to_srgb())
-	var rim := _outline_pts(rng)
-	S.add_child(_island_top(rim, top))
-	var gc := top.get_pixel(PX / 2, PY / 2)
-	S.add_child(_island_body(rim, gc, Color(moon[2]), rng))
-	var wc := Color(wd.color)
-	for i in 6: S.add_child(_crystal(rim, wc, rng, i))
-	for i in 3: S.add_child(_float_rock(Color(moon[2]), rng, i))
+	# ── köşe kuleleri: kalın gövde, taç, üstte dünya renginde meşale ──
+	for cx in [-1.0, 1.0]:
+		for cz in [-1.0, 1.0]:
+			var p := Vector3(cx * (OW * 0.5 - 6.0), 0, cz * (OD * 0.5 - 6.0))
+			S.add_child(_cyl(32.0, 74.0, p + Vector3(0, 37, 0), _stone, 8, 28.0))
+			S.add_child(_cyl(38.0, 12.0, p + Vector3(0, 80, 0), _trim, 8))
+			S.add_child(_cyl(20.0, 10.0, p + Vector3(0, 91, 0), _stone_d, 8, 14.0))
+			var fl := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			sm.radius = 11.0
+			sm.height = 30.0
+			fl.mesh = sm
+			fl.material_override = glow_m
+			fl.position = p + Vector3(0, 108, 0)
+			S.add_child(fl)
+			var L2 := OmniLight3D.new()
+			L2.position = p + Vector3(0, 115, 0)
+			L2.light_color = wc.lightened(0.25)
+			L2.light_energy = 0.6
+			L2.omni_range = 120.0
+			L2.omni_attenuation = 1.3
+			S.add_child(L2)
 
-	# ── objeler: dünyanın en sık büyük objeleri arkaya/yanlara, küçük süsler üste ──
-	var lay: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/arena/w" + str(w) + "/layout.json"))
-	var cnt := {}
-	for p in lay.props: cnt[p.kind] = int(cnt.get(p.kind, 0)) + 1
-	var kinds := cnt.keys()
-	kinds.sort_custom(func(a, b): return cnt[a] > cnt[b])
+	# ── ortada dünya mührü: ince parlak halka + yarı saydam iç disk ──
+	var ring := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 92.0
+	tm.outer_radius = 99.0
+	tm.rings = 48
+	ring.mesh = tm
+	var rm := StandardMaterial3D.new()
+	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rm.albedo_color = Color(wc.lightened(0.3), 0.85)
+	rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring.material_override = rm
+	ring.scale = Vector3(1, 0.05, 1)
+	ring.position = Vector3(0, 1.2, 0)
+	S.add_child(ring)
+	var disc := MeshInstance3D.new()
+	var dm := CylinderMesh.new()
+	dm.top_radius = 90.0
+	dm.bottom_radius = 90.0
+	dm.height = 0.5
+	dm.radial_segments = 48
+	disc.mesh = dm
+	var dmm := StandardMaterial3D.new()
+	dmm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	dmm.albedo_color = Color(wc, 0.16)
+	dmm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	disc.material_override = dmm
+	disc.position = Vector3(0, 0.8, 0)
+	S.add_child(disc)
+	for i in 4:
+		var a := i * PI * 0.5 + PI * 0.25
+		var st := _box(Vector3(14, 3, 14), Vector3(cos(a) * 120.0, 1.5, sin(a) * 120.0), glow_m, a)
+		S.add_child(st)
+
+	# ── dünyanın engelleri: köşelerde ayna simetrisi; küçük süsler duvar diplerinde ──
 	var grain: Texture2D = load("res://assets/fx/prop_grain.png")
 	var prop_mat := Shd.basic({"map": "srgb", "repeat": true, "tex": grain})
 	prop_mat.next_pass = Shd.outline(null, Color(0.5, 0.45, 0.42), 1.6)
 	var deco_mat := Shd.basic({"map": "srgb", "repeat": true, "tex": grain})
 	var props_scn: PackedScene = load("res://assets/arena/props_" + floor_id + ".glb")
 	var props_root: Node = props_scn.instantiate() if props_scn else null
-	var slots := [Vector3(-W * 0.30, 0, -DP * 0.24), Vector3(W * 0.29, 0, -DP * 0.22), Vector3(-W * 0.06, 0, -DP * 0.36),
-		Vector3(W * 0.36, 0, DP * 0.10), Vector3(-W * 0.37, 0, DP * 0.08), Vector3(W * 0.12, 0, -DP * 0.33)]
-	var si := 0
-	for k in kinds.slice(0, 4):
-		var src: Node3D = props_root.find_child(k, true, false) if props_root else null
+	var pk := _kinds(lay, "props")
+	var place := [
+		[0, Vector3(-AW * 0.34, 0, -AD * 0.30), 0.5], [0, Vector3(AW * 0.34, 0, -AD * 0.30), -0.5],
+		[1, Vector3(-AW * 0.36, 0, AD * 0.08), 0.2], [1, Vector3(AW * 0.36, 0, AD * 0.08), -0.2],
+		[2, Vector3(-AW * 0.30, 0, AD * 0.34), 0.9], [2, Vector3(AW * 0.30, 0, AD * 0.34), -0.9],
+	]
+	for P in place:
+		var ki: int = P[0]
+		if pk.is_empty(): break
+		var src: Node3D = props_root.find_child(str(pk[mini(ki, pk.size() - 1)]), true, false) if props_root else null
 		if src == null: continue
-		var reps := 2 if si < 2 else 1
-		for r in reps:
-			if si >= slots.size(): break
-			var m := src.duplicate() as Node3D
-			m.transform = Transform3D(Basis(Vector3.UP, rng.randf_range(-0.6, 0.6)), slots[si])
-			S.add_child(m)
-			for mi in [m] + m.find_children("*", "MeshInstance3D", true, false):
-				if mi is MeshInstance3D: (mi as MeshInstance3D).material_override = prop_mat
-			si += 1
-	var dcnt := {}
-	for p in lay.decor: dcnt[p.get("kind", "")] = int(dcnt.get(p.get("kind", ""), 0)) + 1
-	var dk := dcnt.keys()
-	dk.sort_custom(func(a, b): return dcnt[a] > dcnt[b])
+		var m := src.duplicate() as Node3D
+		m.transform = Transform3D(Basis(Vector3.UP, float(P[2])).scaled(Vector3.ONE * 0.9), P[1])
+		S.add_child(m)
+		for mi in [m] + m.find_children("*", "MeshInstance3D", true, false):
+			if mi is MeshInstance3D: (mi as MeshInstance3D).material_override = prop_mat
 	var decor_scn: PackedScene = load("res://assets/arena/decor_" + floor_id + ".glb")
 	var decor_root: Node = decor_scn.instantiate() if decor_scn else null
-	var meta_a: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/arena/arena_meta.json"))
-	for i in 34:
-		var k: String = dk[i % mini(3, dk.size())] if dk.size() else ""
+	var dk := _kinds(lay, "decor")
+	for i in 36:
+		if dk.is_empty(): break
+		var k: String = dk[i % mini(3, dk.size())]
 		var src2: Node3D = decor_root.find_child(k, true, false) if decor_root else null
 		if src2 == null: continue
+		# duvar dibinde dolanan şerit (orta sahne boş kalır)
+		var side := i % 4
+		var t := rng.randf_range(-0.46, 0.46)
+		var inset := rng.randf_range(14.0, 46.0)
+		var p := Vector3.ZERO
+		match side:
+			0: p = Vector3(-AW * 0.5 + inset, 0, t * AD)
+			1: p = Vector3(AW * 0.5 - inset, 0, t * AD)
+			2: p = Vector3(t * AW, 0, AD * 0.5 - inset)
+			3: p = Vector3(t * AW, 0, -AD * 0.5 + inset)
+		if side == 3 and absf(p.x) < gate * 0.5: continue
 		var m2 := src2.duplicate() as Node3D
-		var aa := rng.randf() * TAU
-		var rr := sqrt(rng.randf_range(0.35, 0.86))
-		var p := Vector3(cos(aa) * rr * W * 0.5, 0, sin(aa) * rr * DP * 0.5)
-		if absf(p.x) < W * 0.22 and absf(p.z) < DP * 0.2: continue   # orta sahne (düşmanlar) boş kalsın
-		var sc: float = float(meta_a.decorScale.get(k, 2.0))
+		var sc: float = float(DECOR_SCALE.get(k, 2.0)) * rng.randf_range(0.8, 1.1)
 		m2.transform = Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * sc), p)
 		S.add_child(m2)
 		for mi in [m2] + m2.find_children("*", "MeshInstance3D", true, false):
 			if mi is MeshInstance3D: (mi as MeshInstance3D).material_override = deco_mat
 
-	# ── düşmanlar: muhafız ortada geride, sürü solda, atıcı sağda; kameraya dönük ──
-	var by_type := {}
-	for id in meta.enemies:
-		var e: Dictionary = meta.enemies[id]
-		if e.floor == floor_id:
-			for t in e.types: by_type[t] = e
-	var place := {"muhafiz": Vector3(0, 0, -DP * 0.06), "agir": Vector3(0, 0, -DP * 0.06), "zombi": Vector3(-W * 0.18, 0, DP * 0.13),
-		"atici": Vector3(W * 0.18, 0, DP * 0.11), "patlayici": Vector3(W * 0.18, 0, DP * 0.11), "kral": Vector3(0, 0, -DP * 0.06)}
-	var used := {}
-	for t in ["muhafiz", "agir", "kral", "zombi", "atici", "patlayici"]:
-		if not by_type.has(t): continue
-		var pos: Vector3 = place[t]
-		if used.has(pos): continue
-		used[pos] = true
-		var e: Dictionary = by_type[t]
-		var ps: PackedScene = load("res://assets/models/" + str(e.file))
-		if ps == null: continue
-		var inst := ps.instantiate() as Node3D
-		var holder := Node3D.new()
-		holder.position = pos
-		var bs := float(e.get("baseScale", 50.0)) * 1.15
-		inst.scale = Vector3.ONE * bs
-		var rp: Array = e.get("rigPos", [0, 0, 0])
-		inst.position = Vector3(float(rp[0]), float(rp[1]), float(rp[2])) * bs
-		holder.rotation.y = rng.randf_range(-0.35, 0.35)
-		holder.add_child(inst)
-		S.add_child(holder)
-		Shd.convert_tree(inst, {"lift": float(e.get("lift", 0.5)), "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0, "outline": 2.0})
-		var ap := inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
-		if ap and ap.get_animation_list().size():
-			ap.play(ap.get_animation_list()[0])
-			ap.seek(0.25 + rng.randf() * 0.3, true)
-			ap.pause()
-
-	# ── kamera: ortografik, önden ~34° yukarıdan (CR arena kartı) ──
+	# ── kamera: perspektif, önden ~50° yukarıdan; arena kareye sığar ──
 	var cam := Camera3D.new()
-	cam.projection = Camera3D.PROJECTION_ORTHOGONAL
-	cam.size = W * 1.3
+	cam.fov = 30.0
 	cam.keep_aspect = Camera3D.KEEP_WIDTH
-	var pitch := deg_to_rad(36.0)
-	var tgt := Vector3(0, -DEPTH * 0.32, 0)
-	cam.far = 6000
+	cam.far = 9000
+	var pitch := deg_to_rad(50.0)
+	var dist := (OW + 70.0) * 0.5 / tan(deg_to_rad(cam.fov * 0.5)) * 1.32
+	var tgt := Vector3(0, 10, 18)
 	vp.add_child(cam)
-	cam.look_at_from_position(tgt + Vector3(0, sin(pitch), cos(pitch)) * 2000.0, tgt)
+	cam.look_at_from_position(tgt + Vector3(0, sin(pitch), cos(pitch)) * dist, tgt)
 	cam.current = true
-	for i in 10: await process_frame
+	for i in 12: await process_frame
 	var img := vp.get_texture().get_image()
 	img.convert(Image.FORMAT_RGBA8)
 	vp.queue_free()
 	if props_root: props_root.free()
 	if decor_root: decor_root.free()
-	return img
+	var used := img.get_used_rect()
+	return img.get_region(used.grow(8).intersection(Rect2i(Vector2i.ZERO, img.get_size())))

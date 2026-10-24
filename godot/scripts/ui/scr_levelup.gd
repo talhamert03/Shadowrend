@@ -80,8 +80,8 @@ static func card_kind(c: Dictionary) -> Dictionary:
 	var tag: String
 	if c.get("curse", false): tag = "LANETLİ · GÜÇ + BEDEL"
 	elif c.get("evo", false): tag = "EVRİM · ÜST FORM"
-	elif hero == "seher": tag = "SEHER · " + kd + ROMAN[ti]
-	elif hero == "simsek": tag = "ŞİMŞEK · " + kd + ROMAN[ti]
+	elif hero == "seher": tag = "AK KILIÇ · " + kd + ROMAN[ti]
+	elif hero == "simsek": tag = "FIRTINA · " + kd + ROMAN[ti]
 	elif hero == "korsan": tag = "KAPTAN · " + kd + ROMAN[ti]
 	elif hero == "kralice": tag = "KRALİÇE · " + kd + ROMAN[ti]
 	elif myth: tag = "YETENEK · " + kd + ROMAN[ti]

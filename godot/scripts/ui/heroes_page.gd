@@ -23,7 +23,15 @@ func _init(m) -> void:
 
 func render() -> void:
 	if shell == null:
-		shell = Lyr.make("pg_kahraman", [".hc"])
+		# yakalamada ızgara taşmamıştı (kaydırma kutusu yok) → kök düğüm kaydırılabilir kurulur;
+		# yükseklik aşağıda ızgaraya göre büyür (parmakla kaydırma)
+		var J: Dictionary = Lyr.load_json("pg_kahraman").duplicate(true)
+		var r0: Dictionary = J.nodes[0]
+		if not (r0.get("scroll") is Dictionary):
+			r0["scroll"] = {"h": float(r0.box[3]), "ch": float(r0.box[3]), "top": 0}
+		shell = Lyr.new()
+		shell.build(J, [".hc"])
+		if ComicSkin.auto_on("pg_kahraman"): ComicSkin.auto(shell)
 		add_child(shell)
 		shell.stretch_h(Scr.dh_of(self))
 		grid = shell.find("#char-grid")

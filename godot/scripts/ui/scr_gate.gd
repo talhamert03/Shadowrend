@@ -122,7 +122,7 @@ func _build(info: Dictionary) -> void:
 	clip.size = pr.size - Vector2(10, 10)
 	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(clip)
-	# panel içi: dünya renginde gece zemini, ışınlar + hale + yarım ton, ortada arena dioraması
+	# panel içi: dünya renginde gece zemini, hale + yarım ton, ortada arena
 	var pfx := Node2D.new()
 	var csz := clip.size
 	pfx.draw.connect(func():
@@ -131,9 +131,6 @@ func _build(info: Dictionary) -> void:
 		pfx.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(csz.x, 0), csz, Vector2(0, csz.y)]), PackedColorArray([top, top, bot, bot]))
 		var c := Vector2(csz.x * 0.5, csz.y * 0.48)
 		var B := TriBatch.new()
-		for i in 20:
-			var a := i * TAU / 20.0
-			B._tri(c, c + Vector2(cos(a - 0.05), sin(a - 0.05)) * 600, c + Vector2(cos(a + 0.05), sin(a + 0.05)) * 600, Color(1, 1, 1, 0.05))
 		B.radial(c, csz.x * 0.55, Color(wc, 0.4), Color(wc, 0.0))
 		for yy in 9:
 			for xx in int(csz.x / 9) + 1:

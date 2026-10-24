@@ -17,8 +17,8 @@ var _lru: Array = []          # en son açılan sayfa sonda (bellek sınırı i�
 ## kademeye göre bellekte tutulan sayfa sayısı (ana sayfa hariç): düşük 2 · orta 4 · yüksek hepsi
 func page_cap() -> int:
 	match Quality.tier:
-		"low": return 2
-		"mid": return 4
+		"low": return 4
+		"mid": return 6
 	return 9
 
 ## sınır aşıldıysa en uzun süredir açılmayan sayfayı (mevcut ve ana sayfa dışında) bırak
@@ -554,7 +554,8 @@ func _bind_home(L: Lyr) -> void:
 		var nm := home_target()
 		g.start_run(int(nm.w), int(nm.m)), 0.97)
 	btn(L, L.find_id("#home-map"), func(): g.audio.play("click"); _tap("dunyalar"), 0.985)
-	btn(L, L.find_id("#map-pedestal"), func(): g.audio.play("click"); _tap("dunyalar"), 0.985)
+	# bölüm şeridi: doğrudan oynanan dünyanın bölüm seçimi
+	btn(L, L.find_id("#map-pedestal"), func(): g.audio.play("click"); _open_chapters(), 0.985)
 	btn(L, L.find_id("#free-chest"), func(): _free_chest())
 	btn(L, L.find_id("#victory-chest"), func(): _victory_chest())
 	# yuvalar: boş yuva düğümü düğme değildir (web: div); dolu yuva kendi katmanıyla
@@ -564,6 +565,13 @@ func _bind_home(L: Lyr) -> void:
 		_map = ArenaArt.new()      # CR arena kartı gibi: oyunun kendi 3B dioraması
 		_map.set_clip(L.clip_mat(_mapN))
 		_mapN.node.add_child(_map)
+
+func _open_chapters() -> void:
+	var w := int(home_target().w)
+	await _tap("dunyalar")
+	if page == "dunyalar" and pages.has("dunyalar"):
+		(pages["dunyalar"] as JourneyPage).render_chapters(w)
+		(pages["dunyalar"] as JourneyPage).from_home = true
 
 func _render(p: String) -> void:
 	if p == "savas": _render_home()

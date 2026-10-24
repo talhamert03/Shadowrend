@@ -29,6 +29,7 @@ func _init(m) -> void:
 	name = "Journey"
 
 func open_worlds() -> void:
+	from_home = false
 	mode = "worlds"
 	_build_shell("pg_dunyalar")
 	render_worlds()
@@ -46,7 +47,10 @@ func _build_shell(nm: String) -> void:
 	shell.stretch_h(Scr.dh_of(self))
 	root = shell.nodes[0]
 	menu.scroll_area(shell, root)
-	menu.btn(shell, shell.find_id("#journey-back"), func(): _back())
+	# başlık şeridi (geri + başlık) altından kayan kartları örter: şerit içindeki dokunuş
+	# hiçbir zaman alttaki dünya/bölüm kartına düşmez; geri düğmesi de geniş alanla yakalar
+	menu.btn_top(shell, shell.find(".journey-head"), func(): pass, 1.0, 0.0)
+	menu.btn_top(shell, shell.find_id("#journey-back"), func(): _back(), 0.92, 14.0)
 
 func _clear_items() -> void:
 	_lazy.clear()
@@ -67,9 +71,14 @@ func _host() -> Node2D:
 		sc.move_child(_content, 0)
 	return _content
 
+var from_home := false     # bölüm seçimi ana menüdeki bölüm şeridinden açıldı → geri ana menüye
+
 func _back() -> void:
 	g.audio.play("click")
-	if mode == "chapters":
+	if mode == "chapters" and from_home:
+		from_home = false
+		menu.set_page("savas")
+	elif mode == "chapters":
 		open_worlds()
 	else:
 		menu.set_page("savas")

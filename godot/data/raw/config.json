@@ -645,7 +645,7 @@
   "seher": {
    "id": "seher",
    "rarity": 3,
-   "name": "SEHER",
+   "name": "AK KILIÇ",
    "title": "Süzülen Kılıç",
    "price": 900,
    "stonePrice": 95,
@@ -675,7 +675,7 @@
   "simsek": {
    "id": "simsek",
    "rarity": 4,
-   "name": "ŞİMŞEK",
+   "name": "FIRTINA KIZI",
    "title": "Süzülen Yıldırım",
    "price": 1400,
    "stonePrice": 150,
@@ -734,7 +734,7 @@
   "gokalev": {
    "id": "gokalev",
    "rarity": 4,
-   "name": "GÖKALEV",
+   "name": "ALEVCİ",
    "title": "Mavi Ateş Büyücüsü",
    "price": 1500,
    "stonePrice": 160,
@@ -827,7 +827,7 @@
   "sovalye": {
    "id": "sovalye",
    "rarity": 2,
-   "name": "AYAZ",
+   "name": "BUZ MUHAFIZI",
    "title": "Sur Şövalyesi",
    "price": 260,
    "stonePrice": 45,
@@ -916,7 +916,7 @@
   "zehra": {
    "id": "zehra",
    "rarity": 3,
-   "name": "ZEHRA",
+   "name": "BATAK CADISI",
    "title": "Kazan Cadısı",
    "price": 920,
    "stonePrice": 100,
@@ -947,7 +947,7 @@
   "demirhan": {
    "id": "demirhan",
    "rarity": 4,
-   "name": "DEMİRHAN",
+   "name": "ÖRS USTASI",
    "title": "Yıldız Döven",
    "price": 1550,
    "stonePrice": 165,
@@ -4160,7 +4160,7 @@
    }
   }
  ],
- "UNLOCK_ALL_CHARS": false,
+ "UNLOCK_ALL_CHARS": true,
  "WAVES": {
   "maxEnemies": 420,
   "spawnDist": 60
@@ -4168,7 +4168,7 @@
  "WEAPONS": {
   "kilic": {
    "name": "Seher Kılıcı",
-   "descNew": "Seher’in yanında süzülen ruh kılıcı — hedefine hilal bir kesik savurur.",
+   "descNew": "Ak Kılıç’ın yanında süzülen ruh kılıcı — hedefine hilal bir kesik savurur.",
    "descUp": [
     "Hasar +6, menzil biraz uzar",
     "Daha çabuk savurur",
@@ -4269,7 +4269,7 @@
   },
   "yemin": {
    "name": "Yemin Kılıcı",
-   "descNew": "Ayaz’ın yanında süzülen yemin kılıcı — her darbede zemin ayazla çatlar.",
+   "descNew": "Buz Muhafızı’nın yanında süzülen yemin kılıcı — her darbede zemin ayazla çatlar.",
    "descUp": [
     "Hasar +4, menzil biraz uzar",
     "Daha çabuk savurur",
@@ -4325,7 +4325,7 @@
    "orb": true,
    "flameVisual": true,
    "fireball": true,
-   "descNew": "Gökalev’in yanında süzülen mavi alev — en yakın düşmana kor topu savurur, delip geçer.",
+   "descNew": "Alevci’nin yanında süzülen mavi alev — en yakın düşmana kor topu savurur, delip geçer.",
    "descUp": [
     "Hasar +, +1 delme",
     "Daha çabuk savurur",
@@ -4943,7 +4943,7 @@
    "name": "Şimşek Kırığı",
    "kind": "magic",
    "class": "buyu",
-   "descNew": "Şimşek’in yanında süzülen gökyüzü parçası — en yakın düşmana çarpar, yakındakilere zincirleme sıçrar.",
+   "descNew": "Fırtına Kızı’nın yanında süzülen gökyüzü parçası — en yakın düşmana çarpar, yakındakilere zincirleme sıçrar.",
    "descUp": [
     "Hasar +, bir hedefe daha sıçrar",
     "Daha çabuk çakar",
@@ -5047,7 +5047,7 @@
   "cekic": {
    "name": "Yıldız Çekici",
    "melee": true,
-   "descNew": "Demirhan'ın yanında süzülen yıldız çekici — ağır iner, her darbede zemine şok halkası yayar.",
+   "descNew": "Örs Ustası'nın yanında süzülen yıldız çekici — ağır iner, her darbede zemine şok halkası yayar.",
    "descUp": [
     "Hasar +10, menzil biraz uzar",
     "Daha çabuk iner",
@@ -5164,7 +5164,7 @@
    "fireball": true,
    "firePal": "toxic",
    "sfx": "shoot",
-   "descNew": "Zehra'nın yanında süzülen kazan — en yakın düşmana zehir damlası fırlatır, damla çarpınca patlar.",
+   "descNew": "Batak Cadısı'nın yanında süzülen kazan — en yakın düşmana zehir damlası fırlatır, damla çarpınca patlar.",
    "descUp": [
     "Hasar +, patlama büyür",
     "Daha sık fokurdar",

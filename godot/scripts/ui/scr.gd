@@ -36,6 +36,12 @@ func btn(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 4.0, hit :
 	if n == null: return
 	_btns.append({"lyr": L, "n": n, "cb": cb, "scale": press_scale, "grow": grow, "hit": hit})
 
+## sabit başlık düğmesi (geri vb.): altından kayan kartlardan önce yakalar — düğmenin
+## dokunma alanı içinde alttaki içerik hiçbir zaman basılmaz
+func btn_top(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 8.0) -> void:
+	if n == null: return
+	_btns.append({"lyr": L, "n": n, "cb": cb, "scale": press_scale, "grow": grow, "hit": Rect2(), "top": true})
+
 ## kaydırılabilir alan (yakalamadaki overflow-y:auto düğümü)
 func scroll_area(L: Lyr, n: Lyr.N) -> void:
 	if n and n.scroller: _scrolls.append({"lyr": L, "n": n})
@@ -262,16 +268,18 @@ func _press_at(id: int, pos: Vector2) -> void:
 	for F in _fling:
 		if absf(float(F.vel)) > 80.0: stopped = true
 		F.vel = 0.0
-	# düğme: en üstteki (son eklenen) görünür düğme
-	for i in range(_btns.size() - 1, -1, -1):
-		if stopped: break
-		var B: Dictionary = _btns[i]
-		if not is_instance_valid(B.lyr): continue
-		if not (B.n as Lyr.N).hidden and (B.lyr as Lyr).is_visible_in_tree() and _rect(B).has_point(pos):
-			_press = id
-			_pb = B
-			_set_pressed(B, true)
-			break
+	# düğme: önce sabit başlık düğmeleri (btn_top), sonra en üstteki (son eklenen) görünür düğme
+	for pass_top in [true, false]:
+		if stopped or _pb: break
+		for i in range(_btns.size() - 1, -1, -1):
+			var B: Dictionary = _btns[i]
+			if bool(B.get("top", false)) != pass_top: continue
+			if not is_instance_valid(B.lyr): continue
+			if not (B.n as Lyr.N).hidden and (B.lyr as Lyr).is_visible_in_tree() and _rect(B).has_point(pos):
+				_press = id
+				_pb = B
+				_set_pressed(B, true)
+				break
 	# kaydırma alanı: en üstteki görünür alan; basılan düğme içeriğindeyse
 	for i in range(_scrolls.size() - 1, -1, -1):
 		var S: Dictionary = _scrolls[i]

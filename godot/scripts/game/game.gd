@@ -161,6 +161,7 @@ var _curtain_at := -1.0
 func _now_ms() -> float:
 	return Time.get_ticks_usec() / 1000.0
 
+const BOOT_PAGES := ["cephane", "kahraman", "magaza", "etkinlik"]
 var boot_screen: ScrBoot
 var booted := false
 
@@ -210,6 +211,8 @@ func _ready() -> void:
 	# ana sayfa dokuları arka planda çözülmeye başlasın (menü kurulurken hazır olsun)
 	UITex.request(UITex.manifest("savas"), true)
 	UITex.request(range(1, 11).map(func(i): return ArenaArt.path_of(i)), true)
+	# alt menü sekmeleri açılış ekranının ardında kurulacak: dokuları şimdiden arka planda çözülsün
+	for pg in BOOT_PAGES: UITex.request(UITex.manifest(pg))
 	_build_pools()
 	await _boot_step(0.2)
 
@@ -264,6 +267,16 @@ func _ready() -> void:
 			UITex.poll()
 			await _boot_step(0.8 + minf(0.08, n * 0.0012))
 	ui.boot()
+	# alt menü sekmeleri (kuşanım, kahraman, mağaza, etkinlik) yükleme ekranının ardında kurulur:
+	# menüde ilk kaydırmada sayfa kurulumu / eşzamanlı doku yüklemesi takılması olmaz
+	if ui.menu and ui.menu.visible:
+		var k := 0
+		for pg in BOOT_PAGES:
+			if ui.menu.pages.has(pg) or ui.menu.pages.size() >= ui.menu.page_cap(): continue
+			await UITex.await_ready(self, UITex.manifest(pg), 1.5)
+			ui.menu.prebuild(pg)
+			k += 1
+			await _boot_step(0.88 + k * 0.005)
 	last = _now_ms()
 	set_process(true)
 	set_physics_process(true)

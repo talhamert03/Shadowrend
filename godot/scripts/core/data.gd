@@ -115,8 +115,8 @@ func _init() -> void:
 	GEAR_MAX_LEVEL = int(c.get("GEAR_MAX_LEVEL", 6))
 	GEAR_CARD_REQ = c.get("GEAR_CARD_REQ", [])
 	GEAR_GOLD_COST = c.get("GEAR_GOLD_COST", [])
-	# geliştirici bayrağı (web: ?dev=1) — mobilde komut satırı argümanı
-	UNLOCK_ALL_CHARS = OS.get_cmdline_user_args().has("--dev")
+	# test dönemi: config UNLOCK_ALL_CHARS=true ile tüm kahramanlar açık (ya da --dev argümanı)
+	UNLOCK_ALL_CHARS = bool(c.get("UNLOCK_ALL_CHARS", false)) or OS.get_cmdline_user_args().has("--dev")
 
 	var w: Dictionary = RAW.get("worlds", {})
 	WORLDS = w.get("WORLDS", [])
