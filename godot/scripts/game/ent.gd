@@ -182,7 +182,7 @@ class Enemy:
 	var chargeCd := 0.0; var spitCd := 0.0; var standD := 0.0
 	var tx := 0.0; var ty := 0.0
 	var fuse := 0.0; var auraT := 0.0; var auraDmg := 0.0; var hurtAng := 0.0; var leapCd := 0.0; var bossKind := "lord"
-	var hurtT := 0.0; var entryT := 0.0; var prey := false; var _ultN := 0
+	var hurtT := 0.0; var entryT := 0.0; var prey := false; var _ultN := 0; var _acc := 0.0
 	var phase := 0; var weakT := 0.0; var _wkFx := 0.0
 	var waveHit := 0; var lastCrit := false
 	# render tarafının yazdığı alanlar (render3d: __mdlTok/__mdlTop/__aliveTok/__bound/__score)

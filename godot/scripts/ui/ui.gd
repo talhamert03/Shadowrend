@@ -241,6 +241,12 @@ func boot() -> void:
 		_god = _arg("god") != ""
 		if _arg("dense") != "": g.enemies.devDense = float(_arg("dense"))
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
+		if _arg("spawnn") != "":
+			# geliştirici: spawnn=N — savaş başında N düşman (kalabalık performans testi)
+			get_tree().create_timer(1.0).timeout.connect(func():
+				var E = g.enemies
+				E.aliveCap = 9999.0; E.osCap = 9999.0
+				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * 20.0, E.dmgMul * 0.05))
 		if _arg("wpn") != "":
 			# geliştirici: wpn=id:sv,id:sv — savaşa yalnız bu silahlarla başla (efekt testi)
 			get_tree().create_timer(0.5).timeout.connect(func():

@@ -81,6 +81,11 @@ var inView := 0
 var densityMul := 1.0
 var osCap := 64.0
 var aliveCap := 120.0
+var _frame := 0
+var _many := false
+var _arOn := false
+var _arL := 0.0; var _arR := 0.0; var _arT := 0.0; var _arB := 0.0
+var _props: PropField = null
 var devDense := 1.0           # geliştirici: dense=k (kalabalık savaş performans testi)
 var bossHpMul := 1.0
 var bossDeathX := 0.0; var bossDeathY := 0.0; var bossDeathR := 60.0
@@ -264,24 +269,59 @@ func update(dt: float) -> void:
 			if qTimer < 0: qTimer = 0
 
 	var udt := 0.0 if froze else dt
+	Prof.b("en.loop")
 	var act := pool.active
 	var i := act.size() - 1
+	# ekranın epey dışındaki düşmanlar iki karede bir (biriken dt ile) güncellenir: kalabalıkta
+	# yarı maliyet, oyuncuya yakın/görünür olanlar her kare
+	_frame += 1
+	var gg: Game = g
+	var AR = gg.arena
+	_arOn = AR != null
+	if _arOn:
+		_arL = AR.l; _arR = AR.r; _arT = AR.t; _arB = AR.b
+	_props = gg.props if gg.props and gg.props.n else null
+	_many = act.size() > 60
+	var fl := gg.viewL - 260.0; var fr := gg.viewR + 260.0
+	var ft := gg.viewT - 260.0; var fb := gg.viewB + 260.0
+	var many := _many
 	while i >= 0:
 		if i >= act.size():
 			i = act.size() - 1
 			continue
 		var e: Ent.Enemy = act[i]
-		if update_enemy(e, udt): pool.release(e)
+		if many and e.hp > 0 and not e.isBoss and (e.x < fl or e.x > fr or e.y < ft or e.y > fb) and ((_frame + i) & 1) == 1:
+			e._acc += udt
+			i -= 1
+			continue
+		var edt := udt + e._acc
+		e._acc = 0.0
+		if update_enemy(e, edt): pool.release(e)
 		i -= 1
-
+	Prof.e("en.loop")
+	Prof.b("en.grid")
 	grid.clear()
 	var vis := 0
-	for e in pool.active:
-		grid.insert(e)
-		if g.in_view(e.x, e.y, 20): vis += 1
+	var vl := gg.viewL - 20.0; var vr := gg.viewR + 20.0
+	var vt := gg.viewT - 20.0; var vb := gg.viewB + 20.0
+	# ızgara ekleme satır içi (kalabalıkta yöntem çağrısı maliyeti)
+	var cs := grid.cs
+	var cells: Dictionary = grid.cells
+	var used: Array = grid.used
+	for e: Ent.Enemy in pool.active:
+		var k := ((int(floor(e.x / cs)) + 32768) << 16) ^ (int(floor(e.y / cs)) + 32768)
+		var arr = cells.get(k)
+		if arr == null:
+			arr = []
+			cells[k] = arr
+		if arr.is_empty(): used.append(arr)
+		arr.append(e)
+		if e.x > vl and e.x < vr and e.y > vt and e.y < vb: vis += 1
 	inView = vis
-
+	Prof.e("en.grid")
+	Prof.b("en.sep")
 	separate()
+	Prof.e("en.sep")
 
 	var B: Array = g.pools.eBullets.active
 	i = B.size() - 1
@@ -422,8 +462,8 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 	if e.hp <= 0:
 		on_death(e)
 		return true
-	var g = game
-	var p = g.player
+	var g: Game = game
+	var p: Player = g.player
 	e.bob += dt
 	if e.flash > 0: e.flash -= dt
 	if e.affix: tick_affix(e, dt)
@@ -536,15 +576,15 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 	e.kx *= 0.86; e.ky *= 0.86
 	e.x += (mvx + e.kx) * dt
 	e.y += (mvy + e.ky) * dt
-	var AR = g.arena
-	if AR:
-		if e.x < AR.l: e.x = AR.l
-		elif e.x > AR.r: e.x = AR.r
-		if e.y < AR.t: e.y = AR.t
-		elif e.y > AR.b: e.y = AR.b
-	if g.props and g.props.n:
-		if e.isBoss: g.props.damage_area(e.x, e.y, e.radius + 18, 9999)
-		else: g.props.resolve(e, e.radius * 0.62)
+	if _arOn:
+		if e.x < _arL: e.x = _arL
+		elif e.x > _arR: e.x = _arR
+		if e.y < _arT: e.y = _arT
+		elif e.y > _arB: e.y = _arB
+	# engel çözümü: kalabalıkta düşman başına iki karede bir (konum o arada çok az değişir)
+	if _props:
+		if e.isBoss: _props.damage_area(e.x, e.y, e.radius + 18, 9999)
+		elif not _many or ((_frame + e.pi) & 1) == 0: _props.resolve(e, e.radius * 0.62)
 	var rr2: float = e.radius + p.radius
 	if d2 < rr2 * rr2:
 		var hp0: float = p.hp
