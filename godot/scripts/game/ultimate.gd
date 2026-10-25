@@ -84,6 +84,11 @@ func reset(rarity, cid) -> void:
 	charge = 0; ready = false; fx = 0; uses = 0; _told = false; _sndT = 0
 	for s in S: s.on = false
 	wave.on = false
+	clear_ground()
+
+## zemin ağlarını boşalt (savaş başı / çıkış)
+func clear_ground() -> void:
+	if game and game.renderer3d: game.renderer3d.ground_fx(PackedVector2Array(), PackedColorArray(), PackedVector2Array(), PackedColorArray())
 
 var tier: Dictionary:
 	get: return ULT_TIER[rar]
@@ -308,13 +313,25 @@ func update(dt: float) -> void:
 # Dört tampon (sıra: zemin → parıltı → mürekkep → üst parıltı). Hepsi dünya uzayında; flush'ta
 # kameranın zemin izdüşümüyle (ctx.xf) tek seferde çizilir.
 const INK := Color("#0d0812")
-const SQ := 0.62                 # yere yatık şekillerin dikey basıklığı
+## ZEMİN İŞARETİ: sq == SQ verilen şekil yere yatıktır ve 3B zemin ağına iner (render3d.ground_fx;
+## derinlik testli, karakterler önünde kalır). Perspektifi kamera verir — eskiden 0,62 basıklık
+## kamera izdüşümünün ÜSTÜNE ekleniyor, şekiller "çift basık" ve havada duruyordu.
+const SQ := 0.9999
 const WHITE := Color(1, 1, 1)
 
 var _U := TriBatch.new()   # zemin: gölge, iz, batak, hedef halkası
 var _G := TriBatch.new()   # toplamalı yumuşak ışık
 var _M := TriBatch.new()   # mürekkep konturlu şekiller
 var _T := TriBatch.new()   # toplamalı kıvılcım / parıltı (en üst)
+var _GM := TriBatch.new()  # 3B zemin: karışım (iz, batak, krater, çatlak)
+var _GA := TriBatch.new()  # 3B zemin: toplamalı ışık (halka, büyü çemberi, yer parıltısı)
+
+## zemin yönlendirmesi: yere yatık (sq == SQ) ya da zemin tamponuna (_U) giden şekil 3B zemine iner
+func _gnd(B: TriBatch, sq: float) -> TriBatch:
+	if B == _U or B == _GM: return _GM
+	if B == _GA: return _GA
+	if sq != SQ: return B
+	return _GA if (B == _T or B == _G) else _GM
 var _lc := WHITE
 var _dc := WHITE
 
@@ -357,8 +374,15 @@ func render(_ctx: Ctx2D = null) -> void:
 
 ## dört tamponu (süper + Vfx) sırayla çizer, en üste süper adını basar
 func flush_all(ctx: Ctx2D) -> void:
+	var r3 = game.renderer3d
+	if r3:
+		r3.ground_fx(_GM.V, _GM.C, _GA.V, _GA.C)
+		_GM.V = PackedVector2Array(); _GM.C = PackedColorArray()
+		_GA.V = PackedVector2Array(); _GA.C = PackedColorArray()
 	ctx.save()
 	ctx.global_alpha = 1.0
+	_flush(ctx, _GM, false)
+	_flush(ctx, _GA, true)
 	_flush(ctx, _U, false)
 	_flush(ctx, _G, true)
 	_flush(ctx, _M, false)
@@ -395,16 +419,19 @@ static func _star_pts(c: Vector2, r: float, ri: float, n: int, rot: float, sq: f
 ## POW patlama yıldızı: mürekkep zarf + renk (yere yatık)
 func _pow(c: Vector2, r: float, col: Color, a := 1.0, n := 10, seed := 0.0, sq := SQ, ink := 3.5) -> void:
 	if a <= 0.01 or r <= 0.5: return
-	if ink > 0.0: _M.fan(c, _star_pts(c, r + ink * 1.5, r * 0.55 + ink, n, seed, sq), _ca(INK, a))
-	_M.fan(c, _star_pts(c, r, r * 0.55, n, seed, sq), _ca(col, a))
+	var B := _gnd(_M, sq)
+	if ink > 0.0: B.fan(c, _star_pts(c, r + ink * 1.5, r * 0.55 + ink, n, seed, sq), _ca(INK, a))
+	B.fan(c, _star_pts(c, r, r * 0.55, n, seed, sq), _ca(col, a))
 
 func _disc(B: TriBatch, c: Vector2, r: float, col: Color, a := 1.0, ink := 3.5, sq := 1.0) -> void:
 	if a <= 0.01: return
+	B = _gnd(B, sq)
 	var seg := clampi(int(r * 0.7) + 8, 10, 26)
 	if ink > 0.0: _ell(B, c, r + ink, (r + ink) * sq, _ca(INK, a), seg)
 	_ell(B, c, r, r * sq, _ca(col, a), seg)
 
 func _ell(B: TriBatch, c: Vector2, rx: float, ry: float, col: Color, seg := 24) -> void:
+	B = _gnd(B, 1.0)
 	var p0 := c + Vector2(rx, 0)
 	for i in seg:
 		var an := (i + 1) * TAU / seg
@@ -415,6 +442,7 @@ func _ell(B: TriBatch, c: Vector2, rx: float, ry: float, col: Color, seg := 24) 
 ## yere yatık halka (elips şerit)
 func _ring(B: TriBatch, c: Vector2, r: float, w: float, col: Color, sq := SQ, seg := 36) -> void:
 	if col.a <= 0.01 or r <= 1.0: return
+	B = _gnd(B, sq)
 	var r0 := maxf(0.0, r - w * 0.5)
 	var r1 := r + w * 0.5
 	var a0 := Vector2(r0, 0)
@@ -439,6 +467,7 @@ func _ink_ring(c: Vector2, r: float, w: float, col: Color, a := 1.0, B: TriBatch
 ## kalın çizgi (dörtgen parçalar + yuvarlak eklemler)
 func _thick(B: TriBatch, P: PackedVector2Array, w: float, col: Color, caps := true) -> void:
 	if P.size() < 2 or col.a <= 0.01: return
+	B = _gnd(B, 1.0)
 	var h := w * 0.5
 	for i in P.size() - 1:
 		var a := P[i]
@@ -463,6 +492,7 @@ func _ink_line(P: PackedVector2Array, col: Color, w: float, a := 1.0, ink := 3.0
 ## sivri uçlu yay bıçağı (iki ucu incelen hilal şerit; sq: yere yatıklık)
 func _blade(B: TriBatch, c: Vector2, r: float, a0: float, sweep: float, w: float, col: Color, sq := SQ, seg := 16) -> void:
 	if col.a <= 0.01 or sweep <= 0.01: return
+	B = _gnd(B, sq)
 	var pi0 := Vector2.ZERO
 	var po0 := Vector2.ZERO
 	for i in seg + 1:
@@ -481,7 +511,7 @@ func _blade(B: TriBatch, c: Vector2, r: float, a0: float, sweep: float, w: float
 ## yumuşak ışık (toplamalı tampon)
 func _glow(c: Vector2, r: float, col: Color, a: float, sq := SQ, B: TriBatch = null) -> void:
 	if a <= 0.01 or r <= 1.0: return
-	(B if B else _G).radial(c, r, _ca(col, a), Color(col.r, col.g, col.b, 0.0), sq, 20)
+	_gnd(B if B else _G, sq).radial(c, r, _ca(col, a), Color(col.r, col.g, col.b, 0.0), sq, 20)
 
 ## hilal (dış yay + iç yay arası şerit)
 func _crescent(B: TriBatch, c: Vector2, r: float, rot: float, col: Color, n := 14) -> void:
@@ -499,6 +529,13 @@ func _crescent(B: TriBatch, c: Vector2, r: float, rot: float, col: Color, n := 1
 			B._tri(prev_o, po, pq, col)
 			B._tri(prev_o, pq, prev_i, col)
 		prev_o = po; prev_i = pq
+
+## yumuşak kenarlı leke: merkez rengi cin, kenar noktaları cout (B: zemin tamponu)
+func _blob(B: TriBatch, c: Vector2, P: PackedVector2Array, cin: Color, cout: Color) -> void:
+	var n := P.size()
+	for i in n:
+		B.V.append(c); B.V.append(P[i]); B.V.append(P[(i + 1) % n])
+		B.C.append(cin); B.C.append(cout); B.C.append(cout)
 
 ## dört köşeli kıvılcım yıldızı
 func _sparkle(B: TriBatch, c: Vector2, r: float, col: Color, rot := 0.0) -> void:
@@ -547,9 +584,10 @@ func _trail(c: Vector2, r: float, a0: float, sweep: float, w: float, col: Color,
 		Wo.append(c + d * (r - hw * 0.05))
 		Ci.append(Color(col.r, col.g, col.b, 0.0)); Cm.append(_ca(col, al)); Co.append(_ca(col, al * 0.5))
 		Cw.append(Color(1, 1, 1, al * 0.95))
-	_strip(_T, In, Mid, Ci, Cm)
-	_strip(_T, Mid, Out, Cm, Co)
-	if core: _strip(_T, Mid, Wo, Cm, Cw)
+	var T := _gnd(_T, sq)
+	_strip(T, In, Mid, Ci, Cm)
+	_strip(T, Mid, Out, Cm, Co)
+	if core: _strip(T, Mid, Wo, Cm, Cw)
 
 ## simetrik parlayan hilal yay (iki ucu incelir; dış kenar parlak, içe söner) — kılıç dalgası
 func _arc_glow(c: Vector2, r: float, a0: float, sweep: float, w: float, col: Color, a := 1.0, sq := SQ, seg := 16) -> void:
@@ -564,8 +602,9 @@ func _arc_glow(c: Vector2, r: float, a0: float, sweep: float, w: float, col: Col
 		var d := Vector2(cos(an), sin(an) * sq)
 		In.append(c + d * (r - hw)); Mid.append(c + d * (r - hw * 0.2)); Out.append(c + d * (r + hw * 0.15))
 		Ci.append(Color(col.r, col.g, col.b, 0.0)); Cm.append(_ca(col, a * pr)); Co.append(Color(1, 1, 1, a * pr * 0.9))
-	_strip(_T, In, Mid, Ci, Cm)
-	_strip(_T, Mid, Out, Cm, Co)
+	var T := _gnd(_T, sq)
+	_strip(T, In, Mid, Ci, Cm)
+	_strip(T, Mid, Out, Cm, Co)
 
 ## yumuşak enerji halkası (iki kenarı saydam, ortası parlak) + ince beyaz çekirdek
 func _gring(c: Vector2, r: float, w: float, col: Color, a := 1.0, sq := SQ, seg := 40, core := 0.0) -> void:
@@ -578,9 +617,10 @@ func _gring(c: Vector2, r: float, w: float, col: Color, a := 1.0, sq := SQ, seg 
 		var d := Vector2(cos(an), sin(an) * sq)
 		I.append(c + d * maxf(0.0, r - h)); M.append(c + d * r); O.append(c + d * (r + h))
 		Ct.append(Color(col.r, col.g, col.b, 0.0)); Cc.append(_ca(col, a))
-	_strip(_T, I, M, Ct, Cc)
-	_strip(_T, M, O, Cc, Ct)
-	if core > 0.0: _ring(_T, c, r, core, Color(1, 1, 1, a * 0.9), sq, seg)
+	var T := _gnd(_T, sq)
+	_strip(T, I, M, Ct, Cc)
+	_strip(T, M, O, Cc, Ct)
+	if core > 0.0: _ring(T, c, r, core, Color(1, 1, 1, a * 0.9), sq, seg)
 
 ## kıvılcım çizgisi: baş parlak, kuyruk saydam
 func _streak(p: Vector2, dir: Vector2, L: float, w: float, col: Color, a := 1.0) -> void:
@@ -619,9 +659,9 @@ func _rune_circle(c: Vector2, r: float, col: Color, rot: float, a := 1.0) -> voi
 	for i in 12:
 		var an := rot + i * TAU / 12
 		var d := Vector2(cos(an), sin(an) * SQ)
-		_thick(_T, PackedVector2Array([c + d * r * 0.8, c + d * r * 0.96]), 2.5, _ca(col, a * 0.85), false)
+		_thick(_GA, PackedVector2Array([c + d * r * 0.8, c + d * r * 0.96]), 2.5, _ca(col, a * 0.85), false)
 		var an2 := -rot * 1.3 + (i + 0.5) * TAU / 12
-		_sparkle(_T, c + Vector2(cos(an2), sin(an2) * SQ) * r * 0.89, 4.0, Color(1, 1, 1, a * 0.8), an2)
+		_sparkle(_GA, c + Vector2(cos(an2), sin(an2) * SQ) * r * 0.89, 4.0, Color(1, 1, 1, a * 0.8), an2)
 
 # ── süper adı: siyah eğik bant üstünde sarı çizgi roman yazısı (patlayarak gelir, 1,3 sn) ──
 func _draw_title(ctx: Ctx2D, x: float, y: float, tt: float) -> void:
@@ -765,8 +805,8 @@ func _draw_slash(s, u: float, post: float, K) -> void:
 	for j in 2:
 		var a0: float = s.a + j * 1.7
 		var fo := f if post < 0 else f * f
-		_trail(tg, 84, a0, sweep, 44.0, _dc, fo, SQ * 0.8, 20)
-		_trail(tg, 70, a0 + 0.2, sweep * 0.85, 18.0, _lc, fo * 0.7, SQ * 0.8, 14, false)
+		_trail(tg, 84, a0, sweep, 44.0, _dc, fo, SQ, 20)
+		_trail(tg, 70, a0 + 0.2, sweep * 0.85, 18.0, _lc, fo * 0.7, SQ, 14, false)
 	_glow(tg, 90, _dc, 0.45 * f)
 	if post >= 0:
 		_burst(tg, post, K.linger, 60.0, _dc, s.seed, 6, 0.9)
@@ -979,49 +1019,52 @@ func _draw_poison(s, u: float, post: float, K) -> void:
 		var pos := Vector2(s.sx + (s.x - s.sx) * u, s.sy + (s.y - s.sy) * u - sin(u * PI) * 170.0)
 		var rot: float = s.a + u * 9.0
 		_ell(_U, tg, 26 * u + 4, (26 * u + 4) * SQ, _ca(INK, 0.3 * u))
-		_glow(pos, 40, _dc, 0.7, 1.0, _T)
-		_disc(_M, pos, 10, _dc, 1.0, 3.0)
+		_glow(pos, 46, _dc, 0.8, 1.0, _T)
+		_disc(_M, pos, 10, Color(0.2, 0.42, 0.1), 1.0, 0.0)
+		_disc(_M, pos, 7.5, tox, 1.0, 0.0)
 		var nk := pos + Vector2(cos(rot), sin(rot)) * 11.0
-		_ink_line(PackedVector2Array([pos, nk]), Color("#c8b48a"), 5.0, 1.0, 2.0)
-		_disc(_M, pos - Vector2(3, 3), 3.5, tox, 1.0, 0.0)
+		_thick(_M, PackedVector2Array([pos, nk]), 4.0, Color("#c8b48a"))
+		_glow(pos - Vector2(3, 3), 6, WHITE, 0.9, 1.0, _T)
+		_streak(pos, Vector2(s.x - s.sx, s.y - s.sy).normalized(), 40.0, 10.0, tox, 0.6)
 		_gring(tg, 44, 7.0, _dc, 0.25 + u * 0.5, SQ, 28)
 		return
 	var L: float = K.linger
 	var grow := minf(1.0, post / 0.2)
 	var a := 1.0 if post < L - 0.45 else maxf(0.0, (L - post) / 0.45)
 	var R: float = id.hr * (0.55 + 0.45 * _back(grow) if grow < 1.0 else 1.0)
-	var n := 18
+	# zehirlenmiş zemin: yumuşak kenarlı koyu leke (çürümüş toprak) → ıslak zehir gölü → ince ışıma
+	var n := 22
 	var P := PackedVector2Array(); var P2 := PackedVector2Array(); var Pk := PackedVector2Array()
 	P.resize(n); P2.resize(n); Pk.resize(n)
 	for i in n:
 		var an := i * TAU / n
-		var wob := 1.0 + 0.09 * sin(an * 3.0 + s.seed + t * 2.5) + 0.06 * sin(an * 5.0 - t * 3.0)
-		var d := Vector2(cos(an) * R * wob, sin(an) * R * wob * SQ)
-		P[i] = tg + d; P2[i] = tg + d * 0.72; Pk[i] = tg + d * 1.07
-	_U.fan(tg, Pk, _ca(INK, 0.9 * a))
-	_U.fan(tg, P, _ca(deep, 0.85 * a))
-	_U.fan(tg, P2, _ca(_dc.darkened(0.35), 0.55 * a))
-	_glow(tg, R * 1.2, _dc, 0.5 * a)
-	_gring(tg, R * 1.02, 10.0, tox, 0.55 * a, SQ, 28)
+		var wob := 1.0 + 0.12 * sin(an * 3.0 + s.seed) + 0.07 * sin(an * 5.0 + s.seed * 2.0 + t * 1.5)
+		var d := Vector2(cos(an), sin(an)) * R * wob
+		P[i] = tg + d * 0.86; P2[i] = tg + d * 0.55; Pk[i] = tg + d * 1.25
+	_blob(_GM, tg, Pk, Color(0.04, 0.07, 0.02, 0.62 * a), Color(0.04, 0.07, 0.02, 0.0))
+	_blob(_GM, tg, P, Color(0.10, 0.22, 0.05, 0.85 * a), Color(0.13, 0.30, 0.06, 0.55 * a))
+	_blob(_GM, tg + Vector2(-R * 0.1, -R * 0.08), P2, Color(0.40, 0.75, 0.14, 0.32 * a), Color(0.25, 0.5, 0.1, 0.0))
+	_glow(tg, R * 0.9, _dc, 0.14 * a)
 	for i in 4:
 		var ph := fmod(t * 1.6 + _uhash(s.seed, i) * 3.0, 1.0)
 		var an: float = _uhash(s.seed, i + 7) * TAU
 		var d: float = _uhash(s.seed, i + 13) * R * 0.6
 		var q := tg + Vector2(cos(an) * d, sin(an) * d * SQ)
 		if ph < 0.8:
+			# zeminde kabaran ıslak kabarcık (konturs uz, parlak tepe noktası)
 			var br := 3.0 + 7.0 * (ph / 0.8)
-			_disc(_M, q - Vector2(0, br * 0.5), br, tox, a, 2.2)
-			_disc(_M, q - Vector2(br * 0.35, br * 0.9), br * 0.3, WHITE, a * 0.8, 0.0)
+			_disc(_GM, q, br, Color(0.16, 0.36, 0.07), a, 0.0, SQ)
+			_disc(_GM, q - Vector2(br * 0.1, br * 0.1), br * 0.78, Color(0.45, 0.82, 0.18), a * 0.9, 0.0, SQ)
+			_glow(q - Vector2(br * 0.3, br * 0.35), br * 0.5, WHITE, 0.7 * a)
 		else:
 			var pp := (ph - 0.8) / 0.2
-			_gring(q - Vector2(0, 5), 6.0 + pp * 12.0, 5.0, tox, (1.0 - pp) * a, 1.0, 14)
+			_gring(q, 6.0 + pp * 14.0, 4.0, tox, (1.0 - pp) * a, SQ, 16)
 	for i in 3:
 		var ph := fmod(t * 0.9 + _uhash(s.seed, i + 20), 1.0)
 		var q := tg + Vector2((_uhash(s.seed, i + 22) - 0.5) * R, -ph * 80.0)
 		_glow(q, 22.0 + ph * 18.0, tox, 0.4 * (1.0 - ph) * a, 1.0, _T)
 	if post < 0.3:
 		_burst(tg, post, 0.4, 70.0, tox, s.seed, 7)
-		_pow(tg - Vector2(0, 4), 40, tox, 1.0 - post / 0.3, 9, s.seed)
 
 # ══ ÖRS DÜŞÜŞÜ (demirhan): akkor kenarlı dev örsler, ateş halkası, yıldız kıvılcımları ══
 func _anvil_shape(c: Vector2, k: float, a: float, hot: float) -> void:

@@ -28,7 +28,6 @@ func play(E: Dictionary, on_done: Callable) -> void:
 	visible = true
 	g.audio.play("evocine")
 	if g.music and g.music.has_method("duck"): g.music.duck(1400)
-	get_tree().create_timer(0.52).timeout.connect(func(): Input.vibrate_handheld(40))
 
 func _fin() -> void:
 	if _out >= 0: return

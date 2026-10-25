@@ -464,7 +464,7 @@ func _claim_daily() -> void:
 	var n: Node2D = _day_nodes.get(day)
 	_reward(r, n)
 	_stamps[day] = _t
-	Input.vibrate_handheld(35)
+	pass  # titreşim kapalı
 
 func _claim_quest(id: String, n: Node2D) -> void:
 	var r = g.dailies.claim_quest(id)

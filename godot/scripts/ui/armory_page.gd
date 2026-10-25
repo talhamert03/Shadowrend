@@ -284,7 +284,7 @@ func _slot_tap(slot: String, filled: bool, C: Lyr) -> void:
 		if P:
 			_pop = {"slot": slot, "L": P}
 			menu.btn(P, P.nodes[0], func():
-				Input.vibrate_handheld(10)
+				pass  # titreşim kapalı
 				g.unequip_slot(slot)
 				render())
 		return

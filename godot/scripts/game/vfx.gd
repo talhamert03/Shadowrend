@@ -9,7 +9,7 @@ extends RefCounted
 ## render() yalnız üçgen ekler, Overlay2D sonunda ult.flush_all() ile hepsi tek seferde gider.
 
 const MAXN := 72
-const SQ := 0.62
+const SQ := Ultimate.SQ
 
 enum { SLASH, HIT, RING, CAST, BOLT, HURT, DEATH }
 

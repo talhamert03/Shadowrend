@@ -295,6 +295,126 @@ func _wind_mat(sway: float, push: float, fade: float) -> ShaderMaterial:
 	m.set_shader_parameter("fade", fade)
 	return m
 
+# ── SUNAK (dünya olayı): sekizgen basamaklı taş kaide, kâsede akkor altın kristal, ışık sütunu.
+# Yerdeki rün çemberi ve bekleme yayı Vfx zemin katmanında (world_events.render).
+var altarNode: Node3D
+var _altarCrystal: MeshInstance3D
+var _altarBeam: MeshInstance3D
+var _altarHalo: MeshInstance3D
+
+func _build_altar() -> void:
+	altarNode = node(scene)
+	# kaide profili (yarıçap, yükseklik): geniş iki basamak → sütun → taç → kâse
+	var prof := PackedVector2Array([
+		Vector2(0.0, 0.0), Vector2(40, 0), Vector2(40, 7), Vector2(33, 7), Vector2(33, 14), Vector2(25, 14),
+		Vector2(20, 17), Vector2(16, 20), Vector2(14, 38), Vector2(17, 41), Vector2(24, 44), Vector2(25, 50),
+		Vector2(19, 52), Vector2(12, 47), Vector2(0.0, 46)])
+	var stone := Shd.lit({"color": Color("#a39a8c"), "roughness": 0.95, "rim": true})
+	stone.set_shader_parameter("rim_c", Vector3(1.0, 0.78, 0.42))
+	stone.set_shader_parameter("rim_s", 0.5)
+	if Quality.tier != "low": stone.next_pass = Shd.outline(null, Color(0.22, 0.18, 0.16), 1.4)
+	var base := mesh_node(Geo.lathe(prof, 8), stone, altarNode)
+	base.rotation.y = PI / 8.0
+	# dört köşede alçak dikilitaş + tepesinde küçük kor
+	var ob := Geo.merge([Geo.cylinder(2.5, 6, 30, 4)], [Transform3D(Basis(), Vector3(0, 15, 0))])
+	var em := Shd.lit({"color": Color("#ffe2a0"), "emissive": Color("#ff9a2a"), "emissive_k": 1.8, "roughness": 0.4, "rim": false})
+	for i in 4:
+		var a := PI / 4.0 + i * PI / 2.0
+		var o := mesh_node(ob, stone, altarNode)
+		o.position = Vector3(cos(a) * 52, 0, sin(a) * 52)
+		o.rotation.y = a
+		var ember := mesh_node(Geo.icosahedron(2.6), em, altarNode)
+		ember.position = Vector3(cos(a) * 52, 33, sin(a) * 52)
+	# altın taç bileziği
+	var gold := Shd.lit({"color": Color("#e8b85a"), "metalness": 0.6, "roughness": 0.35, "emissive": Color("#6a3c08"), "emissive_k": 1.0})
+	var tr := mesh_node(Geo.merge([Geo.torus(23, 1.8, 6, 24)], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3.ZERO)]), gold, altarNode)
+	tr.position.y = 44.5
+	# kristal: dikine uzatılmış ikosahedron, kendi ışığıyla
+	var cm := Shd.lit({"color": Color("#fff3cc"), "emissive": Color("#ffb53a"), "emissive_k": 2.0, "roughness": 0.25})
+	_altarCrystal = mesh_node(Geo.icosahedron(10), cm, altarNode)
+	_altarCrystal.scale = Vector3(1, 1.8, 1)
+	# ışık sütunu: tabanda dolu, yukarı doğru sönen (köşe alfası) — sert silindir değil
+	var pos := PackedVector3Array(); var nrm := PackedVector3Array(); var uv := PackedVector2Array()
+	var idx := PackedInt32Array(); var col := PackedColorArray()
+	var segs := 18
+	for i in segs + 1:
+		var a := TAU * i / segs
+		var d := Vector3(cos(a), 0, sin(a))
+		pos.append(d * 9.0); pos.append(d * 16.0 + Vector3(0, 240, 0))
+		nrm.append(d); nrm.append(d)
+		uv.append(Vector2(float(i) / segs, 0)); uv.append(Vector2(float(i) / segs, 1))
+		col.append(Color(1, 1, 1, 1)); col.append(Color(1, 1, 1, 0))
+	for i in segs:
+		var k := i * 2
+		idx.append_array([k, k + 2, k + 1, k + 1, k + 2, k + 3])
+	var bm := Shd.basic({"color": Color("#ffcf72"), "add": true, "opacity": 0.3, "zwrite": false, "cull": "none", "order": 6, "vcol_alpha": true})
+	_altarBeam = mesh_node(Geo._mesh(pos, nrm, uv, idx, col), bm, altarNode)
+	_altarBeam.position.y = 46
+	var hm := Shd.basic({"color": Color("#ffcf6a"), "add": true, "opacity": 0.35, "zwrite": false, "cull": "none", "order": 6})
+	_altarHalo = mesh_node(Geo.sphere(14, 16, 8), hm, altarNode)
+	altarNode.visible = false
+
+func _update_altar(g) -> void:
+	var ev = g.events
+	var A: Dictionary = ev.altar if ev else {}
+	var on: bool = g.state == "playing" or g.state == "paused" or g.state == "levelup"
+	if A.is_empty() or not A.on or not on:
+		if altarNode: altarNode.visible = false
+		return
+	if altarNode == null: _build_altar()
+	altarNode.visible = true
+	var t: float = g.time
+	var life: float = ev.ALTAR_LIFE
+	var fade := maxf(0.0, (life - float(A.t)) / 3.0) if float(A.t) > life - 3.0 else minf(1.0, float(A.t) / 0.5)
+	# yükselerek belirir, sönerken toprağa iner
+	var rise := 1.0 - pow(1.0 - fade, 3.0)
+	altarNode.position = Vector3(float(A.x), -60.0 * (1.0 - rise), float(A.y))
+	var hk: float = clampf(float(A.hold) / ev.ALTAR_HOLD, 0.0, 1.0)
+	_altarCrystal.position.y = 70.0 + sin(t * 2.2) * 4.0 + hk * 10.0
+	_altarCrystal.rotation.y = t * (1.2 + hk * 5.0)
+	var hs := 1.0 + hk * 0.6 + sin(t * 3.0) * 0.06
+	_altarHalo.position.y = _altarCrystal.position.y
+	_altarHalo.scale = Vector3.ONE * hs
+	_altarBeam.scale = Vector3(1.0 + hk * 0.8, 1.0 + hk * 0.3, 1.0 + hk * 0.8)
+	(_altarBeam.material_override as ShaderMaterial).set_shader_parameter("opacity", (0.16 + 0.22 * hk) * fade)
+	(_altarHalo.material_override as ShaderMaterial).set_shader_parameter("opacity", (0.35 + 0.4 * hk) * fade)
+
+# ── yer efektleri (Ultimate/Vfx zemin tamponları) ──
+var _gfx: Array = []          # [MeshInstance3D karışım, MeshInstance3D toplamalı]
+var _gfxMesh: Array = []
+
+func _gfx_build() -> void:
+	for i in 2:
+		var m := ShaderMaterial.new()
+		m.shader = load("res://shaders/ground_fx_add.gdshader" if i == 1 else "res://shaders/ground_fx.gdshader")
+		m.render_priority = 1 + i
+		var am := ArrayMesh.new()
+		am.custom_aabb = AABB(Vector3(-100000, -50, -100000), Vector3(200000, 100, 200000))
+		var mi := MeshInstance3D.new()
+		mi.mesh = am
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		scene.add_child(mi)
+		_gfx.append(mi)
+		_gfxMesh.append(am)
+
+## dünya uzayı (x, z) üçgen listeleri → zemine yatırılmış iki ağ (karışım + toplamalı ışık)
+func ground_fx(Vm: PackedVector2Array, Cm: PackedColorArray, Va: PackedVector2Array, Ca: PackedColorArray) -> void:
+	if scene == null: return
+	if _gfx.is_empty(): _gfx_build()
+	_gfx_set(0, Vm, Cm)
+	_gfx_set(1, Va, Ca)
+
+func _gfx_set(i: int, V: PackedVector2Array, C: PackedColorArray) -> void:
+	var am: ArrayMesh = _gfxMesh[i]
+	am.clear_surfaces()
+	if V.size() < 3: return
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = V
+	arr[Mesh.ARRAY_COLOR] = C
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_2D_VERTICES)
+
 ## objective.glb: insan · kalkan kaidesi · kalkan mücevheri (propModels/shieldDome pişirmesi)
 var _objMeshes := {}
 func _glb_meshes(path: String) -> Dictionary:
@@ -386,6 +506,8 @@ func load_character(char_id: String) -> void:
 		inst.position = Vector3(float(rp[0]), float(rp[1]), float(rp[2])) * bs
 		heroMesh = inst
 	heroMesh.rotation_order = EULER_ORDER_XYZ
+	# sink: modelin tabanı yere tam bassın diye aşağı kaydırma (yürüyüş klibi hafif havada tutanlar)
+	heroMesh.position.y -= float(md.get("sink", 0.0))
 	_heroBaseY = heroMesh.position.y
 	_heroBaseValid = true
 	_heroTopY = float(md.get("topY", 91.0))
@@ -516,6 +638,7 @@ func render(g) -> void:
 	Prof.b("r3.props"); _update_props(g); Prof.e("r3.props")
 	Prof.b("r3.decor"); _update_decor(g); Prof.e("r3.decor")
 	_update_objective(g)
+	_update_altar(g)
 	Prof.b("r3.fchest"); if fieldChestView: fieldChestView.update(g)
 	Prof.e("r3.fchest")
 	_update_atmosphere(g, dt)

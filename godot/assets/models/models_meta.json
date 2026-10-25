@@ -99,7 +99,8 @@
    "clips": [
     "NlaTrack"
    ],
-   "hasBones": true
+   "hasBones": true,
+   "sink": 3.5
   },
   "korsan": {
    "file": "heroes/korsan.glb",

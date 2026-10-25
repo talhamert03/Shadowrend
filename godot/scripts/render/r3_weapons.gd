@@ -114,7 +114,7 @@ func update(g, dt: float) -> void:
 	_update_judgement(dt)
 	_update_arcs(dt)
 
-# ═══════════ SÜZÜLEN ODAK (veriyle: WEAPONS.<id>.floatVisual — Ruh Feneri, Cadı Kazanı) ═══════════
+# ═══════════ SÜZÜLEN ODAK (veriyle: WEAPONS.<id>.floatVisual — Ruh Feneri, Batak Asası) ═══════════
 # Kahramanın omzu üstünde yay-sönümle süzülür, hafifçe sallanır; atışta geri teper, şişer ve
 # kendi renginde parlar. Mermi çıkış noktası (weapons.floatPos) buradan yazılır.
 var floatPivot: Node3D
@@ -140,10 +140,11 @@ func _float_rebuild(id: String) -> void:
 		floatGlow = _quad_inst("res://assets/fx/glow.png", 3, 3)
 	floatGlow.commit(0)
 	if id == "": return
-	var m := _wscene(id)
+	var m := _build_staff() if id == "kazan" else _wscene(id)
 	if m == null: return
 	_foCol = Color(str(D.WEAPONS[id].get("color", "#ffffff")))
-	Shd.convert_tree(m, {"rim": true, "metal": 0.18, "rough": 0.5, "emissive": _foCol.darkened(0.6), "emissive_k": 1.0, "keep_emap": false, "outline": 1.4})
+	if id != "kazan":
+		Shd.convert_tree(m, {"rim": true, "metal": 0.18, "rough": 0.5, "emissive": _foCol.darkened(0.6), "emissive_k": 1.0, "keep_emap": false, "outline": 1.4})
 	floatInner = Render3D.node()
 	floatInner.add_child(m)
 	floatPivot = Render3D.node(S)
@@ -165,6 +166,10 @@ func _update_float(g, dt: float) -> void:
 	var side := -1.0 if p.faceLeft else 1.0
 	var ax: float = p.x - side * 40.0
 	var az: float = p.y + 18.0
+	if _foId == "kazan":
+		# cadı asası: kahramanın sol omzu arkasında sabit süzülür (yön değişince etrafında dönmez)
+		ax = p.x - 34.0
+		az = p.y - 14.0
 	var ay := 66.0 + sin(_foT * 1.6) * 7.0
 	if not _foInit:
 		_foInit = true
@@ -187,9 +192,63 @@ func _update_float(g, dt: float) -> void:
 	floatInner.rotation = Vector3(-_foRecoil * 0.35, _foYaw, sin(_foT * 2.2) * 0.12)
 	floatInner.scale = Vector3.ONE * (1.0 + _foRecoil * 0.16)
 	var k := 0.55 + 0.25 * sin(_foT * 3.1) + _foRecoil * 0.9
-	_bb(floatGlow, 0, _foX, _foY, _foZ, 46 + _foRecoil * 40, 46 + _foRecoil * 40, 0, _foCol.r * k, _foCol.g * k, _foCol.b * k)
-	_bb(floatGlow, 1, _foX, _foY, _foZ, 110, 110, 0, _foCol.r * 0.18, _foCol.g * 0.18, _foCol.b * 0.18)
+	var gy := _foY + (40.0 if _foId == "kazan" else 0.0)      # asada ışık kristalde
+	_bb(floatGlow, 0, _foX, gy, _foZ, 46 + _foRecoil * 40, 46 + _foRecoil * 40, 0, _foCol.r * k, _foCol.g * k, _foCol.b * k)
+	_bb(floatGlow, 1, _foX, gy, _foZ, 110, 110, 0, _foCol.r * 0.18, _foCol.g * 0.18, _foCol.b * 0.18)
 	floatGlow.commit(2)
+
+## CADI ASASI (Batak Cadısı): bükülmüş koyu ağaç gövde, uçta pençe kökler arasında parlayan zehir
+## kristali, asılı küçük kemik kurukafa — prosedürel (kazanın yerine)
+func _build_staff() -> Node3D:
+	var root := Node3D.new()
+	var wood := Shd.lit({"color": Color("#5a3d27"), "roughness": 0.9, "rim": true})
+	wood.set_shader_parameter("rim_c", Vector3(0.55, 1.0, 0.45))
+	if Quality.tier != "low": wood.next_pass = Shd.outline(null, Color(0.12, 0.08, 0.05), 1.3)
+	var bone := Shd.lit({"color": Color("#e9dcc0"), "roughness": 0.7, "rim": true})
+	var crys := Shd.lit({"color": Color("#d9ff9a"), "emissive": Color("#5fe022"), "emissive_k": 2.2, "roughness": 0.2, "rim": false})
+	var parts: Array = []
+	var xfs: Array = []
+	# gövde: hafif kıvrımlı 7 parça, aşağıdan yukarı incelir
+	var pts: Array = []
+	for i in 8:
+		pts.append(Vector3(sin(i * 0.9) * 1.8, -28.0 + i * 8.0, cos(i * 0.7) * 1.4))
+	for i in 7:
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		var d := b - a
+		var r0 := 2.7 - i * 0.12
+		parts.append(Geo.cylinder(r0 - 0.12, r0, d.length() + 0.6, 7))
+		xfs.append(Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())), (a + b) * 0.5))
+	# tepe: dört pençe kök kristali sarar
+	var top: Vector3 = pts[7]
+	for k in 4:
+		var an := k * TAU / 4.0 + 0.4
+		var o := Vector3(cos(an), 0, sin(an))
+		var c0 := top + o * 2.0
+		var c1 := top + o * 7.5 + Vector3(0, 6, 0)
+		var c2 := top + o * 4.0 + Vector3(0, 15, 0)
+		for seg in [[c0, c1, 1.5], [c1, c2, 1.0]]:
+			var a: Vector3 = seg[0]
+			var b: Vector3 = seg[1]
+			var d := b - a
+			parts.append(Geo.cylinder(float(seg[2]) * 0.55, float(seg[2]), d.length() + 0.4, 6))
+			xfs.append(Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())), (a + b) * 0.5))
+	var shaft := Render3D.mesh_node(Geo.merge(parts, xfs), wood, root)
+	shaft.name = "shaft"
+	var cr := Render3D.mesh_node(Geo.icosahedron(6.2), crys, root)
+	cr.position = top + Vector3(0, 8.5, 0)
+	cr.scale = Vector3(1, 1.25, 1)
+	cr.name = "crystal"
+	# asılı kurukafa (küçük) + ip
+	var sk := Render3D.mesh_node(Geo.sphere(2.6, 10, 8), bone, root)
+	sk.position = top + Vector3(3.6, -9.0, 1.0)
+	sk.scale = Vector3(1, 0.9, 1.05)
+	var cord := Render3D.mesh_node(Geo.cylinder(0.25, 0.25, 6.5, 4), Shd.lit({"color": Color("#2a1e14")}), root)
+	cord.position = top + Vector3(3.2, -4.8, 0.8)
+	var holder := Node3D.new()
+	holder.add_child(root)
+	root.position = Vector3(0, 6, 0)
+	return holder
 
 # ═══════════ AY YAYI ═══════════
 var bowRig: Node3D

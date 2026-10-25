@@ -595,7 +595,7 @@ func _input(ev: InputEvent) -> void:
 				var C: Dictionary = cards[_pick]
 				_burst((C.node as Node2D).position, C.col, 26, 300.0)
 				g.audio.play("click")
-				Input.vibrate_handheld(20)
+				pass  # titreşim kapalı
 
 static func glyph_into(L: Lyr, nn: Lyr.N, gf: String) -> void:
 	if not (nn.img is Sprite2D): return

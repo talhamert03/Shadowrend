@@ -97,6 +97,7 @@ class PBullet:
 	var stone := false; var shatter := 0
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
+	var tgt = null; var tgtTok := -1   # güdümlü merminin kilitli hedefi
 	func setup(px, py, pvx, pvy, pdmg, ppierce, plife, pr, pcolor) -> PBullet:
 		x = px; y = py; vx = pvx; vy = pvy
 		dmg = pdmg; pierce = ppierce; life = plife; r = pr

@@ -193,7 +193,7 @@ func _upgrade() -> void:
 		return
 	if not g.upgrade_gear(id): return
 	g.audio.play("levelup")
-	Input.vibrate_handheld(20)
+	pass  # titreşim kapalı
 	g.ui.menu.refresh_wallet()
 	_fx(g.gear_level(id))
 

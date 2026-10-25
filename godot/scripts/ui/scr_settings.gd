@@ -183,7 +183,7 @@ func _hap(v: String) -> void:
 	Settings.set_value("haptics", v != "off")
 	Settings.set_value("hsoft", v == "soft")
 	g.audio.play("click")
-	if v != "off": Input.vibrate_handheld(12)
+	if v != "off": pass  # titreşim kapalı
 	_render()
 
 func _toggle_adv() -> void:

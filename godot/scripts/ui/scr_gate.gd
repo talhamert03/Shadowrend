@@ -408,7 +408,7 @@ func _process(dt: float) -> void:
 	modulate.a = clampf(_t / 0.2, 0.0, 1.0)
 	if not _covered and _t >= COVER:
 		_covered = true
-		Input.vibrate_handheld(15)
+		pass  # titreşim kapalı
 		if on_cover.is_valid(): on_cover.call()
 	var k := clampf((_t - COVER + 0.12) / BAR, 0.0, 1.0)
 	var eb := k * 1.18 if k < 0.7 else 0.826 + (k - 0.7) * 0.58
@@ -417,5 +417,5 @@ func _process(dt: float) -> void:
 		_finished = true
 		_progress(100.0)
 		g.audio.play("start")
-		Input.vibrate_handheld(30)
+		pass  # titreşim kapalı
 		_doneAt = _t

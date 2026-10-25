@@ -653,6 +653,19 @@ func update_gun(id: String, dt: float) -> void:
 func _bullet(ox: float, oy: float, vx: float, vy: float, dmg: float, pierce: float, life: float, r: float, color):
 	return game.pools.pBullets.take().setup(ox, oy, vx, vy, dmg, pierce, life, r, color)
 
+## güdümlü mermi için mermiye en yakın canlı düşman (görüş alanında)
+func _home_pick(x: float, y: float):
+	var out = game.enemies.query_circle(x, y, 320, scratch)
+	var best = null
+	var bd := INF
+	for e in out:
+		if e.hp <= 0 or e.entryT > 0: continue
+		var d2: float = (e.x - x) * (e.x - x) + (e.y - y) * (e.y - y)
+		if d2 < bd:
+			bd = d2
+			best = e
+	return best
+
 func fire_gun(id: String) -> void:
 	if nearest == null or not slots.get(id): return
 	var g = game
@@ -690,6 +703,8 @@ func fire_gun(id: String) -> void:
 		b.shatter = wi(Wd, "shatter")
 		b.flame = flame
 		b.homing = homing
+		b.tgt = nearest if homing > 0 else null
+		b.tgtTok = nearest.aliveTok if homing > 0 else -1
 		b.explode = explode
 		b.split = split
 		b.frag = false
@@ -838,17 +853,31 @@ func update_arrow(b, dt: float) -> bool:
 	b.life -= dt
 	if b.life <= 0: return true
 	if b.homing > 0:
-		var tgt := nearest
+		# kilitli hedef (öldüyse mermiye en yakın yeni hedef); yaklaştıkça dönüş keskinleşir,
+		# son adımda doğrudan hedefe oturur — etrafında dönüp ıskalamaz
+		var tgt = b.tgt
+		if tgt == null or tgt.hp <= 0 or tgt.aliveTok != b.tgtTok:
+			tgt = _home_pick(b.x, b.y)
+			b.tgt = tgt
+			b.tgtTok = tgt.aliveTok if tgt else -1
 		if tgt:
-			var want := atan2(tgt.y - b.y, tgt.x - b.x)
-			var d := JS.wrap_pi(want - b.angle)
-			var turn: float = (2.6 + b.homing * 1.5) * dt
-			if d > turn: d = turn
-			elif d < -turn: d = -turn
-			b.angle += d
+			var dx: float = tgt.x - b.x
+			var dy: float = tgt.y - b.y
+			var dist := sqrt(dx * dx + dy * dy)
 			var sp := JS.hypot(b.vx, b.vy)
-			b.vx = cos(b.angle) * sp
-			b.vy = sin(b.angle) * sp
+			if dist <= sp * dt * 1.2 + tgt.radius:
+				b.angle = atan2(dy, dx)
+				b.vx = dx / maxf(dist, 0.01) * sp
+				b.vy = dy / maxf(dist, 0.01) * sp
+			else:
+				var want := atan2(dy, dx)
+				var d := JS.wrap_pi(want - b.angle)
+				var turn: float = (4.0 + b.homing * 2.0) * (1.0 + 160.0 / maxf(dist, 40.0)) * dt
+				if d > turn: d = turn
+				elif d < -turn: d = -turn
+				b.angle += d
+				b.vx = cos(b.angle) * sp
+				b.vy = sin(b.angle) * sp
 	b.x += b.vx * dt
 	b.y += b.vy * dt
 	var g = game

@@ -158,6 +158,8 @@ var haptics_k := 1.0
 var _h_last := 0.0
 
 func haptic(kind: String) -> void:
+	# oyunda titreşim yok (tasarım kararı): telefon hiçbir olayda titremez
+	if true: return
 	if not haptics_enabled: return
 	var now := _now_ms()
 	if now - _h_last < 55: return

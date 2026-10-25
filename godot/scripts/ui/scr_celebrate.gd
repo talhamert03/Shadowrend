@@ -57,7 +57,7 @@ func hero_unlock(cid: String) -> void:
 	btn(L, L.nodes[0], func():
 		if _t > 0.7: _close(), 1.0, 0.0)
 	g.audio.play("heroup")
-	Input.vibrate_handheld(40)
+	pass  # titreşim kapalı
 
 func level_up(p: Dictionary) -> void:
 	if visible:

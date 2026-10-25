@@ -656,7 +656,7 @@ func _process(dt: float) -> void:
 				_land_t = 0.0
 				_spark(_chest_mouth() + Vector2(0, 70), 22, 260, [Color.WHITE, JS.col(C.get("accent", C.color)), YEL], false, 0.3)
 				g.audio.play("chestthud")
-				Input.vibrate_handheld(20)
+				pass  # titreşim kapalı
 			if S.k >= 1.0:
 				S.phase = "idle"
 				S.t = 0.0
@@ -775,7 +775,7 @@ func _tap() -> void:
 			S.shake = 0.0
 			_hint.visible = false
 			g.audio.play("chestlatch")
-			Input.vibrate_handheld(30)
+			pass  # titreşim kapalı
 		"open":
 			if _cstate == "fly":
 				# efsanevi ilk anı atlanmaz; diğerlerinde kart hemen yerine
@@ -801,7 +801,7 @@ func _burst() -> void:
 	_spark(_chest_mouth(), 46 + peak * 14, 520, [YEL, Color.WHITE, acc, Color("#ff8a3a")], true, 0.6)
 	_spark(_chest_mouth(), 20, 300, [YEL, Color.WHITE], false, 0.5)
 	g.audio.play("chestburst")
-	Input.vibrate_handheld(45)
+	pass  # titreşim kapalı
 
 # ═════════════ ödüller ═════════════
 
@@ -945,7 +945,7 @@ func _land() -> void:
 		2: g.audio.play("epicpull")
 		1: g.audio.play("chestrare")
 		_: g.audio.play("reveal")
-	Input.vibrate_handheld(18 if dr < 2 else 40)
+	pass  # titreşim kapalı
 
 static func r_is_cur(r: Dictionary) -> bool:
 	return r.kind == "rubies" or r.kind == "stone"

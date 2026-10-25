@@ -359,7 +359,7 @@ func _mk_buy(slot: String, cur: String) -> void:
 		g.ui.toast("Gem yetmiyor" if cur == "gem" else "Altın yetmiyor")
 		return
 	g.audio.play("buy")
-	Input.vibrate_handheld(15)
+	pass  # titreşim kapalı
 	g.ui.toast("+" + str(int(r.n)) + " " + str(r.name) + " KARTI")
 	menu.refresh_wallet()
 	render()

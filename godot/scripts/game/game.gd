@@ -445,9 +445,8 @@ func start_run(wi: int = 0, mi: int = 0, seal = null) -> void:
 	var md0 := D.missionDef(wId, mId)
 	audio.unlock()
 	if renderer3d: renderer3d.prepare_world_enemies(wd0.floor)
+	# savaş başında kart/kutsama seçimi YOK (oyuncu sahaya girer girmez oynar); seçimler sunakta
 	var bless = null
-	if (meta.get("ftue") or JS.i(progress.get(1, 0)) >= 1) and sealRun == null and towerRun == null:
-		bless = Journey.roll_blessings(3)
 	ui._ldHold = bless != null
 	var stars := -1 if (sealRun or towerRun or nmRun) else Ledger.stars(meta, wId, mId)
 	var side := "SONSUZ KULE" if towerRun else ("HAFTALIK MÜHÜR" if sealRun else ("KABUS DÖNGÜSÜ" if nmRun else ""))
@@ -1763,6 +1762,7 @@ func _process(_delta: float) -> void:
 var _ultauto := -1.0
 var _dieat := 0.0
 var _vfxtest := false
+var _pauseat := 0.0
 var _vfxT := 0.0
 func update(dt: float) -> void:
 	if _ultauto < 0.0:
@@ -1771,6 +1771,7 @@ func update(dt: float) -> void:
 			if u.begins_with("ultauto="): _ultauto = float(u.substr(8))
 			if u.begins_with("dieat="): _dieat = float(u.substr(6))
 			if u == "vfxtest": _vfxtest = true
+			if u.begins_with("pauseat="): _pauseat = float(u.substr(8))
 	# geliştirici: vfxtest — savaş ışık katmanının tüm efektleri sırayla (görsel kontrol)
 	if _vfxtest:
 		_vfxT += dt
@@ -1782,6 +1783,9 @@ func update(dt: float) -> void:
 			vfx.hit(player.x + 90, player.y - 20, 0.0, ph % 2 == 0)
 			vfx.bolt(player.x - 120, player.y - 60, player.x - 20, player.y + 70)
 			if ph == 0 and time < 3.0: vfx.cast(player.x, player.y, Color(1, 0.78, 0.3))
+	if _pauseat > 0.0 and time >= _pauseat:
+		_pauseat = 0.0
+		pause_game()
 	# geliştirici: dieat=sn — o savaş saatinde kahraman düşer (ölüm sekansı testi)
 	if _dieat > 0.0 and time >= _dieat and _deathT < 0.0:
 		_dieat = 0.0

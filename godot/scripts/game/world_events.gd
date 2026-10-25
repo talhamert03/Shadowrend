@@ -272,40 +272,27 @@ func render(ctx: Ctx2D) -> void:
 	var e := thief
 	if e and e.hp > 0:
 		var t0: float = game.time
-		ctx.save(); ctx.translate(e.x, e.y); ctx.scale(1, 0.62)
-		ctx.set_stroke("#f5c044"); ctx.line_width = 3; ctx.global_alpha = 0.55 + 0.45 * sin(t0 * 7)
-		ctx.begin_path(); ctx.arc(0, 0, e.radius + 14, 0, TAU); ctx.stroke()
-		ctx.restore()
+		game.ult._gring(Vector2(e.x, e.y), e.radius + 16.0, 10.0, Color(1, 0.78, 0.25), 0.55 + 0.45 * sin(t0 * 7), Ultimate.SQ, 28, 1.2)
 	var A := altar
 	if not A.on: return
+	# sunağın kendisi 3B (render3d._update_altar); burada yalnız ZEMİN: altın rün çemberi + bekleme yayı
+	var U: Ultimate = game.ult
 	var t: float = game.time
 	var fade := maxf(0.0, (ALTAR_LIFE - A.t) / 3.0) if A.t > ALTAR_LIFE - 3 else minf(1.0, A.t / 0.5)
-	ctx.save()
-	ctx.global_alpha = fade
-	ctx.translate(A.x, A.y)
-	ctx.scale(1, 0.62)
-	ctx.line_width = 5; ctx.set_stroke("rgba(20,12,8,0.7)")
-	ctx.begin_path(); ctx.arc(0, 0, ALTAR_R, 0, TAU); ctx.stroke()
-	ctx.line_width = 3; ctx.set_stroke("#f0c77a")
-	ctx.line_dash = [14, 10]; ctx.line_dash_offset = -t * 30
-	ctx.begin_path(); ctx.arc(0, 0, ALTAR_R, 0, TAU); ctx.stroke()
-	ctx.line_dash = []
-	if A.hold > 0:
-		ctx.line_width = 7; ctx.set_stroke("#fff2c8")
-		ctx.begin_path(); ctx.arc(0, 0, ALTAR_R - 10, -PI / 2, -PI / 2 + PI * 2 * minf(1.0, A.hold / ALTAR_HOLD)); ctx.stroke()
-	ctx.fill_style = Color(240 / 255.0, 199 / 255.0, 122 / 255.0, 0.1 + 0.06 * sin(t * 3))
-	ctx.begin_path(); ctx.arc(0, 0, ALTAR_R - 4, 0, TAU); ctx.fill()
-	ctx.restore()
-	ctx.save()
-	ctx.global_alpha = fade
-	ctx.translate(A.x, A.y)
-	var bob := sin(t * 2.4) * 4
-	ctx.set_fill("#2a2230"); ctx.set_stroke("#0b0910"); ctx.line_width = 3
-	ctx.begin_path(); ctx.move_to(-22, 6); ctx.line_to(22, 6); ctx.line_to(16, -30); ctx.line_to(-16, -30); ctx.close_path(); ctx.fill(); ctx.stroke()
-	ctx.set_fill("#f0c77a")
-	ctx.begin_path(); ctx.move_to(0, -60 + bob); ctx.line_to(10, -46 + bob); ctx.line_to(0, -32 + bob); ctx.line_to(-10, -46 + bob); ctx.close_path(); ctx.fill()
-	ctx.set_stroke("#0b0910"); ctx.line_width = 2; ctx.stroke()
-	ctx.restore()
+	var c := Vector2(A.x, A.y)
+	var gold := Color(1.0, 0.78, 0.4)
+	var hk := clampf(A.hold / ALTAR_HOLD, 0.0, 1.0)
+	U._ell(U._U, c, ALTAR_R + 6.0, ALTAR_R + 6.0, Color(0.08, 0.05, 0.02, 0.4 * fade), 40)
+	U._rune_circle(c, ALTAR_R, gold, t * 0.5, fade * (0.75 + 0.25 * sin(t * 3.0)))
+	U._glow(c, ALTAR_R * 0.9, gold, (0.18 + 0.35 * hk) * fade)
+	if hk > 0.0:
+		var P := PackedVector2Array()
+		var n := maxi(2, int(48 * hk) + 1)
+		for i in n:
+			var an := -PI / 2.0 + TAU * hk * float(i) / (n - 1)
+			P.append(c + Vector2(cos(an), sin(an)) * (ALTAR_R - 16.0))
+		U._thick(U._GA, P, 9.0, Color(1, 0.92, 0.7, fade), false)
+		U._thick(U._GA, P, 20.0, Color(1, 0.7, 0.3, 0.35 * fade), false)
 
 func arrow(ctx: Ctx2D) -> void:
 	var p = game.player

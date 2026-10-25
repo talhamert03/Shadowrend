@@ -247,6 +247,14 @@ func boot() -> void:
 				var E = g.enemies
 				E.aliveCap = 9999.0; E.osCap = 9999.0
 				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * 20.0, E.dmgMul * 0.05))
+		if _arg("altarpick") != "":
+			get_tree().create_timer(2.0).timeout.connect(func(): g.events._bless_altar())
+		if _arg("altar") != "":
+			# geliştirici: altar — savaş başında kahramanın yanında sunak
+			get_tree().create_timer(1.5).timeout.connect(func():
+				var ev = g.events
+				ev._start(ev.EV[0])
+				ev.altar.x = g.player.x + float(_arg("altar")); ev.altar.y = g.player.y - 40.0)
 		if _arg("wpn") != "":
 			# geliştirici: wpn=id:sv,id:sv — savaşa yalnız bu silahlarla başla (efekt testi)
 			get_tree().create_timer(0.5).timeout.connect(func():
@@ -493,6 +501,9 @@ func show_bless_pick(list, cb: Callable, opt = null) -> void:
 		if list is Array and list.size(): cb.call(list[0])
 		return
 	hud.banner.visible = false
+	if opt is Dictionary and String(opt.get("cls", "")).contains("altar"):
+		bless.show_pick(list, cb, opt)      # sunak: karanlık ritüel sahnesi (+ / − bedel kartları)
+		return
 	levelup.show_bless(list, cb, opt)      # çizgi roman kart ekranı (eski kutsama ekranı yerine)
 func show_level_up(choices) -> void:
 	if _arg("autopick") != "" and choices is Array and choices.size():

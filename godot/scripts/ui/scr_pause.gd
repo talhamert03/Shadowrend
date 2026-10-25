@@ -1,14 +1,22 @@
 class_name ScrPause
 extends Scr
-## ui.js showPause — MÜHLET: başlık, yükleme çipleri (silah + rün, ikon · ad · Sv n),
-## DEVAM ET / AYARLAR / MENÜYE DÖN. Ekran sütunu dikey ortalı: çip satırı sayısı
-## değişince başlık yukarı, düğmeler aşağı kayar (yarım fark).
+## DURAKLATMA: oyunun üstünde hafif karartma + ortada derli toplu açılır pencere. Başlık,
+## donanım ikonları (silah · rün; yazısız, seviye noktalı) ve üç düğme: DEVAM ET · AYARLAR ·
+## ANA MENÜ. Hafif geri tepmeli belirme; dokunmada düğme içe basılır.
 
 const ART := "res://assets/ui/art/"
 static var _art := {}
 
-var shell: Lyr
-var chips: Array = []
+const INK := ComicSkin.INK
+const YEL := ComicSkin.YEL
+
+var _dim: Node2D
+var _panel: Node2D
+var _btns2: Array = []       # [{node, rect(yerel), cb}]
+var _pressB = null
+var _t := 0.0
+var _W := 390.0
+var _H := 844.0
 
 func _init(game) -> void:
 	super(game)
@@ -34,82 +42,134 @@ static func display_name(id: String) -> String:
 	return str(I.get("name", id))
 
 func show_pause() -> void:
-	if shell == null:
-		shell = Lyr.make("pause", [".ld-item"])
-		add_child(shell)
-		btn(shell, shell.find("#btn-resume"), func(): g.audio.play("click"); g.resume_game())
-		btn(shell, shell.find("#btn-pause-settings"), func(): g.audio.play("click"); g.ui.show_settings())
-		btn(shell, shell.find("#btn-quit"), func(): g.audio.play("click"); g.quit_to_menu())
-	shell.restart()
-	shell.stretch_h(Scr.dh_of(self))
-	for c in chips: c.queue_free()
-	chips.clear()
-	var w = g.weapons
-	var items := []
-	for id in w.slots: items.append([str(id), "Sv " + str(w.slots[id])])
-	for id in w.passives: items.append([str(id), "Sv " + str(w.passives[id])])
-	_layout_chips(items)
+	_build()
+	_t = 0.0
 	visible = true
-
-func _layout_chips(items: Array) -> void:
-	var box := shell.find("#pause-loadout")
-	var br := shell.rect_of(box)
-	var maxw := minf(420.0, UIK.ui_size(get_viewport()).x - 48.0)
-	var made := []
-	for it in items:
-		var C := Lyr.make("pause_chip")
-		var nm := C.find_exact("span")
-		var lv := C.find(".ld-lv")
-		var sv := C.find("svg")
-		C.set_text(nm, display_name(it[0]))
-		C.set_text(lv, it[1])
-		if sv and sv.img is Sprite2D:
-			var spr := sv.img as Sprite2D
-			spr.texture = icon_tex(it[0])
-			spr.position = Vector2.ZERO
-			spr.scale = Vector2.ONE * (15.0 / 120.0)
-			var I: Dictionary = art().get("icon", {}).get(it[0], {})
-			spr.modulate = icon_col(it[0]) if I.get("mono", true) else Color.WHITE
-		# çip genişliği: 1 + 12 + 15 + 7 + ad + 7 + düzey + 12 + 1
-		var w: float = 1 + 12 + 15 + 7 + nm.txt.text_width() + 7 + lv.txt.text_width() + 12 + 1
-		var dw: float = w - C.nodes[0].size.x
-		C.fit_width(C.nodes[0], w, false)
-		C.move(lv, lv.pos + Vector2(dw, 0))
-		made.append(C)
-	if items.is_empty():
-		var C2 := Lyr.make("pause_chip")
-		C2.set_text(C2.find_exact("span"), "Henüz rün yok")
-		C2.set_hidden(C2.find("svg"), true)
-		C2.set_hidden(C2.find(".ld-lv"), true)
-		made.append(C2)
-	# satırlara sar (gap 8), her satır ortalı
-	var rows := []
-	var cur := []
-	var cw := 0.0
-	for C in made:
-		var w2: float = C.nodes[0].size.x
-		if cur.size() and cw + 8 + w2 > maxw:
-			rows.append([cur, cw]); cur = []; cw = 0.0
-		cw = w2 if cur.is_empty() else cw + 8 + w2
-		cur.append(C)
-	if cur.size(): rows.append([cur, cw])
-	var cx := br.position.x + br.size.x * 0.5
-	var total_h := rows.size() * 31 + maxi(0, rows.size() - 1) * 8
-	var dh := total_h - 31.0
-	var y := br.position.y - dh * 0.5
-	for R in rows:
-		var x: float = cx - float(R[1]) * 0.5
-		for C in R[0]:
-			add_child(C)
-			C.position = Vector2(x, y)
-			x += C.nodes[0].size.x + 8
-			chips.append(C)
-		y += 31 + 8
-	# ortalı sütun: başlık yukarı, düğmeler aşağı
-	var title := shell.find(".screen-title")
-	if title: shell.move(title, Vector2(title.pos.x, float(title.d.get("_y0", title.pos.y)) - dh * 0.5))
-	var col := shell.find(".btn-col")
-	if col: shell.move(col, Vector2(col.pos.x, float(col.d.get("_y0", col.pos.y)) + dh * 0.5))
+	set_process(true)
 
 func hide_pause() -> void:
 	visible = false
+	set_process(false)
+
+func _build() -> void:
+	for c in get_children():
+		if c is Node2D: c.queue_free()
+	_btns2.clear()
+	_pressB = null
+	var vs := UIK.ui_size(get_viewport())
+	_W = vs.x; _H = vs.y
+	_dim = Node2D.new()
+	_dim.draw.connect(func(): _dim.draw_rect(Rect2(-20, -20, _W + 40, _H + 40), Color(0.02, 0.01, 0.05, 0.6)))
+	add_child(_dim)
+	var pw := minf(320.0, _W - 56.0)
+	var w = g.weapons
+	var items := []
+	for id in w.slots: items.append([str(id), int(w.slots[id])])
+	for id in w.passives: items.append([str(id), int(w.passives[id])])
+	var per := maxi(1, int((pw - 28.0) / 50.0))
+	var rows := int(ceil(float(items.size()) / per)) if items.size() else 0
+	var ph := 74.0 + rows * 56.0 + (10.0 if rows else 0.0) + 3 * 58.0 + 18.0
+	_panel = Node2D.new()
+	_panel.position = Vector2(_W * 0.5, _H * 0.5)
+	add_child(_panel)
+	var R := Rect2(-pw * 0.5, -ph * 0.5, pw, ph)
+	_panel.draw.connect(func():
+		_panel.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45), 22), Rect2(R.position + Vector2(0, 8), R.size))
+		_panel.draw_style_box(ComicSkin.sb(Color("#1d1530"), 20, 3.5, INK), R)
+		_panel.draw_style_box(ComicSkin.sb(Color("#2a1f42"), 16), Rect2(R.position + Vector2(8, 8), Vector2(R.size.x - 16, 50)))
+		_panel.draw_rect(Rect2(R.position.x + 24, R.position.y + 60, R.size.x - 48, 2), Color(1, 0.82, 0.4, 0.35)))
+	var tt := UIText.new()
+	tt.style(false, 1000, 26, 2.0, YEL, UIK.ink_stroke(2.0, 3.0))
+	tt.align = 0.5; tt.nowrap = true; tt.wrap_w = pw; tt.size = Vector2(pw, 34)
+	tt.position = Vector2(-pw * 0.5, R.position.y + 17)
+	tt.text = "DURAKLATILDI"
+	_panel.add_child(tt)
+	# donanım ikonları (yazısız; seviye = altın noktalar)
+	var y := R.position.y + 76.0
+	for r in rows:
+		var rowIt := items.slice(r * per, mini(items.size(), (r + 1) * per))
+		var rw := rowIt.size() * 50.0 - 6.0
+		for i in rowIt.size():
+			var it: Array = rowIt[i]
+			var cx := -rw * 0.5 + i * 50.0 + 22.0
+			var ic := Node2D.new()
+			ic.position = Vector2(cx, y + 20)
+			var col := ScrPause.icon_col(it[0])
+			var lv: int = it[1]
+			ic.draw.connect(func():
+				ic.draw_circle(Vector2.ZERO, 21, INK)
+				ic.draw_circle(Vector2.ZERO, 18.5, Color("#2f2448"))
+				ic.draw_arc(Vector2.ZERO, 18.5, 0, TAU, 32, Color(col, 0.7), 2.0, true)
+				var n := mini(lv, 5)
+				for k in n:
+					var px := (k - (n - 1) * 0.5) * 7.0
+					ic.draw_circle(Vector2(px, 27), 2.6, INK)
+					ic.draw_circle(Vector2(px, 27), 1.8, YEL))
+			var sp := Sprite2D.new()
+			sp.texture = ScrPause.icon_tex(it[0])
+			sp.scale = Vector2.ONE * (22.0 / 120.0)
+			var I: Dictionary = ScrPause.art().get("icon", {}).get(it[0], {})
+			sp.modulate = col if I.get("mono", true) else Color.WHITE
+			ic.add_child(sp)
+			_panel.add_child(ic)
+		y += 56.0
+	if rows: y += 10.0
+	_mk_btn("DEVAM ET", Color("#ffc53a"), Color("#3a2200"), y, pw, func(): g.audio.play("click"); g.resume_game())
+	_mk_btn("AYARLAR", Color("#5b6c8e"), Color.WHITE, y + 58.0, pw, func(): g.audio.play("click"); g.ui.show_settings())
+	_mk_btn("ANA MENÜ", Color("#8e3a3a"), Color.WHITE, y + 116.0, pw, func(): g.audio.play("click"); g.quit_to_menu())
+
+func _mk_btn(label: String, bg: Color, fg: Color, y: float, pw: float, cb: Callable) -> void:
+	var bw := pw - 48.0
+	var b := Node2D.new()
+	b.position = Vector2(0, y + 23)
+	var R := Rect2(-bw * 0.5, -23, bw, 46)
+	b.draw.connect(func():
+		b.draw_style_box(ComicSkin.sb(INK, 14), Rect2(R.position + Vector2(0, 4), R.size))
+		b.draw_style_box(ComicSkin.sb(bg, 14, 3.0, INK), R)
+		b.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.16), 10), Rect2(R.position + Vector2(6, 5), Vector2(R.size.x - 12, 14))))
+	var tx := UIText.new()
+	tx.style(false, 1000, 19, 1.5, fg, UIK.ink_stroke(1.4, 2.0) if fg == Color.WHITE else "")
+	tx.align = 0.5; tx.nowrap = true; tx.wrap_w = bw; tx.size = Vector2(bw, 26)
+	tx.position = Vector2(-bw * 0.5, -12)
+	tx.text = label
+	b.add_child(tx)
+	_panel.add_child(b)
+	_btns2.append({"node": b, "rect": R, "cb": cb})
+
+func _process(dt: float) -> void:
+	if not visible or _panel == null: return
+	_t += dt
+	var k := minf(1.0, _t / 0.22)
+	var q := k - 1.0
+	var e := 1.0 + 2.2 * q * q * q + 1.2 * q * q
+	_panel.scale = Vector2.ONE * (0.82 + 0.18 * e)
+	_panel.modulate.a = minf(1.0, _t / 0.12)
+	_dim.modulate.a = minf(1.0, _t / 0.18)
+	for B in _btns2:
+		var nd: Node2D = B.node
+		var target := 0.95 if B == _pressB else 1.0
+		nd.scale = nd.scale.lerp(Vector2.ONE * target, minf(1.0, dt * 22.0))
+
+func _btn_at(pos: Vector2):
+	for B in _btns2:
+		var nd: Node2D = B.node
+		if not is_instance_valid(nd): continue
+		var lp: Vector2 = nd.get_global_transform_with_canvas().affine_inverse() * pos
+		if (B.rect as Rect2).grow(6.0).has_point(lp): return B
+	return null
+
+func _input(ev: InputEvent) -> void:
+	if not visible: return
+	if ev is InputEventScreenTouch:
+		var st := ev as InputEventScreenTouch
+		get_viewport().set_input_as_handled()
+		if st.pressed:
+			_pressB = _btn_at(st.position)
+		else:
+			var B = _btn_at(st.position)
+			if B != null and B == _pressB:
+				_pressB = null
+				(B.cb as Callable).call()
+			_pressB = null
+	elif ev is InputEventScreenDrag:
+		get_viewport().set_input_as_handled()

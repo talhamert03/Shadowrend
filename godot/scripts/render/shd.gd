@@ -15,7 +15,8 @@ static var _cache := {}
 static func basic_shader(o: Dictionary) -> Shader:
 	var key := "b|" + str(o.get("map", "")) + "|" + str(o.get("vcol", false)) + "|" + str(o.get("add", false)) \
 		+ "|" + str(o.get("alpha", false)) + "|" + str(o.get("cull", "back")) + "|" + str(o.get("zwrite", true)) \
-		+ "|" + str(o.get("ztest", true)) + "|" + str(o.get("repeat", false)) + "|" + str(o.get("billboard", ""))
+		+ "|" + str(o.get("ztest", true)) + "|" + str(o.get("repeat", false)) + "|" + str(o.get("billboard", "")) \
+		+ "|" + str(o.get("vcol_alpha", false))
 	if _cache.has(key): return _cache[key]
 	var rm := ["unshaded", "fog_disabled" if false else "specular_disabled"]
 	rm.append("cull_back" if o.get("cull", "back") == "back" else "cull_disabled")
