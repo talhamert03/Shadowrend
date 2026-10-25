@@ -917,12 +917,12 @@
    "id": "zehra",
    "rarity": 3,
    "name": "BATAK CADISI",
-   "title": "Kazan Cadısı",
+   "title": "Zehir Asalı",
    "price": 14000,
    "stonePrice": 1100,
    "style": "ranged",
    "startWeapon": "kazan",
-   "lore": "Zehir Bataklığı'nın sisinden çıkan cadı. Kazanını kimse ona taşımadı; o yürüdükçe peşinden süzülerek gelir. Her fokurtusu bir damla zehir fırlatır, damla düştüğü yerde patlar ve sürüyü kavurur.",
+   "lore": "Zehir Bataklığı'nın sisinden çıkan cadı. Asasını kimse ona taşımadı; o yürüdükçe omzunun ardında süzülerek gelir. Kristali her parladığında bir damla zehir fırlar, damla düştüğü yerde patlar ve sürüyü kavurur.",
    "mods": {
     "dmgPct": 0.1,
     "atkPct": 0.07,
@@ -974,6 +974,69 @@
     "rim": "rgba(255,211,106,0.52)"
    },
    "emblem": "bolt"
+  },
+  "prizma": {
+   "id": "prizma",
+   "rarity": 3,
+   "name": "PRİZMA BÜYÜCÜSÜ",
+   "title": "Işık Kıran",
+   "price": 14000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "prizma",
+   "lore": "Kırık Aynalar Kulesi'nin son kâhini. Gözlerini Kızıl Ay'ın ışığına bağladı; artık geleceği değil, ışığın kırıldığı yolları görüyor. Yanında süzülen prizma kristali tek bir ışını bir sürüye bölüştürür.",
+   "mods": {
+    "dmgPct": 0.1,
+    "atkPct": 0.05,
+    "critChance": 0.05,
+    "maxHp": 4
+   },
+   "perks": [
+    "İmza: Prizma Kristali — yanında süzülen ışın kristali",
+    "Işın delip geçer ve düşmandan düşmana seker",
+    "Hasar +%10, saldırı hızı +%5, kritik +%5, azami can +4",
+    "Destan — Altın ya da Gem ile açılır"
+   ],
+   "colors": {
+    "cloak": "#2a1f4a",
+    "hood": "#3d2c6a",
+    "eye": "#d9c2ff",
+    "emblem": "#c9a6ff",
+    "rim": "rgba(201,166,255,0.5)"
+   },
+   "emblem": "eye"
+  },
+  "zaman": {
+   "id": "zaman",
+   "rarity": 4,
+   "name": "ZAMAN BEKÇİSİ",
+   "title": "Kızıl Saat",
+   "price": 34000,
+   "stonePrice": 2500,
+   "style": "ranged",
+   "startWeapon": "saat",
+   "lore": "Kızıl Ay'ın düştüğü gece saat kulesinin nöbetindeydi; zaman onun zırhında durdu. Şimdi başının üstünde üç saat ibresi süzülür — her biri bir anı keser, kesilen an bir daha geri gelmez.",
+   "mods": {
+    "dmgPct": 0.14,
+    "atkPct": 0.06,
+    "critChance": 0.04,
+    "maxHp": 12,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Zaman Bıçakları — başının üstünde süzülen üç saat ibresi",
+    "Bıçaklar kayarak fırlar, hedefi kovalar; ikisi atılınca üçü yenilenir",
+    "Hasar +%14, saldırı hızı +%6, kritik +%4, azami can +12, zırh +1",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#4a1414",
+    "hood": "#6a1e1e",
+    "eye": "#ffcf6a",
+    "emblem": "#ffcf6a",
+    "rim": "rgba(255,207,106,0.52)"
+   },
+   "emblem": "bolt"
   }
  },
  "CHAR_CARD_REQ": [
@@ -988,7 +1051,18 @@
   200,
   400
  ],
- "CHAR_GOLD_COST": [0, 0, 110, 240, 520, 1200, 2700, 5800, 11500, 22000],
+ "CHAR_GOLD_COST": [
+  0,
+  0,
+  110,
+  240,
+  520,
+  1200,
+  2700,
+  5800,
+  11500,
+  22000
+ ],
  "CHAR_MAX_LEVEL": 9,
  "CHAR_RARITIES": [
   null,
@@ -1781,7 +1855,15 @@
   14,
   22
  ],
- "GEAR_GOLD_COST": [0, 0, 100, 240, 520, 1050, 1900],
+ "GEAR_GOLD_COST": [
+  0,
+  0,
+  100,
+  240,
+  520,
+  1050,
+  1900
+ ],
  "GEAR_MAX_LEVEL": 6,
  "GEM_TIERS": [
   {
@@ -3655,8 +3737,8 @@
    },
    {
     "id": "sig_c2",
-    "name": "Kaynar Kazan",
-    "desc": "Kazan %10 daha sık fokurdar.",
+    "name": "Kaynar Asa",
+    "desc": "Asa %10 daha sık damla fırlatır.",
     "boost": {
      "weapon": "kazan",
      "cd": 0.9
@@ -3739,7 +3821,7 @@
    },
    {
     "id": "sig_c10",
-    "name": "İkiz Kepçe",
+    "name": "İkiz Damla",
     "minLvl": 3,
     "myth": true,
     "glyph": "ciftnamlu",
@@ -3880,6 +3962,246 @@
     "boost": {
      "weapon": "cekic",
      "critAdd": 0.15,
+     "critMultAdd": 0.55
+    }
+   }
+  ],
+  "prizma": [
+   {
+    "id": "sig_p1",
+    "name": "Saf Işık",
+    "desc": "Işın hasarı +%14.",
+    "boost": {
+     "weapon": "prizma",
+     "dmg": 1.14
+    }
+   },
+   {
+    "id": "sig_p2",
+    "name": "Hızlı Odak",
+    "desc": "Kristal %10 daha sık ışın yollar.",
+    "boost": {
+     "weapon": "prizma",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_p3",
+    "name": "Uzun Işın",
+    "desc": "Işın menzili +%15, hasar +%5.",
+    "boost": {
+     "weapon": "prizma",
+     "range": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_p4",
+    "name": "Kırılma",
+    "desc": "Her sekmede ışın %15 güçlenir (sönmek yerine).",
+    "boost": {
+     "weapon": "prizma",
+     "reflAdd": 0.33
+    }
+   },
+   {
+    "id": "sig_p5",
+    "name": "Ayna Yolu",
+    "desc": "Işın bir düşmana daha seker.",
+    "boost": {
+     "weapon": "prizma",
+     "bounceAdd": 1
+    }
+   },
+   {
+    "id": "sig_p6",
+    "name": "Keskin Kenar",
+    "desc": "Kritik şansı +%5, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "prizma",
+     "critAdd": 0.05,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_p7",
+    "name": "Prizma",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sacilan",
+    "desc": "Kritik vuran ışın üç renge bölünür, yakındaki iki düşmana daha atlar.",
+    "boost": {
+     "weapon": "prizma",
+     "prismAdd": 1
+    }
+   },
+   {
+    "id": "sig_p8",
+    "name": "Işık Patlaması",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "yikici",
+    "desc": "Işının son durağı küçük bir ışık patlamasıyla çevresini yakar.",
+    "boost": {
+     "weapon": "prizma",
+     "shockAdd": 1
+    }
+   },
+   {
+    "id": "sig_p9",
+    "name": "Kalın Işın",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kesik",
+    "desc": "Işın %60 kalınlaşır, hasar +%10.",
+    "boost": {
+     "weapon": "prizma",
+     "widthMul": 1.6,
+     "dmg": 1.1
+    }
+   },
+   {
+    "id": "sig_p10",
+    "name": "İkiz Işın",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "ciftnamlu",
+    "desc": "Kristal aynı anda ikinci bir hedefe de ışın yollar.",
+    "boost": {
+     "weapon": "prizma",
+     "volley": 1
+    }
+   },
+   {
+    "id": "sig_p11",
+    "name": "Ayna Gözü",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci",
+    "desc": "Kritik şansı +%12, kritik hasarı +%45.",
+    "boost": {
+     "weapon": "prizma",
+     "critAdd": 0.12,
+     "critMultAdd": 0.45
+    }
+   }
+  ],
+  "zaman": [
+   {
+    "id": "sig_z1",
+    "name": "Bilenmiş Çelik",
+    "desc": "Bıçak hasarı +%15.",
+    "boost": {
+     "weapon": "saat",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_z2",
+    "name": "Akıcı Zaman",
+    "desc": "Bıçaklar %10 daha sık fırlar.",
+    "boost": {
+     "weapon": "saat",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_z3",
+    "name": "Delen Akrep",
+    "desc": "Bıçak bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "saat",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_z4",
+    "name": "Hızlı Yelkovan",
+    "desc": "Bıçak uçuş hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "saat",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_z5",
+    "name": "Saat Ustası",
+    "desc": "Bıçaklar %20 daha çabuk yenilenir, hasar +%5.",
+    "boost": {
+     "weapon": "saat",
+     "refillMul": 0.8,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_z6",
+    "name": "Kızıl Pas",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "saat",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_z7",
+    "name": "Kum Saati",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nisanci",
+    "desc": "Her 6 saniyede bir sonraki bıçak kesin kritik vurur ve iki kat hasar verir.",
+    "boost": {
+     "weapon": "saat",
+     "hourglassAdd": 1
+    }
+   },
+   {
+    "id": "sig_z8",
+    "name": "Dişli Kilidi",
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "takipci",
+    "desc": "Bıçağın vurduğu düşman zamanda takılır: 0,6 sn kımıldayamaz.",
+    "boost": {
+     "weapon": "saat",
+     "pinAdd": 1
+    }
+   },
+   {
+    "id": "sig_z9",
+    "name": "Gecikmiş Hasar",
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yanki",
+    "desc": "Vurulan düşman 1,5 sn sonra aldığı darbenin %40'ını yeniden alır.",
+    "boost": {
+     "weapon": "saat",
+     "delayAdd": 1
+    }
+   },
+   {
+    "id": "sig_z10",
+    "name": "Dördüncü İbre",
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "ikiz",
+    "desc": "Başının üstünde bir bıçak daha süzülür; her turda üç bıçak fırlar.",
+    "boost": {
+     "weapon": "saat",
+     "count": 1
+    }
+   },
+   {
+    "id": "sig_z11",
+    "name": "Zamanın Efendisi",
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "desc": "Kritik şansı +%14, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "saat",
+     "critAdd": 0.14,
      "critMultAdd": 0.55
     }
    }
@@ -4313,7 +4635,13 @@
     "+1 delme, hasar +",
     "Ağır kor — hasar büyük artış"
    ],
-   "dmg": [20, 28, 38, 52, 70],
+   "dmg": [
+    20,
+    28,
+    38,
+    52,
+    70
+   ],
    "pierce": [
     1,
     2,
@@ -4321,7 +4649,13 @@
     3,
     4
    ],
-   "cooldown": [1.18, 1.08, 1.0, 0.92, 0.84],
+   "cooldown": [
+    1.18,
+    1.08,
+    1.0,
+    0.92,
+    0.84
+   ],
    "speed": 445,
    "volley": [
     1,
@@ -4926,7 +5260,13 @@
     40,
     50
    ],
-   "cooldown": [1.45, 1.3, 1.16, 1.03, 0.9],
+   "cooldown": [
+    1.45,
+    1.3,
+    1.16,
+    1.03,
+    0.9
+   ],
    "range": [
     330,
     350,
@@ -5174,6 +5514,122 @@
    "bounce": 0,
    "rain": 0,
    "split": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "prizma": {
+   "name": "Prizma Kristali",
+   "kind": "beam",
+   "class": "buyu",
+   "orb": true,
+   "floatVisual": true,
+   "sfx": "shoot",
+   "descNew": "Prizma Büyücüsü'nün yanında süzülen kristal — hedefe delici bir ışın yollar, ışın düşmandan düşmana kırılarak seker.",
+   "descUp": [
+    "Hasar +, ışın bir kez daha seker",
+    "Daha sık ışın",
+    "Hasar +, +1 sekme",
+    "Işın kalınlaşır, +1 sekme"
+   ],
+   "dmg": [
+    19,
+    26,
+    35,
+    47,
+    63
+   ],
+   "cooldown": [
+    1.12,
+    1.02,
+    0.94,
+    0.86,
+    0.78
+   ],
+   "range": 360,
+   "bounce": 0,
+   "bounceLv": [
+    1,
+    2,
+    2,
+    3,
+    4
+   ],
+   "refl": 0.82,
+   "width": 20,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "color": "#c9a6ff",
+   "rainColor": "#e9dcff",
+   "prism": 0,
+   "shock": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "saat": {
+   "name": "Zaman Bıçakları",
+   "kind": "blades",
+   "class": "celik",
+   "sfx": "shoot",
+   "descNew": "Zaman Bekçisi'nin başı üstünde süzülen üç saat ibresi bıçak — düşman yaklaşınca biri kayarak fırlar ve kovalar; iki bıçak atılınca üçü yeniden belirir.",
+   "descUp": [
+    "Hasar +, bıçaklar hızlanır",
+    "Daha sık fırlatır",
+    "+1 delme, hasar +",
+    "Hasar +, daha çabuk yenilenir"
+   ],
+   "dmg": [
+    24,
+    33,
+    45,
+    60,
+    80
+   ],
+   "cooldown": [
+    0.6,
+    0.56,
+    0.52,
+    0.48,
+    0.44
+   ],
+   "range": [
+    430,
+    440,
+    450,
+    460,
+    480
+   ],
+   "speed": 760,
+   "pierce": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "count": [
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "refill": [
+    0.5,
+    0.48,
+    0.46,
+    0.42,
+    0.38
+   ],
+   "color": "#ffcf6a",
+   "rainColor": "#ffe7a8",
+   "pin": 0,
+   "delay": 0,
+   "hourglass": 0,
    "critAdd": 0,
    "critMultAdd": 0
   }

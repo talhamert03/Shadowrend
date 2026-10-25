@@ -270,6 +270,13 @@ func boot() -> void:
 					var pr := kv.split(":")
 					g.weapons.slots[pr[0]] = int(pr[1]) if pr.size() > 1 else 1
 				g.weapons.on_weapon_gained())
+		if _arg("sigall") != "":
+			# geliştirici: sigall — kahramanın tüm imza kartlarını uygula (mitik dallar dahil test)
+			get_tree().create_timer(0.8).timeout.connect(func():
+				for c in D.SIGNATURES.get(g.player.charId, []):
+					var cc: Dictionary = c.duplicate(true)
+					cc["sig"] = true
+					g.weapons.apply_special(cc))
 		if _arg("lvnow") != "":
 			# geliştirici: savaş başlayınca seviye kartı ekranı
 			get_tree().create_timer(float(_arg("lvnow"))).timeout.connect(func():

@@ -244,7 +244,8 @@ func spawn_at_point(x: float, y: float):
 
 func update(dt: float) -> void:
 	var g = game
-	var froze: bool = g.powerups and g.powerups.frozen()
+	var tstop: bool = g.ult != null and g.ult.time_stopped()
+	var froze: bool = tstop or (g.powerups and g.powerups.frozen())
 	var cap := mini(int(aliveCap if aliveCap else 120.0), Quality.budget("enemies"))
 	if not froze: waveT += dt
 	if not froze and spawning:
@@ -327,7 +328,7 @@ func update(dt: float) -> void:
 	i = B.size() - 1
 	while i >= 0:
 		var b = B[i]
-		if update_bullet(b, dt): g.pools.eBullets.release(b)
+		if update_bullet(b, 0.0 if tstop else dt): g.pools.eBullets.release(b)
 		i -= 1
 
 	if killSndT > 0: killSndT -= dt

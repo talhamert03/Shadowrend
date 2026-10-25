@@ -363,6 +363,46 @@
      0.78
     ]
    }
+  },
+  "prizma": {
+   "file": "heroes/prizma.glb",
+   "height": 91.2,
+   "baseScale": 91.2,
+   "rigPos": [
+    0,
+    0,
+    0
+   ],
+   "topY": 91.0,
+   "walkClip": "walk.001",
+   "walkRate": 1,
+   "floatingWeapon": "prizma",
+   "lift": 0.0,
+   "clips": [
+    "walk.001"
+   ],
+   "hasBones": true,
+   "tris": 10514
+  },
+  "zaman": {
+   "file": "heroes/zaman.glb",
+   "height": 91.2,
+   "baseScale": 91.2,
+   "rigPos": [
+    0,
+    0,
+    0
+   ],
+   "topY": 91.0,
+   "walkClip": "walk.001",
+   "walkRate": 1,
+   "floatingWeapon": "saat",
+   "lift": 0.0,
+   "clips": [
+    "walk.001"
+   ],
+   "hasBones": true,
+   "tris": 28886
   }
  },
  "enemies": {

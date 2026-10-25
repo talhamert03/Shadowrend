@@ -98,6 +98,7 @@ func on_character(_id: String, md) -> void:
 		if newW != "": _build_sword(SWORD_SPECS[newW])
 	var Wd = D.WEAPONS.get(fw) if fw != "" else null
 	_float_rebuild(fw if Wd is Dictionary and Wd.get("floatVisual", false) else "")
+	_zb_setup(fw == "saat")
 
 # ═══════════ KARE ═══════════
 
@@ -111,6 +112,7 @@ func update(g, dt: float) -> void:
 	_update_flame(g, dt)
 	_update_cannon(g, dt)
 	_update_float(g, dt)
+	_update_zblades(g, dt)
 	_update_judgement(dt)
 	_update_arcs(dt)
 
@@ -140,10 +142,11 @@ func _float_rebuild(id: String) -> void:
 		floatGlow = _quad_inst("res://assets/fx/glow.png", 3, 3)
 	floatGlow.commit(0)
 	if id == "": return
-	var m := _build_staff() if id == "kazan" else _wscene(id)
+	var proc := id == "kazan" or id == "prizma"
+	var m := (_build_staff() if id == "kazan" else _build_prism()) if proc else _wscene(id)
 	if m == null: return
 	_foCol = Color(str(D.WEAPONS[id].get("color", "#ffffff")))
-	if id != "kazan":
+	if not proc:
 		Shd.convert_tree(m, {"rim": true, "metal": 0.18, "rough": 0.5, "emissive": _foCol.darkened(0.6), "emissive_k": 1.0, "keep_emap": false, "outline": 1.4})
 	floatInner = Render3D.node()
 	floatInner.add_child(m)
@@ -188,8 +191,13 @@ func _update_float(g, dt: float) -> void:
 	_foRecoil = maxf(0.0, _foRecoil - dt * 4.0)
 	# hedefe dönük; salınım + atışta geri tepme ve şişme
 	var tgt = W.nearest
-	if tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
-	floatInner.rotation = Vector3(-_foRecoil * 0.35, _foYaw, sin(_foT * 2.2) * 0.12)
+	if _foId == "prizma":
+		# kristal kendi ekseninde döner, atışta hızlanır; küçük kırıklar yörüngede
+		_foYaw += dt * (1.1 + _foRecoil * 9.0)
+		var orb := floatInner.get_child(0).get_node_or_null("orbit") if floatInner.get_child_count() else null
+		if orb: orb.rotation.y = -_foT * 2.3
+	elif tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
+	floatInner.rotation = Vector3(-_foRecoil * 0.35 if _foId != "prizma" else 0.0, _foYaw, sin(_foT * 2.2) * 0.12)
 	floatInner.scale = Vector3.ONE * (1.0 + _foRecoil * 0.16)
 	var k := 0.55 + 0.25 * sin(_foT * 3.1) + _foRecoil * 0.9
 	var gy := _foY + (40.0 if _foId == "kazan" else 0.0)      # asada ışık kristalde
@@ -249,6 +257,126 @@ func _build_staff() -> Node3D:
 	holder.add_child(root)
 	root.position = Vector3(0, 6, 0)
 	return holder
+
+## PRİZMA KRİSTALİ (Prizma Büyücüsü): altıgen çift piramit ışık kristali, belinde altın bilezik,
+## çevresinde dönen üç renkli küçük kırık — prosedürel
+func _build_prism() -> Node3D:
+	var root := Node3D.new()
+	var crys := Shd.lit({"color": Color("#f1e8ff"), "emissive": Color("#8f52ff"), "emissive_k": 1.35, "roughness": 0.12, "metalness": 0.1, "rim": true})
+	crys.set_shader_parameter("rim_c", Vector3(0.85, 0.7, 1.0))
+	crys.set_shader_parameter("rim_s", 0.9)
+	if Quality.tier != "low": crys.next_pass = Shd.outline(null, Color(0.16, 0.08, 0.3), 1.3)
+	var gold := Shd.lit({"color": Color("#ffd27a"), "emissive": Color("#7a4a10"), "emissive_k": 0.8, "roughness": 0.35, "metalness": 0.6, "rim": true})
+	var top := Geo.cone(8.0, 17.0, 6)
+	var bot := Geo.cone(8.0, 10.0, 6)
+	var body := Geo.merge([top, bot], [Transform3D(Basis(), Vector3(0, 8.5, 0)), Transform3D(Basis(Vector3.RIGHT, PI), Vector3(0, -5.0, 0))])
+	var cr := Render3D.mesh_node(body, crys, root)
+	cr.name = "crystal"
+	var band := Render3D.mesh_node(Geo.torus(8.3, 1.2, 6, 24), gold, root)
+	band.rotation.x = PI * 0.5
+	var orbit := Node3D.new()
+	orbit.name = "orbit"
+	root.add_child(orbit)
+	var cols := [Color("#ff8aa8"), Color("#7ad8ff"), Color("#ffe07a")]
+	for k in 3:
+		var sm := Shd.lit({"color": cols[k].lightened(0.4), "emissive": cols[k], "emissive_k": 1.8, "roughness": 0.2, "rim": false})
+		var sh := Geo.merge([Geo.cone(2.4, 5.0, 4), Geo.cone(2.4, 3.0, 4)], [Transform3D(Basis(), Vector3(0, 2.5, 0)), Transform3D(Basis(Vector3.RIGHT, PI), Vector3(0, -1.5, 0))])
+		var n := Render3D.mesh_node(sh, sm, orbit)
+		var an := k * TAU / 3.0
+		n.position = Vector3(cos(an) * 15.0, sin(k * 2.1) * 4.0, sin(an) * 15.0)
+		n.rotation = Vector3(0.3, an, 0.4)
+	var holder := Node3D.new()
+	holder.add_child(root)
+	root.position = Vector3(0, 10, 0)
+	root.scale = Vector3.ONE * 1.65
+	return holder
+
+# ═══════════ ZAMAN BIÇAKLARI (Zaman Bekçisi): saat ibresi bıçaklar — konum/yön weapons.blades'ten ═══════════
+var zbBlade: IMesh
+var zbGear: IMesh
+var zbGlow: IMesh
+var _zbOn := false
+
+func _zb_setup(on: bool) -> void:
+	if on == _zbOn: return
+	_zbOn = on
+	if not on:
+		for im in [zbBlade, zbGear, zbGlow]:
+			if im: im.commit(0)
+		return
+	if zbBlade == null:
+		# ibre: yassı elmas gövde (yukarı +Y), alt uçta kısa sivri kuyruk
+		var steel := Shd.lit({"color": Color("#ece6da"), "emissive": Color("#6a4a1a"), "emissive_k": 0.55, "roughness": 0.25, "metalness": 0.7, "rim": true})
+		steel.set_shader_parameter("rim_c", Vector3(1.0, 0.8, 0.45))
+		if Quality.tier != "low": steel.next_pass = Shd.outline(null, Color(0.18, 0.08, 0.04), 1.2)
+		var up := Geo.cone(4.6, 30.0, 4)
+		var dn := Geo.cone(4.6, 8.0, 4)
+		var flat := Basis().scaled(Vector3(1.0, 1.0, 0.26))
+		var bm := Geo.merge([up, dn], [Transform3D(flat, Vector3(0, 19.0, 0)), Transform3D(flat * Basis(Vector3.RIGHT, PI), Vector3(0, 0.0, 0))])
+		zbBlade = IMesh.new(bm, steel, 6)
+		S.add_child(zbBlade)
+		# dişli halka + göbek (altın)
+		var gold := Shd.lit({"color": Color("#e8b85a"), "emissive": Color("#5a300c"), "emissive_k": 0.6, "roughness": 0.3, "metalness": 0.65, "rim": true})
+		if Quality.tier != "low": gold.next_pass = Shd.outline(null, Color(0.2, 0.1, 0.03), 1.0)
+		var parts: Array = [Geo.torus(5.4, 1.3, 6, 18)]
+		var xfs: Array = [Transform3D(Basis(), Vector3(0, 4.0, 0))]
+		for k in 8:
+			var an := k * TAU / 8.0
+			parts.append(Geo.box(2.2, 2.2, 2.0))
+			xfs.append(Transform3D(Basis(Vector3.FORWARD, an), Vector3(cos(an) * 7.0, 4.0 + sin(an) * 7.0, 0)))
+		parts.append(Geo.sphere(2.2, 8, 6))
+		xfs.append(Transform3D(Basis(), Vector3(0, 4.0, 0)))
+		zbGear = IMesh.new(Geo.merge(parts, xfs), gold, 6)
+		S.add_child(zbGear)
+		zbGlow = _quad_inst("res://assets/fx/glow.png", 6, 3)
+
+## bıçak ekseni (+Y) dir yönüne; roll: kendi ekseni etrafında dönüş
+static func _axis_basis(dir: Vector3, roll: float, sc: float) -> Basis:
+	var y := dir.normalized()
+	var ref := Vector3.UP if absf(y.y) < 0.95 else Vector3.FORWARD
+	var x := ref.cross(y).normalized()
+	var z := x.cross(y)
+	var b := Basis(x, y, z) * Basis(Vector3.UP, roll)
+	return b.scaled(Vector3.ONE * sc)
+
+func _update_zblades(g, dt: float) -> void:
+	if not _zbOn or zbBlade == null: return
+	var W = g.weapons
+	if W == null or not W.slots.has("saat"):
+		zbBlade.commit(0); zbGear.commit(0); zbGlow.commit(0)
+		return
+	var n := 0
+	var t: float = g.time
+	for B in W.blades:
+		var st: int = B.st
+		if st == WeaponManager.BL_GONE: continue
+		var sc: float = B.sc if st == WeaponManager.BL_SPAWN else 1.0
+		if sc <= 0.01: continue
+		var pos := Vector3(B.x, B.h, B.y)
+		var dir: Vector3
+		var roll: float
+		if st == WeaponManager.BL_FLY:
+			dir = Vector3(cos(B.ang), -0.05, sin(B.ang))
+			roll = float(B.spin) * 9.0
+		elif st == WeaponManager.BL_SLIDE:
+			var u := minf(1.0, float(B.t) / 0.13)
+			dir = Vector3(0, 1, 0).lerp(Vector3(cos(B.ang), 0.12, sin(B.ang)), u * u * (3.0 - 2.0 * u))
+			roll = u * 2.0
+		else:
+			# süzülürken ucu yukarıda, hafif yelpaze açısı, ağır salınım
+			var slot := float(B.slot) - 1.0
+			dir = Vector3(slot * 0.28 + sin(t * 1.3 + slot) * 0.06, 1.0, -0.15)
+			roll = float(B.spin) + t * 0.6
+		var big: bool = B.big
+		var bs := (2.1 if big else 1.7) * sc
+		zbBlade.set_mat(n, _axis_basis(dir, roll, bs), pos)
+		zbGear.set_mat(n, _axis_basis(dir, roll, bs), pos)
+		var k := 0.22 + 0.08 * sin(t * 4.0 + n) + (0.25 if st == WeaponManager.BL_FLY else 0.0)
+		var gc := Color(1.0, 0.55, 0.2) if big else Color(1.0, 0.78, 0.38)
+		_bb(zbGlow, n, pos.x + dir.x * 22.0 * bs, pos.y + dir.y * 22.0 * bs, pos.z + dir.z * 22.0 * bs, 22 * bs, 30 * bs, 0, gc.r * k, gc.g * k, gc.b * k)
+		n += 1
+		if n >= 6: break
+	zbBlade.commit(n); zbGear.commit(n); zbGlow.commit(n)
 
 # ═══════════ AY YAYI ═══════════
 var bowRig: Node3D

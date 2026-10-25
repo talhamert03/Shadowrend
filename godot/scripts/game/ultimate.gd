@@ -29,6 +29,8 @@ const ULT_ID := {
 	"mezarci":  {"name": "MEZAR UYANIŞI", "col": "#efe3c6", "c2": "#7a5a3a", "k": "grave",  "snd": "slam",   "base": 14, "hr": 80.0,  "desc": "Toprak yarılır; mezar taşlarıyla kemik eller fışkırır, düşmanı yerine çiviler."},
 	"fenerci":  {"name": "RUH KALKANI",   "col": "#d8ffe8", "c2": "#3fdc8a", "k": "ward",   "snd": "vortex", "base": 0,  "hr": 0.0,   "desc": "Fener ruh kubbesi açar: içinde hasar almazsın; kubbe düşmanı yakıp dışarı savurur."},
 	"zehra":    {"name": "ZEHİR BATAĞI",  "col": "#e4ffc8", "c2": "#5fc832", "k": "poison", "snd": "meteor", "base": 7,  "hr": 96.0,  "desc": "Zehir şişeleri fırlar; yerde kaynayan batak düşmanı yavaşlatıp eritir."},
+	"prizma":   {"name": "AYNA LABİRENTİ", "col": "#f6eeff", "c2": "#b46cff", "k": "mirror", "snd": "vortex", "base": 0,  "hr": 0.0,   "desc": "Altı kristal ayna yükselir; ışın aynadan aynaya sekip bir ağ örer, ağın içindekileri yakar."},
+	"zaman":    {"name": "ZAMAN DURDURMA", "col": "#fff1c8", "c2": "#ffb24a", "k": "timestop", "snd": "slam", "base": 0, "hr": 0.0,  "desc": "Zaman durur: düşmanlar ve mermileri 3 sn donar, sonunda donmuş olanların hepsi birden parçalanır."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi
@@ -45,6 +47,15 @@ const KIND := {
 	"anvil":  {"fall": 0.42, "spread": 0.95, "linger": 0.55},
 }
 const WAVE_KINDS := ["vortex", "slam", "ward"]
+## AYNA LABİRENTİ: altı ayna, ışın dokuz kenardan geçer (iki üçgen + üç çap = altı köşeli yıldız ağı)
+const MIR_SEG := [[0, 2], [2, 4], [4, 0], [1, 3], [3, 5], [5, 1], [0, 3], [1, 4], [2, 5]]
+const MIR_T0 := 0.42
+const MIR_STEP := 0.15
+const MIR_FLASH := 1.95
+const MIR_DUR := 2.3
+const PRISM := ["#ff7a9a", "#ffd36a", "#8dffb4", "#7ad8ff", "#c58cff"]
+## ZAMAN DURDURMA: donma süresi, sonra kırılma
+const TS_DUR := 3.0
 const MAXS := 48
 const WARD_DUR := 3.6
 const WARD_PULSE := 1.15
@@ -70,6 +81,15 @@ var _sndT := 0.0
 var t := 0.0
 var ox := 0.0
 var oy := 0.0
+var _mir := PackedVector2Array()   # ayna konumları (zemin)
+var _mirLit := 0                   # yanmış ışın sayısı
+var _mirTick := 0.0
+var _frz: Array = []               # zaman durdurmada donan düşmanlar
+var _tsDone := false
+
+## zaman durdurma sürüyor mu (düşman/mermi güncellemesi durur)
+func time_stopped() -> bool:
+	return fx > 0 and id.k == "timestop" and wave.on
 
 func _init(g) -> void:
 	game = g
@@ -173,6 +193,24 @@ func fire() -> bool:
 		wave.merge({"on": true, "t": 0.0, "dur": dur, "r": 0.0}, true)
 		fx = dur + 0.5
 		if k == "ward": p.invuln = maxf(p.invuln, WARD_DUR + 0.15)
+	elif k == "mirror":
+		var mr := minf(R * 0.6, 182.0)
+		_mir.resize(6)
+		for i in 6:
+			var a := -PI * 0.5 + i * TAU / 6.0
+			_mir[i] = Vector2(p.x + cos(a) * mr, p.y + sin(a) * mr)
+		_mirLit = 0; _mirTick = 0.0
+		wave.merge({"on": true, "t": 0.0, "dur": MIR_DUR, "r": mr}, true)
+		fx = MIR_DUR + 0.45
+	elif k == "timestop":
+		_frz.clear()
+		_tsDone = false
+		var out = g.enemies.query_circle(p.x, p.y, R * 1.7, _sc) if g.enemies else []
+		for e in out:
+			if e.hp > 0: _frz.append(e)
+		wave.merge({"on": true, "t": 0.0, "dur": TS_DUR, "r": R * 1.7}, true)
+		fx = TS_DUR + 0.75
+		# havadaki düşman mermileri de olduğu yerde asılı kalır (time_stopped → enemy_manager)
 	elif k == "spike":
 		var rings := [[0.36, 8], [0.68, 12], [1.0, 16]]
 		for ri in 3:
@@ -287,7 +325,13 @@ func update(dt: float) -> void:
 		var u := minf(1.0, W.t / W.dur)
 		var R: float = tier.r
 		var p = game.player
-		if k == "ward":
+		if k == "mirror":
+			_update_mirror(dt)
+		elif k == "timestop":
+			for e in _frz:
+				if e.hp > 0: e.stopT = maxf(e.stopT, 0.12)
+			if W.t >= W.dur and not _tsDone: _shatter()
+		elif k == "ward":
 			W.r = R * 0.62 * minf(1.0, W.t / 0.22)
 			var pi := int(W.t / WARD_PULSE)
 			if pi != _pulse:
@@ -308,6 +352,83 @@ func update(dt: float) -> void:
 			if k == "vortex" and randf() < dt * 30:
 				game.spawn_burst(cx + cos(W.t * 9) * W.r, cy + sin(W.t * 9) * W.r * 0.62, C.col, 2, 90, 2.4, 0.4, true)
 		if W.t >= W.dur: W.on = false
+
+## çizgi vuruşu: a→b doğrusuna w yakınındaki düşmanlar (ışın)
+func _line(a: Vector2, b: Vector2, w: float, hold := 0.0) -> void:
+	var g = game
+	if not g.enemies: return
+	var m := (a + b) * 0.5
+	var ab := b - a
+	var L2 := ab.length_squared()
+	if L2 < 1.0: return
+	var out = g.enemies.query_circle(m.x, m.y, sqrt(L2) * 0.5 + w + 30.0, _sc)
+	for e in out:
+		if e.hp <= 0 or e._ultN == _tok: continue
+		var q := Vector2(e.x, e.y)
+		var u := clampf((q - a).dot(ab) / L2, 0.0, 1.0)
+		var d := q.distance_to(a + ab * u)
+		if d > w + e.radius: continue
+		if hold > 0.0 and not e.isBoss:
+			e.stopT = maxf(e.stopT, hold)
+			e.stopMv = true
+		_hit(e, atan2(ab.y, ab.x) + PI * 0.5, 260.0)
+
+func _update_mirror(dt: float) -> void:
+	var W := wave
+	var g = game
+	var lit := 0
+	for i in MIR_SEG.size():
+		if W.t >= MIR_T0 + i * MIR_STEP: lit = i + 1
+	while _mirLit < lit:
+		var sg: Array = MIR_SEG[_mirLit]
+		_line(_mir[sg[0]], _mir[sg[1]], 34.0, 0.7)
+		var mp: Vector2 = _mir[sg[1]]
+		if g.in_view(mp.x, mp.y, 60):
+			g.spawn_burst(mp.x, mp.y - 40, PRISM[_mirLit % PRISM.size()], 6, 160, 2.6, 0.4, true)
+		if _sndT <= 0:
+			_sndT = 0.12
+			g.audio.ultKind = id.snd
+			g.audio.play("ulthit")
+		_mirLit += 1
+	# yanan ışınlar sonradan içinden geçeni de yakar (jeton aynı: düşman başına tek vuruş)
+	_mirTick -= dt
+	if _mirTick <= 0.0 and _mirLit > 0:
+		_mirTick = 0.2
+		for i in _mirLit:
+			var sg: Array = MIR_SEG[i]
+			_line(_mir[sg[0]], _mir[sg[1]], 30.0, 0.0)
+	# son parlama: ağın içindeki her şey ışığa boğulur
+	if W.t >= MIR_FLASH and W.t - dt < MIR_FLASH:
+		var c := (_mir[0] + _mir[3]) * 0.5
+		_area(c.x, c.y, W.r * 0.96)
+		g.add_shake(0.14)
+		g.punch(0.03)
+		if g.renderer3d: g.renderer3d.spawn_hit(c.x, c.y, 0, 1, 0.85, 0.7, 1.0)
+		g.audio.ultKind = "meteor"
+		g.audio.play("ulthit")
+
+## zaman kırılması: donan herkes bir anda parçalanır
+func _shatter() -> void:
+	_tsDone = true
+	var g = game
+	_tok += 1
+	var n := 0
+	for e in _frz:
+		if e.hp <= 0: continue
+		e.stopT = 0.0
+		_hit(e, randf() * TAU, 300.0)
+		if n < 26 and g.in_view(e.x, e.y, 40):
+			n += 1
+			g.spawn_burst(e.x, e.y - 10, "#ffe7a8" if n % 2 else "#ff7a4a", 6, 200, 2.8, 0.45, true)
+	# dondurma sırasında alana yeni girenler de (yakındaysa) kırılır
+	var p = g.player
+	if p: _area(p.x, p.y, tier.r * 0.9)
+	_frz.clear()
+	g.add_shake(0.3)
+	g.punch(0.05)
+	if g.renderer3d and p: g.renderer3d.spawn_hit(p.x, p.y, 0, 2, 1.0, 0.8, 0.4)
+	g.audio.ultKind = "cannon"
+	g.audio.play("ulthit")
 
 # ═══════════════════════════════ ÇİZİM ═══════════════════════════════
 # Dört tampon (sıra: zemin → parıltı → mürekkep → üst parıltı). Hepsi dünya uzayında; flush'ta
@@ -371,6 +492,8 @@ func render(_ctx: Ctx2D = null) -> void:
 	if k == "vortex" and (W.on or fx > 0.2): _draw_vortex(p.x, p.y, wr, t)
 	if k == "slam" and (W.on or fx > 0.2): _draw_slam(ox, oy, wr, t, W.dur)
 	if k == "ward" and (W.on or fx > 0.05): _draw_ward(p.x, p.y, W.r if W.r else tier.r * 0.62, t)
+	if k == "mirror" and _mir.size() == 6: _draw_mirror(t)
+	if k == "timestop": _draw_timestop(t)
 
 ## dört tamponu (süper + Vfx) sırayla çizer, en üste süper adını basar
 func flush_all(ctx: Ctx2D) -> void:
@@ -1118,3 +1241,151 @@ func _draw_anvil(s, u: float, post: float, K) -> void:
 		var sr := 9.0 * sc * f + 2.0
 		_glow(q, sr * 2.5, _dc, f * 0.7, 1.0, _T)
 		_sparkle(_T, q, sr, Color(1, 0.97, 0.7, f), post * 6.0 + i)
+
+# ══ AYNA LABİRENTİ (prizma): kristal aynalar yükselir, ışın aynadan aynaya sekip yıldız ağı örer ══
+func _mir_top(i: int, tt: float) -> Vector2:
+	var b: Vector2 = _mir[i]
+	return b + Vector2(0, -58.0 - 6.0 * sin(tt * 3.0 + i * 1.3))
+
+func _mirror_shard(b: Vector2, i: int, tt: float, sc: float, a: float) -> void:
+	if a <= 0.01 or sc <= 0.01: return
+	var lift := 22.0 + 6.0 * sin(tt * 3.0 + i * 1.3)
+	var h := 78.0 * sc
+	var w := 30.0 * sc
+	var o := b + Vector2(0, -lift)
+	# zemin: gölge + küçük ışık halkası
+	_ell(_U, b, 20.0 * sc, 20.0 * sc * SQ, _ca(INK, 0.4 * a))
+	_gring(b, 26.0 * sc, 6.0, _dc, 0.8 * a, SQ, 24, 1.2)
+	_glow(o + Vector2(0, -h * 0.5), 64.0 * sc, _dc, 0.5 * a, 1.0)
+	var P := PackedVector2Array([o + Vector2(0, -h), o + Vector2(w * 0.55, -h * 0.74), o + Vector2(w * 0.42, -h * 0.16),
+		o, o + Vector2(-w * 0.42, -h * 0.16), o + Vector2(-w * 0.55, -h * 0.74)])
+	_ink_poly(P, Color("#3a1f6a"), a, 3.5)
+	# yüzeyler: sol koyu, sağ açık, orta beyaz parlama şeridi
+	_M.poly(PackedVector2Array([o + Vector2(0, -h), o, o + Vector2(-w * 0.42, -h * 0.16), o + Vector2(-w * 0.55, -h * 0.74)]), _ca(Color("#7a4ad8"), a))
+	_M.poly(PackedVector2Array([o + Vector2(0, -h), o + Vector2(w * 0.55, -h * 0.74), o + Vector2(w * 0.42, -h * 0.16), o]), _ca(Color("#c9a6ff"), a))
+	var sh := 0.5 + 0.5 * sin(tt * 5.0 + i)
+	_thick(_T, PackedVector2Array([o + Vector2(w * 0.08, -h * 0.92), o + Vector2(w * 0.04, -h * 0.12)]), 3.0, Color(1, 1, 1, a * (0.5 + 0.5 * sh)), false)
+	_sparkle(_T, o + Vector2(w * 0.2, -h * 0.8), 7.0 * sc * (0.6 + sh), Color(1, 1, 1, a), tt * 2.0 + i)
+
+func _draw_mirror(tt: float) -> void:
+	var fo := _fade_out()
+	var W := wave
+	var r: float = W.r
+	var c := (_mir[0] + _mir[3]) * 0.5
+	var fl := clampf(1.0 - (tt - MIR_FLASH) / 0.4, 0.0, 1.0) if tt >= MIR_FLASH else 0.0
+	var gone := clampf((tt - MIR_FLASH) / 0.25, 0.0, 1.0)
+	# zemin: büyü çemberi + altıgen ışık zemini
+	_rune_circle(c, r * 1.04, _dc, tt * 0.7, fo * minf(1.0, tt / 0.25))
+	var hx := PackedVector2Array()
+	for i in 6: hx.append(_mir[i])
+	_GA.poly(hx, _ca(_dc, (0.07 + 0.35 * fl) * fo))
+	# ışınlar (ağ)
+	for j in MIR_SEG.size():
+		var tj := MIR_T0 + j * MIR_STEP
+		if tt < tj: break
+		var gr := minf(1.0, (tt - tj) / 0.1)
+		var sg: Array = MIR_SEG[j]
+		var A := _mir_top(sg[0], tt)
+		var B := _mir_top(sg[1], tt)
+		var hd := A.lerp(B, gr)
+		var sm := (0.78 + 0.22 * sin(tt * 22.0 + j * 1.7)) * fo
+		var pc := Color(PRISM[j % PRISM.size()])
+		var ga: Vector2 = _mir[sg[0]]
+		var gb: Vector2 = ga.lerp(_mir[sg[1]], gr)
+		_thick(_GA, PackedVector2Array([ga, gb]), 26.0, _ca(_dc, 0.32 * sm), false)
+		_thick(_G, PackedVector2Array([A, hd]), 30.0 + 20.0 * fl, _ca(_dc, 0.42 * sm), false)
+		_thick(_T, PackedVector2Array([A, hd]), 11.0 + 6.0 * fl, _ca(_lc.lerp(pc, 0.35), 0.9 * sm), false)
+		_thick(_T, PackedVector2Array([A, hd]), 3.5 + 2.0 * fl, Color(1, 1, 1, sm), false)
+		if gr < 1.0:
+			_glow(hd, 46.0, WHITE, 0.8 * fo, 1.0, _T)
+			_sparkle(_T, hd, 16.0, Color(1, 1, 1, fo), tt * 9.0)
+		# ışın boyunca yükselen gökkuşağı kıvılcımları
+		for q in 2:
+			var v := fmod(tt * 0.9 + _uhash(j, q) , 1.0) * gr
+			var sp := A.lerp(B, v) + Vector2(0, -fmod(tt * 40.0 + q * 17.0, 26.0))
+			_sparkle(_T, sp, 5.0, _ca(pc, sm), tt * 4.0 + q)
+	# aynalar: yükselir, son parlamada kırılır
+	for i in 6:
+		var k := clampf((tt - i * 0.04) / 0.28, 0.0, 1.0)
+		var sc := _back(k) if k < 1.0 else 1.0
+		_mirror_shard(_mir[i], i, tt, sc * (1.0 - gone * 0.6), fo * (1.0 - gone))
+		if tt >= MIR_FLASH:
+			var mp: Vector2 = _mir[i] + Vector2(0, -60)
+			_burst(mp, tt - MIR_FLASH, 0.5, 70.0, Color(PRISM[i % PRISM.size()]), i * 3.1, 7, fo)
+	# son parlama: ağın içi beyaz ışığa boğulur
+	if fl > 0.0:
+		var pu := 1.0 - fl
+		_glow(c, r * 1.25, WHITE, fl * 0.55, SQ, _GA)
+		_glow(c - Vector2(0, 40), r * 0.9, _lc, fl * 0.5, 1.0, _T)
+		_gring(c, r * (0.3 + 0.9 * pu), 40.0 * fl + 6.0, _dc, fl, SQ, 48, 3.0 * fl)
+
+# ══ ZAMAN DURDURMA (zaman): dünya griye döner, yerde dev saat; sonunda donanlar parçalanır ══
+func _draw_timestop(tt: float) -> void:
+	var g = game
+	var p = g.player
+	if not p: return
+	var c := Vector2(p.x, p.y)
+	var post := tt - TS_DUR
+	var a := minf(1.0, tt / 0.15) if post < 0.0 else maxf(0.0, 1.0 - post / 0.35)
+	# gri zaman perdesi: kahramanın çevresi açık, kenarlar koyu (vinyet)
+	if a > 0.01:
+		var diag := Vector2(g.viewR - g.viewL, g.viewB - g.viewT).length() * 0.62 + 80.0
+		var vc := Vector2((g.viewL + g.viewR) * 0.5, (g.viewT + g.viewB) * 0.5)
+		var V := PackedVector2Array()
+		for i in 20:
+			var an := i * TAU / 20.0
+			V.append(vc + Vector2(cos(an), sin(an)) * diag)
+		_blob(_M, c, V, Color(0.42, 0.46, 0.56, 0.16 * a), Color(0.16, 0.18, 0.24, 0.5 * a))
+	# açılış dalgası
+	if tt < 0.5:
+		var u := tt / 0.5
+		var e := 1.0 - pow(1.0 - u, 3.0)
+		_gring(c, 40.0 + wave.r * e, 46.0 * (1.0 - u) + 6.0, _lc, 1.0 - u, SQ, 56, 3.0 * (1.0 - u))
+		if tt < 0.12: _glow(c, 160.0, WHITE, (1.0 - tt / 0.12) * 0.8, 1.0, _T)
+	# yer saati
+	var ca := a
+	if ca > 0.01:
+		var rc := 150.0 + rar * 10.0
+		var k := minf(1.0, tt / 0.3)
+		var s := _back(k) if k < 1.0 else 1.0
+		rc *= s
+		_glow(c, rc * 1.35, _dc, 0.35 * ca)
+		_gring(c, rc, 9.0, _dc, ca, SQ, 56, 1.8)
+		_gring(c, rc * 0.84, 4.0, _lc, 0.75 * ca, SQ, 48, 1.0)
+		_gring(c, rc * 0.22, 5.0, _dc, 0.7 * ca, SQ, 24, 1.0)
+		var rot := -tt * 0.35
+		for i in 28:
+			var an := rot + i * TAU / 28.0
+			var d := Vector2(cos(an), sin(an) * SQ)
+			_thick(_GA, PackedVector2Array([c + d * (rc + 3.0), c + d * (rc + 15.0)]), 9.0, _ca(_dc, 0.85 * ca), false)
+		for i in 12:
+			var an := -PI * 0.5 + i * TAU / 12.0
+			var d := Vector2(cos(an), sin(an) * SQ)
+			var L := 0.66 if i % 3 == 0 else 0.74
+			_thick(_GA, PackedVector2Array([c + d * rc * L, c + d * rc * 0.8]), 4.0 if i % 3 == 0 else 2.5, Color(1, 1, 1, 0.9 * ca), false)
+		# ibreler: önce akar, zaman durunca titreyerek kalır; sonda hızla ileri döner
+		var mA := -PI * 0.5 + 5.0 * (1.0 - exp(-tt * 5.0))
+		if post < 0.0: mA += sin(tt * 47.0) * 0.025
+		else: mA += post * 30.0
+		var hA := mA / 12.0 + 1.9
+		for hand in [[hA, 0.46, 11.0], [mA, 0.74, 6.5]]:
+			var d := Vector2(cos(hand[0]), sin(hand[0]) * SQ)
+			var P := PackedVector2Array([c - d * rc * 0.08, c + d * rc * hand[1]])
+			_thick(_GA, P, hand[2] + 8.0, _ca(_dc, 0.6 * ca), false)
+			_thick(_GA, P, hand[2] * 0.45, Color(1, 1, 1, ca), false)
+		_glow(c, 26.0, WHITE, ca, SQ, _GA)
+	# donan düşmanlar: altında altın zaman halkası, başında duran kıvılcım
+	if post < 0.0:
+		var n := 0
+		for e in _frz:
+			if e.hp <= 0 or not g.in_view(e.x, e.y, 30): continue
+			n += 1
+			if n > 40: break
+			var ep := Vector2(e.x, e.y)
+			var er: float = e.radius
+			_gring(ep, er + 10.0, 6.0, _lc, 0.85 * a, SQ, 18, 1.2)
+			_sparkle(_T, ep + Vector2(0, -er * 2.0 - 14.0), 6.0 + 2.0 * sin(tt * 6.0 + e.seed), _ca(_lc, a), e.seed)
+	# kırılma
+	if post >= 0.0 and post < 0.6:
+		_burst(c, post, 0.6, wave.r * 0.7, _dc, 4.2, 16)
+		if post < 0.15: _glow(c, wave.r, WHITE, (1.0 - post / 0.15) * 0.7, 1.0, _T)

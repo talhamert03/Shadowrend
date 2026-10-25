@@ -4,10 +4,11 @@ extends Node2D
 ## Çıktı: res://assets/ui/art/hero3d/<id>.png (saydam, 540×720, baştan bele portre)
 
 ## kart portresi: baştan bele yakın çekim (kart oranında), yüksek çözünürlük
-const W := 150.0
-const H := 200.0
-const DPR := 3.6
-const CROP := 0.46
+var W := 150.0
+var H := 200.0
+var DPR := 3.6
+var CROP := 0.46
+var _dir := "res://assets/ui/art/hero3d/"
 var _ids: Array = []
 var _cur: HeroView
 var _i := -1
@@ -27,6 +28,11 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("ids="): _ids = Array(a.substr(4).split(","))
 		if a.begins_with("yaw="): _yaw = float(a.substr(4))
+		# geliştirici: büyük portre pişirimi — h=187.5 dpr=6 crop=0.6 dir=user://
+		if a.begins_with("h="): H = float(a.substr(2))
+		if a.begins_with("dpr="): DPR = float(a.substr(4))
+		if a.begins_with("crop="): CROP = float(a.substr(5))
+		if a.begins_with("dir="): _dir = a.substr(4)
 	if _ids.is_empty(): _ids = HeroView.models().get("heroes", {}).keys()
 	_next()
 
@@ -53,7 +59,7 @@ func _process(_dt: float) -> void:
 	_wait -= 1
 	if _wait == 0:
 		var img := _cur.vp.get_texture().get_image()
-		var out := "res://assets/ui/art/hero3d/" + str(_ids[_i]) + ".png"
+		var out := _dir + str(_ids[_i]) + ".png"
 		img.save_png(ProjectSettings.globalize_path(out))
 		print("BAKED ", out, " ", img.get_size())
 		_next()

@@ -11,7 +11,7 @@ extends RefCounted
 const MAXN := 72
 const SQ := Ultimate.SQ
 
-enum { SLASH, HIT, RING, CAST, BOLT, HURT, DEATH }
+enum { SLASH, HIT, RING, CAST, BOLT, HURT, DEATH, BEAM }
 
 ## kılıçlı silahların iz rengi
 const SWORD_COL := {
@@ -98,6 +98,12 @@ func bolt(x1: float, y1: float, x2: float, y2: float, col := Color("#9fdcff")) -
 	var f := _take(BOLT, 0.2)
 	f.x = x1; f.y = y1; f.x2 = x2; f.y2 = y2; f.c = col
 
+## prizma ışını: a(yükseklik h0) → b(yükseklik h1); katmanlı ışık + gökkuşağı kenar
+func beam(x1: float, y1: float, x2: float, y2: float, h0: float, h1: float, col: Color, w := 20.0) -> void:
+	if not _vis(x1, y1, 200) and not _vis(x2, y2, 200): return
+	var f := _take(BEAM, 0.24)
+	f.x = x1; f.y = y1; f.x2 = x2; f.y2 = y2; f.r = h0; f.a0 = h1; f.w = w; f.c = col
+
 ## oyuncu yaralandı: kaynağa bakan kızıl pençe izi
 func hurt(x: float, y: float, ang: float) -> void:
 	var f := _take(HURT, 0.28)
@@ -136,6 +142,7 @@ func render(U: Ultimate) -> void:
 			BOLT: _draw_bolt(U, f, u)
 			HURT: _draw_hurt(U, f, u)
 			DEATH: _draw_death(U, f)
+			BEAM: _draw_beam(U, f, u)
 
 func _draw_slash(U: Ultimate, f: Fx, u: float) -> void:
 	var p = game.player
@@ -202,6 +209,30 @@ func _draw_bolt(U: Ultimate, f: Fx, u: float) -> void:
 	U._thick(U._T, P, 2.2, Color(1, 1, 1, a))
 	U._glow(B, 34.0, f.c, 0.8 * a, 1.0, U._T)
 
+func _draw_beam(U: Ultimate, f: Fx, u: float) -> void:
+	var tn := tan(Render3D.TILT)
+	var A := Vector2(f.x, f.y - f.r * tn)
+	var B := Vector2(f.x2, f.y2 - f.a0 * tn)
+	var gr := minf(1.0, f.t / 0.045)
+	var hd := A.lerp(B, gr)
+	var a := 1.0 if u < 0.35 else 1.0 - (u - 0.35) / 0.65
+	a *= 0.85 + 0.15 * sin(f.t * 90.0)
+	var w := f.w * (1.0 + 0.35 * (1.0 - u))
+	var d := hd - A
+	if d.length() < 2.0: return
+	var nrm := Vector2(-d.y, d.x).normalized()
+	var P := PackedVector2Array([A, hd])
+	U._thick(U._G, P, w * 2.0, U._ca(f.c, 0.32 * a), false)
+	U._thick(U._T, P, w * 0.75, U._ca(f.c, 0.85 * a), false)
+	# prizma kenarı: iki yanda ince pembe/camgöbeği şerit
+	U._thick(U._T, PackedVector2Array([A + nrm * w * 0.45, hd + nrm * w * 0.45]), 2.4, Color(1.0, 0.48, 0.66, 0.55 * a), false)
+	U._thick(U._T, PackedVector2Array([A - nrm * w * 0.45, hd - nrm * w * 0.45]), 2.4, Color(0.48, 0.86, 1.0, 0.55 * a), false)
+	U._thick(U._T, P, maxf(2.5, w * 0.22), Color(1, 1, 1, a), false)
+	U._glow(A, w * 1.6, f.c, 0.8 * a, 1.0, U._T)
+	U._glow(hd, w * 2.2, f.c, 0.9 * a, 1.0, U._T)
+	U._glow(hd, w * 0.8, Color.WHITE, a, 1.0, U._T)
+	if u < 0.5: U._sparkle(U._T, hd, w * 0.9 * (1.0 - u * 2.0), Color(1, 1, 1, a), f.seed + f.t * 6.0)
+
 func _draw_hurt(U: Ultimate, f: Fx, u: float) -> void:
 	var p = game.player
 	var c := Vector2(p.x, p.y - 16.0) if p else Vector2(f.x, f.y)
@@ -260,8 +291,29 @@ func _draw_streams(U: Ultimate, g) -> void:
 			var ph := fmod(_t * 1.3 + i * 0.37, 1.0)
 			var q := c + Vector2(cos(an) * z.r * 0.6, sin(an) * z.r * 0.6 * SQ - ph * 46.0)
 			U._glow(q, 10.0 + 6.0 * (1.0 - ph), col, a * (1.0 - ph), 1.0, U._T)
-	# kılıç dalgaları: ilerleyen parlak hilal
 	var W = g.weapons
+	# zaman bıçakları: uçanın altın ışık kuyruğu, süzülenin ışıltısı
+	if W and W.slots.has("saat"):
+		var tn := tan(Render3D.TILT)
+		for B in W.blades:
+			var st: int = B.st
+			if st == WeaponManager.BL_GONE: continue
+			var hp := Vector2(B.x, B.y - float(B.h) * tn)
+			if st == WeaponManager.BL_FLY or st == WeaponManager.BL_SLIDE:
+				var v := Vector2(cos(B.ang), sin(B.ang) * SQ).normalized()
+				var gc := Color(1, 0.62, 0.22) if B.big else Color(1, 0.8, 0.4)
+				if st == WeaponManager.BL_FLY:
+					U._streak(hp, v, 90.0, 16.0 if B.big else 11.0, gc, 0.8)
+					U._streak(hp, v, 46.0, 5.0, Color(1, 1, 1), 0.8)
+				U._glow(hp, 30.0 if B.big else 22.0, gc, 0.7, 1.0, U._T)
+			else:
+				var sc: float = B.sc
+				U._glow(hp + Vector2(0, -6), 18.0 * sc, Color(1, 0.78, 0.36), 0.35 * sc, 1.0, U._G)
+				if st == WeaponManager.BL_SPAWN:
+					var k := minf(1.0, float(B.t) / 0.28)
+					U._gring(hp, 10.0 + 26.0 * k, 8.0 * (1.0 - k) + 2.0, Color(1, 0.84, 0.45), 1.0 - k, 1.0, 20, 1.2)
+					U._sparkle(U._T, hp, 14.0 * (1.0 - k) + 3.0, Color(1, 1, 1, 1.0 - k * 0.6), k * 3.0)
+	# kılıç dalgaları: ilerleyen parlak hilal
 	if W:
 		for w in W.waves:
 			if w.life <= 0: continue

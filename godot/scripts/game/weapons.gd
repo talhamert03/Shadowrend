@@ -26,18 +26,20 @@ const EXTRA_PASSIVES := {
 const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukluk": "YILDIRIM", "miknatis": "RUH", "keskinlik": "AYAZ", "gazap": "KOR",
 	"kiragi": "AYAZ", "buzkalp": "AYAZ", "hayalet": "AYAZ", "hasatrun": "RUH", "kanemici": "RUH", "statik": "YILDIRIM", "demir": "CELIK", "kulkani": "KOR"}
 const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ",
-	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM"}
+	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM",
+	"prizma": "RUH", "zaman": "CELIK"}
 
 const MUL_MAP_BASE := {"cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
-	"waveR": "waveR", "waveLife": "waveLife"}
+	"waveR": "waveR", "waveLife": "waveLife", "widthMul": "width", "refillMul": "refill"}
 const ADD_MAP := {"volley": "volley", "pierce": "pierce", "count": "count", "targets": "targets"}
 const SCALAR_ADD := {"bounceAdd": "bounce", "flame": "flame", "shatterAdd": "shatter",
 	"explodeAdd": "explode", "homingAdd": "homing", "rainAdd": "rain", "critAdd": "critAdd", "critMultAdd": "critMultAdd",
 	"spinAdd": "spin", "twinAdd": "twin", "waveAdd": "wave", "echoAdd": "echo",
 	"chainAdd": "chain", "shockAdd": "shock", "knockAdd": "knock", "stormAdd": "storm",
 	"splitAdd": "split", "broadsideAdd": "broadside", "fanAdd": "fan", "judgeAdd": "judge",
-	"novaAdd": "nova", "cycloneAdd": "cyclone", "carapaceAdd": "carapace"}
+	"novaAdd": "nova", "cycloneAdd": "cyclone", "carapaceAdd": "carapace",
+	"reflAdd": "refl", "prismAdd": "prism", "pinAdd": "pin", "delayAdd": "delay", "hourglassAdd": "hourglass"}
 
 static var _passives_merged := false
 
@@ -107,6 +109,17 @@ var bowFireCount := 0
 var rainShots := 0
 var bowDraw := 0.0
 
+## Prizma Kristali (ışın) · Zaman Bıçakları (süzülen ibreler)
+var beamFireCount := 0
+var _beamHit: Array = []
+const BLADE_MAX := 5
+enum { BL_HOVER, BL_SLIDE, BL_FLY, BL_GONE, BL_SPAWN }
+var blades: Array = []        # {st, x, y, h, vx, vy, t, ang, tgt, tok, pierce, dmg, crit, last, yaw, sc, spin}
+var bladeThrown := 0
+var bladeRefillT := -1.0
+var bladeT := 0.4
+var _hourglassT := 0.0
+var _delayed: Array = []      # gecikmiş hasar: {e, tok, d, t}
 var slingPos := Vector2.ZERO
 var slingAim := 0.0
 var slingFireCount := 0
@@ -162,6 +175,13 @@ func reset() -> void:
 	judgeT = null
 	bowPos = Vector2.ZERO; bowAim = 0; bowFireCount = 0; rainShots = 0; bowDraw = 0
 	slingPos = Vector2.ZERO; slingAim = 0; slingFireCount = 0; slingWind = 0; _slWindT = 0
+	beamFireCount = 0
+	blades = []
+	for i in BLADE_MAX:
+		blades.append({"st": BL_GONE, "x": 0.0, "y": 0.0, "h": 0.0, "vx": 0.0, "vy": 0.0, "t": 0.0, "ang": 0.0, "tgt": null, "tok": -1,
+			"pierce": 0, "dmg": 0.0, "crit": 0.0, "last": null, "yaw": 0.0, "sc": 0.0, "spin": 0.0, "slot": i, "big": false})
+	bladeThrown = 0; bladeRefillT = 0.0; bladeT = 0.4; _hourglassT = 0.0
+	_delayed = []
 	_lastHp = null
 	for b in bolts: b.life = 0.0
 	Combat.reset_feel()
@@ -199,7 +219,12 @@ func update(dt: float) -> void:
 	if lvl("topatar"): update_broadside(dt)
 	if lvl("alev"): update_cyclone(dt)
 	for id in slots:
-		if slots[id] > 0 and W.has(id) and W[id].get("kind") == "gun": update_gun(id, dt)
+		if slots[id] > 0 and W.has(id):
+			var kd = W[id].get("kind")
+			if kd == "gun": update_gun(id, dt)
+			elif kd == "beam": update_beam(id, dt)
+			elif kd == "blades": update_blades(id, dt)
+	if not _delayed.is_empty(): _update_delayed(dt)
 	var i := pending.size() - 1
 	while i >= 0:
 		var q = pending[i]
@@ -981,6 +1006,281 @@ func update_arrow(b, dt: float) -> bool:
 	elif randf() < dt * 28:
 		g.pools.particles.take().setup(b.x, b.y, 0, 0, 0.22, 2, b.color, 1, 0, true)
 	return false
+
+# ── PRİZMA KRİSTALİ: süzülen kristalden hedefe delici ışın; ışın düşmandan düşmana kırılıp seker ──
+func update_beam(id: String, dt: float) -> void:
+	var t: float = gunT.get(id, 0.0) - dt
+	if t > 0:
+		gunT[id] = t
+		return
+	var p = game.player
+	var L := lvl(id) - 1
+	var Wd: Dictionary = W[id]
+	var reach: float = float(Wd.range) + 30.0
+	if nearest == null or nearestD2 > reach * reach:
+		gunT[id] = 0.12
+		return
+	gunT[id] = Wd.cooldown[L] * p.atkMult
+	p.trigger_ranged_attack(atan2(nearest.y - p.y, nearest.x - p.x))
+	fire_beam(id, Wd, L)
+
+## ışının bir bacağı: a→b doğrusu üstündeki herkese vurur (delici); ilk isabetin kritik sonucunu döndürür
+func _beam_leg(a: Vector2, b: Vector2, w: float, dmg: float, Wd: Dictionary, h0: float, h1: float, col: Color) -> bool:
+	var g = game
+	var ab := b - a
+	var L2 := ab.length_squared()
+	var crit := false
+	if L2 > 1.0:
+		var m := (a + b) * 0.5
+		var out = g.enemies.query_circle(m.x, m.y, sqrt(L2) * 0.5 + w + 30.0, scratch)
+		var ang := atan2(ab.y, ab.x)
+		for e in out:
+			if e.hp <= 0 or e.entryT > 0 or _beamHit.has(e): continue
+			var q := Vector2(e.x, e.y)
+			var u := clampf((q - a).dot(ab) / L2, 0.0, 1.0)
+			if q.distance_to(a + ab * u) > w + e.radius: continue
+			_beamHit.append(e)
+			var r = Combat.apply_hit(g, e, dmg, ang, 90, JS.num(Wd, "critAdd"), false)
+			if r and r.crit: crit = true
+	if g.vfx: g.vfx.beam(a.x, a.y, b.x, b.y, h0, h1, col, w)
+	return crit
+
+func _beam_next(from: Vector2, R: float):
+	var out = game.enemies.query_circle(from.x, from.y, R, scratch)
+	var best = null
+	var bd := INF
+	for e in out:
+		if e.hp <= 0 or e.entryT > 0 or _beamHit.has(e) or not _vis(e): continue
+		var d2: float = (e.x - from.x) * (e.x - from.x) + (e.y - from.y) * (e.y - from.y)
+		if d2 < bd:
+			bd = d2
+			best = e
+	return best
+
+func fire_beam(id: String, Wd: Dictionary, L: int) -> void:
+	var g = game
+	var p = g.player
+	var o := floatPos if floatPos != Vector2.ZERO else Vector2(p.x, p.y)
+	var col := Color(str(Wd.get("color", "#c9a6ff")))
+	var w := JS.num(Wd, "width", 20.0)
+	var rng := float(Wd.range)
+	var bounces := wi(Wd, "bounce") + (JS.i(Wd.bounceLv[L]) if Wd.get("bounceLv") is Array else 0)
+	var refl := JS.num(Wd, "refl", 0.82)
+	var volley := int(Wd.volley[L]) if Wd.get("volley") is Array else 1
+	var tgts: Array = [nearest]
+	if volley > 1:
+		_beamHit = [nearest]
+		var t2 = _beam_next(Vector2(p.x, p.y), rng)
+		if t2: tgts.append(t2)
+	_beamHit = []
+	for tg in tgts:
+		var dmg: float = Wd.dmg[L]
+		var tp := Vector2(tg.x, tg.y)
+		var dir := (tp - o).normalized()
+		# ilk bacak: kristalden hedefin biraz ötesine (aradakileri de deler)
+		var end := tp + dir * 40.0
+		if o.distance_to(end) > rng + 60.0: end = o + dir * (rng + 60.0)
+		var crit := _beam_leg(o, end, w, dmg, Wd, 66.0, 22.0, col)
+		var cur := tp
+		var hops := 0
+		while hops < bounces:
+			var nx = _beam_next(cur, 230.0)
+			if nx == null: break
+			dmg *= refl
+			var np := Vector2(nx.x, nx.y)
+			var c2 := col.lerp(Color(Ultimate.PRISM[hops % Ultimate.PRISM.size()]), 0.35)
+			if _beam_leg(cur, np, w * 0.85, dmg, Wd, 22.0, 22.0, c2): crit = true
+			cur = np
+			hops += 1
+		# Prizma: kritik ışın üç renge bölünür
+		if crit and wi(Wd, "prism") > 0:
+			for k in 2:
+				var nx = _beam_next(cur, 260.0)
+				if nx == null: break
+				var np := Vector2(nx.x, nx.y)
+				_beam_leg(cur, np, w * 0.7, dmg * 0.7, Wd, 22.0, 22.0, Color(Ultimate.PRISM[(k * 2 + 1) % Ultimate.PRISM.size()]))
+		# Işık Patlaması: son durakta küçük patlama
+		var sh := wi(Wd, "shock")
+		if sh > 0:
+			g.explode(cur.x, cur.y, dmg * (0.45 + 0.1 * sh), 54 + sh * 8, true)
+			if g.vfx: g.vfx.ring(cur.x, cur.y, 70.0, col, 0.35)
+	beamFireCount += 1
+	floatFireCount += 1
+	g.audio.play(Wd.get("sfx", "shoot"))
+
+# ── ZAMAN BIÇAKLARI: başın üstünde süzülen ibreler; düşman gelince biri kayarak fırlar ve kovalar.
+# İki bıçak atılınca hepsi yeniden belirir (üç süzülür, iki atılır, yenilenir…) ──
+func _blade_slot_pos(i: int, n: int, p) -> Vector3:
+	var span := 44.0
+	var ox := (i - (n - 1) * 0.5) * span
+	var tt: float = game.time
+	return Vector3(p.x + ox, 88.0 - absf(ox) * 0.35 + sin(tt * 2.4 + i * 1.7) * 4.0, p.y - 34.0 + absf(ox) * 0.3)
+
+func update_blades(id: String, dt: float) -> void:
+	var g = game
+	var p = g.player
+	var L := lvl(id) - 1
+	var Wd: Dictionary = W[id]
+	var n := mini(BLADE_MAX, int(Wd["count"][L]) if Wd.get("count") is Array else 3)
+	var throwN := n - 1
+	var hg := wi(Wd, "hourglass")
+	if hg > 0: _hourglassT += dt
+	# yenilenme
+	if bladeRefillT > 0.0:
+		bladeRefillT -= dt
+		if bladeRefillT <= 0.0:
+			bladeThrown = 0
+			for i in n:
+				var B: Dictionary = blades[i]
+				if B.st == BL_GONE:
+					var sp := _blade_slot_pos(i, n, p)
+					B.st = BL_SPAWN; B.t = 0.0; B.x = sp.x; B.y = sp.z; B.h = sp.y; B.sc = 0.0; B.yaw = 0.0
+	# ilk kurulum / seviye artışı
+	for i in n:
+		var B: Dictionary = blades[i]
+		if B.st == BL_GONE and bladeRefillT <= 0.0 and bladeThrown == 0:
+			var sp := _blade_slot_pos(i, n, p)
+			B.st = BL_SPAWN; B.t = 0.0; B.x = sp.x; B.y = sp.z; B.h = sp.y; B.sc = 0.0
+	# fırlatma
+	bladeT -= dt
+	var rng: float = float(Wd.range[L]) if Wd.range is Array else float(Wd.range)
+	if bladeT <= 0.0 and bladeThrown < throwN and nearest != null and nearestD2 < rng * rng:
+		var best := -1
+		var bd := INF
+		for i in n:
+			var B: Dictionary = blades[i]
+			if B.st != BL_HOVER: continue
+			var d2: float = (B.x - nearest.x) * (B.x - nearest.x) + (B.y - nearest.y) * (B.y - nearest.y)
+			if d2 < bd:
+				bd = d2
+				best = i
+		if best >= 0:
+			var B: Dictionary = blades[best]
+			B.st = BL_SLIDE; B.t = 0.0
+			B.tgt = _blade_target(B)
+			B.tok = B.tgt.aliveTok if B.tgt else -1
+			B.pierce = int(Wd.pierce[L])
+			B.dmg = float(Wd.dmg[L])
+			B.crit = JS.num(Wd, "critAdd")
+			B.big = false
+			if hg > 0 and _hourglassT >= 6.0:
+				_hourglassT = 0.0
+				B.big = true
+				B.crit = 1.0
+				B.dmg *= 2.0
+			B.last = null
+			bladeThrown += 1
+			bladeT = Wd.cooldown[L] * p.atkMult
+			p.trigger_ranged_attack(atan2(nearest.y - p.y, nearest.x - p.x))
+			if bladeThrown >= throwN:
+				bladeRefillT = JS.num(Wd, "refill", 0.5) if not (Wd.get("refill") is Array) else float(Wd.refill[L])
+				bladeRefillT += Wd.cooldown[L] * p.atkMult * 0.6
+	var sp_: float = Wd.speed
+	for i in BLADE_MAX:
+		var B: Dictionary = blades[i]
+		match B.st:
+			BL_HOVER, BL_SPAWN:
+				if i >= n:
+					B.st = BL_GONE
+					continue
+				var sp := _blade_slot_pos(i, n, p)
+				var k := minf(1.0, dt * 14.0)
+				B.x += (sp.x - B.x) * k; B.y += (sp.z - B.y) * k; B.h += (sp.y - B.h) * k
+				B.spin = sin(g.time * 1.8 + i) * 0.25
+				if B.st == BL_SPAWN:
+					B.t += dt
+					B.sc = minf(1.0, B.t / 0.28)
+					if B.t >= 0.28: B.st = BL_HOVER
+				else: B.sc = 1.0
+			BL_SLIDE:
+				# kayma: ibre hedefe döner, geri çekilip alçalır, sonra fırlar
+				B.t += dt
+				var tg = B.tgt
+				if tg == null or tg.hp <= 0 or tg.aliveTok != B.tok:
+					tg = _blade_target(B)
+					B.tgt = tg; B.tok = tg.aliveTok if tg else -1
+				var aim: float = atan2(tg.y - B.y, tg.x - B.x) if tg else B.ang
+				B.ang = aim
+				var u := minf(1.0, B.t / 0.13)
+				B.x -= cos(aim) * 90.0 * dt * (1.0 - u)
+				B.y -= sin(aim) * 90.0 * dt * (1.0 - u)
+				B.h += (34.0 - B.h) * minf(1.0, dt * 16.0)
+				if B.t >= 0.13:
+					B.st = BL_FLY; B.t = 0.0
+					B.vx = cos(aim) * sp_; B.vy = sin(aim) * sp_
+					g.audio.play("throw")
+			BL_FLY:
+				if _blade_fly(B, dt, Wd): B.st = BL_GONE
+			_: pass
+
+func _blade_target(B: Dictionary):
+	if nearest and nearest.hp > 0: return nearest
+	return _home_pick(B.x, B.y)
+
+## uçuş: kesin güdüm (hedefe oturur), delme hakkı bitene kadar yoluna devam
+func _blade_fly(B: Dictionary, dt: float, Wd: Dictionary) -> bool:
+	var g = game
+	B.t += dt
+	if B.t > 1.4: return true
+	var sp := Vector2(B.vx, B.vy).length()
+	var tg = B.tgt
+	if B.pierce >= 0 and (tg == null or tg.hp <= 0 or tg.aliveTok != B.tok):
+		tg = _home_pick(B.x, B.y) if B.t < 1.0 else null
+		if tg == B.last: tg = null
+		B.tgt = tg; B.tok = tg.aliveTok if tg else -1
+	if tg:
+		var dx: float = tg.x - B.x
+		var dy: float = tg.y - B.y
+		var dist := sqrt(dx * dx + dy * dy)
+		var want := atan2(dy, dx)
+		var d := JS.wrap_pi(want - B.ang)
+		var turn: float = (9.0 + 300.0 / maxf(dist, 30.0)) * dt
+		if dist <= sp * dt * 1.3 + tg.radius: d = JS.wrap_pi(want - B.ang)
+		elif d > turn: d = turn
+		elif d < -turn: d = -turn
+		B.ang += d
+		B.vx = cos(B.ang) * sp; B.vy = sin(B.ang) * sp
+	B.x += B.vx * dt
+	B.y += B.vy * dt
+	B.h += (24.0 - B.h) * minf(1.0, dt * 10.0)
+	B.spin += dt * 2.0
+	if B.t > 0.9 and not g.in_view(B.x, B.y, 120): return true
+	var out = g.enemies.query_circle(B.x, B.y, 40, scratch)
+	for e in out:
+		if e == B.last or e.hp <= 0 or e.entryT > 0: continue
+		var dx: float = e.x - B.x
+		var dy: float = e.y - B.y
+		var rr: float = 14.0 + e.radius
+		if dx * dx + dy * dy > rr * rr: continue
+		B.last = e
+		var r = Combat.apply_hit(g, e, B.dmg, B.ang, 150, B.crit, false)
+		if g.renderer3d: g.renderer3d.spawn_hit(e.x, e.y, B.ang, 1 if B.big else 0, 1.0, 0.82, 0.42)
+		g.spawn_burst(e.x, e.y, "#ffcf6a", 6 if B.big else 4, 190, 2.2, 0.26, true)
+		if wi(Wd, "pin") > 0 and not e.isBoss and e.hp > 0:
+			e.stopT = maxf(e.stopT, 0.6)
+			e.stopMv = true
+		if wi(Wd, "delay") > 0 and r and e.hp > 0:
+			_delayed.append({"e": e, "tok": e.aliveTok, "d": float(r.dmg) * 0.4 / maxf(0.1, g.player.dmgMult), "t": 1.5})
+		B.pierce -= 1
+		if B.pierce < 0: return true
+		B.tgt = null
+		B.dmg *= 0.85
+	return false
+
+func _update_delayed(dt: float) -> void:
+	var g = game
+	var i := _delayed.size() - 1
+	while i >= 0:
+		var q: Dictionary = _delayed[i]
+		q.t -= dt
+		if q.t <= 0.0:
+			var e = q.e
+			if e and e.hp > 0 and e.aliveTok == q.tok:
+				Combat.apply_hit(g, e, ceil(q.d), 0.0, 0, -1.0, false)
+				if g.vfx: g.vfx.ring(e.x, e.y, 34.0, Color("#ffcf6a"), 0.3)
+			_delayed[i] = _delayed[_delayed.size() - 1]
+			_delayed.pop_back()
+		i -= 1
 
 # ── 6. KOR HAVANI ──
 func update_bomb(dt: float) -> void:

@@ -178,7 +178,7 @@
   "zehra": {
    "weapon": "kazan",
    "pas": "kulkani",
-   "name": "Kıyamet Kazanı",
+   "name": "Kıyamet Asası",
    "desc": "Batak Asası evrimleşir: damlalar delip geçer, daha sık fırlatılır.",
    "boost": {
     "dmg": 1.18,
@@ -195,6 +195,28 @@
     "dmg": 1.18,
     "cd": 0.9,
     "arc": 1.1
+   }
+  },
+  "prizma": {
+   "weapon": "prizma",
+   "pas": "keskinlik",
+   "name": "Gökkuşağı Kırılması",
+   "desc": "Prizma Kristali evrimleşir: ışın bir kez daha seker, daha sık çakar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "bounceAdd": 1
+   }
+  },
+  "zaman": {
+   "weapon": "saat",
+   "pas": "cabukluk",
+   "name": "Sonsuz Saat",
+   "desc": "Zaman Bıçakları evrimleşir: bıçaklar delip geçer, daha sık fırlar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
    }
   }
  },
