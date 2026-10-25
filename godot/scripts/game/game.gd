@@ -95,6 +95,7 @@ var objectives: ObjectiveManager
 var powerups: PowerupManager
 var fieldChests: FieldChests
 var ult: Ultimate
+var vfx: Vfx
 var events: WorldEvents
 var mode: MissionMode
 
@@ -141,6 +142,8 @@ var _cbBest := 0
 var _stressT := 0.0
 var _bossOutro := 0.0
 var _dying := 0.0
+var _deathT := -1.0          # ölüm sekansında geçen gerçek süre (-1: yok)
+const DEATH_DUR := 1.9
 var _harvested := false
 var _metaDirty := false
 var _achNew: Array = []
@@ -297,6 +300,7 @@ func _ready() -> void:
 	powerups = PowerupManager.new(self)
 	fieldChests = FieldChests.new(self)
 	ult = Ultimate.new(self)
+	vfx = Vfx.new(self)
 	events = WorldEvents.new(self)
 	mode = MissionMode.new(self)
 
@@ -487,6 +491,7 @@ func _start_run_now(wi: int, mi: int) -> void:
 	_kickT = 9; _punchT = 9; zoomP = 0
 	_bossOutro = 0
 	_dying = 0
+	_deathT = -1.0
 	ui.set_dying(false)
 	wave = 1
 	pendingWaveBonus = false
@@ -511,6 +516,7 @@ func _start_run_now(wi: int, mi: int) -> void:
 	var cdef := char_def()
 	player.charId = meta.selectedChar
 	ult.reset(cdef.get("rarity"), meta.selectedChar)
+	vfx.reset()
 	events.reset()
 	mode.begin("survive" if (towerRun or sealRun) else String(msn.get("type", "survive")))
 	if D.WEAPONS.has(cdef.startWeapon): weapons.slots[cdef.startWeapon] = 1
@@ -785,10 +791,27 @@ func reset_clock() -> void:
 func game_over() -> void:
 	if state != "playing": return
 	if not _dying:
-		_dying = 0.9
+		# ölüm sekansı: anlık donma hissi → yavaş akan zaman, kamera kahramana süzülür, kahraman
+		# devrilir, kızıl şok dalgası sürüyü savurur, ruh yükselir; sonra yenilgi ekranı
+		_dying = DEATH_DUR
+		_deathT = 0.0
 		player.invuln = maxf(player.invuln, 5.0)
-		add_shake(0.35)
-		punch(0.05)
+		add_shake(0.45)
+		punch(0.08)
+		audio.play("hurt")
+		audio.play("death")
+		Quality.haptic("death")
+		vfx.death(player.x, player.y)
+		var out := enemies.query_circle(player.x, player.y, 300.0, _exScratch)
+		for e in out:
+			var dx: float = e.x - player.x
+			var dy: float = e.y - player.y
+			var d := maxf(1.0, sqrt(dx * dx + dy * dy))
+			var k: float = (1.0 - d / 300.0) * 900.0 * e.knockRes
+			e.kx += dx / d * k
+			e.ky += dy / d * k
+			e.stopT = maxf(e.stopT, 0.8)
+			e.stopMv = true
 		ui.set_dying(true)
 		ui.boss_moment("fall", "DÜŞTÜN")
 		return
@@ -798,8 +821,6 @@ func game_over() -> void:
 	Ftue.show("")
 	state = "gameover"
 	freeze = 0
-	add_shake(D.FX.shakeBoss)
-	audio.play("death")
 	music.fade_out(0.5)
 	get_tree().create_timer(0.9).timeout.connect(func(): if state == "gameover": music.sting("defeat"))
 	if not reviveUsed: dyn_nudge(-D.DYN.onDeath)
@@ -832,6 +853,8 @@ func _on_revive() -> void:
 	player.invuln = maxf(player.invuln, 2.5)
 	state = "playing"
 	_dying = 0
+	_deathT = -1.0
+	zoomP = 0
 	_return_pulse({"evo": true})
 	for i in 26:
 		pools.particles.take().setup(player.x + (randf() - 0.5) * 40, player.y, (randf() - 0.5) * 30, -160 - randf() * 220,
@@ -1632,6 +1655,7 @@ func explode(x: float, y: float, dmg: float, radius: float, big: bool) -> void:
 		if dx * dx + dy * dy > reach * reach: continue
 		Combat.apply_hit(self, e, d, atan2(dy, dx), 300, 0, false)
 	if props: props.damage_area(x, y, rr, d * 0.55)
+	vfx.ring(x, y, rr * 1.1, Color(1, 0.8, 0.45), 0.42 if big else 0.32)
 	spawn_burst(x, y, "#fff2c8", 26 if big else 16, 380 if big else 300, 3.5, 0.5, true)
 	spawn_burst(x, y, D.COLORS.ember, 22 if big else 14, 300 if big else 230, 4.5, 0.55, true)
 	spawn_burst(x, y, "#ff8a3c", 16 if big else 10, 220 if big else 170, 4, 0.5, true)
@@ -1708,27 +1732,61 @@ func _process(_delta: float) -> void:
 			if _bossOutro <= 0:
 				_bossOutro = -1
 				on_boss_down()
+		var slow := 0.0
+		if _bossOutro > 0: slow = 0.3
 		if _dying > 0:
 			_dying -= rdt
+			_deathT += rdt
+			var dk := clampf(_deathT / DEATH_DUR, 0.0, 1.0)
+			slow = lerpf(0.08, 0.5, dk * dk)
+			# kamera kahramana yavaşça süzülür
+			zoomP = maxf(zoomP, 0.15 * (1.0 - pow(1.0 - minf(1.0, _deathT / 1.2), 3.0)))
 			if _dying <= 0:
 				_dying = -1
 				game_over()
-		acc += (rdt * 0.3 if _bossOutro > 0 else (rdt * 0.25 if _dying > 0 else rdt)) * devSpeed
-		var steps := 0
-		while acc >= STEP and steps < MAX_STEPS * devSpeed:
-			Prof.b("update"); update(STEP); Prof.e("update")
-			acc -= STEP
-			steps += 1
-		if steps == MAX_STEPS * devSpeed: acc = 0
+		if slow > 0.0:
+			# ağır çekim: her karede küçük adım (sabit adım biriktirmek kareyi 3–4 karede bir
+			# ilerletiyordu → "1 fps" hissi)
+			acc = 0
+			Prof.b("update"); update(minf(STEP, rdt * slow)); Prof.e("update")
+		else:
+			acc += rdt * devSpeed
+			var steps := 0
+			while acc >= STEP and steps < MAX_STEPS * devSpeed:
+				Prof.b("update"); update(STEP); Prof.e("update")
+				acc -= STEP
+				steps += 1
+			if steps == MAX_STEPS * devSpeed: acc = 0
 	Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
 	Prof.frame()
 
 var _ultauto := -1.0
+var _dieat := 0.0
+var _vfxtest := false
+var _vfxT := 0.0
 func update(dt: float) -> void:
 	if _ultauto < 0.0:
 		_ultauto = 0.0
 		for u in OS.get_cmdline_user_args():
 			if u.begins_with("ultauto="): _ultauto = float(u.substr(8))
+			if u.begins_with("dieat="): _dieat = float(u.substr(6))
+			if u == "vfxtest": _vfxtest = true
+	# geliştirici: vfxtest — savaş ışık katmanının tüm efektleri sırayla (görsel kontrol)
+	if _vfxtest:
+		_vfxT += dt
+		if _vfxT >= 0.5:
+			_vfxT = 0.0
+			var ph := int(time * 2.0) % 4
+			var ids := ["kilic", "pala", "yemin", "tackilic"]
+			vfx.slash(player.x, player.y, time * 1.7, 2.2, 95.0, ids[ph], ph == 3)
+			vfx.hit(player.x + 90, player.y - 20, 0.0, ph % 2 == 0)
+			vfx.bolt(player.x - 120, player.y - 60, player.x - 20, player.y + 70)
+			if ph == 0 and time < 3.0: vfx.cast(player.x, player.y, Color(1, 0.78, 0.3))
+	# geliştirici: dieat=sn — o savaş saatinde kahraman düşer (ölüm sekansı testi)
+	if _dieat > 0.0 and time >= _dieat and _deathT < 0.0:
+		_dieat = 0.0
+		player.hp = 0
+		game_over()
 	time += dt
 	if Quality.stress >= 0.66: _stressT += dt
 	if player.maxHp > 0:
@@ -1742,7 +1800,7 @@ func update(dt: float) -> void:
 	# geliştirici: ultauto=sn — süper yetenek her sn'de bir dolu ve ateşlenir (efekt testi)
 	if _ultauto > 0.0 and fmod(time, _ultauto) < dt and time > 2.0:
 		ult.charge = Ultimate.ULT_NEED; ult.ready = true; ult.fire()
-	Prof.b("ult.update"); ult.update(dt); Prof.e("ult.update")
+	Prof.b("ult.update"); ult.update(dt); vfx.update(dt); Prof.e("ult.update")
 	Prof.b("events.update"); events.update(dt); Prof.e("events.update")
 	Prof.b("mode.update"); mode.update(dt); Prof.e("mode.update")
 	Ftue.poll(self)

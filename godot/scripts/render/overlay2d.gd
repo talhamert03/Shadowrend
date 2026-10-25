@@ -55,9 +55,11 @@ func draw_frame() -> void:
 		g.mode.render(ctx)
 		g.events.render(ctx)
 		g.ult.render(ctx)
+		g.vfx.render(g.ult)
 		g.mode.arrow(ctx)
 		g.events.arrow(ctx)
 		_render_objective_arrow()
+		g.ult.flush_all(ctx)
 	ctx.restore()
 	g.input.render(ctx)
 

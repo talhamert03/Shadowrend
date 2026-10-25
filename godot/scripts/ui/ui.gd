@@ -6,6 +6,7 @@ var g
 var _ldHold := false
 var _shot := ""
 var _shotT := 6.0
+var _gsI := 0
 var _t0 := 0.0
 var _god := false
 var _logT := 0.0
@@ -238,7 +239,16 @@ func boot() -> void:
 		g.meta.ftue = 1
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
+		if _arg("dense") != "": g.enemies.devDense = float(_arg("dense"))
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
+		if _arg("wpn") != "":
+			# geliştirici: wpn=id:sv,id:sv — savaşa yalnız bu silahlarla başla (efekt testi)
+			get_tree().create_timer(0.5).timeout.connect(func():
+				g.weapons.slots = {}
+				for kv in _arg("wpn").split(",", false):
+					var pr := kv.split(":")
+					g.weapons.slots[pr[0]] = int(pr[1]) if pr.size() > 1 else 1
+				g.weapons.on_weapon_gained())
 		if _arg("lvnow") != "":
 			# geliştirici: savaş başlayınca seviye kartı ekranı
 			get_tree().create_timer(float(_arg("lvnow"))).timeout.connect(func():
@@ -448,6 +458,15 @@ func _process(_dt: float) -> void:
 	if hv != "" and not _hudDone and _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT - float(_arg("hudw", "1")):
 		_hudDone = true
 		_hud_test(hv)
+	# geliştirici: gshots=4.3,4.6,… — savaş saatine (g.time) göre çoklu kare (shot yolu + _i)
+	var gs := _arg("gshots", "")
+	if gs != "" and _shot != "" and g.state == "playing":
+		var L := gs.split(",")
+		if _gsI < L.size() and g.time >= float(L[_gsI]):
+			get_viewport().get_texture().get_image().save_png(_shot.replace(".png", "_" + str(_gsI) + ".png"))
+			_gsI += 1
+			if _gsI >= L.size() and _arg("quit") != "": get_tree().quit()
+		return
 	if _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(_shot)

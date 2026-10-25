@@ -366,6 +366,7 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 		p.faceHold = 0.25
 		p.trigger_melee_attack(dir)
 	var half := arc / 2.0
+	g.vfx.slash(p.x, p.y, dir, arc, range_, id, spin, kind == "echo")
 	var dmg: float = Wd.dmg[L] * mul * (1.6 if spin else 1.0)
 	var knock: float = Wd.knock[L] * (0.4 if kind == "echo" else 1.0)
 	var crit := JS.num(Wd, "critAdd")
@@ -1021,6 +1022,7 @@ func fire_chain(L: int, Wd: Dictionary) -> void:
 		var ang := atan2(target.y - oy, target.x - ox)
 		Combat.apply_hit(g, target, dmg, ang, knock, JS.num(Wd, "critAdd"), false)
 		if g.renderer3d: g.renderer3d.spawn_lightning_arc(ox, oy, target.x, target.y)
+		g.vfx.bolt(ox, oy, target.x, target.y)
 		if wi(Wd, "shock"): g.explode(target.x, target.y, dmg * (0.2 + wi(Wd, "shock") * 0.09), 32 + wi(Wd, "shock") * 8, true)
 		g.spawn_burst(target.x, target.y, "#bfe6ff", 6, 200, 2, 0.26, true)
 		hit.append(target)
@@ -1253,6 +1255,8 @@ func evo_hint():
 func apply_choice(c: Dictionary) -> void:
 	var p = game.player
 	_add_tag(c)
+	var cc := {"weapon": Color(1, 0.78, 0.3), "passive": Color(0.4, 0.9, 1), "special": Color(0.75, 0.5, 1), "curse": Color(1, 0.25, 0.3), "heal": Color(0.4, 1, 0.55), "guc": Color(1, 0.5, 0.3)}
+	if game.vfx: game.vfx.cast(p.x, p.y, cc.get(c.kind, Color(1, 0.85, 0.5)))
 	match c.kind:
 		"weapon":
 			var was: int = slots.get(c.id, 0)

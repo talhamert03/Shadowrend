@@ -417,3 +417,14 @@ func draw_image(tex: Texture2D, x: float, y: float, w: float = -1.0, h: float = 
 	var rid := _item()
 	RenderingServer.canvas_item_add_set_transform(rid, xf)
 	RenderingServer.canvas_item_add_texture_rect(rid, Rect2(x, y, w, h), tex.get_rid(), false, Color(1, 1, 1, global_alpha))
+
+## Hazır üçgen listesi (V: ardışık üçlüler, o anki dönüşümle) — yüzlerce şekil TEK çizim çağrısında.
+## additive: toplamalı parıltı öğesine düşer (sıra korunur).
+func tris(V: PackedVector2Array, C: PackedColorArray, additive := false) -> void:
+	if V.size() < 3: return
+	var prev := comp
+	comp = "lighter" if additive else "source-over"
+	var rid := _item()
+	comp = prev
+	RenderingServer.canvas_item_add_set_transform(rid, xf)
+	RenderingServer.canvas_item_add_triangle_array(rid, PackedInt32Array(), V, C)

@@ -11,6 +11,7 @@ const INK := Color(0.05, 0.03, 0.07)
 const YEL := Color("#ffd23a")
 const RED := Color("#e8322c")
 const BG := "res://assets/ui/art/title_bg.jpg"
+const LOGO := "res://assets/ui/art/title_logo.png"
 ## görselde ayın merkezi (oran) — hale bunun üstüne oturur
 const MOON_UV := Vector2(0.495, 0.155)
 
@@ -27,6 +28,7 @@ var _fog: Array = []          # [Sprite2D, hız, genişlik, y]
 var _embers: Node2D
 var _ember: Array = []
 var _logo: Node2D
+var _logoSpr: Sprite2D
 var _sub: Node2D
 var _bar: Node2D
 var _pct: UIText
@@ -118,20 +120,19 @@ func setup(sz: Vector2) -> void:
 		B.radial(Vector2.ZERO, w * 0.55, Color(1.0, 0.45, 0.2, 0.22), Color(1.0, 0.3, 0.2, 0.0), 0.32, 40)
 		B.flush(glow))
 	_logo.add_child(glow)
+	# logo: Cinzel Decorative, altın metal dolgu + kızıl/siyah kontur + kor ışıltısı (önceden pişmiş doku)
 	var fs := clampf(w * 0.15, 44.0, 68.0)
-	var lt := UIText.new()
-	lt.style(false, 1000, fs, 3.5, YEL, UIK.ink_stroke(4.0, 7.0))
-	lt.align = 0.5
-	lt.nowrap = true
-	lt.wrap_w = w
-	lt.size = Vector2(w, fs * 1.4)
-	lt.position = Vector2(-w * 0.5, -fs * 0.66)
-	lt.text = "SHADOWREND"
-	_logo.add_child(lt)
+	var lg := Sprite2D.new()
+	lg.texture = load(LOGO)
+	var lw := minf(w * 0.92, 520.0)
+	lg.scale = Vector2.ONE * (lw / float(lg.texture.get_width()))
+	_logo.add_child(lg)
+	_logoSpr = lg
 	_logo.modulate.a = 0.0
 	# slogan: ince çizgiler arasında
 	_sub = Node2D.new()
-	_sub.position = Vector2(w * 0.5, ly + fs * 0.78)
+	var lh := lw * float(lg.texture.get_height()) / float(lg.texture.get_width())
+	_sub.position = Vector2(w * 0.5, ly + lh * 0.5 + 10.0)
 	add_child(_sub)
 	var sw := w * 0.62
 	_sub.draw.connect(func():
@@ -224,9 +225,12 @@ func _process(dt: float) -> void:
 		s.position.x = size_l.x * 0.5 + sin(_t * float(f[1]) * 0.012) * span * 0.35
 		s.position.y = float(f[3]) + sin(_t * 0.4 + float(f[1])) * 6.0
 	# logo ve slogan: yumuşak belirme + hafif süzülme
-	var kl := clampf((_t - 0.35) / 0.9, 0.0, 1.0)
-	_logo.modulate.a = kl * kl * (3.0 - 2.0 * kl)
-	_logo.scale = Vector2.ONE * (1.08 - 0.08 * _logo.modulate.a + sin(_t * 1.3) * 0.006)
-	var ks := clampf((_t - 1.0) / 0.8, 0.0, 1.0)
+	# logo hemen gelir: 0,05 sn'de başlar, 0,45 sn'de tamam (hafif büyüyerek oturur)
+	var kl := clampf((_t - 0.05) / 0.4, 0.0, 1.0)
+	var ke := 1.0 - pow(1.0 - kl, 3.0)
+	_logo.modulate.a = ke
+	_logo.scale = Vector2.ONE * (1.12 - 0.12 * ke + sin(_t * 1.3) * 0.006)
+	if _logoSpr: _logoSpr.modulate = Color(1, 1, 1).lerp(Color(1.12, 1.06, 0.98), 0.5 + 0.5 * sin(_t * 2.2))
+	var ks := clampf((_t - 0.35) / 0.6, 0.0, 1.0)
 	_sub.modulate.a = ks
 	_embers.queue_redraw()

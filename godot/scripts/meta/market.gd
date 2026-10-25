@@ -1,12 +1,13 @@
 class_name Market
 ## market.js — Günlük kart pazarı (birebir).
 
-## ── EKONOMİ (v2) ──
-## Gelir ölçeği: görev ilk geçiş ~35–190 altın (dünya 1–2), tekrar ~%32'si, sandık 16–420.
-## Kart fiyatları bu ölçeğe göre: sıradan kart ~1 görev, efsanevi kart ~4–6 görev.
+## ── EKONOMİ (v3) ──
+## Gelir ölçeği: görev ilk geçiş ~35–390 altın (dünya 1–2), tekrar ~%32'si, sandık 16–420.
+## Kart fiyatları bu ölçeğe göre: sıradan kart ~2–3 zafer, efsanevi kart ~15–25 zafer. Kahramanlar
+## asıl sandıktan çıkar; doğrudan açma (config CHARACTERS.price) bilerek çok pahalı.
 ## Eşya kartı birim fiyatı nadirlik SIRASINA göre (balance GEAR_RANK: 1,2,4,5,3 → sıra 1..5)
-const GEAR_EACH := [0, 30, 55, 110, 220, 420]     # sıra → altın / kart
-const HERO_EACH := [0, 45, 90, 200, 380]          # kahraman nadirliği → altın / kart
+const GEAR_EACH := [0, 160, 300, 600, 1150, 2200]     # sıra → altın / kart
+const HERO_EACH := [0, 220, 450, 950, 1900]          # kahraman nadirliği → altın / kart
 const GEAR_OFFERS := 4                            # günlük eşya teklifi
 const HERO_OFFERS := 2                            # günlük kahraman kartı teklifi
 
@@ -68,7 +69,7 @@ static func offers(g) -> Array:
 		var id: String = _pick(locked, 1, day * 13 + 5)[0]
 		var C: Dictionary = D.CHARACTERS[id]
 		var r := JS.num(C, "rarity", 1.0)
-		var k := 2.4 * (1 + 0.3 * r)
+		var k := 1.0                 # taban fiyat zaten yüksek; pazar kilidi aynı fiyattan
 		var price := JS.round_js(JS.num(C, "price", 300.0) * k)
 		var gem := JS.round_js((float(C.stonePrice) if JS.truthy(C.get("stonePrice")) else _to_gem(price)) * k)
 		out.append({"slot": "h3", "kind": "char", "unlock": true, "id": id, "rar": r, "name": C.name, "n": 1, "price": price, "gem": gem, "got": B.got.has("h3")})

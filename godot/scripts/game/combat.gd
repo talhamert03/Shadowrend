@@ -85,6 +85,7 @@ static func apply_hit(game, e: Ent.Enemy, base: float, angle: float = 0.0, knock
 			game.renderer3d.spawn_hit(e.x, e.y, angle, 2 if e.isBoss else 1, 1, 0.80, 0.34)
 			game.renderer3d.spawn_pow(e.x + cos(angle) * -8.0, e.y + sin(angle) * -8.0)
 		else: game.renderer3d.spawn_hit(e.x, e.y, angle, 0, 1, 0.90, 0.74)
+	if game.vfx: game.vfx.hit(e.x, e.y, angle, r.crit)
 
 	if not e.isBoss and game.in_view(e.x, e.y, 60):
 		var n := 3 if r.crit else 2
@@ -138,6 +139,7 @@ static func damage_player(game, raw: float, sx = null, sy = null) -> void:
 	var has_src := sx != null
 	var src_a := atan2(float(sy) - p.y, float(sx) - p.x) if has_src else 0.0
 	if has_src: game.ui.hurt_dir(src_a)
+	if game.vfx: game.vfx.hurt(p.x, p.y, src_a if has_src else p.facing + PI)
 	game.add_kick(src_a + PI if has_src else p.facing + PI, FEEL.kickHurt)
 	Quality.haptic("hurt")
 	game.audio.play("hurt")

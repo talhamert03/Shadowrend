@@ -856,8 +856,17 @@ func _update_player(g, dt: float) -> void:
 	while diff < -PI: diff += TAU
 	if p.moving: _yaw += diff * minf(1, dt * 10)
 	playerRoot.rotation.y = _yaw
-	var flick: bool = p.invuln > 0 and int(g.time * 24) % 2 == 0
+	var flick: bool = p.invuln > 0 and int(g.time * 24) % 2 == 0 and g._deathT < 0.0
 	playerRoot.visible = not flick
+	# ölüm: kahraman sırtüstü devrilir (yerçekimiyle hızlanır, küçük sekme)
+	if g._deathT >= 0.0:
+		var u := clampf(g._deathT / 0.55, 0.0, 1.0)
+		var f := u * u
+		var bo := sin(clampf((g._deathT - 0.55) / 0.22, 0.0, 1.0) * PI) * 0.1
+		playerRoot.rotation.x = -f * 1.42 + bo
+		playerRoot.position.y = -f * 2.0
+	elif playerRoot.rotation.x != 0.0:
+		playerRoot.rotation.x = 0.0
 	if heroSkel:
 		for e in _poseBase: heroSkel.set_bone_pose_rotation(e[0], e[1])
 	if heroAnim and walkClip != "":

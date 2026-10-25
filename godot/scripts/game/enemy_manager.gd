@@ -81,6 +81,7 @@ var inView := 0
 var densityMul := 1.0
 var osCap := 64.0
 var aliveCap := 120.0
+var devDense := 1.0           # geliştirici: dense=k (kalabalık savaş performans testi)
 var bossHpMul := 1.0
 var bossDeathX := 0.0; var bossDeathY := 0.0; var bossDeathR := 60.0
 var _chainOut: Array = []
@@ -185,6 +186,9 @@ func start_wave(w: int) -> void:
 	waveT = 0; queue = 0; qTimer = 0
 	osCap = D.onScreenCap(w)
 	aliveCap = JS.num(msn, "aliveCap", 120.0)
+	if devDense > 1.0:
+		densityMul *= devDense; batch = D.spawnBatch(w, densityMul, 1); interval /= devDense
+		osCap *= devDense; aliveCap *= devDense
 	var bhm = msn.get("bossHpMul")
 	bossHpMul = D.waveHpMul(w) * (float(bhm) if JS.truthy(bhm) else float(msn.hpMul))
 	eliteChance = JS.num(msn, "eliteChance")
