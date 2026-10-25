@@ -1114,11 +1114,13 @@ func fire_beam(id: String, Wd: Dictionary, L: int) -> void:
 # kayarak fırlar ve kovalar. Süzülenlerin hepsi fırlayınca anında yenileri belirir (üç süzülür,
 # üçü de atılır, yenilenir…). Süzülenler `blades`, havadakiler `bladeFly` dizisinde. ──
 func _blade_slot_pos(i: int, n: int, p) -> Vector3:
-	# arkada hafif yay: ortadaki en yukarıda, yanlar omuz hizasında
+	# kahramanın yanında, arkada açılan geniş yay: sol yan · arka · sağ yan (gövdeye değmez)
 	var tt: float = game.time
-	var span := 30.0
-	var ox := (i - (n - 1) * 0.5) * span
-	return Vector3(p.x + ox, 64.0 - absf(ox) * 0.25 + sin(tt * 2.6 + i * 1.9) * 3.0, p.y - 26.0 + absf(ox) * 0.35)
+	var f := float(i) / float(maxi(1, n - 1)) if n > 1 else 0.5
+	var a := lerpf(-PI + 0.32, -0.32, f)
+	var r := 64.0
+	var bob := sin(tt * 2.6 + i * 1.9) * 3.0
+	return Vector3(p.x + cos(a) * r, 58.0 + (1.0 - absf(f - 0.5) * 2.0) * 14.0 + bob, p.y + sin(a) * r * 0.62)
 
 func _blade_new() -> Dictionary:
 	return {"st": BL_GONE, "x": 0.0, "y": 0.0, "h": 0.0, "vx": 0.0, "vy": 0.0, "t": 0.0, "ang": 0.0, "tgt": null, "tok": -1,

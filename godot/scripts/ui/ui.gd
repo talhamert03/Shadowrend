@@ -202,6 +202,7 @@ func boot() -> void:
 				pg.render_chapters(int(_arg("chw")))   # geliştirici: bölüm seçimini aç
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
+		if _arg("navtest") != "": _nav_test()
 		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
 		var ov := _arg("ov")
 		if _arg("cd") != "": open_char_detail(_arg("cd"))      # geliştirici: kahraman detayı
@@ -789,3 +790,27 @@ func _apply_safe() -> void:
 	_bands[2].size = Vector2(x0, bot - sa[0])
 	_bands[3].position = Vector2(x0 + w, sa[0])
 	_bands[3].size = Vector2(vs.x - x0 - w, bot - sa[0])
+
+## geliştirici: navtest — harita → dünya → bölüm seç → harita → dünya listesi mi? · bölüm → geri
+func _nav_test() -> void:
+	await get_tree().create_timer(2.0).timeout
+	var M = menu
+	await M._open_worlds()
+	var J = M.pages["dunyalar"]
+	print("NAV1 mode=", J.mode, " shell=", J.shell.data.get("name"))
+	J.render_chapters(2)
+	print("NAV2 mode=", J.mode, " shell=", J.shell.data.get("name"))
+	J._pick(2, 1)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	print("NAV3 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))
+	await M._open_worlds()
+	print("NAV4 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))
+	J.render_chapters(1)
+	J._back()
+	print("NAV5 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))
+	await M._open_chapters()
+	J._back()
+	await get_tree().process_frame
+	await M._open_worlds()
+	print("NAV6 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))

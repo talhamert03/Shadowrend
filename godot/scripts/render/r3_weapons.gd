@@ -205,7 +205,7 @@ func _update_float(g, dt: float) -> void:
 	_bb(floatGlow, 1, _foX, gy, _foZ, 110, 110, 0, _foCol.r * 0.18, _foCol.g * 0.18, _foCol.b * 0.18)
 	floatGlow.commit(2)
 
-## CADI ASASI (Batak Cadısı): bükülmüş koyu ağaç gövde, uçta pençe kökler arasında parlayan zehir
+## CADI ASASI (Bataklık Cadısı): bükülmüş koyu ağaç gövde, uçta pençe kökler arasında parlayan zehir
 ## kristali, asılı küçük kemik kurukafa — prosedürel (kazanın yerine)
 func _build_staff() -> Node3D:
 	var root := Node3D.new()

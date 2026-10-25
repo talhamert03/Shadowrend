@@ -916,7 +916,7 @@
   "zehra": {
    "id": "zehra",
    "rarity": 3,
-   "name": "BATAK CADISI",
+   "name": "BATAKLIK CADISI",
    "title": "Zehir Asalı",
    "price": 14000,
    "stonePrice": 1100,
@@ -5467,7 +5467,7 @@
    "fireball": true,
    "firePal": "toxic",
    "sfx": "shoot",
-   "descNew": "Batak Cadısı'nın omzunda süzülen asa — kristalinden en yakın düşmana zehir damlası fırlatır, damla çarpınca patlar.",
+   "descNew": "Bataklık Cadısı'nın omzunda süzülen asa — kristalinden en yakın düşmana zehir damlası fırlatır, damla çarpınca patlar.",
    "descUp": [
     "Hasar +, patlama büyür",
     "Daha sık fırlatır",

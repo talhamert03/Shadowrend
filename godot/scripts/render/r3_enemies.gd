@@ -228,8 +228,11 @@ func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> 
 			m.next_pass = om
 			ms.append(om)
 		for mm: ShaderMaterial in ms:
-			mm.set_shader_parameter("vat_pos", V.pos)
+			mm.set_shader_parameter("vat_hi", V.hi)
+			mm.set_shader_parameter("vat_lo", V.lo)
 			mm.set_shader_parameter("vat_nrm", V.nrm)
+			mm.set_shader_parameter("vat_min", V.bmin)
+			mm.set_shader_parameter("vat_size", V.bsize)
 			mm.set_shader_parameter("vat_w", VatBake.TEX_W)
 			mm.set_shader_parameter("vat_rows", int(V.rows))
 			mm.set_shader_parameter("vat_frames", int(V.frames))

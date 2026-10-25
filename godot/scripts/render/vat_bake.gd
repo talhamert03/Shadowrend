@@ -11,7 +11,7 @@ extends RefCounted
 
 const FRAMES := 20
 const TEX_W := 1024
-const VERSION := 3
+const VERSION := 4
 
 class Job:
 	var V := 0
@@ -23,6 +23,34 @@ class Job:
 	var outP: Array = []               # [kare] -> PackedFloat32Array (V*4)
 	var outN: Array = []
 	var mtx := Mutex.new()
+	var rows := 1
+	var bmin := Vector3.ZERO
+	var bsz := Vector3.ONE
+	var hi: Array = []                 # [kare] -> PackedByteArray (RGBA8: konumun yüksek baytı)
+	var lo: Array = []                 # düşük bayt
+	var nb: Array = []                 # normal (RGBA8, *0,5+0,5)
+	## RGBA8 kodlama (her GPU'da desteklenir; yarım-float doku bazı mobil sürücülerde 8 bite
+	## düşürülüp negatif koordinatları kırpıyor, model kâğıt gibi eziliyordu): konum 16 bit
+	## (hi/lo iki doku), sınırlar vat_min/vat_size ile
+	func enc(f: int) -> void:
+		var P: PackedFloat32Array = outP[f]
+		var N: PackedFloat32Array = outN[f]
+		var n := rows * 1024 * 4
+		var H := PackedByteArray()
+		var L := PackedByteArray()
+		var NB := PackedByteArray()
+		H.resize(n); L.resize(n); NB.resize(n)
+		for v in V:
+			var o := v * 4
+			for k in 3:
+				var q: int = clampi(int(round((P[o + k] - bmin[k]) / bsz[k] * 65535.0)), 0, 65535)
+				H[o + k] = q >> 8
+				L[o + k] = q & 255
+				NB[o + k] = clampi(int(round((N[o + k] * 0.5 + 0.5) * 255.0)), 0, 255)
+			H[o + 3] = 255; L[o + 3] = 255; NB[o + 3] = 255
+		mtx.lock()
+		hi[f] = H; lo[f] = L; nb[f] = NB
+		mtx.unlock()
 	func run(f: int) -> void:
 		var M: Array = mats[f]
 		var P := PackedFloat32Array()
@@ -130,13 +158,19 @@ static func bake(parent: Node3D, ps: PackedScene, def: Dictionary) -> Dictionary
 	if FileAccess.file_exists(cpath):
 		var f := FileAccess.open(cpath, FileAccess.READ)
 		if f:
-			var pb = f.get_var(false)
+			var bm = f.get_var(false)
+			var bs = f.get_var(false)
+			var hb = f.get_var(false)
+			var lb = f.get_var(false)
 			var nb2 = f.get_var(false)
 			f.close()
-			if pb is PackedByteArray and nb2 is PackedByteArray and pb.size() == TEX_W * rows * FRAMES * 8:
+			if bm is Vector3 and bs is Vector3 and hb is PackedByteArray and lb is PackedByteArray and nb2 is PackedByteArray and hb.size() == TEX_W * rows * FRAMES * 4:
 				holder.queue_free()
-				res.pos = ImageTexture.create_from_image(Image.create_from_data(TEX_W, rows * FRAMES, false, Image.FORMAT_RGBAH, pb))
-				res.nrm = ImageTexture.create_from_image(Image.create_from_data(TEX_W, rows * FRAMES, false, Image.FORMAT_RGBAH, nb2))
+				res.bmin = bm
+				res.bsize = bs
+				res.hi = _img(hb, rows)
+				res.lo = _img(lb, rows)
+				res.nrm = _img(nb2, rows)
 				return res
 	# kemik matrisleri: kare başına tüm bağlar (dünya → tutucu uzayı)
 	var inv := holder.global_transform.affine_inverse()
@@ -158,21 +192,39 @@ static func bake(parent: Node3D, ps: PackedScene, def: Dictionary) -> Dictionary
 	var tid := WorkerThreadPool.add_group_task(job.run, FRAMES, -1, true, "vat " + id)
 	WorkerThreadPool.wait_for_group_task_completion(tid)
 	holder.queue_free()
-	res.pos = _tex(job.outP, rows)
-	res.nrm = _tex(job.outN, rows)
+	# sınırlar (tüm kareler) + paralel RGBA8 kodlama
+	var mn := Vector3(INF, INF, INF)
+	var mx := Vector3(-INF, -INF, -INF)
+	for f in FRAMES:
+		var P: PackedFloat32Array = job.outP[f]
+		var i := 0
+		while i < P.size():
+			var q := Vector3(P[i], P[i + 1], P[i + 2])
+			mn = mn.min(q)
+			mx = mx.max(q)
+			i += 4
+	var sz := (mx - mn).max(Vector3(0.0001, 0.0001, 0.0001))
+	job.rows = rows
+	job.bmin = mn
+	job.bsz = sz
+	job.hi.resize(FRAMES); job.lo.resize(FRAMES); job.nb.resize(FRAMES)
+	var t2 := WorkerThreadPool.add_group_task(job.enc, FRAMES, -1, true, "vatenc " + id)
+	WorkerThreadPool.wait_for_group_task_completion(t2)
+	var H := PackedByteArray(); var L := PackedByteArray(); var NB := PackedByteArray()
+	for f in FRAMES:
+		H.append_array(job.hi[f]); L.append_array(job.lo[f]); NB.append_array(job.nb[f])
+	res.bmin = mn
+	res.bsize = sz
+	res.hi = _img(H, rows)
+	res.lo = _img(L, rows)
+	res.nrm = _img(NB, rows)
 	DirAccess.make_dir_recursive_absolute("user://vat")
 	var w := FileAccess.open(cpath, FileAccess.WRITE)
 	if w:
-		w.store_var((res.pos as ImageTexture).get_image().get_data(), false)
-		w.store_var((res.nrm as ImageTexture).get_image().get_data(), false)
+		w.store_var(mn, false); w.store_var(sz, false)
+		w.store_var(H, false); w.store_var(L, false); w.store_var(NB, false)
 		w.close()
 	return res
 
-static func _tex(frames: Array, rows: int) -> ImageTexture:
-	var data := PackedFloat32Array()
-	for f in FRAMES:
-		data.append_array(frames[f] as PackedFloat32Array)
-		data.resize((f + 1) * rows * TEX_W * 4)
-	var img := Image.create_from_data(TEX_W, rows * FRAMES, false, Image.FORMAT_RGBAF, data.to_byte_array())
-	img.convert(Image.FORMAT_RGBAH)
-	return ImageTexture.create_from_image(img)
+static func _img(data: PackedByteArray, rows: int) -> ImageTexture:
+	return ImageTexture.create_from_image(Image.create_from_data(TEX_W, rows * FRAMES, false, Image.FORMAT_RGBA8, data))

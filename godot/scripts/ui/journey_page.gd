@@ -28,6 +28,10 @@ func _init(m) -> void:
 	g = m.g
 	name = "Journey"
 
+## dünya listesi değilse dünya listesine kur (haritaya dokunuş)
+func ensure_worlds() -> void:
+	if mode != "worlds" or shell == null or str(shell.data.get("name", "")) != "pg_dunyalar": open_worlds()
+
 func open_worlds() -> void:
 	from_home = false
 	mode = "worlds"
@@ -78,6 +82,7 @@ func _back() -> void:
 	if mode == "chapters" and from_home:
 		from_home = false
 		menu.set_page("savas")
+		call_deferred("open_worlds")
 	elif mode == "chapters":
 		open_worlds()
 	else:
@@ -267,6 +272,9 @@ func _node_hit(L: Lyr) -> Rect2:
 func _pick(w: int, m: int) -> void:
 	g.audio.play("click")
 	g.ui.set_pick(w, m)
-	mode = "worlds"
+	from_home = false
 	menu.set_page("savas")
+	# sayfa gizliyken dünya listesine dön: haritaya tekrar basınca dünya seçimi açılsın,
+	# geri düğmesi tutarlı çalışsın (eskiden yalnız mod değişiyor, ekranda bölümler kalıyordu)
+	call_deferred("open_worlds")
 	g.ui.toast("GÖREV " + str(m) + " SEÇİLDİ — SAVAŞ’A BAS")

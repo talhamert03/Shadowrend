@@ -193,19 +193,30 @@ static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
 		m.set_shader_parameter("emissive_k", 0.0)
 	return m
 
-## VAT köşe fonksiyonu (lit ve kontur ortak): vat_pos/vat_nrm RGBA16F, genişlik vat_w,
+## VAT köşe fonksiyonu (lit ve kontur ortak): vat_hi/vat_lo (16 bit konum) + vat_nrm, RGBA8; genişlik vat_w,
 ## kare başına vat_rows satır, vat_frames kare. Köşe sırası = yüzey dizisi (VERTEX_ID).
-const VAT_HEAD := """uniform highp sampler2D vat_pos : filter_nearest;
+const VAT_HEAD := """uniform highp sampler2D vat_hi : filter_nearest;
+uniform highp sampler2D vat_lo : filter_nearest;
 uniform highp sampler2D vat_nrm : filter_nearest;
+uniform vec3 vat_min = vec3(0.0);
+uniform vec3 vat_size = vec3(1.0);
 uniform int vat_w = 1024;
 uniform int vat_rows = 1;
 uniform int vat_frames = 1;
 uniform int vat_off = 0;
 varying vec4 v_cus;
 varying vec3 v_lp;
-vec3 vat_fetch(highp sampler2D t, int vid, int f) {
-	int row = f * vat_rows + vid / vat_w;
-	return texelFetch(t, ivec2(vid - (vid / vat_w) * vat_w, row), 0).xyz;
+ivec2 vat_uv(int vid, int f) {
+	return ivec2(vid - (vid / vat_w) * vat_w, f * vat_rows + vid / vat_w);
+}
+vec3 vat_p(int vid, int f) {
+	ivec2 uv = vat_uv(vid, f);
+	vec3 h = texelFetch(vat_hi, uv, 0).xyz;
+	vec3 l = texelFetch(vat_lo, uv, 0).xyz;
+	return vat_min + vat_size * ((h * 65280.0 + l * 255.0) / 65535.0);
+}
+vec3 vat_n(int vid, int f) {
+	return texelFetch(vat_nrm, vat_uv(vid, f), 0).xyz * 2.0 - 1.0;
 }
 """
 const VAT_VERTEX := VAT_HEAD + """void vertex() {
@@ -216,8 +227,8 @@ const VAT_VERTEX := VAT_HEAD + """void vertex() {
 	if (f1 >= vat_frames) f1 = 0;
 	if (f0 >= vat_frames) f0 = vat_frames - 1;
 	float k = fr - floor(fr);
-	VERTEX = mix(vat_fetch(vat_pos, vid, f0), vat_fetch(vat_pos, vid, f1), k);
-	NORMAL = normalize(mix(vat_fetch(vat_nrm, vid, f0), vat_fetch(vat_nrm, vid, f1), k));
+	VERTEX = mix(vat_p(vid, f0), vat_p(vid, f1), k);
+	NORMAL = normalize(mix(vat_n(vid, f0), vat_n(vid, f1), k));
 	v_cus = INSTANCE_CUSTOM;
 	v_lp = (MODEL_MATRIX * vec4(VERTEX, 0.0)).xyz;
 }
@@ -234,8 +245,8 @@ static func vat_outline(tex: Texture2D, base := Color(1, 1, 1), width := 1.5) ->
 	if (f1 >= vat_frames) f1 = 0;
 	if (f0 >= vat_frames) f0 = vat_frames - 1;
 	float kk = fr - floor(fr);
-	VERTEX = mix(vat_fetch(vat_pos, vid, f0), vat_fetch(vat_pos, vid, f1), kk);
-	NORMAL = normalize(mix(vat_fetch(vat_nrm, vid, f0), vat_fetch(vat_nrm, vid, f1), kk));
+	VERTEX = mix(vat_p(vid, f0), vat_p(vid, f1), kk);
+	NORMAL = normalize(mix(vat_n(vid, f0), vat_n(vid, f1), kk));
 	v_cus = INSTANCE_CUSTOM;
 	v_lp = vec3(0.0);
 """)

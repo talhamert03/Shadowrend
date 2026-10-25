@@ -578,7 +578,7 @@ func _bind_home(L: Lyr) -> void:
 		g.audio.play("cta")
 		var nm := home_target()
 		g.start_run(int(nm.w), int(nm.m)), 0.97)
-	btn(L, L.find_id("#home-map"), func(): g.audio.play("click"); _tap("dunyalar"), 0.985)
+	btn(L, L.find_id("#home-map"), func(): g.audio.play("click"); _open_worlds(), 0.985)
 	# bölüm şeridi: doğrudan oynanan dünyanın bölüm seçimi
 	btn(L, L.find_id("#map-pedestal"), func(): g.audio.play("click"); _open_chapters(), 0.985)
 	btn(L, L.find_id("#free-chest"), func(): _free_chest())
@@ -590,6 +590,11 @@ func _bind_home(L: Lyr) -> void:
 		_map = ArenaArt.new()      # CR arena kartı gibi: oyunun kendi 3B dioraması
 		_map.set_clip(L.clip_mat(_mapN))
 		_mapN.node.add_child(_map)
+
+func _open_worlds() -> void:
+	if pages.has("dunyalar"): (pages["dunyalar"] as JourneyPage).ensure_worlds()
+	await _tap("dunyalar")
+	if pages.has("dunyalar"): (pages["dunyalar"] as JourneyPage).ensure_worlds()
 
 func _open_chapters() -> void:
 	var w := int(home_target().w)
