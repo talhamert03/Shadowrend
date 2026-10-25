@@ -188,3 +188,5 @@ class Enemy:
 	var waveHit := 0; var lastCrit := false
 	# render tarafının yazdığı alanlar (render3d: __mdlTok/__mdlTop/__aliveTok/__bound/__score)
 	var mdlTok := 0; var mdlTop := 0.0; var aliveTok := 0; var bound = null; var score := 0.0
+	# VAT çizimi (r3_enemies): animasyon zamanı + yumuşatılmış konum/yön
+	var vT := 0.0; var vX := 0.0; var vZ := 0.0; var vYaw := 0.0; var vOn := false

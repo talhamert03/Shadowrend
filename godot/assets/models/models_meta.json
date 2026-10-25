@@ -435,7 +435,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6388,
+   "tris": 2380,
    "src": "meshy"
   },
   "muhafiz": {
@@ -466,7 +466,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6311,
+   "tris": 2207,
    "src": "meshy"
   },
   "buyucu": {
@@ -502,7 +502,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6325,
+   "tris": 5119,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -537,7 +537,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5920,
+   "tris": 4254,
    "src": "meshy"
   },
   "alev_deli": {
@@ -568,7 +568,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6329,
+   "tris": 2215,
    "src": "meshy"
   },
   "kor_lordu": {
@@ -599,7 +599,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6317,
+   "tris": 2209,
    "src": "meshy"
   },
   "mum_buyucu": {
@@ -635,7 +635,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 5172,
+   "tris": 2069,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -670,7 +670,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5904,
+   "tris": 4120,
    "src": "meshy"
   },
   "batak_devi": {
@@ -701,7 +701,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6004,
+   "tris": 3414,
    "src": "meshy"
   },
   "tuz_bocegi": {
@@ -732,7 +732,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6314,
+   "tris": 2208,
    "src": "meshy"
   },
   "tuz_pencesi": {
@@ -763,7 +763,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6318,
+   "tris": 2208,
    "src": "meshy"
   },
   "kosucu": {
@@ -794,7 +794,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6347,
+   "tris": 2438,
    "src": "meshy"
   },
   "buz_kurdu": {
@@ -825,7 +825,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6329,
+   "tris": 2447,
    "src": "meshy"
   },
   "buz_ayisi": {
@@ -856,7 +856,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6330,
+   "tris": 2214,
    "src": "meshy"
   },
   "yeti": {
@@ -887,7 +887,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6328,
+   "tris": 2464,
    "src": "meshy"
   },
   "kar_tilkisi": {
@@ -923,7 +923,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6239,
+   "tris": 3108,
    "src": "meshy",
    "shot": {
     "kind": "arrow",
@@ -958,7 +958,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6314,
+   "tris": 2208,
    "src": "meshy"
   },
   "katedral_tovbekar": {
@@ -989,7 +989,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5723,
+   "tris": 3721,
    "src": "meshy"
   },
   "katedral_cirak": {
@@ -1025,7 +1025,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 5693,
+   "tris": 3355,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1060,7 +1060,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6334,
+   "tris": 3804,
    "src": "meshy"
   },
   "kemik_filiz": {
@@ -1091,7 +1091,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6364,
+   "tris": 2398,
    "src": "meshy"
   },
   "kemik_budayici": {
@@ -1127,7 +1127,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6248,
+   "tris": 2464,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1162,7 +1162,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5989,
+   "tris": 2097,
    "src": "meshy"
   },
   "dokum_cirak": {
@@ -1193,7 +1193,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6103,
+   "tris": 2135,
    "src": "meshy"
   },
   "dokum_dokumcu": {
@@ -1229,7 +1229,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6330,
+   "tris": 2214,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1264,7 +1264,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6339,
+   "tris": 4465,
    "src": "meshy"
   },
   "bahce_kukla": {
@@ -1295,7 +1295,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5526,
+   "tris": 4080,
    "src": "meshy"
   },
   "bahce_cuce": {
@@ -1331,7 +1331,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6279,
+   "tris": 2346,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1366,7 +1366,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 5667,
+   "tris": 4077,
    "src": "meshy"
   },
   "hiclik_haberci": {
@@ -1402,7 +1402,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6337,
+   "tris": 3309,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1437,7 +1437,7 @@
    "castAxis": "z",
    "castBones": [],
    "restT": null,
-   "tris": 6205,
+   "tris": 2171,
    "src": "meshy"
   },
   "batak_saman": {
@@ -1473,7 +1473,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6332,
+   "tris": 2485,
    "src": "meshy",
    "shot": {
     "kind": "orb",
@@ -1513,7 +1513,7 @@
     "RightForeArm"
    ],
    "restT": null,
-   "tris": 6399,
+   "tris": 5061,
    "src": "meshy",
    "shot": {
     "kind": "orb",

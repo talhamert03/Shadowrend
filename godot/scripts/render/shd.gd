@@ -82,7 +82,7 @@ static func basic(o: Dictionary = {}) -> ShaderMaterial:
 ## (teğet uzayı, OpenGL) · emap: emissiveMap · lift: emissiveMap = map
 static func lit_shader(o: Dictionary) -> Shader:
 	var key := "l"
-	for k in ["map", "mr", "nmap", "emap", "lift", "rim", "alpha", "add"]: key += "|" + str(o.get(k, k == "rim"))
+	for k in ["map", "mr", "nmap", "emap", "lift", "rim", "alpha", "add", "vat"]: key += "|" + str(o.get(k, k == "rim"))
 	key += "|" + str(o.get("cull", "back"))
 	if _cache.has(key): return _cache[key]
 	var rm := ["unshaded"]
@@ -94,11 +94,17 @@ static func lit_shader(o: Dictionary) -> Shader:
 	c += "uniform vec4 emissive = vec4(0.0, 0.0, 0.0, 1.0);\nuniform float emissive_k = 1.0;\nuniform float opacity = 1.0;\n"
 	c += "uniform float rim_s = 0.42;\nuniform float rim_p = 3.0;\nuniform vec3 rim_c = vec3(1.0, 0.716, 0.456);\n"
 	# ölüm: beyaz flaş + kenarı parlayan çözülme (düşman ölüm efekti; 0 iken maliyetsiz dal)
-	c += "uniform float dissolve = 0.0;\nuniform float white = 0.0;\nuniform vec4 dis_col = vec4(1.0, 0.6, 0.3, 1.0);\n"
+	if not o.get("vat", false): c += "uniform float dissolve = 0.0;\nuniform float white = 0.0;\n"
+	c += "uniform vec4 dis_col = vec4(1.0, 0.6, 0.3, 1.0);\n"
 	if o.get("map", false): c += "uniform sampler2D map : filter_linear_mipmap_anisotropic;\n"
 	if o.get("mr", false): c += "uniform sampler2D mr_map : filter_linear_mipmap_anisotropic;\n"
 	if o.get("nmap", false): c += "uniform sampler2D normal_map : hint_normal, filter_linear_mipmap_anisotropic;\n"
 	if o.get("emap", false): c += "uniform sampler2D emissive_map : filter_linear_mipmap_anisotropic;\n"
+	var vat: bool = o.get("vat", false)
+	if vat:
+		# VAT: köşe konumu/normali dokudan (kare başına satır bloğu), iki kare arası doğrusal;
+		# INSTANCE_CUSTOM: x = animasyon evresi (0..1) · y = beyaz flaş · z = çözülme · w = ışıma çarpanı
+		c += VAT_VERTEX
 	c += "void fragment() {\n\tvec4 d = vec4(r3_lin(color.rgb), color.a);\n\tvec3 em = r3_lin(emissive.rgb);\n"
 	# hafif negatif mip sapması: ekranda küçük görünen modellerde doku bir kademe daha net
 	# (yüz, kumaş, kemer detayları bulanık/bloklu değil)
@@ -114,7 +120,11 @@ static func lit_shader(o: Dictionary) -> Shader:
 	elif o.get("lift", false) and o.get("map", false): c += "\to += em * tx.rgb * emissive_k;\n"
 	else: c += "\to += em * emissive_k;\n"
 	if o.get("rim", true): c += "\to += r3_rim(N, V, rim_s, rim_p, rim_c);\n"
-	c += "\tif (dissolve > 0.001) {\n\t\tvec3 lp = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz - NODE_POSITION_WORLD;\n"
+	if vat:
+		c += "\tfloat dissolve = v_cus.z;\n\tfloat white = v_cus.y;\n\to += em * emissive_k * (v_cus.w - 1.0);\n"
+		c += "\tif (dissolve > 0.001) {\n\t\tvec3 lp = v_lp;\n"
+	else:
+		c += "\tif (dissolve > 0.001) {\n\t\tvec3 lp = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz - NODE_POSITION_WORLD;\n"
 	c += "\t\tfloat dn = r3_noise3(lp * 0.15) * 0.7 + r3_noise3(lp * 0.55) * 0.3;\n"
 	c += "\t\tdn = dn * 0.78 + clamp(lp.y / 70.0, 0.0, 1.0) * 0.22;\n"
 	c += "\t\tif (1.0 - dn < dissolve) discard;\n"
@@ -145,7 +155,7 @@ static func lit(o: Dictionary = {}) -> ShaderMaterial:
 ##    lift (emissiveMap = map, emissive beyaz) · emissive (Color, sRGB) ·
 ##    emissive_k · rim (charLook kenar ışığı) · keep_emap (GLB'nin kendi ışıma dokusu)
 static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
-	var f := {"rim": o.get("rim", true)}
+	var f := {"rim": o.get("rim", true), "vat": o.get("vat", false)}
 	var tx: Texture2D = src.albedo_texture if src else null
 	var mr: Texture2D = src.roughness_texture if src else null
 	var nm: Texture2D = src.normal_texture if src and src.normal_enabled else null
@@ -181,6 +191,65 @@ static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
 		m.set_shader_parameter("emissive_k", float(o.get("emissive_k", 1.0)))
 	else:
 		m.set_shader_parameter("emissive_k", 0.0)
+	return m
+
+## VAT köşe fonksiyonu (lit ve kontur ortak): vat_pos/vat_nrm RGBA16F, genişlik vat_w,
+## kare başına vat_rows satır, vat_frames kare. Köşe sırası = yüzey dizisi (VERTEX_ID).
+const VAT_HEAD := """uniform highp sampler2D vat_pos : filter_nearest;
+uniform highp sampler2D vat_nrm : filter_nearest;
+uniform int vat_w = 1024;
+uniform int vat_rows = 1;
+uniform int vat_frames = 1;
+uniform int vat_off = 0;
+varying vec4 v_cus;
+varying vec3 v_lp;
+vec3 vat_fetch(highp sampler2D t, int vid, int f) {
+	int row = f * vat_rows + vid / vat_w;
+	return texelFetch(t, ivec2(vid - (vid / vat_w) * vat_w, row), 0).xyz;
+}
+"""
+const VAT_VERTEX := VAT_HEAD + """void vertex() {
+	int vid = VERTEX_ID + vat_off;
+	float fr = fract(INSTANCE_CUSTOM.x) * float(vat_frames);
+	int f0 = int(floor(fr));
+	int f1 = f0 + 1;
+	if (f1 >= vat_frames) f1 = 0;
+	if (f0 >= vat_frames) f0 = vat_frames - 1;
+	float k = fr - floor(fr);
+	VERTEX = mix(vat_fetch(vat_pos, vid, f0), vat_fetch(vat_pos, vid, f1), k);
+	NORMAL = normalize(mix(vat_fetch(vat_nrm, vid, f0), vat_fetch(vat_nrm, vid, f1), k));
+	v_cus = INSTANCE_CUSTOM;
+	v_lp = (MODEL_MATRIX * vec4(VERTEX, 0.0)).xyz;
+}
+"""
+static var _vat_outline_sh: Shader
+static func vat_outline(tex: Texture2D, base := Color(1, 1, 1), width := 1.5) -> ShaderMaterial:
+	if _vat_outline_sh == null:
+		var code := OUTLINE_CODE.replace("uniform sampler2D map : filter_linear_mipmap;", "uniform sampler2D map : filter_linear_mipmap;\n" + VAT_HEAD)
+		code = code.replace("void vertex() {\n", """void vertex() {
+	int vid = VERTEX_ID + vat_off;
+	float fr = fract(INSTANCE_CUSTOM.x) * float(vat_frames);
+	int f0 = int(floor(fr));
+	int f1 = f0 + 1;
+	if (f1 >= vat_frames) f1 = 0;
+	if (f0 >= vat_frames) f0 = vat_frames - 1;
+	float kk = fr - floor(fr);
+	VERTEX = mix(vat_fetch(vat_pos, vid, f0), vat_fetch(vat_pos, vid, f1), kk);
+	NORMAL = normalize(mix(vat_fetch(vat_nrm, vid, f0), vat_fetch(vat_nrm, vid, f1), kk));
+	v_cus = INSTANCE_CUSTOM;
+	v_lp = vec3(0.0);
+""")
+		# çözülen/flaşlı örnekte kontur yok (eski: next_pass kaldırılırdı)
+		code = code.replace("\tPOSITION = clip;\n}", "\tPOSITION = clip;\n\tif (INSTANCE_CUSTOM.z > 0.001) POSITION = vec4(2.0, 2.0, 2.0, 1.0);\n}")
+		_vat_outline_sh = Shader.new()
+		_vat_outline_sh.code = code
+	var m := ShaderMaterial.new()
+	m.shader = _vat_outline_sh
+	m.set_shader_parameter("width", width)
+	m.set_shader_parameter("base", base)
+	if tex:
+		m.set_shader_parameter("map", tex)
+		m.set_shader_parameter("use_map", 1.0)
 	return m
 
 ## KONTUR (ters gövde): ikinci geçiş, ön yüzleri ayıklayıp normal yönünde ekran uzayında

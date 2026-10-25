@@ -138,6 +138,14 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 	var clip = def.get("clip")
 	var dur := float(def.get("clipDur", 0.0))
 	var rigPos: Array = def.get("rigPos", [0, 0, 0])
+	# VAT yolu: türün tüm düşmanları tek örneklenmiş çizimde (pişirilemezse iskeletli havuz)
+	if not _noVat:
+		var t0ms := Time.get_ticks_msec()
+		var V := VatBake.bake(r3.scene, ps, def)
+		if not V.is_empty():
+			print("VAT ", def.id, " ", Time.get_ticks_msec() - t0ms, "ms")
+			_add_vat_group(def, V, lift, emI)
+			return
 	for i in n:
 		var holder := Render3D.node(r3.scene)
 		var inst: Node3D = ps.instantiate()
@@ -195,8 +203,163 @@ func _release_enemy_models() -> void:
 	_flyN = 0
 	if _groups == null: return
 	for G in _groups:
+		if G.get("vat", false):
+			(G.im as Node).queue_free()
+			continue
 		for p in G.pool: p.holder.queue_free()
 	_groups = null
+
+# ═══════════ VAT GRUPLARI ═══════════
+static var _noVat := OS.get_cmdline_user_args().has("novat")
+
+func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> void:
+	var ol := 0.0 if Quality.tier == "low" else 1.4
+	var o := {"lift": lift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0, "vat": true}
+	var mesh: ArrayMesh = V.mesh
+	var mats: Array = []
+	for si in mesh.get_surface_count():
+		var src := V.src_mats[si] as BaseMaterial3D
+		var m := Shd.from_gltf(src, o)
+		m.set_shader_parameter("emissive_k", float(m.get_shader_parameter("emissive_k")) * emI)
+		m.set_shader_parameter("dis_col", Color(1, 0.86, 0.7))
+		var ms: Array = [m]
+		if ol > 0.0:
+			var om := Shd.vat_outline(src.albedo_texture if src else null, src.albedo_color if src else Color.WHITE, ol)
+			m.next_pass = om
+			ms.append(om)
+		for mm: ShaderMaterial in ms:
+			mm.set_shader_parameter("vat_pos", V.pos)
+			mm.set_shader_parameter("vat_nrm", V.nrm)
+			mm.set_shader_parameter("vat_w", VatBake.TEX_W)
+			mm.set_shader_parameter("vat_rows", int(V.rows))
+			mm.set_shader_parameter("vat_frames", int(V.frames))
+			mm.set_shader_parameter("vat_off", int(V.offs[si]))
+		mesh.surface_set_material(si, m)
+		mats.append(m)
+	# kademe tavanı: düşük donanımda GPU köşe yükü sınırlı kalsın (taşan → kapsül)
+	var cap := {"low": 90, "mid": 170, "high": 300}.get(Quality.tier, 170) as int
+	var im := IMesh.new(mesh, null, cap, true)
+	r3.scene.add_child(im)
+	_groups.append({"vat": true, "im": im, "mats": mats, "dur": float(V.dur), "corpses": [], "def": def,
+		"baseScale": float(def.baseScale), "emI": emI, "types": def.types, "shadowR": float(def.get("shadowR", 11))})
+
+func _drive_vat(g, dt: float, EM: Dictionary, act: Array, tok: int, sh: int) -> int:
+	var im: IMesh = EM.im
+	var cap: int = im.cap
+	var n := 0
+	var bs: float = EM.baseScale
+	var sp: Dictionary = EM.def
+	var dur: float = maxf(0.01, EM.dur)
+	var hgt := float(sp.height)
+	var px: float = g.player.x
+	var py: float = g.player.y
+	# 0) cesetler: düşüş + kenarı parlayan çözülme (örnek verisi z = çözülme, y = beyaz)
+	var C: Array = EM.corpses
+	var ci := C.size() - 1
+	while ci >= 0:
+		var c: Dictionary = C[ci]
+		c.t -= dt
+		if c.t <= 0.0:
+			if c.fl: _flyN = maxi(0, _flyN - 1)
+			C[ci] = C[C.size() - 1]
+			C.pop_back()
+			ci -= 1
+			continue
+		ci -= 1
+		if n >= cap: continue
+		var k: float = 1.0 - c.t / CORPSE_T
+		var fall := (k / 0.22) * (k / 0.22) if k < 0.22 else 1.0
+		var sink := 0.0 if k < 0.70 else (k - 0.70) / 0.30 * 0.35
+		var rel: float = c.ang - c.yaw
+		var amt := 1.24 * fall
+		var fx: float = c.x
+		var fz: float = c.z
+		var fy := 0.0
+		if c.fl:
+			var kk := minf(1.0, k / 0.5)
+			var ez := 1 - (1 - kk) * (1 - kk)
+			fx += cos(c.ang) * c.fl * ez
+			fz += sin(c.ang) * c.fl * ez
+			fy = sin(PI * kk) * c.fl * 0.45
+		var sq := 1 - 0.22 * fall
+		var B := Basis.from_euler(Vector3(cos(rel) * amt, c.yaw, -sin(rel) * amt), EULER_ORDER_XYZ) * Basis.from_scale(Vector3(bs * (1 + 0.10 * fall), bs * sq, bs * (1 + 0.10 * fall)))
+		im.set_mat(n, B, Vector3(fx, fy - hgt * 0.62 * sink * sink, fz))
+		im.set_custom(n, c.ph, clampf(1.0 - k / 0.11, 0.0, 1.0), smoothstep(0.14, 0.95, k), 1.0)
+		n += 1
+		if sh < _enemyMax:
+			var r: float = EM.shadowR * (1 - 0.75 * k)
+			shadowMesh.set_ys(sh, c.x, 0.3, c.z, 0, r, r, r)
+			sh += 1
+	# 1) canlılar
+	var types: Array = EM.types
+	var kPos := 1 - exp(-dt * 26)
+	var kRot := 1 - exp(-dt * 14)
+	var stepRate := float(sp.get("stepRate", 0.62)) if sp.get("stepRate") != null else 0.62
+	var stepMin := float(sp.get("stepMin", 0.5)) if sp.get("stepMin") != null else 0.5
+	var stepMax := float(sp.get("stepMax", 0.85)) if sp.get("stepMax") != null else 0.85
+	var idleRate = sp.get("idleRate")
+	var restT = sp.get("restT")
+	var flashT := maxf(0.001, float(D.FX.hitFlashTime))
+	var emI: float = EM.emI
+	var vl: float = g.viewL - 110.0; var vr: float = g.viewR + 110.0
+	var vt: float = g.viewT - 110.0; var vb: float = g.viewB + 110.0
+	for e in act:
+		if e.isBoss or not types.has(e.type): continue
+		e.aliveTok = tok
+		if n >= cap: continue
+		e.mdlTok = tok
+		e.mdlTop = hgt
+		if not e.vOn:
+			e.vOn = true
+			e.vX = e.x; e.vZ = e.y
+			e.vYaw = atan2(px - e.x, py - e.y)
+			e.vT = randf() * dur
+		e.vX += (e.x - e.vX) * kPos
+		e.vZ += (e.y - e.vZ) * kPos
+		var dYaw: float = atan2(px - e.x, py - e.y) - e.vYaw
+		while dYaw > PI: dYaw -= TAU
+		while dYaw < -PI: dYaw += TAU
+		e.vYaw += dYaw * kRot
+		var idle: bool = idleRate != null and e.mvAmt < 6
+		if e.stopT <= 0:
+			var adt: float = dt * maxf(stepMin, minf(stepMax, ((e.speed if e.speed else 46.0) / 46.0) * stepRate)) * (float(idleRate) if idle else 1.0)
+			if idle and restT != null:
+				var dT: float = float(restT) - e.vT
+				dT -= round(dT / dur) * dur
+				var step: float = adt * 3.2 + dt * 0.55
+				e.vT = e.vT + step if dT > step else (e.vT - step if dT < -step else float(restT))
+			else:
+				e.vT += adt
+			e.vT -= floor(e.vT / dur) * dur
+		var x: float = e.vX
+		var z: float = e.vZ
+		if x < vl or x > vr or z < vt or z > vb: continue
+		var wx := bs
+		var hy := bs
+		if e.hitT > 0:
+			var hu: float = 1 - e.hitT / (e.hitD if e.hitD else 0.15)
+			var iu := 1 - hu
+			var sq := cos(hu * 4.7) * iu * iu
+			wx = bs * (1 + 0.09 * sq)
+			hy = bs * (1 - 0.15 * sq)
+			x += cos(e.hurtAng) * 6 * iu * iu
+			z += sin(e.hurtAng) * 6 * iu * iu
+		var R := Basis(Vector3.UP, e.vYaw)
+		# menzilli düşman saldırırken hafif öne eğilir (eski kemik pozunun yerine)
+		if e.atkAnim > 0:
+			var a: float = minf(1.0, e.atkAnim / 0.55)
+			R = R * Basis(Vector3.RIGHT, 0.16 * a * a)
+		im.set_mat(n, R * Basis.from_scale(Vector3(wx, hy, wx)), Vector3(x, 0, z))
+		var wantI: float = 3.2 if e.flash > 0 else (emI * 1.5 if e.elite else emI)
+		var wh: float = snappedf(clampf(e.flash / flashT, 0.0, 1.0) * 0.82, 0.1) if e.flash > 0 else 0.0
+		im.set_custom(n, e.vT / dur, wh, 0.0, wantI / maxf(0.001, emI))
+		n += 1
+		if sh < _enemyMax:
+			var r: float = EM.shadowR
+			shadowMesh.set_ys(sh, x, 0.3, z, 0, r, r, r)
+			sh += 1
+	im.commit(n)
+	return sh
 
 # ═══════════ KARE ═══════════
 
@@ -211,7 +374,9 @@ func update(g, dt: float) -> void:
 	var tok := _tok
 	if _groups:
 		_animFrame = (_animFrame + 1) & 1023
-		for G in _groups: sh = _drive_group(g, dt, G, act, tok, sh, _animFrame)
+		for G in _groups:
+			if G.get("vat", false): sh = _drive_vat(g, dt, G, act, tok, sh)
+			else: sh = _drive_group(g, dt, G, act, tok, sh, _animFrame)
 	var px: float = g.player.x
 	var py: float = g.player.y
 	for i in act.size():
@@ -480,6 +645,15 @@ func _unpose_caster(p: Dictionary) -> void:
 func enemy_death(e, ang: float, quiet: bool) -> void:
 	if _groups == null: return
 	for G in _groups:
+		if G.get("vat", false):
+			if not G.types.has(e.type) or e.mdlTok != _tok or not e.vOn: continue
+			if quiet or not r3.game.in_view(e.vX, e.vZ, 60): return
+			var fl := 0.0
+			if _flyN < 12 and not e.elite:
+				fl = 64.0 if e.stopMv else 28.0
+				_flyN += 1
+			(G.corpses as Array).append({"x": e.vX, "z": e.vZ, "yaw": e.vYaw, "ang": ang, "t": CORPSE_T, "fl": fl, "ph": e.vT / maxf(0.01, float(G.dur))})
+			return
 		for p in G.pool:
 			if p.e != e: continue
 			p.e = null

@@ -19,7 +19,7 @@ const TIPS := [
 const STEPS := ["ARENA KURULUYOR", "DÜŞMANLAR UYANIYOR", "RÜNLER HAZIRLANIYOR", "KAPI AÇILIYOR"]
 const COVER := 0.72
 const BAR := 2.0
-const OPEN := 0.75
+const OPEN := 0.9
 const INK := Color(0.05, 0.03, 0.07)
 const YEL := Color("#ffd23a")
 const PAPER := Color("#fff3d6")
@@ -47,6 +47,7 @@ var _title: Node2D           # yıldız + GÖREV yazısı
 var _bubble: Node2D
 var _bar: Node2D
 var _fx: Node2D
+var _base: ColorRect
 var _txt := {}
 var _obj := ""
 
@@ -89,6 +90,7 @@ func _build(info: Dictionary) -> void:
 	base.size = _SR.size
 	base.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(base)
+	_base = base
 	_root = Node2D.new()
 	add_child(_root)
 	_rays = Node2D.new()
@@ -350,14 +352,35 @@ static func _sb(c: Color, r: int, bw := 0, bc := Color.BLACK) -> StyleBoxFlat:
 		s.border_color = bc
 	return s
 
+## açılış: önce ekranın ortasında yatay kızıl bir ışık yarığı çizilir, sonra koyu perde ortadan
+## yukarı/aşağı ayrılıp savaşı ortaya çıkarır (sinematik, karanlık tema; sarı patlama yok)
 func _draw_fx() -> void:
 	if _doneAt < 0: return
-	# "SAVAŞ!" patlaması
-	var k := clampf((_t - _doneAt) / 0.4, 0, 1)
-	var s := ScrLevelUp._back_ease(k) if k < 1.0 else 1.0
-	var c := Vector2(_W.x * 0.5, _W.y * 0.5)
-	ScrCeremony._star(_fx, c, 230 * s, 150 * s, 16, YEL, 6.0, 0.1)
-	ScrCeremony._star(_fx, c, 150 * s, 100 * s, 16, Color.WHITE, 0.0, 0.25)
+	var tt := _t - _doneAt
+	var R := _SR
+	var cy := _W.y * 0.5
+	var slit := clampf(tt / 0.2, 0.0, 1.0)
+	var u := clampf((tt - 0.2) / (OPEN - 0.2), 0.0, 1.0)
+	var o := u * u * (3.0 - 2.0 * u)
+	var gap := o * R.size.y * 0.56
+	var dark := Color("#0a0507")
+	var top := Rect2(R.position.x, R.position.y, R.size.x, cy - gap - R.position.y)
+	var bot := Rect2(R.position.x, cy + gap, R.size.x, R.end.y - cy - gap)
+	if top.size.y > 0.0: _fx.draw_rect(top, dark)
+	if bot.size.y > 0.0: _fx.draw_rect(bot, dark)
+	# perde kenarlarında kızıl ışık (perde açıldıkça söner)
+	var ga := (1.0 - o) * slit
+	if ga > 0.01:
+		var crim := Color("#d62a33")
+		var hw := R.size.x * 0.5 * (0.15 + 0.85 * slit)
+		var cx := _W.x * 0.5
+		for i in 7:
+			var th := 2.0 + i * 5.0
+			var al := ga * (0.55 if i == 0 else 0.22 / float(i))
+			_fx.draw_rect(Rect2(cx - hw, cy - gap - th, hw * 2.0, th), Color(crim, al))
+			_fx.draw_rect(Rect2(cx - hw, cy + gap, hw * 2.0, th), Color(crim, al))
+		_fx.draw_rect(Rect2(cx - hw, cy - gap - 1.5, hw * 2.0, 1.5), Color(1.0, 0.85, 0.8, ga))
+		_fx.draw_rect(Rect2(cx - hw, cy + gap, hw * 2.0, 1.5), Color(1.0, 0.85, 0.8, ga))
 
 func _progress(pc: float) -> void:
 	_p = pc / 100.0
@@ -393,11 +416,14 @@ func _process(dt: float) -> void:
 	if _doneAt >= 0:
 		var ko := clampf((_t - _doneAt) / OPEN, 0.0, 1.0)
 		_fx.queue_redraw()
-		# patlama 0,3 sn sonra her şey söner, savaş belirir
-		var e := clampf((_t - _doneAt - 0.3) / (OPEN - 0.3), 0.0, 1.0)
-		modulate.a = 1.0 - e * e
-		_root.scale = Vector2.ONE * (1.0 + 0.1 * e)
-		_root.position = -_W * 0.5 * 0.1 * e
+		# yükleme içeriği yarık açılırken hafifçe büyüyüp söner; perde açılınca savaş görünür
+		modulate.a = 1.0
+		var e := clampf((_t - _doneAt) / 0.22, 0.0, 1.0)
+		_root.modulate.a = 1.0 - e
+		_root.scale = Vector2.ONE * (1.0 + 0.05 * e)
+		_root.position = -_W * 0.5 * 0.05 * e
+		if _base: _base.visible = e < 1.0
+		_dev_shot(_t - _doneAt)
 		if ko >= 1.0:
 			visible = false
 			for c in get_children():
@@ -419,3 +445,15 @@ func _process(dt: float) -> void:
 		g.audio.play("start")
 		pass  # titreşim kapalı
 		_doneAt = _t
+
+# geliştirici: gateshots=<yol.png> — açılışın 0,05/0,2/0,4/0,6/0,8 sn karelerini kaydeder
+var _gsN := 0
+func _dev_shot(tt: float) -> void:
+	var path := ""
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("gateshots="): path = a.substr(10)
+	if path == "": return
+	var T := [0.05, 0.2, 0.4, 0.6, 0.8]
+	if _gsN < T.size() and tt >= T[_gsN]:
+		get_viewport().get_texture().get_image().save_png(path.replace(".png", "_" + str(_gsN) + ".png"))
+		_gsN += 1

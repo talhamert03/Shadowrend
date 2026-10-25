@@ -104,7 +104,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0
-	e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.thief = false; e.duelTok = 0
+	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.thief = false; e.duelTok = 0
 	e.thiefStep = 0
 	e.txt = null; e.txtT = -9
 	e.seed = randf() * 6.283
@@ -242,6 +242,7 @@ func spawn_at_point(x: float, y: float):
 	if g.props: g.props.resolve(e, e.radius * 0.62)
 	return e
 
+var _farD2 := 52900.0
 func update(dt: float) -> void:
 	var g = game
 	var tstop: bool = g.ult != null and g.ult.time_stopped()
@@ -286,15 +287,27 @@ func update(dt: float) -> void:
 	var fl := gg.viewL - 260.0; var fr := gg.viewR + 260.0
 	var ft := gg.viewT - 260.0; var fb := gg.viewB + 260.0
 	var many := _many
+	# çok kalabalıkta (100+) yarım hızlı güncelleme oyuncuya daha yakından başlar
+	_farD2 = 19600.0 if act.size() > 100 else 52900.0
+	var ppx: float = gg.player.x
+	var ppy: float = gg.player.y
 	while i >= 0:
 		if i >= act.size():
 			i = act.size() - 1
 			continue
 		var e: Ent.Enemy = act[i]
-		if many and e.hp > 0 and not e.isBoss and (e.x < fl or e.x > fr or e.y < ft or e.y > fb) and ((_frame + i) & 1) == 1:
-			e._acc += udt
-			i -= 1
-			continue
+		# kalabalıkta: ekran dışındakiler ve oyuncudan uzak olanlar iki karede bir (biriken dt ile;
+		# çizim konumu zaten yumuşatıldığından 30 Hz adım görünmez). Yakındakiler (temas) her kare.
+		if many and e.hp > 0 and not e.isBoss and ((_frame + i) & 1) == 1:
+			var far: bool = e.x < fl or e.x > fr or e.y < ft or e.y > fb
+			if not far:
+				var qx: float = e.x - ppx
+				var qy: float = e.y - ppy
+				far = qx * qx + qy * qy > _farD2
+			if far:
+				e._acc += udt
+				i -= 1
+				continue
 		var edt := udt + e._acc
 		e._acc = 0.0
 		if update_enemy(e, edt): pool.release(e)
