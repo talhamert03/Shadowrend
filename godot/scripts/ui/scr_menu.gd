@@ -141,6 +141,29 @@ func prebuild(p: String) -> void:
 	_rendered[p] = Store.rev
 	if p != page: L.visible = false
 
+## boşta tazeleme: veri değişince (savaş dönüşü, sandık, satın alma) gizli sayfalar bayatlar ve
+## eskiden sekmeye DOKUNULDUĞU anda baştan kurulurdu (mağaza ~60 ms+). Parmak 1 sn kalkıkken
+## bayat gizli sayfalar sırayla (en fazla 0,6 sn'de bir) arka planda tazelenir.
+func _idle_refresh(dt: float) -> void:
+	if busy() or g.state != "menu":
+		_idleT = 0.0
+		return
+	_idleT += dt
+	if _idleT < 1.0: return
+	for p in pages:
+		if p == page or p == "savas" or p == "dunyalar": continue
+		if int(_rendered.get(p, -1)) == Store.rev: continue
+		var L: Node = pages[p]
+		if L == null or not is_instance_valid(L): continue
+		Prof.s("idle:" + p)
+		var rk := UITex.rec_begin(p)
+		_render(p)
+		UITex.rec_end(rk)
+		Prof.t("idle:" + p)
+		_rendered[p] = Store.rev
+		_idleT = 0.4
+		return
+
 ## kullanıcı etkileşimde mi (dokunuş, kaydırma, savurma, sayfa geçişi)
 func busy() -> bool:
 	return _press >= 0 or _drag != null or not _fling.is_empty() or not _slides.is_empty()
@@ -368,9 +391,11 @@ func _page_host() -> Node:
 		add_child(_pclip)
 	return _pclip
 
+var _idleT := 0.0
 func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
+	_idle_refresh(dt)
 	for S in _slides.duplicate():
 		var L: Node2D = S.L
 		var k := minf(1.0, (_t - float(S.t0)) / float(S.dur))

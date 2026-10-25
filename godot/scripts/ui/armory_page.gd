@@ -25,6 +25,8 @@ var _pop = null               # {slot, L}
 var _base := {}               # bölümlerin yakalanan konum/boyları
 var _lazy: Array = []         # kurulmayı bekleyen çanta kartları: {f: Callable, y: içerik y}
 
+var _cardOf := {}          # eşya id → {C, args}: seçimde yalnız o kart yeniden kurulur
+
 func _init(m) -> void:
 	menu = m
 	g = m.g
@@ -46,6 +48,7 @@ func render() -> void:
 		if it is Lyr: menu.unbtn(it)
 		(it as Node).queue_free()
 	_items.clear()
+	_cardOf.clear()
 	_lazy.clear()
 	_pop = null
 	_decks()
@@ -284,9 +287,7 @@ func _slot_tap(slot: String, filled: bool, C: Lyr) -> void:
 		if P:
 			_pop = {"slot": slot, "L": P}
 			menu.btn(P, P.nodes[0], func():
-				pass  # titreşim kapalı
-				g.unequip_slot(slot)
-				render())
+				g.unequip_slot(slot))       # unequip_slot sayfayı zaten kurar (ui.show_armory)
 		return
 	_close_pop()
 	tab = "all" if tab == slot else slot
@@ -460,10 +461,23 @@ func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 				menu.btn(C, b, func(): _equip(gid))
 				info.acts.append([r, "KUŞAN", ScrLevelUp.YEL])
 			elif k.contains(".out"):
-				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid); render())
+				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid))
 				info.acts.append([r, "ÇIKAR", Color("#e8463c")])
 	GearCard.build(root_n.node, root_n.size, info, _gear_tex(str(x.icon)))
+	_cardOf[gid] = {"C": C, "args": [grid, x, locked, pos]}
 	return C
+
+## tek kartı yerinde yeniden kur (seçim değişince bütün sayfa kurulmasın — dokunuş takılmasın)
+func _rebuild_card(gid: String) -> void:
+	if gid == "" or not _cardOf.has(gid): return
+	var e: Dictionary = _cardOf[gid]
+	var C: Lyr = e.C
+	if is_instance_valid(C):
+		menu.unbtn(C)
+		_items.erase(C)
+		C.queue_free()
+	var a: Array = e.args
+	_card(a[0], a[1], a[2], a[3])
 
 ## kart içine yakalanmış küçük bir bileşen bindir (kart köküne göre konum)
 func _sub(C: Lyr, key: String, pos: Vector2) -> Lyr:
@@ -496,11 +510,14 @@ func _card_tap(id: String, locked: bool) -> void:
 	if locked or sel_id == id:
 		g.ui.open_gear_detail(id)
 		return
+	var old := sel_id
 	sel_id = id
-	render()
+	_rebuild_card(old)
+	_rebuild_card(id)
 
 func _equip(id: String) -> void:
 	sel_id = ""
-	g.equip_gear(id)
+	g.equip_gear(id, true)      # sessiz: sayfayı game değil burada TEK kez kur (eskiden iki kez)
 	g.audio.play("equip")
+	g.ui.menu.refresh_wallet()
 	render()

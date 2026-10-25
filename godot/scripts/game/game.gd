@@ -146,6 +146,7 @@ var _deathT := -1.0          # ölüm sekansında geçen gerçek süre (-1: yok)
 const DEATH_DUR := 1.9
 var _harvested := false
 var _metaDirty := false
+var _metaAt := 0.0
 var _achNew: Array = []
 var _journey = null
 var _battHint := false
@@ -288,6 +289,7 @@ func _ready() -> void:
 	await _await_preload(4.0)
 	renderer3d = Render3D.new(self)
 	add_child(renderer3d)
+	await renderer3d.build_async()
 	await _boot_step(0.58)
 	overlay = Overlay2D.new(self)
 	add_child(overlay)
@@ -329,7 +331,7 @@ func _ready() -> void:
 			if ui.menu.pages.has(pg) or ui.menu.pages.size() >= ui.menu.page_cap(): continue
 			var need: Array = UITex.manifest(pg)
 			if ui.menu.prewarm: need.append_array(ui.menu.prewarm._extra(pg))
-			await UITex.await_ready(self, need, 2.0)
+			await UITex.await_ready(self, need, 6.0)      # zaman aşımında eşzamanlı yükleme açılış animasyonunu dondurur
 			ui.menu.prebuild(pg)
 			k += 1
 			await _boot_step(0.88 + k * 0.005)
@@ -1141,7 +1143,10 @@ func apply_blessing(b) -> void:
 
 func save_meta(force: bool = false) -> void:
 	meta.awayT = Clock.now()
-	if not force and state == "playing":
+	# menüde art arda dokunuşlarda her seferinde JSON + disk yazımı yapılmasın: biriktirilir,
+	# 0,4 sn içinde tek yazım (kapanış/arka plana geçişte force ile anında)
+	if not force:
+		if not _metaDirty: _metaAt = _now_ms()
 		_metaDirty = true
 		return
 	_metaDirty = false
@@ -1714,7 +1719,7 @@ func _process(_delta: float) -> void:
 		var u := _punchT
 		zoomP = _punchA * 1.64 * (1 - exp(-34 * u)) * exp(-6 * u)
 		if _punchT >= 0.9: zoomP = 0
-	if _metaDirty and state != "playing": save_meta()
+	if _metaDirty and state != "playing" and _now_ms() - _metaAt > 400.0: save_meta(true)
 	if ui._ldHold:
 		last = clk
 		render_frame()

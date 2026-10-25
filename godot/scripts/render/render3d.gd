@@ -200,15 +200,27 @@ func _ready() -> void:
 	camera.current = true
 
 	_build_lights()
-	_build_ground()
 	_build_player_root()
+	resize()
+
+## Ağır kurulum (zemin/engel malzemeleri, düşman/efekt/silah çizicileri, kahraman modeli) kare kare:
+## açılış yükleme ekranının animasyonu tek uzun karede donmasın (eskiden _ready içinde ~370 ms)
+var built := false
+func build_async() -> void:
+	var tr := get_tree()
+	_build_ground()
+	await tr.process_frame
 	en = R3Enemies.new(self)
+	await tr.process_frame
 	fx = R3Fx.new(self)
+	await tr.process_frame
 	death = R3Death.new(self)
 	wpn = R3Weapons.new(self)
+	await tr.process_frame
 	_currentCharId = ""
 	load_character(game.player.charId if game and game.player and game.player.charId else D.DEFAULT_CHAR)
 	resize()
+	built = true
 
 ## three Object3D karşılığı: Euler sırası XYZ olan boş düğüm
 static func node(parent: Node = null) -> Node3D:
@@ -626,6 +638,7 @@ func set_frozen(on: bool) -> void:
 # ═══════════ ANA RENDER ═══════════
 
 func render(g) -> void:
+	if not built: return
 	var now := Time.get_ticks_msec() * 1.0
 	var dt := minf(0.1, (now - _clock) / 1000.0) if _clock > 0 else 0.016
 	if _fixdt > 0.0: dt = _fixdt          # geliştirici: --write-movie kaydında kare başına sabit adım
