@@ -6,11 +6,34 @@ extends RefCounted
 ## alanları · patlama halkaları · yıldırım sütunları · havan fıçıları · yörünge
 ## bıçakları · can barları. Kameraya bakan kareler render3d._bb ile aynı matris.
 
+## XP: kesme ruh kristali (küçük camgöbeği · orta mor · büyük altın); yüzeyler ışıkla gölgeli
 const GEM_SOULS := [
-	{"c": "#c4162a", "k": "#ff7d84", "g": "#7e0c18", "r": 4.4},
-	{"c": "#e01e34", "k": "#ff96a0", "g": "#9c0f1e", "r": 5.6},
-	{"c": "#ff2f3e", "k": "#ffb3b8", "g": "#c01526", "r": 7.0},
+	{"c": "#3fd2ff", "k": "#c8f6ff", "g": "#1a7fb8", "r": 5.4},
+	{"c": "#a066ff", "k": "#e6d4ff", "g": "#5a2bb0", "r": 6.6},
+	{"c": "#ffbf2e", "k": "#fff1c4", "g": "#b8740c", "r": 8.2},
 ]
+
+## çift piramit kristal: yüz başına sabit ışık gölgesi köşe rengine pişirilir (ışıksız malzemede yüzeyler okunur)
+static func _crystal_geo(n: int, top: float, bot: float, rad: float, yg: float) -> ArrayMesh:
+	var pos := PackedVector3Array(); var nrm := PackedVector3Array(); var uv := PackedVector2Array()
+	var idx := PackedInt32Array(); var col := PackedColorArray()
+	var L := Vector3(0.45, 0.8, 0.4).normalized()
+	var T := Vector3(0, top, 0)
+	var B := Vector3(0, -bot, 0)
+	for i in n:
+		var a0 := TAU * i / n
+		var a1 := TAU * (i + 1) / n
+		var p0 := Vector3(cos(a0) * rad, yg, sin(a0) * rad)
+		var p1 := Vector3(cos(a1) * rad, yg, sin(a1) * rad)
+		for tri in [[T, p1, p0], [B, p0, p1]]:
+			var a: Vector3 = tri[0]; var b: Vector3 = tri[1]; var c: Vector3 = tri[2]
+			var fn := (b - a).cross(c - a).normalized()
+			var sh := 0.5 + 0.5 * maxf(0.0, fn.dot(L)) + (0.12 if fn.y > 0 else 0.0)
+			var k := pos.size()
+			for q in [a, b, c]:
+				pos.append(q); nrm.append(fn); uv.append(Vector2(0.5, 0.5)); col.append(Color(sh, sh, sh))
+			idx.append_array([k, k + 1, k + 2])
+	return Geo._mesh(pos, nrm, uv, idx, col)
 const FLAME_HEX := ["#8fe6ff", "#ffc24d", "#ff6a2c", "#ffe6a0"]
 const FIRE_PAL := {
 	"blue": {"cr": 0.94, "cg": 0.98, "cb": 1.00, "gx": 0.13, "gy": 0.46, "gz": 0.96, "tx": 0.34, "ty": 0.78, "tz": 1.00, "fx": 0.10, "fy": 0.40, "fz": 0.92},
@@ -114,14 +137,12 @@ func _init(r) -> void:
 	var arrowGeo := Geo.merge([shaft, tip, fletch], [Transform3D(rx, Vector3(0, 0, -1.5)), Transform3D(rx, Vector3(0, 0, 8.5)), Transform3D(Basis(), Vector3(0, 0, -8))])
 	arrowMesh = IMesh.new(arrowGeo, Shd.basic({}), 140)
 	S.add_child(arrowMesh)
-	# ── ruh alevi (XP) ──
-	var prof := PackedVector2Array([Vector2(0, 0), Vector2(0.24, 0.02), Vector2(0.44, 0.13), Vector2(0.52, 0.33), Vector2(0.45, 0.55),
-		Vector2(0.31, 0.75), Vector2(0.21, 0.97), Vector2(0.13, 1.22), Vector2(0.06, 1.48), Vector2(0, 1.78)])
-	var soul := Geo.merge([Geo.lathe(prof, 14)], [Transform3D(Basis(), Vector3(0, -0.42, 0))])
-	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.9}), 380)
+	# ── ruh kristali (XP) ──
+	var soul := _crystal_geo(6, 1.35, 0.95, 0.66, 0.12)
+	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.96}), 380)
 	S.add_child(gemMesh)
-	var coreGeo := Geo.merge([Geo.lathe(prof, 10)], [Transform3D(Basis().scaled(Vector3(0.46, 0.72, 0.46)), Vector3(0, -0.42 * 0.72, 0))])
-	gemCore = IMesh.new(coreGeo, Shd.basic({"add": true, "opacity": 0.75, "zwrite": false}), 380)
+	var coreGeo := _crystal_geo(6, 0.8, 0.55, 0.36, 0.1)
+	gemCore = IMesh.new(coreGeo, Shd.basic({"add": true, "opacity": 0.8, "zwrite": false}), 380)
 	S.add_child(gemCore)
 	var ringGeo := Geo.merge([Geo.torus(0.92, 0.055, 5, 18)], [Transform3D(Basis(Vector3(1, 0, 0), -PI / 2), Vector3.ZERO)])
 	gemRing = IMesh.new(ringGeo, Shd.basic({"add": true, "opacity": 0.45, "zwrite": false}), 380)
@@ -514,9 +535,9 @@ func _update_gems(g) -> void:
 		var tier: Dictionary = GEM_SOULS[gm.tier] if gm.tier >= 0 and gm.tier < 3 else GEM_SOULS[0]
 		var ph: float = gm.bob
 		var y := 16 + sin(ph + t * 1.7) * 1.8
-		var spin := t * 0.75 + ph
+		var spin := t * 1.6 + ph
 		var tilt := sin(t * 2.0 + ph * 1.7) * 0.075
-		var flick := sin(t * 3.6 + ph) * 0.10 + sin(t * 7.9 + ph * 2.3) * 0.035
+		var flick := sin(t * 3.0 + ph) * 0.03
 		var hS: float = tier.r * (1 + flick)
 		var wS: float = tier.r * (1 - flick * 0.55)
 		gemMesh.set_trs(idx, gm.x, y, gm.y, tilt, spin, tilt * 0.5, wS, hS, wS)

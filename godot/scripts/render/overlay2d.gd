@@ -59,7 +59,8 @@ func draw_frame() -> void:
 		g.mode.arrow(ctx)
 		g.events.arrow(ctx)
 		_render_objective_arrow()
-		g.ult.flush_all(ctx)
+	# tamponlar her karede boşaltılır (duraklatılmışken de birikmesin)
+	g.ult.flush_all(ctx)
 	ctx.restore()
 	g.input.render(ctx)
 
@@ -131,37 +132,54 @@ func _render_texts() -> void:
 	ctx.set_transform(ma, mb, mc, md, me, mf)
 	ctx.global_alpha = 1
 
+## düşen güçler: yerde parlayan halka + ışık sütunu (3B zemin katmanı) ve üstünde süzülen
+## madalyon (koyu taş, renkli ışıklı kenar, vektör ikon: mıknatıs · can · kalkan · kar tanesi)
 func _render_powerups() -> void:
 	var g = game
+	var U: Ultimate = g.ult
 	var t: float = g.time
-	ctx.text_align = "center"
-	ctx.text_baseline = "middle"
 	for o in g.pools.powerups.active:
-		if not g.in_view(o.x, o.y, 40): continue
+		if not g.in_view(o.x, o.y, 60): continue
 		var d: Dictionary = PowerupManager.PU[o.kind]
-		var bob: float = sin(o.bob + t * 3.2) * 2.4
-		var y: float = o.y + bob
-		if o.life < 5 and int(t * 7) % 2 == 0: continue
-		var pulse: float = 1 + sin(t * 5 + o.bob) * 0.07
-		var R := 15 * pulse
-		ctx.set_fill(d.dim)
-		ctx.begin_path(); ctx.arc(o.x, y, R * 1.9, 0, 6.283); ctx.fill()
-		ctx.begin_path()
-		for i in 6:
-			var a := (i / 6.0) * 6.283 - 1.5708
-			var px: float = o.x + cos(a) * R
-			var py := y + sin(a) * R
-			if i: ctx.line_to(px, py)
-			else: ctx.move_to(px, py)
-		ctx.close_path()
-		ctx.set_fill("rgba(10,12,14,0.88)")
-		ctx.fill()
-		ctx.set_stroke(d.col)
-		ctx.line_width = 2.6
-		ctx.stroke()
-		ctx.set_fill(d.col)
-		ctx.set_font("700 15px \"Chakra Petch\", monospace")
-		ctx.fill_text(d.glyph, o.x, y + 1)
+		var col := Color(str(d.col))
+		var fade := 1.0
+		if o.life < 5: fade = 0.45 + 0.55 * absf(sin(t * 6.0))
+		var c := Vector2(o.x, o.y)
+		# zemin
+		U._glow(c, 46.0, col, 0.35 * fade)
+		U._gring(c, 26.0 + sin(t * 3.0 + o.bob) * 2.0, 6.0, col, 0.8 * fade, Ultimate.SQ, 28, 1.2)
+		U._sparkle(U._GA, c + Vector2(cos(t * 2.0 + o.bob) * 26.0, sin(t * 2.0 + o.bob) * 26.0), 4.0, Color(1, 1, 1, 0.8 * fade), t)
+		# süzülen madalyon (yukarıda: ekran yukarısı = dünya -z)
+		var bob: float = sin(o.bob + t * 3.2) * 3.0
+		var m := c + Vector2(0, -30.0 + bob)
+		U._glow(m, 34.0, col, 0.6 * fade, 1.0, U._T)
+		U._streak(c + Vector2(0, -6), Vector2(0, -1), 34.0, 10.0, col, 0.35 * fade)
+		U._disc(U._M, m, 14.0, Color("#16121c"), fade, 3.0)
+		U._ring(U._M, m, 12.5, 3.0, Color(col, fade), 1.0, 28)
+		var ic := Color(1, 1, 1, fade)
+		match str(o.kind):
+			"magnet":
+				var P := PackedVector2Array()
+				for i in 9:
+					var an := PI * i / 8.0
+					P.append(m + Vector2(cos(an) * 5.5, sin(an) * 5.5 + 1.0))
+				P.insert(0, m + Vector2(5.5, -6.0))
+				P.append(m + Vector2(-5.5, -6.0))
+				U._thick(U._M, P, 3.2, Color(col.lerp(Color.WHITE, 0.4), fade), false)
+				U._thick(U._M, PackedVector2Array([m + Vector2(5.5, -6.5), m + Vector2(5.5, -3.5)]), 3.4, ic, false)
+				U._thick(U._M, PackedVector2Array([m + Vector2(-5.5, -6.5), m + Vector2(-5.5, -3.5)]), 3.4, ic, false)
+			"heal":
+				U._M.rect(Rect2(m.x - 2.2, m.y - 7.0, 4.4, 14.0), Color(col.lerp(Color.WHITE, 0.3), fade))
+				U._M.rect(Rect2(m.x - 7.0, m.y - 2.2, 14.0, 4.4), Color(col.lerp(Color.WHITE, 0.3), fade))
+			"shield":
+				U._M.poly(PackedVector2Array([m + Vector2(-6.5, -6.5), m + Vector2(6.5, -6.5), m + Vector2(6.0, 1.0), m + Vector2(0, 7.5), m + Vector2(-6.0, 1.0)]), Color(col, fade))
+				U._M.poly(PackedVector2Array([m + Vector2(-3.5, -4.2), m + Vector2(0, -4.2), m + Vector2(0, 4.5), m + Vector2(-3.4, 0.8)]), Color(1, 1, 1, 0.55 * fade))
+			_:
+				for k in 3:
+					var an := k * PI / 3.0 + 0.3
+					var dv := Vector2(cos(an), sin(an)) * 7.0
+					U._thick(U._M, PackedVector2Array([m - dv, m + dv]), 2.4, Color(col.lerp(Color.WHITE, 0.5), fade), false)
+		U._glow(m + Vector2(-4, -5), 4.0, Color.WHITE, 0.6 * fade, 1.0, U._T)
 
 func _render_objective() -> void:
 	var g = game

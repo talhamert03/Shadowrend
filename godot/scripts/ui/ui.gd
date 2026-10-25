@@ -247,6 +247,13 @@ func boot() -> void:
 				var E = g.enemies
 				E.aliveCap = 9999.0; E.osCap = 9999.0
 				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * 20.0, E.dmgMul * 0.05))
+		if _arg("pudrop") != "":
+			# geliştirici: pudrop — kahramanın çevresine dört güç + XP kristalleri
+			get_tree().create_timer(1.2).timeout.connect(func():
+				var P = g.pools.powerups
+				var ks := ["magnet", "heal", "shield", "freeze"]
+				for i in 4: P.take().setup(g.player.x - 105 + i * 70, g.player.y + 150, ks[i])
+				for i in 9: g.pools.gems.take().setup(g.player.x - 120 + (i % 3) * 120, g.player.y - 160 - (i / 3) * 40, [1, 6, 30][i % 3]))
 		if _arg("altarpick") != "":
 			get_tree().create_timer(2.0).timeout.connect(func(): g.events._bless_altar())
 		if _arg("altar") != "":
