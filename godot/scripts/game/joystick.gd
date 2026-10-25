@@ -92,6 +92,16 @@ func sample() -> void:
 		mx = fx; my = fy
 	else:
 		mx = ax; my = ay
+	# geliştirici: walk=x,y — sabit yönde yürü (yürüyüş animasyonu testi)
+	if _walk == null:
+		_walk = Vector2.ZERO
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("walk="):
+				var p := a.substr(5).split(",")
+				_walk = Vector2(float(p[0]), float(p[1]))
+	if _walk != Vector2.ZERO and game.state == "playing":
+		mx = _walk.x; my = _walk.y
+var _walk = null
 
 ## Ekran-uzayı joystick çizimi (yalnız aktifken) — input.js render(ctx).
 func render(ctx: Ctx2D) -> void:

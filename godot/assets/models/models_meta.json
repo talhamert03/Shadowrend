@@ -382,7 +382,8 @@
     "walk.001"
    ],
    "hasBones": true,
-   "tris": 10514
+   "tris": 10514,
+   "walkAmp": 0.5
   },
   "zaman": {
    "file": "heroes/zaman.glb",

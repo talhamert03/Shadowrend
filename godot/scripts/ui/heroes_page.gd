@@ -122,6 +122,16 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		sp.position = Vector2((w - tx.get_width() * k) * 0.5, 0.0)
 		if not owned: sp.modulate = Color(0.5, 0.48, 0.55) if cards == 0 else Color(0.74, 0.72, 0.8)
 		clip.add_child(sp)
+	# uzun ad (PRİZMA BÜYÜCÜSÜ, ZAMAN BEKÇİSİ…) karta sığmazsa iki satıra bölünür
+	var nm := HeroesPage._lbl(true, 800, 11.5, 0.6, "#fff4e6" if owned else "#c9c0cf", str(def.get("name", id)), w)
+	var two := false
+	var full: String = nm.text
+	if nm.text_width() > w - 12.0 and full.contains(" "):
+		var cut := full.rfind(" ")
+		nm.i18n = false
+		nm.line_h = 13.0
+		nm.text = full.substr(0, cut) + "\n" + full.substr(cut + 1)
+		two = true
 	var fr := Node2D.new()
 	hn.add_child(fr)
 	fr.draw.connect(func():
@@ -130,7 +140,8 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		pl.bg_color = Color(0.05, 0.035, 0.07, 0.86)
 		pl.corner_radius_bottom_left = 13
 		pl.corner_radius_bottom_right = 13
-		fr.draw_style_box(pl, Rect2(1, h - 44, w - 2, 43))
+		var ph := 57.0 if two else 43.0
+		fr.draw_style_box(pl, Rect2(1, h - ph - 1, w - 2, ph))
 		# çerçeve: nadirlik rengi; seçili altın
 		var bd := StyleBoxFlat.new()
 		bd.bg_color = Color(0, 0, 0, 0)
@@ -151,8 +162,7 @@ func _card(id: String, w: float, h: float) -> Lyr:
 				fl.bg_color = Color("#5be38a") if up else rc.lerp(Color.WHITE, 0.15)
 				fl.set_corner_radius_all(3)
 				fr.draw_style_box(fl, Rect2(10, h - 13, maxf(6.0, bw * frac), 6)))
-	var nm := HeroesPage._lbl(true, 800, 11.5, 0.6, "#fff4e6" if owned else "#c9c0cf", str(def.get("name", id)), w)
-	nm.position = Vector2(0, h - 40)
+	nm.position = Vector2(0, h - (54 if two else 40))
 	hn.add_child(nm)
 	var sub := ""
 	if not owned: sub = (str(cards) + "/" + str(int(need) if need != null else 2) + " KART") if cards > 0 else "SANDIKTAN ÇIKAR"

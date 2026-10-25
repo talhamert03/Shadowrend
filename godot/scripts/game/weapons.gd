@@ -114,8 +114,8 @@ var beamFireCount := 0
 var _beamHit: Array = []
 const BLADE_MAX := 5
 enum { BL_HOVER, BL_SLIDE, BL_FLY, BL_GONE, BL_SPAWN }
-var blades: Array = []        # {st, x, y, h, vx, vy, t, ang, tgt, tok, pierce, dmg, crit, last, yaw, sc, spin}
-var bladeThrown := 0
+var blades: Array = []        # süzülen yuvalar {st, x, y, h, ang, sc, spin, slot…}
+var bladeFly: Array = []      # havadaki hançerler (kayma + uçuş)
 var bladeRefillT := -1.0
 var bladeT := 0.4
 var _hourglassT := 0.0
@@ -178,9 +178,11 @@ func reset() -> void:
 	beamFireCount = 0
 	blades = []
 	for i in BLADE_MAX:
-		blades.append({"st": BL_GONE, "x": 0.0, "y": 0.0, "h": 0.0, "vx": 0.0, "vy": 0.0, "t": 0.0, "ang": 0.0, "tgt": null, "tok": -1,
-			"pierce": 0, "dmg": 0.0, "crit": 0.0, "last": null, "yaw": 0.0, "sc": 0.0, "spin": 0.0, "slot": i, "big": false})
-	bladeThrown = 0; bladeRefillT = 0.0; bladeT = 0.4; _hourglassT = 0.0
+		var B := _blade_new()
+		B.slot = i
+		blades.append(B)
+	bladeFly = []
+	bladeRefillT = 0.0; bladeT = 0.4; _hourglassT = 0.0
 	_delayed = []
 	_lastHp = null
 	for b in bolts: b.life = 0.0
@@ -1108,13 +1110,19 @@ func fire_beam(id: String, Wd: Dictionary, L: int) -> void:
 	floatFireCount += 1
 	g.audio.play(Wd.get("sfx", "shoot"))
 
-# ── ZAMAN BIÇAKLARI: başın üstünde süzülen ibreler; düşman gelince biri kayarak fırlar ve kovalar.
-# İki bıçak atılınca hepsi yeniden belirir (üç süzülür, iki atılır, yenilenir…) ──
+# ── ZAMAN BIÇAKLARI: kahramanın omuz hizasında yatay süzülen hançerler; düşman gelince biri
+# kayarak fırlar ve kovalar. Süzülenlerin hepsi fırlayınca anında yenileri belirir (üç süzülür,
+# üçü de atılır, yenilenir…). Süzülenler `blades`, havadakiler `bladeFly` dizisinde. ──
 func _blade_slot_pos(i: int, n: int, p) -> Vector3:
-	var span := 44.0
-	var ox := (i - (n - 1) * 0.5) * span
+	# arkada hafif yay: ortadaki en yukarıda, yanlar omuz hizasında
 	var tt: float = game.time
-	return Vector3(p.x + ox, 88.0 - absf(ox) * 0.35 + sin(tt * 2.4 + i * 1.7) * 4.0, p.y - 34.0 + absf(ox) * 0.3)
+	var span := 30.0
+	var ox := (i - (n - 1) * 0.5) * span
+	return Vector3(p.x + ox, 64.0 - absf(ox) * 0.25 + sin(tt * 2.6 + i * 1.9) * 3.0, p.y - 26.0 + absf(ox) * 0.35)
+
+func _blade_new() -> Dictionary:
+	return {"st": BL_GONE, "x": 0.0, "y": 0.0, "h": 0.0, "vx": 0.0, "vy": 0.0, "t": 0.0, "ang": 0.0, "tgt": null, "tok": -1,
+		"pierce": 0, "dmg": 0.0, "crit": 0.0, "last": null, "yaw": 0.0, "sc": 0.0, "spin": 0.0, "slot": 0, "big": false}
 
 func update_blades(id: String, dt: float) -> void:
 	var g = game
@@ -1122,29 +1130,26 @@ func update_blades(id: String, dt: float) -> void:
 	var L := lvl(id) - 1
 	var Wd: Dictionary = W[id]
 	var n := mini(BLADE_MAX, int(Wd["count"][L]) if Wd.get("count") is Array else 3)
-	var throwN := n - 1
 	var hg := wi(Wd, "hourglass")
 	if hg > 0: _hourglassT += dt
-	# yenilenme
-	if bladeRefillT > 0.0:
+	var aim: float = atan2(nearest.y - p.y, nearest.x - p.x) if nearest else (PI if p.faceLeft else 0.0)
+	# yenilenme: süzülen kalmadıysa hepsi birden (kısa belirme animasyonuyla) yeniden doğar
+	var alive := 0
+	for i in n:
+		if blades[i].st != BL_GONE: alive += 1
+	if alive == 0:
+		if bladeRefillT <= 0.0: bladeRefillT = float(Wd.refill[L]) if Wd.get("refill") is Array else JS.num(Wd, "refill", 0.25)
 		bladeRefillT -= dt
 		if bladeRefillT <= 0.0:
-			bladeThrown = 0
+			bladeRefillT = 0.0
 			for i in n:
 				var B: Dictionary = blades[i]
-				if B.st == BL_GONE:
-					var sp := _blade_slot_pos(i, n, p)
-					B.st = BL_SPAWN; B.t = 0.0; B.x = sp.x; B.y = sp.z; B.h = sp.y; B.sc = 0.0; B.yaw = 0.0
-	# ilk kurulum / seviye artışı
-	for i in n:
-		var B: Dictionary = blades[i]
-		if B.st == BL_GONE and bladeRefillT <= 0.0 and bladeThrown == 0:
-			var sp := _blade_slot_pos(i, n, p)
-			B.st = BL_SPAWN; B.t = 0.0; B.x = sp.x; B.y = sp.z; B.h = sp.y; B.sc = 0.0
-	# fırlatma
+				var sp := _blade_slot_pos(i, n, p)
+				B.st = BL_SPAWN; B.t = 0.0; B.x = sp.x; B.y = sp.z; B.h = sp.y; B.sc = 0.0; B.slot = i; B.ang = aim
+	# fırlatma: hedefe en yakın süzülen bıçak kayarak çıkar
 	bladeT -= dt
 	var rng: float = float(Wd.range[L]) if Wd.range is Array else float(Wd.range)
-	if bladeT <= 0.0 and bladeThrown < throwN and nearest != null and nearestD2 < rng * rng:
+	if bladeT <= 0.0 and nearest != null and nearestD2 < rng * rng:
 		var best := -1
 		var bd := INF
 		for i in n:
@@ -1154,64 +1159,73 @@ func update_blades(id: String, dt: float) -> void:
 			if d2 < bd:
 				bd = d2
 				best = i
-		if best >= 0:
-			var B: Dictionary = blades[best]
-			B.st = BL_SLIDE; B.t = 0.0
-			B.tgt = _blade_target(B)
-			B.tok = B.tgt.aliveTok if B.tgt else -1
-			B.pierce = int(Wd.pierce[L])
-			B.dmg = float(Wd.dmg[L])
-			B.crit = JS.num(Wd, "critAdd")
-			B.big = false
+		if best >= 0 and bladeFly.size() < 10:
+			var S: Dictionary = blades[best]
+			var F := _blade_new()
+			F.merge(S, true)
+			F.st = BL_SLIDE; F.t = 0.0
+			F.tgt = _blade_target(F)
+			F.tok = F.tgt.aliveTok if F.tgt else -1
+			F.pierce = int(Wd.pierce[L])
+			F.dmg = float(Wd.dmg[L])
+			F.crit = JS.num(Wd, "critAdd")
+			F.big = false
 			if hg > 0 and _hourglassT >= 6.0:
 				_hourglassT = 0.0
-				B.big = true
-				B.crit = 1.0
-				B.dmg *= 2.0
-			B.last = null
-			bladeThrown += 1
+				F.big = true
+				F.crit = 1.0
+				F.dmg *= 2.0
+			F.last = null
+			bladeFly.append(F)
+			S.st = BL_GONE
 			bladeT = Wd.cooldown[L] * p.atkMult
-			p.trigger_ranged_attack(atan2(nearest.y - p.y, nearest.x - p.x))
-			if bladeThrown >= throwN:
-				bladeRefillT = JS.num(Wd, "refill", 0.5) if not (Wd.get("refill") is Array) else float(Wd.refill[L])
-				bladeRefillT += Wd.cooldown[L] * p.atkMult * 0.6
-	var sp_: float = Wd.speed
+			p.trigger_ranged_attack(aim)
+	# süzülenler: yuvasına yaylanır, ucu nişan yönüne döner
 	for i in BLADE_MAX:
 		var B: Dictionary = blades[i]
-		match B.st:
-			BL_HOVER, BL_SPAWN:
-				if i >= n:
-					B.st = BL_GONE
-					continue
-				var sp := _blade_slot_pos(i, n, p)
-				var k := minf(1.0, dt * 14.0)
-				B.x += (sp.x - B.x) * k; B.y += (sp.z - B.y) * k; B.h += (sp.y - B.h) * k
-				B.spin = sin(g.time * 1.8 + i) * 0.25
-				if B.st == BL_SPAWN:
-					B.t += dt
-					B.sc = minf(1.0, B.t / 0.28)
-					if B.t >= 0.28: B.st = BL_HOVER
-				else: B.sc = 1.0
-			BL_SLIDE:
-				# kayma: ibre hedefe döner, geri çekilip alçalır, sonra fırlar
-				B.t += dt
-				var tg = B.tgt
-				if tg == null or tg.hp <= 0 or tg.aliveTok != B.tok:
-					tg = _blade_target(B)
-					B.tgt = tg; B.tok = tg.aliveTok if tg else -1
-				var aim: float = atan2(tg.y - B.y, tg.x - B.x) if tg else B.ang
-				B.ang = aim
-				var u := minf(1.0, B.t / 0.13)
-				B.x -= cos(aim) * 90.0 * dt * (1.0 - u)
-				B.y -= sin(aim) * 90.0 * dt * (1.0 - u)
-				B.h += (34.0 - B.h) * minf(1.0, dt * 16.0)
-				if B.t >= 0.13:
-					B.st = BL_FLY; B.t = 0.0
-					B.vx = cos(aim) * sp_; B.vy = sin(aim) * sp_
-					g.audio.play("throw")
-			BL_FLY:
-				if _blade_fly(B, dt, Wd): B.st = BL_GONE
-			_: pass
+		if B.st == BL_GONE: continue
+		if i >= n:
+			B.st = BL_GONE
+			continue
+		var sp := _blade_slot_pos(i, n, p)
+		var k := minf(1.0, dt * 14.0)
+		B.x += (sp.x - B.x) * k; B.y += (sp.z - B.y) * k; B.h += (sp.y - B.h) * k
+		B.ang = lerp_angle(B.ang, aim, minf(1.0, dt * 8.0))
+		B.spin = sin(g.time * 1.8 + i) * 0.35
+		if B.st == BL_SPAWN:
+			B.t += dt
+			B.sc = minf(1.0, B.t / 0.22)
+			if B.t >= 0.22: B.st = BL_HOVER
+		else: B.sc = 1.0
+	# havadakiler: kayma → uçuş
+	var sp_: float = Wd.speed
+	var j := bladeFly.size() - 1
+	while j >= 0:
+		var F: Dictionary = bladeFly[j]
+		var done := false
+		if F.st == BL_SLIDE:
+			# kayma: hançer hedefe döner, hafif geri çekilip alçalır, sonra fırlar
+			F.t += dt
+			var tg = F.tgt
+			if tg == null or tg.hp <= 0 or tg.aliveTok != F.tok:
+				tg = _blade_target(F)
+				F.tgt = tg; F.tok = tg.aliveTok if tg else -1
+			var a2: float = atan2(tg.y - F.y, tg.x - F.x) if tg else F.ang
+			F.ang = lerp_angle(F.ang, a2, minf(1.0, dt * 22.0))
+			var u := minf(1.0, F.t / 0.12)
+			F.x -= cos(a2) * 110.0 * dt * (1.0 - u)
+			F.y -= sin(a2) * 110.0 * dt * (1.0 - u)
+			F.h += (34.0 - F.h) * minf(1.0, dt * 14.0)
+			if F.t >= 0.12:
+				F.st = BL_FLY; F.t = 0.0; F.ang = a2
+				F.vx = cos(a2) * sp_; F.vy = sin(a2) * sp_
+				g.audio.play("throw")
+		else:
+			done = _blade_fly(F, dt, Wd)
+		if done:
+			bladeFly[j] = bladeFly[bladeFly.size() - 1]
+			bladeFly.pop_back()
+		j -= 1
 
 func _blade_target(B: Dictionary):
 	if nearest and nearest.hp > 0: return nearest

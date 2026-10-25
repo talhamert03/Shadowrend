@@ -534,6 +534,7 @@ func load_character(char_id: String) -> void:
 		walkClip = str(clip) if clip != null and lst.has(str(clip)) else (lst[0] if lst.size() else "")
 		if walkClip != "":
 			_strip_root_motion(heroAnim.get_animation(walkClip))
+			if md.has("walkAmp"): _damp_walk(heroAnim.get_animation(walkClip), float(md.walkAmp))
 			heroAnim.get_animation(walkClip).loop_mode = Animation.LOOP_LINEAR
 			heroAnim.play(walkClip)
 			heroAnim.advance(0)
@@ -597,6 +598,35 @@ static func _strip_root_motion(an: Animation) -> void:
 		for i in k:
 			var u := (an.track_get_key_time(t, i) - t0) / span
 			an.track_set_key_value(t, i, (an.track_get_key_value(t, i) as Vector3) - drift * u)
+
+## Yürüyüş genliği: uzun cüppeli modellerde (Prizma) geniş adım cüppeyi bacaklarla sağa sola
+## savurur, gövde yalpalar. Her döner kemik izi kendi ortalama pozuna doğru amp oranında
+## yaklaştırılır (adım kısalır, süzülür gibi yürür); konum izlerinin salınımı da aynı oranda.
+static func _damp_walk(an: Animation, amp: float) -> void:
+	if an == null or an.has_meta("_damp"): return
+	an.set_meta("_damp", true)
+	for t in an.get_track_count():
+		var k := an.track_get_key_count(t)
+		if k < 3: continue
+		var ty := an.track_get_type(t)
+		if ty == Animation.TYPE_ROTATION_3D:
+			var q0: Quaternion = an.track_get_key_value(t, 0)
+			var acc := Vector4.ZERO
+			for i in k:
+				var q: Quaternion = an.track_get_key_value(t, i)
+				if q.dot(q0) < 0.0: q = -q
+				acc += Vector4(q.x, q.y, q.z, q.w)
+			var m := Quaternion(acc.x, acc.y, acc.z, acc.w).normalized()
+			for i in k:
+				var q: Quaternion = an.track_get_key_value(t, i)
+				an.track_set_key_value(t, i, m.slerp(q, amp))
+		elif ty == Animation.TYPE_POSITION_3D:
+			var c := Vector3.ZERO
+			for i in k: c += an.track_get_key_value(t, i)
+			c /= k
+			for i in k:
+				var v: Vector3 = an.track_get_key_value(t, i)
+				an.track_set_key_value(t, i, c + (v - c) * amp)
 
 ## charLook.applyCharLook + lift: her yüzey malzemesini three Standard karşılığına çevirir.
 func _apply_char_look(root: Node, lift: float, rough_max: float) -> void:

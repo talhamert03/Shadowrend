@@ -313,7 +313,7 @@ func _zb_setup(on: bool) -> void:
 		var dn := Geo.cone(4.6, 8.0, 4)
 		var flat := Basis().scaled(Vector3(1.0, 1.0, 0.26))
 		var bm := Geo.merge([up, dn], [Transform3D(flat, Vector3(0, 19.0, 0)), Transform3D(flat * Basis(Vector3.RIGHT, PI), Vector3(0, 0.0, 0))])
-		zbBlade = IMesh.new(bm, steel, 6)
+		zbBlade = IMesh.new(bm, steel, 10)
 		S.add_child(zbBlade)
 		# dişli halka + göbek (altın)
 		var gold := Shd.lit({"color": Color("#e8b85a"), "emissive": Color("#5a300c"), "emissive_k": 0.6, "roughness": 0.3, "metalness": 0.65, "rim": true})
@@ -326,9 +326,9 @@ func _zb_setup(on: bool) -> void:
 			xfs.append(Transform3D(Basis(Vector3.FORWARD, an), Vector3(cos(an) * 7.0, 4.0 + sin(an) * 7.0, 0)))
 		parts.append(Geo.sphere(2.2, 8, 6))
 		xfs.append(Transform3D(Basis(), Vector3(0, 4.0, 0)))
-		zbGear = IMesh.new(Geo.merge(parts, xfs), gold, 6)
+		zbGear = IMesh.new(Geo.merge(parts, xfs), gold, 10)
 		S.add_child(zbGear)
-		zbGlow = _quad_inst("res://assets/fx/glow.png", 6, 3)
+		zbGlow = _quad_inst("res://assets/fx/glow.png", 10, 3)
 
 ## bıçak ekseni (+Y) dir yönüne; roll: kendi ekseni etrafında dönüş
 static func _axis_basis(dir: Vector3, roll: float, sc: float) -> Basis:
@@ -339,7 +339,7 @@ static func _axis_basis(dir: Vector3, roll: float, sc: float) -> Basis:
 	var b := Basis(x, y, z) * Basis(Vector3.UP, roll)
 	return b.scaled(Vector3.ONE * sc)
 
-func _update_zblades(g, dt: float) -> void:
+func _update_zblades(g, _dt: float) -> void:
 	if not _zbOn or zbBlade == null: return
 	var W = g.weapons
 	if W == null or not W.slots.has("saat"):
@@ -347,35 +347,40 @@ func _update_zblades(g, dt: float) -> void:
 		return
 	var n := 0
 	var t: float = g.time
-	for B in W.blades:
-		var st: int = B.st
-		if st == WeaponManager.BL_GONE: continue
-		var sc: float = B.sc if st == WeaponManager.BL_SPAWN else 1.0
-		if sc <= 0.01: continue
-		var pos := Vector3(B.x, B.h, B.y)
-		var dir: Vector3
-		var roll: float
-		if st == WeaponManager.BL_FLY:
-			dir = Vector3(cos(B.ang), -0.05, sin(B.ang))
-			roll = float(B.spin) * 9.0
-		elif st == WeaponManager.BL_SLIDE:
-			var u := minf(1.0, float(B.t) / 0.13)
-			dir = Vector3(0, 1, 0).lerp(Vector3(cos(B.ang), 0.12, sin(B.ang)), u * u * (3.0 - 2.0 * u))
-			roll = u * 2.0
-		else:
-			# süzülürken ucu yukarıda, hafif yelpaze açısı, ağır salınım
-			var slot := float(B.slot) - 1.0
-			dir = Vector3(slot * 0.28 + sin(t * 1.3 + slot) * 0.06, 1.0, -0.15)
-			roll = float(B.spin) + t * 0.6
-		var big: bool = B.big
-		var bs := (2.1 if big else 1.7) * sc
-		zbBlade.set_mat(n, _axis_basis(dir, roll, bs), pos)
-		zbGear.set_mat(n, _axis_basis(dir, roll, bs), pos)
-		var k := 0.22 + 0.08 * sin(t * 4.0 + n) + (0.25 if st == WeaponManager.BL_FLY else 0.0)
-		var gc := Color(1.0, 0.55, 0.2) if big else Color(1.0, 0.78, 0.38)
-		_bb(zbGlow, n, pos.x + dir.x * 22.0 * bs, pos.y + dir.y * 22.0 * bs, pos.z + dir.z * 22.0 * bs, 22 * bs, 30 * bs, 0, gc.r * k, gc.g * k, gc.b * k)
-		n += 1
-		if n >= 6: break
+	for lst in [W.blades, W.bladeFly]:
+		for B in lst:
+			if n >= 10: break
+			var st: int = B.st
+			if st == WeaponManager.BL_GONE: continue
+			var sc: float = B.sc if st == WeaponManager.BL_SPAWN else 1.0
+			if sc <= 0.01: continue
+			var pos := Vector3(B.x, B.h, B.y)
+			var ca := cos(float(B.ang)); var sa := sin(float(B.ang))
+			var dir: Vector3
+			var roll: float
+			if st == WeaponManager.BL_FLY:
+				dir = Vector3(ca, -0.04, sa)
+				roll = float(B.spin) * 9.0
+			elif st == WeaponManager.BL_SLIDE:
+				# kayma: ucu hafif aşağı eğilir, kendi ekseninde yarım tur
+				var u := minf(1.0, float(B.t) / 0.12)
+				dir = Vector3(ca, 0.1 - 0.2 * u, sa)
+				roll = u * PI
+			else:
+				# süzülürken yatay, ucu nişan yönünde; hafif salınım
+				dir = Vector3(ca, 0.06 + sin(t * 2.2 + float(B.slot)) * 0.04, sa)
+				roll = PI * 0.5 + float(B.spin)
+			var big: bool = B.big
+			var bs := (1.3 if big else 1.05) * sc
+			var bb := _axis_basis(dir, roll, bs)
+			# kabza (dişli) bıçağın arkasında: model +Y'de uç, orijinde dişli
+			var pp := pos - dir.normalized() * 14.0 * bs
+			zbBlade.set_mat(n, bb, pp)
+			zbGear.set_mat(n, bb, pp)
+			var k := 0.2 + 0.06 * sin(t * 4.0 + n) + (0.22 if st == WeaponManager.BL_FLY else 0.0)
+			var gc := Color(1.0, 0.55, 0.2) if big else Color(1.0, 0.78, 0.38)
+			_bb(zbGlow, n, pos.x, pos.y, pos.z, 26 * bs, 20 * bs, 0, gc.r * k, gc.g * k, gc.b * k)
+			n += 1
 	zbBlade.commit(n); zbGear.commit(n); zbGlow.commit(n)
 
 # ═══════════ AY YAYI ═══════════

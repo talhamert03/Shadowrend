@@ -126,7 +126,7 @@ func _ensure_shell() -> void:
 	if _bg: return
 	_W = UIK.ui_size(get_viewport())
 	_bg = ColorRect.new()
-	_bg.color = Color(0.06, 0.02, 0.08, 0.8)
+	_bg.color = Color(0.03, 0.01, 0.02, 0.84)
 	var SR := UIK.screen_rect(self)          # tüm ekran (yan kenarlar dahil)
 	_bg.size = SR.size
 	_bg.position = SR.position
@@ -247,50 +247,65 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 	var bg := Node2D.new()
 	bg.draw.connect(func():
 		var r := Rect2(-w * 0.5, -h * 0.5, w, h)
-		# mürekkep ofset gölge + gövde (nadirlik rengi)
+		# KARANLIK KART: kömür gövde, nadirlik renginde ışıklı çerçeve ve madalyon arkası ışınları
 		var sh := StyleBoxFlat.new()
-		sh.bg_color = INK
+		sh.bg_color = Color(0, 0, 0, 0.75)
 		sh.set_corner_radius_all(12)
-		bg.draw_style_box(sh, Rect2(r.position + Vector2(5, 6), r.size))
+		bg.draw_style_box(sh, Rect2(r.position + Vector2(4, 7), r.size))
 		var b := StyleBoxFlat.new()
-		b.bg_color = col
+		b.bg_color = Color("#150d13")
 		b.set_corner_radius_all(12)
 		bg.draw_style_box(b, r)
-		# madalyon arkasında aksiyon ışınları (kart içine kırpılı)
+		# üst yarı: nadirlik renginde koyu ton (aşağı doğru söner)
+		var bands := 10
+		for i in bands:
+			var f := float(i) / bands
+			var hb := Rect2(r.position.x + 4, r.position.y + 4 + f * (h * 0.62), w - 8, h * 0.62 / bands + 1)
+			bg.draw_rect(hb, Color(dark, 0.55 * (1.0 - f)))
+		# madalyon arkasında soluk ışınlar (kart içine kırpılı)
 		var box := PackedVector2Array([r.position + Vector2(4, 4), Vector2(r.end.x - 4, r.position.y + 4), r.end - Vector2(4, 4), Vector2(r.position.x + 4, r.end.y - 4)])
 		for i in 14:
 			var a := i * TAU / 14.0
 			var R := w * 1.2
-			var tri := PackedVector2Array([mc, mc + Vector2(cos(a - 0.12), sin(a - 0.12)) * R, mc + Vector2(cos(a + 0.12), sin(a + 0.12)) * R])
+			var tri := PackedVector2Array([mc, mc + Vector2(cos(a - 0.1), sin(a - 0.1)) * R, mc + Vector2(cos(a + 0.1), sin(a + 0.1)) * R])
 			for q in Geometry2D.intersect_polygons(tri, box):
-				if q.size() >= 3: bg.draw_colored_polygon(q, Color(lite, 0.55))
-		# yarım ton: üstten aşağı büyüyen koyu noktalar
+				if q.size() >= 3: bg.draw_colored_polygon(q, Color(col, 0.13))
+		# yarım ton: alttan yukarı sönen koyu noktalar
 		for yy in range(0, 16):
 			for xx in range(-7, 8):
 				var p := Vector2(xx * 8.0 + (4.0 if yy % 2 else 0.0), -h * 0.5 + 6 + yy * 7.0)
-				var rr := 0.4 + yy * 0.14
-				if absf(p.x) < w * 0.5 - 6: bg.draw_circle(p, rr, Color(dark, 0.45))
-		# açıklama kâğıdı (krem, mürekkep konturlu)
+				var rr := 0.4 + yy * 0.12
+				if absf(p.x) < w * 0.5 - 6: bg.draw_circle(p, rr, Color(0, 0, 0, 0.35))
+		# açıklama alanı: koyu parşömen, ince renkli kenar
 		var pr := Rect2(-w * 0.5 + 8, -h * 0.5 + 158, w - 16, h - 166)
 		var pb := StyleBoxFlat.new()
-		pb.bg_color = PAPER
+		pb.bg_color = Color("#0b0709")
 		pb.set_corner_radius_all(8)
-		pb.set_border_width_all(3)
-		pb.border_color = INK
+		pb.set_border_width_all(2)
+		pb.border_color = Color(col, 0.45)
 		bg.draw_style_box(pb, pr)
-		# dış mürekkep kontur
+		# dış mürekkep kontur + iç ışıklı nadirlik çerçevesi
 		var o := StyleBoxFlat.new()
 		o.bg_color = Color(0, 0, 0, 0)
 		o.set_corner_radius_all(12)
-		o.set_border_width_all(5)
+		o.set_border_width_all(4)
 		o.border_color = INK
 		bg.draw_style_box(o, r)
-		# madalyon: beyaz daire, kalın kontur, gölge
-		bg.draw_circle(mc + Vector2(3, 4), 34, INK)
+		var o2 := StyleBoxFlat.new()
+		o2.bg_color = Color(0, 0, 0, 0)
+		o2.set_corner_radius_all(9)
+		o2.set_border_width_all(2)
+		o2.border_color = col
+		bg.draw_style_box(o2, r.grow(-4))
+		bg.draw_line(Vector2(r.position.x + 14, r.position.y + 6), Vector2(r.end.x - 14, r.position.y + 6), Color(lite, 0.5), 1.5)
+		# madalyon: koyu disk, renkli halka ve iç ışık
+		bg.draw_circle(mc, 40, Color(col, 0.12))
+		bg.draw_circle(mc + Vector2(2, 4), 34, Color(0, 0, 0, 0.7))
 		bg.draw_circle(mc, 34, INK)
-		bg.draw_circle(mc, 29, Color("#fffaf0"))
-		bg.draw_circle(mc + Vector2(-8, -10), 9, Color(1, 1, 1, 0.9))
-		bg.draw_arc(mc, 29, PI * 0.15, PI * 0.85, 16, Color(col, 0.55), 5.0, true))
+		bg.draw_circle(mc, 30, Color("#1d1219"))
+		bg.draw_circle(mc, 22, Color(col, 0.18))
+		bg.draw_arc(mc, 30, 0.0, TAU, 40, col, 3.0, true)
+		bg.draw_arc(mc, 30, PI * 1.1, PI * 1.6, 12, Color(lite, 0.9), 3.0, true))
 	face.add_child(bg)
 	# glif (mürekkep rengi)
 	var gf := glyph_file(c)
@@ -300,7 +315,7 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 		sp.texture = tex
 		sp.scale = Vector2.ONE * (38.0 / (tex.get_width() * 38.0 / 66.0))
 		sp.position = mc
-		sp.modulate = Color(0.1, 0.06, 0.12)
+		sp.modulate = lite
 		face.add_child(sp)
 	# tür etiketi: eğik siyah bant, beyaz çizgi roman yazısı
 	var tag := Node2D.new()
@@ -348,7 +363,7 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 		face.add_child(pips)
 	# açıklama: kâğıt üstünde koyu yazı
 	var ds := UIText.new()
-	ds.style(false, 800, 11, 0.1, Color("#2a1c24"), "")
+	ds.style(false, 800, 11, 0.1, Color("#e6dccf"), "")
 	ds.align = 0.5
 	ds.nowrap = false
 	ds.max_lines = 5
@@ -358,10 +373,10 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 	face.add_child(ds)
 	if c.get("bless", false):
 		ds.text = "+ " + str(c.get("plus", ""))
-		ds.color = Color("#1d7a34")
+		ds.color = Color("#7ee89a")
 		ds.max_lines = 3
 		var mi := UIText.new()
-		mi.style(false, 800, 11, 0.1, Color("#b8202c"), "")
+		mi.style(false, 800, 11, 0.1, Color("#ff6a70"), "")
 		mi.align = 0.5
 		mi.nowrap = false
 		mi.max_lines = 2
@@ -382,21 +397,27 @@ func _draw_back(n: Node2D, col: Color) -> void:
 	sh.set_corner_radius_all(12)
 	n.draw_style_box(sh, Rect2(r.position + Vector2(5, 6), r.size))
 	var b := StyleBoxFlat.new()
-	b.bg_color = col.darkened(0.25)
+	b.bg_color = Color("#150d13")
 	b.set_corner_radius_all(12)
 	b.set_border_width_all(5)
 	b.border_color = INK
 	n.draw_style_box(b, r)
 	for i in 12:
 		var a := i * TAU / 12.0
-		n.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.13), sin(a - 0.13)) * 150, Vector2(cos(a + 0.13), sin(a + 0.13)) * 150]), Color(col.lightened(0.3), 0.5))
+		n.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.13), sin(a - 0.13)) * 150, Vector2(cos(a + 0.13), sin(a + 0.13)) * 150]), Color(col, 0.16))
+	var o2 := StyleBoxFlat.new()
+	o2.bg_color = Color(0, 0, 0, 0)
+	o2.set_corner_radius_all(9)
+	o2.set_border_width_all(2)
+	o2.border_color = col
+	n.draw_style_box(o2, r.grow(-4))
 	n.draw_rect(Rect2(r.position + Vector2(5, 5), Vector2(0, 0)), INK)
 	n.draw_circle(Vector2(2, 3), 32, INK)
 	n.draw_circle(Vector2.ZERO, 32, INK)
-	n.draw_circle(Vector2.ZERO, 27, YEL)
+	n.draw_circle(Vector2.ZERO, 27, col.darkened(0.2))
 	if n.get_child_count() == 0:
 		var q := UIText.new()
-		q.style(false, 1000, 40, 0.0, INK, "")
+		q.style(false, 1000, 40, 0.0, Color("#f3e6cf"), "")
 		q.align = 0.5
 		q.nowrap = true
 		q.wrap_w = 60
@@ -421,7 +442,7 @@ func _draw_rays() -> void:
 	var al := clampf(_t / 0.4, 0.0, 1.0)
 	for i in 16:
 		var a := a0 + i * TAU / 16.0
-		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.1), sin(a - 0.1)) * R, Vector2(cos(a + 0.1), sin(a + 0.1)) * R]), Color(1.0, 0.72, 0.2, 0.13 * al))
+		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.1), sin(a - 0.1)) * R, Vector2(cos(a + 0.1), sin(a + 0.1)) * R]), Color(0.7, 0.07, 0.09, 0.11 * al))
 	var kb := clampf(_t / 0.35, 0.0, 1.0)
 	var s := _back_ease(kb) if kb < 1.0 else 1.0 + sin(_t * 3.0) * 0.02
 	var pts := PackedVector2Array()

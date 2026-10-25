@@ -1015,7 +1015,7 @@
    "stonePrice": 2500,
    "style": "ranged",
    "startWeapon": "saat",
-   "lore": "Kızıl Ay'ın düştüğü gece saat kulesinin nöbetindeydi; zaman onun zırhında durdu. Şimdi başının üstünde üç saat ibresi süzülür — her biri bir anı keser, kesilen an bir daha geri gelmez.",
+   "lore": "Kızıl Ay'ın düştüğü gece saat kulesinin nöbetindeydi; zaman onun zırhında durdu. Şimdi yanında saat ibresinden dövülmüş üç hançer süzülür — her biri bir anı keser, kesilen an bir daha geri gelmez.",
    "mods": {
     "dmgPct": 0.14,
     "atkPct": 0.06,
@@ -1024,8 +1024,8 @@
     "armor": 1
    },
    "perks": [
-    "İmza: Zaman Bıçakları — başının üstünde süzülen üç saat ibresi",
-    "Bıçaklar kayarak fırlar, hedefi kovalar; ikisi atılınca üçü yenilenir",
+    "İmza: Zaman Bıçakları — omuz hizasında süzülen üç hançer",
+    "Hançerler kayarak fırlar, hedefi kovalar; üçü de atılınca anında yenilenir",
     "Hasar +%14, saldırı hızı +%6, kritik +%4, azami can +12, zırh +1",
     "Efsane — kadronun en nadir kademesi"
    ],
@@ -4090,7 +4090,7 @@
    {
     "id": "sig_z1",
     "name": "Bilenmiş Çelik",
-    "desc": "Bıçak hasarı +%15.",
+    "desc": "Hançer hasarı +%15.",
     "boost": {
      "weapon": "saat",
      "dmg": 1.15
@@ -4099,7 +4099,7 @@
    {
     "id": "sig_z2",
     "name": "Akıcı Zaman",
-    "desc": "Bıçaklar %10 daha sık fırlar.",
+    "desc": "Hançerler %10 daha sık fırlar.",
     "boost": {
      "weapon": "saat",
      "cd": 0.9
@@ -4108,7 +4108,7 @@
    {
     "id": "sig_z3",
     "name": "Delen Akrep",
-    "desc": "Bıçak bir düşmanı daha deler geçer.",
+    "desc": "Hançer bir düşmanı daha deler geçer.",
     "boost": {
      "weapon": "saat",
      "pierce": 1
@@ -4117,7 +4117,7 @@
    {
     "id": "sig_z4",
     "name": "Hızlı Yelkovan",
-    "desc": "Bıçak uçuş hızı +%15, hasar +%6.",
+    "desc": "Hançer uçuş hızı +%15, hasar +%6.",
     "boost": {
      "weapon": "saat",
      "speed": 1.15,
@@ -4127,7 +4127,7 @@
    {
     "id": "sig_z5",
     "name": "Saat Ustası",
-    "desc": "Bıçaklar %20 daha çabuk yenilenir, hasar +%5.",
+    "desc": "Hançerler %20 daha çabuk yenilenir, hasar +%5.",
     "boost": {
      "weapon": "saat",
      "refillMul": 0.8,
@@ -4150,7 +4150,7 @@
     "minLvl": 1,
     "myth": true,
     "glyph": "nisanci",
-    "desc": "Her 6 saniyede bir sonraki bıçak kesin kritik vurur ve iki kat hasar verir.",
+    "desc": "Her 6 saniyede bir sonraki hançer kesin kritik vurur ve iki kat hasar verir.",
     "boost": {
      "weapon": "saat",
      "hourglassAdd": 1
@@ -4162,7 +4162,7 @@
     "minLvl": 1,
     "myth": true,
     "glyph": "takipci",
-    "desc": "Bıçağın vurduğu düşman zamanda takılır: 0,6 sn kımıldayamaz.",
+    "desc": "Hançerin vurduğu düşman zamanda takılır: 0,6 sn kımıldayamaz.",
     "boost": {
      "weapon": "saat",
      "pinAdd": 1
@@ -4186,7 +4186,7 @@
     "minLvl": 3,
     "myth": true,
     "glyph": "ikiz",
-    "desc": "Başının üstünde bir bıçak daha süzülür; her turda üç bıçak fırlar.",
+    "desc": "Bir hançer daha süzülür; her turda dört hançer fırlar.",
     "boost": {
      "weapon": "saat",
      "count": 1
@@ -5575,26 +5575,26 @@
    "kind": "blades",
    "class": "celik",
    "sfx": "shoot",
-   "descNew": "Zaman Bekçisi'nin başı üstünde süzülen üç saat ibresi bıçak — düşman yaklaşınca biri kayarak fırlar ve kovalar; iki bıçak atılınca üçü yeniden belirir.",
+   "descNew": "Zaman Bekçisi'nin omuz hizasında yatay süzülen üç hançer — düşman yaklaşınca biri kayarak fırlar ve kovalar; üçü de atılınca yenileri anında belirir.",
    "descUp": [
-    "Hasar +, bıçaklar hızlanır",
+    "Hasar +, hançerler hızlanır",
     "Daha sık fırlatır",
     "+1 delme, hasar +",
     "Hasar +, daha çabuk yenilenir"
    ],
    "dmg": [
-    24,
-    33,
-    45,
-    60,
-    80
+    20,
+    27,
+    37,
+    50,
+    66
    ],
    "cooldown": [
-    0.6,
-    0.56,
-    0.52,
-    0.48,
-    0.44
+    0.58,
+    0.54,
+    0.5,
+    0.46,
+    0.42
    ],
    "range": [
     430,
@@ -5619,11 +5619,11 @@
     3
    ],
    "refill": [
-    0.5,
-    0.48,
-    0.46,
-    0.42,
-    0.38
+    0.3,
+    0.28,
+    0.26,
+    0.24,
+    0.2
    ],
    "color": "#ffcf6a",
    "rainColor": "#ffe7a8",

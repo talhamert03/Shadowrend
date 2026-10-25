@@ -210,28 +210,28 @@ func _draw_bolt(U: Ultimate, f: Fx, u: float) -> void:
 	U._glow(B, 34.0, f.c, 0.8 * a, 1.0, U._T)
 
 func _draw_beam(U: Ultimate, f: Fx, u: float) -> void:
+	# zarif ince ışın: ince beyaz çekirdek, dar renk şeridi, hafif hale; uçta küçük yıldız
 	var tn := tan(Render3D.TILT)
 	var A := Vector2(f.x, f.y - f.r * tn)
 	var B := Vector2(f.x2, f.y2 - f.a0 * tn)
-	var gr := minf(1.0, f.t / 0.045)
+	var gr := minf(1.0, f.t / 0.04)
 	var hd := A.lerp(B, gr)
-	var a := 1.0 if u < 0.35 else 1.0 - (u - 0.35) / 0.65
-	a *= 0.85 + 0.15 * sin(f.t * 90.0)
-	var w := f.w * (1.0 + 0.35 * (1.0 - u))
+	var a := 1.0 if u < 0.3 else 1.0 - (u - 0.3) / 0.7
+	a *= 0.9 + 0.1 * sin(f.t * 90.0)
+	var vw := clampf(f.w * 0.28, 3.5, 9.0) * (1.0 + 0.25 * (1.0 - u))
 	var d := hd - A
 	if d.length() < 2.0: return
 	var nrm := Vector2(-d.y, d.x).normalized()
 	var P := PackedVector2Array([A, hd])
-	U._thick(U._G, P, w * 2.0, U._ca(f.c, 0.32 * a), false)
-	U._thick(U._T, P, w * 0.75, U._ca(f.c, 0.85 * a), false)
-	# prizma kenarı: iki yanda ince pembe/camgöbeği şerit
-	U._thick(U._T, PackedVector2Array([A + nrm * w * 0.45, hd + nrm * w * 0.45]), 2.4, Color(1.0, 0.48, 0.66, 0.55 * a), false)
-	U._thick(U._T, PackedVector2Array([A - nrm * w * 0.45, hd - nrm * w * 0.45]), 2.4, Color(0.48, 0.86, 1.0, 0.55 * a), false)
-	U._thick(U._T, P, maxf(2.5, w * 0.22), Color(1, 1, 1, a), false)
-	U._glow(A, w * 1.6, f.c, 0.8 * a, 1.0, U._T)
-	U._glow(hd, w * 2.2, f.c, 0.9 * a, 1.0, U._T)
-	U._glow(hd, w * 0.8, Color.WHITE, a, 1.0, U._T)
-	if u < 0.5: U._sparkle(U._T, hd, w * 0.9 * (1.0 - u * 2.0), Color(1, 1, 1, a), f.seed + f.t * 6.0)
+	U._thick(U._G, P, vw * 3.2, U._ca(f.c, 0.2 * a), false)
+	U._thick(U._T, P, vw, U._ca(f.c, 0.75 * a), false)
+	U._thick(U._T, PackedVector2Array([A + nrm * vw * 0.75, hd + nrm * vw * 0.75]), 1.1, Color(1.0, 0.5, 0.7, 0.5 * a), false)
+	U._thick(U._T, PackedVector2Array([A - nrm * vw * 0.75, hd - nrm * vw * 0.75]), 1.1, Color(0.5, 0.88, 1.0, 0.5 * a), false)
+	U._thick(U._T, P, maxf(1.4, vw * 0.3), Color(1, 1, 1, a), false)
+	U._glow(A, vw * 2.6, f.c, 0.7 * a, 1.0, U._T)
+	U._glow(hd, vw * 3.2, f.c, 0.8 * a, 1.0, U._T)
+	U._glow(hd, vw * 1.1, Color.WHITE, a, 1.0, U._T)
+	if u < 0.6: U._sparkle(U._T, hd, vw * 2.2 * (1.0 - u / 0.6), Color(1, 1, 1, a), f.seed + f.t * 6.0)
 
 func _draw_hurt(U: Ultimate, f: Fx, u: float) -> void:
 	var p = game.player
@@ -295,7 +295,7 @@ func _draw_streams(U: Ultimate, g) -> void:
 	# zaman bıçakları: uçanın altın ışık kuyruğu, süzülenin ışıltısı
 	if W and W.slots.has("saat"):
 		var tn := tan(Render3D.TILT)
-		for B in W.blades:
+		for B in W.blades + W.bladeFly:
 			var st: int = B.st
 			if st == WeaponManager.BL_GONE: continue
 			var hp := Vector2(B.x, B.y - float(B.h) * tn)
@@ -303,16 +303,16 @@ func _draw_streams(U: Ultimate, g) -> void:
 				var v := Vector2(cos(B.ang), sin(B.ang) * SQ).normalized()
 				var gc := Color(1, 0.62, 0.22) if B.big else Color(1, 0.8, 0.4)
 				if st == WeaponManager.BL_FLY:
-					U._streak(hp, v, 90.0, 16.0 if B.big else 11.0, gc, 0.8)
-					U._streak(hp, v, 46.0, 5.0, Color(1, 1, 1), 0.8)
-				U._glow(hp, 30.0 if B.big else 22.0, gc, 0.7, 1.0, U._T)
+					U._streak(hp, v, 80.0, 12.0 if B.big else 8.0, gc, 0.75)
+					U._streak(hp, v, 40.0, 3.5, Color(1, 1, 1), 0.8)
+				U._glow(hp, 24.0 if B.big else 16.0, gc, 0.6, 1.0, U._T)
 			else:
 				var sc: float = B.sc
-				U._glow(hp + Vector2(0, -6), 18.0 * sc, Color(1, 0.78, 0.36), 0.35 * sc, 1.0, U._G)
+				U._glow(hp, 14.0 * sc, Color(1, 0.78, 0.36), 0.25 * sc, 1.0, U._G)
 				if st == WeaponManager.BL_SPAWN:
-					var k := minf(1.0, float(B.t) / 0.28)
-					U._gring(hp, 10.0 + 26.0 * k, 8.0 * (1.0 - k) + 2.0, Color(1, 0.84, 0.45), 1.0 - k, 1.0, 20, 1.2)
-					U._sparkle(U._T, hp, 14.0 * (1.0 - k) + 3.0, Color(1, 1, 1, 1.0 - k * 0.6), k * 3.0)
+					var k := minf(1.0, float(B.t) / 0.22)
+					U._gring(hp, 6.0 + 16.0 * k, 5.0 * (1.0 - k) + 1.5, Color(1, 0.78, 0.4), (1.0 - k) * 0.7, 1.0, 18, 0.0)
+					U._sparkle(U._T, hp, 7.0 * (1.0 - k) + 2.0, Color(1, 0.95, 0.8, (1.0 - k) * 0.8), k * 3.0)
 	# kılıç dalgaları: ilerleyen parlak hilal
 	if W:
 		for w in W.waves:

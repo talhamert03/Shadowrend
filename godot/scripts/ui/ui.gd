@@ -38,6 +38,8 @@ var sheet: ScrSheet
 var battlepass: ScrBattlePass
 var celebrate: ScrCelebrate
 var settings: ScrSettings
+var _gradeL: CanvasLayer
+var _grade: ColorRect
 
 func _init(a = null) -> void:
 	g = a
@@ -80,6 +82,17 @@ func _ready() -> void:
 	layer.add_child(uiroot)
 	_apply_safe()
 	get_viewport().size_changed.connect(_apply_safe)
+	# karanlık renk düzeni: menü ve ekran katmanlarının üstünde tam ekran (savaş oynanırken kapalı)
+	_gradeL = CanvasLayer.new()
+	_gradeL.layer = 6
+	add_child(_gradeL)
+	_grade = ColorRect.new()
+	_grade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_grade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var gm := ShaderMaterial.new()
+	gm.shader = load("res://shaders/ui_grade.gdshader")
+	_grade.material = gm
+	_gradeL.add_child(_grade)
 	menu = ScrMenu.new(g)
 	uiroot.add_child(menu)
 	hud = HUD.new(g)
@@ -445,6 +458,9 @@ func _process(_dt: float) -> void:
 	if Prof.on and Engine.get_process_frames() % 30 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())
+	if _grade:
+		var gv: bool = g.state != "playing"
+		if _grade.visible != gv: _grade.visible = gv
 	if _bands.size():
 		var bv: bool = g.state != "playing" and g.state != "paused"
 		if _bands[0].visible != bv:
