@@ -315,7 +315,7 @@ func _bag(dy: float) -> void:
 			var C := _add("kztab_on" if t.id == tab else "kztab_off", tabs_n, Vector2(x, 2))
 			if C == null: continue
 			var items: Array = D.EQUIPMENT if t.id == "all" else D.EQUIPMENT.filter(func(e): return e.slot == t.id)
-			var own := items.filter(func(e): return g.owns_gear(e.id)).size()
+			var own := items.filter(func(e): return g.owns_gear(e.id) and not g.is_equipped(e.id)).size()
 			var root_n: Lyr.N = C.nodes[0]
 			var ow: float = root_n.txt.text_width() if root_n.txt else 0.0
 			C.set_text(root_n, str(t.name))
@@ -336,7 +336,8 @@ func _bag(dy: float) -> void:
 	var grid := shell.find_id("#armory-shop")
 	if grid == null: return
 	var list: Array = D.EQUIPMENT.filter(func(e): return tab == "all" or e.slot == tab)
-	var owned: Array = list.filter(func(e): return g.owns_gear(e.id))
+	# kuşanılan eşya çantada durmaz (yuvada görünür); çıkarılınca çantaya döner
+	var owned: Array = list.filter(func(e): return g.owns_gear(e.id) and not g.is_equipped(e.id))
 	var missing: Array = list.filter(func(e): return not g.owns_gear(e.id))
 	var slot_ix := func(e):
 		for i in D.EQUIP_SLOTS.size():

@@ -1,8 +1,14 @@
 class_name Market
 ## market.js — Günlük kart pazarı (birebir).
 
-const HERO_FLOOR := [0, 120, 240, 600, 1200]
-const RAR_K := [0, 1, 1.4, 2.4, 3.6]
+## ── EKONOMİ (v2) ──
+## Gelir ölçeği: görev ilk geçiş ~35–190 altın (dünya 1–2), tekrar ~%32'si, sandık 16–420.
+## Kart fiyatları bu ölçeğe göre: sıradan kart ~1 görev, efsanevi kart ~4–6 görev.
+## Eşya kartı birim fiyatı nadirlik SIRASINA göre (balance GEAR_RANK: 1,2,4,5,3 → sıra 1..5)
+const GEAR_EACH := [0, 30, 55, 110, 220, 420]     # sıra → altın / kart
+const HERO_EACH := [0, 45, 90, 200, 380]          # kahraman nadirliği → altın / kart
+const GEAR_OFFERS := 4                            # günlük eşya teklifi
+const HERO_OFFERS := 2                            # günlük kahraman kartı teklifi
 
 ## new Date() yerel: yıl*1000 + (ay+1)*40 + gün
 static func _day() -> int:
@@ -10,77 +16,84 @@ static func _day() -> int:
 	return int(d.year) * 1000 + int(d.month) * 40 + int(d.day)
 
 static func _to_gem(gold: float) -> float:
-	return maxf(2.0, ceil(gold / 12.0 * 1.15))
+	return maxf(2.0, ceil(gold / 10.0))
 
-static func _offer(req: float, cost: float, hero: bool, cdef = null, L: int = 0) -> Dictionary:
-	var n := maxf(1.0, JS.round_js(req * (0.2 if hero else 0.25)))
-	var r := JS.i(cdef.get("rarity")) if cdef else 0
-	if not r: r = 1
-	var each: float
-	if hero:
-		each = maxf(HERO_FLOOR[r], JS.round_js(JS.num(cdef, "price", 200.0) * 0.2 * RAR_K[r] * (1 + 0.25 * L)))
-	else:
-		each = maxf(6.0, JS.round_js(cost / maxf(1.0, req) * 0.55))
-	return {"n": n, "price": n * each, "gem": _to_gem(n * each)}
+static func _gear_rank(it) -> int:
+	var GR: Dictionary = D.RAW.get("balance", {}).get("GEAR_RANK", {}) if D.RAW else {}
+	var r := JS.i(it.get("rarity")) if it else 1
+	return clampi(int(GR.get(str(r), r)), 1, 5)
+
+## günün tohumlu karıştırması (her gün farklı, gün içinde sabit)
+static func _pick(arr: Array, n: int, seed: int) -> Array:
+	var a := arr.duplicate()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	for i in range(a.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var t = a[i]; a[i] = a[j]; a[j] = t
+	return a.slice(0, mini(n, a.size()))
 
 static func book(g) -> Dictionary:
 	var m: Dictionary = g.meta
 	if not m.get("mkt") or m.mkt.get("d") != _day(): m["mkt"] = {"d": _day(), "got": []}
 	return m.mkt
 
+## Günlük pazar: her gün yeni kahraman kartları (biri seçili kahramandan, diğerleri rastgele) +
+## açılmamış bir kahramanın kilidi + rastgele eşya kartları (sahip olunmayanlar dahil)
 static func offers(g) -> Array:
 	var B := book(g)
+	var day := int(B.d)
 	var out := []
 	var cid: String = g.meta.selectedChar
 	var heroOffer := func(id: String, slot: String):
-		var L: int = g.char_level(id)
+		var L: int = g.char_level(id) if g.owns_char(id) else 0
 		if L >= D.CHAR_MAX_LEVEL: return null
-		var o := _offer(D.CHAR_CARD_REQ[L + 1], D.CHAR_GOLD_COST[L + 1], true, D.CHARACTERS[id], L)
-		return {"slot": slot, "kind": "char", "id": id, "rar": JS.num(D.CHARACTERS[id], "rarity", 1.0), "name": D.CHARACTERS[id].name,
-			"n": o.n, "price": o.price, "gem": o.gem, "got": B.got.has(slot)}
-	var h1 = heroOffer.call(cid, "h1")
-	if h1: out.append(h1)
-	var others := []
-	for x in g.meta.get("charsOwned", []):
-		if x != cid and D.CHARACTERS.has(x) and g.char_level(x) < D.CHAR_MAX_LEVEL: others.append(x)
-	if others.size():
-		var id: String = others[int(B.d) % others.size()]
-		var h2 = heroOffer.call(id, "h2")
-		if h2: out.append(h2)
+		var C: Dictionary = D.CHARACTERS[id]
+		var r := clampi(int(JS.num(C, "rarity", 1.0)), 1, 4)
+		var req: float = D.CHAR_CARD_REQ[mini(L + 1, D.CHAR_CARD_REQ.size() - 1)]
+		var n := maxf(1.0, JS.round_js(req * 0.25))
+		var each := JS.round_js(HERO_EACH[r] * (1.0 + 0.2 * L))
+		var price := n * each
+		return {"slot": slot, "kind": "char", "id": id, "rar": r, "name": C.name, "n": n, "price": price, "gem": _to_gem(price), "got": B.got.has(slot)}
+	var ids: Array = D.CHARACTERS.keys().filter(func(x): return g.char_level(x) < D.CHAR_MAX_LEVEL or not g.owns_char(x))
+	var picks := [cid] if ids.has(cid) else []
+	for x in _pick(ids.filter(func(x): return x != cid), HERO_OFFERS, day * 7 + 1): picks.append(x)
+	for i in mini(HERO_OFFERS, picks.size()):
+		var o = heroOffer.call(str(picks[i]), "h" + str(i + 1))
+		if o: out.append(o)
 	var locked := []
 	for x in D.CHARACTERS:
 		if not g.owns_char(x): locked.append(x)
 	if locked.size():
-		var id: String = locked[int(B.d) % locked.size()]
+		var id: String = _pick(locked, 1, day * 13 + 5)[0]
 		var C: Dictionary = D.CHARACTERS[id]
 		var r := JS.num(C, "rarity", 1.0)
-		var k := 2 * (1 + 0.25 * r)
+		var k := 2.4 * (1 + 0.3 * r)
 		var price := JS.round_js(JS.num(C, "price", 300.0) * k)
 		var gem := JS.round_js((float(C.stonePrice) if JS.truthy(C.get("stonePrice")) else _to_gem(price)) * k)
 		out.append({"slot": "h3", "kind": "char", "unlock": true, "id": id, "rar": r, "name": C.name, "n": 1, "price": price, "gem": gem, "got": B.got.has("h3")})
-	var worn := []
-	for v in g.char_gear_map().values():
-		if v: worn.append(v)
-	var pool := worn
-	if pool.is_empty():
-		pool = []
-		for id in g.meta.get("owned", []):
-			if g.gear_by_id(id): pool.append(id)
-	var gs := []
-	for id in pool:
-		if g.gear_level(id) < D.GEAR_MAX_LEVEL: gs.append(id)
-	gs.sort_custom(func(a, b): return g.gear_level(a) < g.gear_level(b))
-	for i in mini(2, gs.size()):
-		var id: String = gs[(i + int(B.d)) % gs.size()]
-		var L: int = g.gear_level(id)
+	# eşya: tüm eşyalardan günün seçkisi (azami seviyedekiler hariç); nadir olan daha seyrek gelir
+	var pool := []
+	for it in D.EQUIPMENT:
+		if g.owns_gear(it.id) and g.gear_level(it.id) >= D.GEAR_MAX_LEVEL: continue
+		var rk := _gear_rank(it)
+		for w in maxi(1, 6 - rk): pool.append(it.id)
+	var seen := {}
+	var gi := 0
+	for id in _pick(pool, pool.size(), day * 31 + 11):
+		if seen.has(id): continue
+		seen[id] = true
 		var it = g.gear_by_id(id)
-		var dup := false
-		for o in out:
-			if o.id == id: dup = true
-		if dup: continue
-		var o := _offer(D.GEAR_CARD_REQ[L + 1], D.GEAR_GOLD_COST[L + 1], false)
-		out.append({"slot": "g" + str(i + 1), "kind": "gear", "id": id, "rar": JS.num(it, "rarity", 1.0), "name": it.name, "icon": it.get("icon"),
-			"n": o.n, "price": o.price, "gem": o.gem, "got": B.got.has("g" + str(i + 1))})
+		var L: int = g.gear_level(id) if g.owns_gear(id) else 0
+		var rk := _gear_rank(it)
+		var req: float = D.GEAR_CARD_REQ[mini(L + 1, D.GEAR_CARD_REQ.size() - 1)] if L > 0 else 1.0
+		var n := maxf(1.0, JS.round_js(req * 0.25))
+		var each := JS.round_js(GEAR_EACH[rk] * (1.0 + 0.25 * L))
+		var price := n * each
+		gi += 1
+		out.append({"slot": "g" + str(gi), "kind": "gear", "id": id, "rar": JS.num(it, "rarity", 1.0), "name": it.name, "icon": it.get("icon"),
+			"n": n, "price": price, "gem": _to_gem(price), "got": B.got.has("g" + str(gi))})
+		if gi >= GEAR_OFFERS: break
 	return out
 
 static func buy(g, slot: String, cur: String):

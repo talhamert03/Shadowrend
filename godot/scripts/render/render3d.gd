@@ -399,6 +399,7 @@ func load_character(char_id: String) -> void:
 		var lst := heroAnim.get_animation_list()
 		walkClip = str(clip) if clip != null and lst.has(str(clip)) else (lst[0] if lst.size() else "")
 		if walkClip != "":
+			_strip_root_motion(heroAnim.get_animation(walkClip))
 			heroAnim.get_animation(walkClip).loop_mode = Animation.LOOP_LINEAR
 			heroAnim.play(walkClip)
 			heroAnim.advance(0)
@@ -440,6 +441,28 @@ func load_character(char_id: String) -> void:
 					seen[b] = 1
 					_poseBase.append([b, heroSkel.get_bone_pose_rotation(b)])
 	heroReady = true
+
+## Yerinde yürüme: bazı dışa aktarımlarda (Tripo/Mixamo "in place" değil) kalça konumu klip boyunca
+## ilerler — döngü başa sardıkça model kayar/havaya uçar. Konum izlerinde baştan sona doğrusal kayma
+## çıkarılır (adım salınımı korunur). Kaynak bir kez düzeltilir.
+static func _strip_root_motion(an: Animation) -> void:
+	if an == null or an.has_meta("_inplace"): return
+	an.set_meta("_inplace", true)
+	var L := an.length
+	if L <= 0.0: return
+	for t in an.get_track_count():
+		if an.track_get_type(t) != Animation.TYPE_POSITION_3D: continue
+		var k := an.track_get_key_count(t)
+		if k < 2: continue
+		var a: Vector3 = an.track_get_key_value(t, 0)
+		var b: Vector3 = an.track_get_key_value(t, k - 1)
+		var drift := b - a
+		if drift.length() < 0.05: continue
+		var t0 := an.track_get_key_time(t, 0)
+		var span := maxf(0.001, an.track_get_key_time(t, k - 1) - t0)
+		for i in k:
+			var u := (an.track_get_key_time(t, i) - t0) / span
+			an.track_set_key_value(t, i, (an.track_get_key_value(t, i) as Vector3) - drift * u)
 
 ## charLook.applyCharLook + lift: her yüzey malzemesini three Standard karşılığına çevirir.
 func _apply_char_look(root: Node, lift: float, rough_max: float) -> void:

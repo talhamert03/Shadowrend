@@ -271,10 +271,13 @@ func missionDef(w: int, m: int) -> Dictionary:
 	var isBoss := m == MISSIONS_PER_WORLD
 	var waves: float = 8.0 if isBoss else minf(9.0, 4.0 + ceil(m * 0.55))
 	var grace := 0.72 if (w == 1 and m <= 2) else (0.86 if (w == 1 and m <= 4) else 1.0)
-	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.12) * grace
-	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * grace
+	# zorluk (v2): ilk iki görev öğretici kalır; sonrası daha sert (düşman canı +%18, hasarı +%12)
+	var hardHp := 1.0 if (w == 1 and m <= 2) else 1.18
+	var hardDmg := 1.0 if (w == 1 and m <= 2) else 1.12
+	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.12) * grace * hardHp
+	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * grace * hardDmg
 	var bossCurve := JS.num(wd, "bossCurve", 1.0)
-	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace
+	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace * (1.0 if (w == 1 and m <= 2) else 1.15)
 	var mixOffset: float = (w - 1) * 2 + floor((m - 1) / 2.0)
 	var mt := mType(w, m)
 	var objective: String
@@ -306,7 +309,8 @@ func missionReward(w: int, m: int) -> float:
 	return JS.round_js((22 + m * 11) * (1 + (w - 1) * 0.85) + (60 if m == 10 else 0))
 
 func replayReward(w: int, m: int) -> float:
-	return maxf(8.0, JS.round_js(missionReward(w, m) * 0.42))
+	# tekrar oynama ilk geçişin ~üçte biri (altın kasma yavaş; ilerleme ödüllendirilir)
+	return maxf(6.0, JS.round_js(missionReward(w, m) * 0.32))
 
 func loadProgress() -> Dictionary:
 	var out := {}

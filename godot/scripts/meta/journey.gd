@@ -102,7 +102,11 @@ static func roll_blessings(n: int) -> Array:
 
 const GIFT_CAP_H := 8.0
 
+## çevrimdışı kazanç kapalı (tasarım kararı: bu oyunda oynamadan altın/sandık yok)
+const GIFT_ON := false
+
 static func gift_collect(g):
+	if not GIFT_ON: return null
 	var now := Clock.now()
 	var t := float(g.meta.get("awayT", 0)) if g.meta.get("awayT") != null else 0.0
 	if not t or now <= t: return null

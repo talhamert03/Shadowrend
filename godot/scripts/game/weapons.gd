@@ -81,6 +81,7 @@ var simsekFireCount := 0
 var simsekStormT = null
 
 var nearest: Ent.Enemy = null
+var _swTarget = null        # kılıç savuruşunun hedeflendiği düşman (kesin isabet)
 var nearestD2 := INF
 var pending: Array = []
 
@@ -292,11 +293,14 @@ func update_sword(dt: float, id: String) -> void:
 	var p = g.player
 	var L := lvl(id) - 1
 	var Wd: Dictionary = W[id]
-	var reach: float = Wd.range[L] + 34
+	# tetik menzili vuruş menzilinin İÇİNDE (eskiden +34: yarıçapı küçük düşmana savuruş boşa
+	# gidiyordu — "ilk vuruş ıskalıyor"); savuruş hedefi kesin vurur (sword_strike)
+	var reach: float = Wd.range[L] + (nearest.radius * 0.9 if nearest else 0.0)
 	if nearest == null or nearestD2 > reach * reach:
-		swordT = 0.1
+		swordT = 0.05
 		return
 	swordT = Wd.cooldown[L] * p.atkMult
+	_swTarget = nearest
 	var dir := atan2(nearest.y - p.y, nearest.x - p.x)
 	swingCount += 1
 	var spinLvl := wi(Wd, "spin")
@@ -365,15 +369,19 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 	var dmg: float = Wd.dmg[L] * mul * (1.6 if spin else 1.0)
 	var knock: float = Wd.knock[L] * (0.4 if kind == "echo" else 1.0)
 	var crit := JS.num(Wd, "critAdd")
-	var out = g.enemies.query_circle(p.x, p.y, range_ + 26, scratch)
+	var out = g.enemies.query_circle(p.x, p.y, range_ + 40, scratch)
+	var tgt = _swTarget if kind == "normal" or spin else null
+	_swTarget = null
 	for e in out:
 		if e.swordId == swingId: continue
 		var dx: float = e.x - p.x
 		var dy: float = e.y - p.y
-		var reach: float = range_ + e.radius
-		if dx * dx + dy * dy > reach * reach: continue
 		var a := atan2(dy, dx)
-		if not spin:
+		# hedeflenen düşman: savuruş anında biraz uzaklaşmış olsa da vurulur (ıskalama yok)
+		var is_t: bool = e == tgt and e.hp > 0
+		var reach: float = range_ + e.radius + (24.0 if is_t else 8.0)
+		if dx * dx + dy * dy > reach * reach: continue
+		if not spin and not is_t:
 			var da := JS.wrap_pi(a - dir)
 			if absf(da) > half + e.radius / range_: continue
 		e.swordId = swingId
