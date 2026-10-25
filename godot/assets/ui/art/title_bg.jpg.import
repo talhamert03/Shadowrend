@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://crlq6g8cs0e7c"
-path="res://.godot/imported/title_isle.png-99d58b1b49c6f5627fdaa406c92eee57.ctex"
+uid="uid://2u7u4xsx8biy"
+path="res://.godot/imported/title_bg.jpg-f4335c950f8fc698f6723a0f5d437974.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/art/title_isle.png"
-dest_files=["res://.godot/imported/title_isle.png-99d58b1b49c6f5627fdaa406c92eee57.ctex"]
+source_file="res://assets/ui/art/title_bg.jpg"
+dest_files=["res://.godot/imported/title_bg.jpg-f4335c950f8fc698f6723a0f5d437974.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
