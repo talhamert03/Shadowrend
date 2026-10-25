@@ -184,57 +184,22 @@
   "mezarci": {
    "file": "heroes/mezarci.glb",
    "height": 91.2,
-   "baseScale": 52.114285714285714,
+   "baseScale": 91.2,
    "rigPos": [
-    -0.0007,
-    0.0,
-    -0.0061
+    0,
+    0,
+    0
    ],
    "topY": 91.0,
-   "walkClip": "Armature|walking_man|baselayer",
+   "walkClip": "walk.001",
    "walkRate": 1,
    "floatingWeapon": "kurek",
-   "lift": 0.35,
+   "lift": 0.0,
    "clips": [
-    "Armature|walking_man|baselayer"
+    "walk.001"
    ],
    "hasBones": true,
-   "src": "meshy",
-   "armFix": {
-    "LeftArm": [
-     0,
-     0,
-     -12
-    ],
-    "RightArm": [
-     0,
-     0,
-     12
-    ],
-    "LeftForeArm": [
-     10,
-     0,
-     0
-    ],
-    "RightForeArm": [
-     10,
-     0,
-     0
-    ],
-    "LeftHand": [
-     0,
-     70,
-     0,
-     0.78
-    ],
-    "RightHand": [
-     0,
-     -70,
-     0,
-     0.78
-    ]
-   },
-   "armHold": true
+   "tris": 33042
   },
   "fenerci": {
    "file": "heroes/fenerci.glb",

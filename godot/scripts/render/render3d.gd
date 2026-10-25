@@ -148,7 +148,9 @@ func _ready() -> void:
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	# mobil GPU dolum bütçesi: yüksek çözünürlük + keskinleştirme asıl netliği verir; MSAA yalnız
 	# yüksek kademede 2× (konturların kenarı), masaüstünde 4×
-	vp.msaa_3d = (Viewport.MSAA_2X if Quality.is_mobile else Viewport.MSAA_4X) if tier == "high" else Viewport.MSAA_DISABLED
+	# kenar yumuşatma: mobil GPU'lar döşemeli (TBDR) — MSAA çözümü yonga içinde, ucuz. Orta kademede
+	# 2×, yüksekte 4×: model/kontur kenarları dişli (pikselli) görünmez
+	vp.msaa_3d = Viewport.MSAA_4X if tier == "high" else (Viewport.MSAA_2X if tier == "mid" else Viewport.MSAA_DISABLED)
 	vp.positional_shadow_atlas_size = 0
 	add_child(vp)
 	view = TextureRect.new()
@@ -456,7 +458,7 @@ func resize() -> void:
 	# çözünürlük ekranın altındaysa (uyarlamalı ölçek) daha güçlü keskinleştir
 	if view.material:
 		var under := clampf(1.0 - pr / maxf(1.0, Quality._device_ratio()), 0.0, 0.6)
-		(view.material as ShaderMaterial).set_shader_parameter("amount", 0.32 + under * 0.5)
+		(view.material as ShaderMaterial).set_shader_parameter("amount", 0.2 + under * 0.45)
 	var halfHPerp := h / 2 / ZOOM
 	var halfH := halfHPerp / cos(TILT)
 	var halfW := (w / 2) / ZOOM

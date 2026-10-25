@@ -2,25 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cgc4x5ihi6y0m"
-path="res://.godot/imported/mezarci_Image_0.webp-73918b6fd39f3f68c8520809d17f5469.ctex"
+uid="uid://ceg0dgi5yaugs"
+path="res://.godot/imported/mezarci_tripo_image_991e4c2f-f96c-402e-b1cb-17e1ea5211bb_0_0.webp-dc9e30895a6253b9715525c635bcad14.ctex"
 metadata={
 "vram_texture": false
 }
 generator_parameters={
-"md5": "2e502ef866be6577393e531351d6c3b4"
+"md5": "5d7f7827bbdda2e690003cd797226283"
 }
 
 [deps]
 
-source_file="res://assets/models/heroes/mezarci_Image_0.webp"
-dest_files=["res://.godot/imported/mezarci_Image_0.webp-73918b6fd39f3f68c8520809d17f5469.ctex"]
+source_file="res://assets/models/heroes/mezarci_tripo_image_991e4c2f-f96c-402e-b1cb-17e1ea5211bb_0_0.webp"
+dest_files=["res://.godot/imported/mezarci_tripo_image_991e4c2f-f96c-402e-b1cb-17e1ea5211bb_0_0.webp-dc9e30895a6253b9715525c635bcad14.ctex"]
 
 [params]
 
 compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.86
+compress/lossy_quality=0.92
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

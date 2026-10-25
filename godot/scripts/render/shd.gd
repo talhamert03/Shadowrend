@@ -99,7 +99,9 @@ static func lit_shader(o: Dictionary) -> Shader:
 	if o.get("nmap", false): c += "uniform sampler2D normal_map : hint_normal, filter_linear_mipmap_anisotropic;\n"
 	if o.get("emap", false): c += "uniform sampler2D emissive_map : filter_linear_mipmap_anisotropic;\n"
 	c += "void fragment() {\n\tvec4 d = vec4(r3_lin(color.rgb), color.a);\n\tvec3 em = r3_lin(emissive.rgb);\n"
-	if o.get("map", false): c += "\tvec4 tx = texture(map, UV);\n\ttx.rgb = r3_lin(tx.rgb);\n\td *= tx;\n"
+	# hafif negatif mip sapması: ekranda küçük görünen modellerde doku bir kademe daha net
+	# (yüz, kumaş, kemer detayları bulanık/bloklu değil)
+	if o.get("map", false): c += "\tvec4 tx = texture(map, UV, -0.6);\n\ttx.rgb = r3_lin(tx.rgb);\n\td *= tx;\n"
 	c += "\td.rgb *= COLOR.rgb;\n\tvec3 N = normalize(NORMAL);\n\tvec3 V = normalize(VIEW);\n"
 	c += "\tfloat rgh = roughness;\n\tfloat mtl = metalness;\n"
 	if o.get("mr", false): c += "\tvec4 mr = texture(mr_map, UV);\n\trgh *= mr.g;\n\tmtl *= mr.b;\n"
