@@ -45,6 +45,7 @@ func finish(cb := Callable()) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if Prof.on and dt > 0.05: print("BOOTHITCH ", snappedf(dt * 1000.0, 1), " ms @", snappedf(_target, 0.001), " t=", snappedf(_t, 0.01))
 	if _out >= 0.0:
 		_out += dt
 		var a := clampf(1.0 - _out / 0.6, 0.0, 1.0)

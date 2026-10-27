@@ -122,7 +122,9 @@ static func await_ready(n: Node, paths: Array, max_s := 0.45) -> bool:
 	while Time.get_ticks_msec() - t0 < int(max_s * 1000.0):
 		await n.get_tree().process_frame
 		poll()
-		if need.all(func(p): return _cache.has(str(p))): break
+		# biten yükleme (önbellek bütçesi aşılıp hemen çıkarılmış ya da başarısız olsa da) beklenmez:
+		# yoksa düşük bellek kademesinde açılış zaman aşımına dek (6 sn) boşuna bekliyordu
+		if need.all(func(p): return _cache.has(str(p)) or not (_pending.has(str(p)) or _queued.has(str(p)))): break
 	waiting -= 1
 	return true
 

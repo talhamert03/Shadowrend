@@ -295,6 +295,7 @@ func _ready() -> void:
 	add_child(overlay)
 	ui = load("res://scripts/ui/ui.gd").new(self)
 	add_child(ui)
+	ui.boot_veil(true)
 	await _boot_step(0.72)
 
 	props = PropField.new(self)
@@ -346,9 +347,11 @@ func _ready() -> void:
 	set_process(true)
 	set_physics_process(true)
 	booted = true
-	# menü kuruldu; ilk kareler (doku yükleme, ilk çizim) da açılış ekranının ardında geçsin
-	await _boot_step(0.9)
-	await get_tree().process_frame
+	# menü kuruldu; ilk kareler (doku yükleme, ilk çizim, gölgelendirici derleme) açılış ekranının
+	# ardında geçsin: perde kalkar, birkaç kare arkada çizilir, sonra ekran söner
+	ui.boot_veil(false)
+	await _boot_step(0.94)
+	for i in 3: await get_tree().process_frame
 	boot_screen.finish(func():
 		if audio: audio.play("boot")
 		# yükleme ekranı sönerken (0,6 sn) ve hemen sonrasında dokunuş menüye geçmez

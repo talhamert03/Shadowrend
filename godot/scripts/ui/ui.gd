@@ -159,6 +159,12 @@ func _chest_test() -> void:
 	st.set_tier(int(_arg("chesttest", "1")))
 	st.p = {"open": float(_arg("open", "0")), "seam": float(_arg("seam", "0"))}
 
+## açılış perdesi: yükleme ekranı opakken menü/HUD/renk düzeni hiç çizilmez (arkada her kare
+## ~1900 öğe + tam ekran renk gölgelendiricisi çiziliyordu → açılış ekranı takılıyordu)
+func boot_veil(on: bool) -> void:
+	layer.visible = not on
+	_gradeL.visible = not on
+
 func boot() -> void:
 	# cihazda (geliştirici bayrağı yoksa) ana menüyle açılır
 	if _arg("menu") != "":
