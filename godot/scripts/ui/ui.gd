@@ -36,6 +36,7 @@ var accjourney: ScrAccJourney
 var quests: ScrQuests
 var sheet: ScrSheet
 var battlepass: ScrBattlePass
+var event_scr: ScrEvent
 var celebrate: ScrCelebrate
 var settings: ScrSettings
 var _gradeL: CanvasLayer
@@ -135,6 +136,8 @@ func _ready() -> void:
 	uiroot.add_child(quests)
 	battlepass = ScrBattlePass.new(g)
 	uiroot.add_child(battlepass)
+	event_scr = ScrEvent.new(g)
+	uiroot.add_child(event_scr)
 	celebrate = ScrCelebrate.new(g)
 	uiroot.add_child(celebrate)
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
@@ -186,6 +189,7 @@ func boot() -> void:
 				var xy := pp[1].split("x")
 				at = Vector2(float(xy[0]), float(xy[1]))
 			_taps.append([float(pp[0]), at])
+		if _arg("bpxp") != "": g.add_battle_pass_xp(float(_arg("bpxp")))   # geliştirici: savaş bileti XP
 		if _arg("stones") != "":
 			g.add_stones(float(_arg("stones")))
 			menu.refresh_wallet(true)
@@ -195,14 +199,15 @@ func boot() -> void:
 		if _arg("page") != "":
 			menu.set_page(_arg("page"), true)
 			var pg = menu.pages.get(_arg("page"))
-			if pg and _arg("evtab") != "" and "tab" in pg:
-				pg.tab = _arg("evtab")
-				pg.render()
+			if _arg("evtab") != "": show_event(_arg("evtab"))   # geliştirici: etkinlik ekranı
 			if pg and _arg("chw") != "" and pg.has_method("render_chapters"):
 				pg.render_chapters(int(_arg("chw")))   # geliştirici: bölüm seçimini aç
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
+		if _arg("shopbuy") != "":
+			# geliştirici: shopbuy=<paket> — mağazada gem paketi satın al (görsel durum testi)
+			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): menu.pages["magaza"]._buy_pack(_arg("shopbuy")))
 		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
 		var ov := _arg("ov")
 		if _arg("cd") != "": open_char_detail(_arg("cd"))      # geliştirici: kahraman detayı
@@ -211,6 +216,7 @@ func boot() -> void:
 		elif ov == "quests": show_quests()
 		elif ov == "wipe": confirm_wipe()
 		elif ov == "bp": show_battle_pass()
+		elif ov == "set": show_settings()
 		elif ov.begins_with("fly:"):
 			# geliştirici: para uçuşu (fly:gem / fly:coin) — ekran ortasından cüzdana
 			var kind := "stone" if ov.substr(4) == "gem" else "ruby"
@@ -565,7 +571,7 @@ func show_menu() -> void:
 ## dönüş hediyesi: tören/katman/savaş sürerken bekler (üstlerine açılıp onları kilitlemesin)
 func _gift_when_free(G) -> void:
 	var busy: bool = g.state != "menu" or is_instance_valid(g.boot_screen) or (ceremony and ceremony.visible) or sheet.visible or chestinspect.visible \
-		or chestbuy.visible or celebrate.visible or quests.visible or battlepass.visible or settings.visible
+		or chestbuy.visible or celebrate.visible or quests.visible or battlepass.visible or event_scr.visible or settings.visible
 	if busy:
 		get_tree().create_timer(0.5).timeout.connect(func(): _gift_when_free(G))
 		return
@@ -587,6 +593,7 @@ func show_quests() -> void: _ov("qx", func(): quests.open())
 func show_daily_drawer() -> void: _ov("dd", func(): drawer.open())
 func show_account_journey() -> void: _ov("aj", func(): accjourney.open())
 func show_battle_pass() -> void: _ov("bp", func(): battlepass.open())
+func show_event(t: String) -> void: _ov("ev", func(): event_scr.open(t))
 ## ui.js showArmory: menü açıkken cüzdan + açık sayfa tazelenir (kuşanım · kahraman · ana sayfa)
 func show_armory() -> void:
 	if menu == null or not menu.visible: return
@@ -750,7 +757,7 @@ func handle_back() -> bool:
 	if settings_open():
 		hide_settings()
 		return true
-	for S in [chestbuy, chestinspect, geardetail, chardetail, drawer, battlepass, quests, accjourney]:
+	for S in [chestbuy, chestinspect, geardetail, chardetail, drawer, battlepass, event_scr, quests, accjourney]:
 		if S and S.visible:
 			S.close()
 			return true

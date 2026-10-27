@@ -129,6 +129,7 @@ static func ad_chest_in() -> float:
 	return maxf(0.0, last + AD_CHEST_CD - Clock.now())
 
 static func first_buy_used() -> bool:
+	if OS.get_cmdline_user_args().has("x2test"): return false     # geliştirici: ×2 görünümü
 	return str(Store.get_item("kh_firstbuy", "")) == "1"
 
 # ═════════════ sandık vitrini ═════════════
@@ -378,14 +379,50 @@ func _stone_shop() -> void:
 		var N := _add("x2_note", K)
 		if N: h = maxf(h, N.position.y + N.nodes[0].size.y)
 	for p in D.STONE_PACKS:
-		var P := _add("sp_" + str(p.id) + ("_x2" if x2 else ""), K)
+		# her zaman ışıklı (rozetli, parlak çerçeveli) paket; ilk alışveriş ×2 iken üstüne
+		# iki katlı miktar + ×2 etiketi (eski ×2 sürümü parlamasız, sade kartla çiziliyordu)
+		var P := _add("sp_" + str(p.id), K)
 		if P == null: continue
 		_pack_lyr[p.id] = P
+		if x2:
+			# ×2 notu yakalamadaki paketlerin üstündeydi: ışıklı paketleri ×2 yerleşimine kaydır
+			var ry := float(Lyr.load_json("sp_" + str(p.id) + "_x2").get("rect", [0, 0])[1]) - float(Lyr.load_json("sp_" + str(p.id)).get("rect", [0, 0])[1])
+			P.position.y += ry
+			_x2_overlay(P, p)
 		h = maxf(h, P.position.y + P.nodes[0].size.y)
 		var pid: String = p.id
 		menu.btn(P, P.nodes[0], func(): _buy_pack(pid), 0.96)
 	var box := shell.find_id(K)
 	if box: shell.resize_h(box, h)
+
+func _x2_overlay(P: Lyr, p: Dictionary) -> void:
+	var tot := int(float(p.amount) + float(p.bonus))
+	var am := P.find(".sp-amt")
+	if am: P.set_text(am, str(tot * 2))
+	var nm := P.find(".sp-name")
+	if nm: P.set_text(nm, str(tot) + " + " + str(tot) + " bonus")
+	var w: float = P.nodes[0].size.x
+	var tag := Node2D.new()
+	tag.position = Vector2(w - 40.0, -8.0)
+	tag.rotation = 0.12
+	P.nodes[0].node.add_child(tag)
+	tag.draw.connect(func():
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color("#e8322c")
+		sb.set_corner_radius_all(7)
+		sb.set_border_width_all(2)
+		sb.border_color = Color("#120a0e")
+		sb.shadow_color = Color(0.9, 0.2, 0.15, 0.55)
+		sb.shadow_size = 6
+		tag.draw_style_box(sb, Rect2(0, 0, 44, 22)))
+	var tt := UIText.new()
+	tt.style(true, 900, 15, 0.5, Color("#fff4dc"), "0 1px 0 rgba(0,0,0,0.8)")
+	tt.nowrap = true
+	tt.align = 0.5
+	tt.wrap_w = 44
+	tt.text = "×2"
+	tt.position = Vector2(0, 2)
+	tag.add_child(tt)
 
 func _buy_pack(id: String) -> void:
 	var pack = null
