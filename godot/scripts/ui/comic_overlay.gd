@@ -73,6 +73,9 @@ func open_overlay() -> void:
 	_vel = 0.0
 	_t = 0.0
 	_build()
+	# geliştirici: oscroll=N — içeriği N px kaydırarak aç (ekran görüntüsü testi)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("oscroll="): _scroll = clampf(float(a.substr(8)), 0.0, _scroll_max)
 	fade_show()
 
 func _build() -> void:

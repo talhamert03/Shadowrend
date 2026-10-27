@@ -265,13 +265,18 @@ func _home(dLeft: int, kReady: int) -> float:
 		var art := Node2D.new()
 		art.position = Vector2(W - 70, H * 0.5)
 		host.add_child(art)
-		var tex := UITex.get_tex(String(B.art))
-		if tex:
-			var sp := Sprite2D.new()
-			sp.texture = tex
-			sp.scale = Vector2.ONE * ((84.0 if t == "gunluk" else 74.0) / maxf(tex.get_width(), tex.get_height()))
-			if t != "gunluk": sp.modulate = col.lerp(Color.WHITE, 0.45) * Color(1.25, 1.25, 1.25)
-			art.add_child(sp)
+		# kupa ve kule elle çizim (ComicArt); günlükte sandık resmi
+		if t == "kupa":
+			art.draw.connect(func(): ComicArt.trophy(art, Vector2(0, 2), 0.78, _t))
+		elif t == "zirve":
+			art.draw.connect(func(): ComicArt.tower(art, Vector2(-4, 10), 0.5, _t))
+		else:
+			var tex := UITex.get_tex(String(B.art))
+			if tex:
+				var sp := Sprite2D.new()
+				sp.texture = tex
+				sp.scale = Vector2.ONE * (84.0 / maxf(tex.get_width(), tex.get_height()))
+				art.add_child(sp)
 		var fr := Node2D.new()
 		host.add_child(fr)
 		fr.draw.connect(func():
@@ -348,7 +353,9 @@ func _process(dt: float) -> void:
 		L.position.x = float(A.x) + (1.0 - e) * 420.0
 		L.modulate.a = clampf(k * 2.5, 0.0, 1.0)
 		var art: Node2D = A.art
-		if art: art.position.y = float(A.ay) + sin(_t * 2.2 + float(A.d) * 7.0) * 4.0
+		if art:
+			art.position.y = float(A.ay) + sin(_t * 2.2 + float(A.d) * 7.0) * 4.0
+			art.queue_redraw()
 		var gl: Sprite2D = A.gl
 		if gl: gl.modulate.a = float(A.ga) * (0.75 + 0.25 * sin(_t * 3.0 + float(A.d) * 5.0))
 		var fx: Node2D = A.fx

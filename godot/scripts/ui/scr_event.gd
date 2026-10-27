@@ -84,6 +84,7 @@ func _hero_art(parent: Node2D, tex: Texture2D, box: float, at: Vector2, glow: Co
 	gl.material = gm
 	gl.modulate = glow
 	gl.scale = Vector2.ONE * (box * 1.9 / 128.0)
+	gl.show_behind_parent = true
 	a.add_child(gl)
 	_icon(a, tex, box, Vector2.ZERO, mod)
 	return a
@@ -205,7 +206,8 @@ func _kupa(y: float) -> float:
 		prev_need = int(m.need)
 	var h := 232.0
 	var pn := _poster(y, h, Color("#4a1a0a"), Vector2(80, 92), Color(1, 0.75, 0.2, 0.15), 0.05)
-	_hero_art(pn, load("res://assets/ui/art/icon/kadeh.png"), 100, Vector2(80, 88), Color(1, 0.7, 0.2, 0.7), Color("#ffcf4a"))
+	var cup := _hero_art(pn, null, 100, Vector2(80, 92), Color(1, 0.7, 0.2, 0.7))
+	cup.draw.connect(func(): ComicArt.trophy(cup, Vector2.ZERO, 1.05, _t))
 	_small(pn, "HAYATTA KALDIĞIN SÜRE", 12, Color(1, 0.85, 0.7, 0.85), Vector2(156, 18), 200)
 	var big := _txt(pn, str(mins), 54, YEL, UIK.ink_stroke(3.0, 4.0), Vector2(156, 30), 200)
 	_txt(pn, "DK", 24, Color.WHITE, UIK.ink_stroke(2.0, 2.4), Vector2(162 + big.text_width(), 58), 60)
@@ -286,14 +288,15 @@ func _kupa(y: float) -> float:
 		_content.add_child(n)
 		_anim_in[n] = 0.33 + i * 0.05
 		var rw: Dictionary = ms.reward
-		var tex := _reward_tex(rw)
-		var box := 62.0 if String(rw.kind) == "chest" else 50.0
-		if String(rw.kind) == "cards":
-			var ht: Texture2D = UITex.get_tex("res://assets/ui/art/herocard/" + str(rw.char) + ".png")
-			if ht: tex = ht
-			box = 64.0
 		var mod := Color(0.7, 0.7, 0.7, 0.75) if st == "claimed" else Color.WHITE
-		_icon(n, tex, box, Vector2(-w * 0.5 + 46, 0), mod)
+		if String(rw.kind) == "cards":
+			var hc := _hero_card(str(rw.char), int(rw.get("amount", 1)))
+			hc.position = Vector2(-w * 0.5 + 46, 0)
+			hc.rotation = -0.06
+			hc.modulate = mod
+			n.add_child(hc)
+		else:
+			_icon(n, _reward_tex(rw), 62.0 if String(rw.kind) == "chest" else 50.0, Vector2(-w * 0.5 + 46, 0), mod)
 		var lc := INK if st == "ready" else Color.WHITE
 		_txt(n, _reward_label(rw), 20, lc, "" if st == "ready" else UIK.ink_stroke(1.6, 2.0), Vector2(-w * 0.5 + 92, -ch * 0.5 + 12), w - 170)
 		var sub := "ALINDI" if claimed else ("HAZIR!" if can else (str(int(ms.need) - mins) + " DK KALDI"))
@@ -316,6 +319,40 @@ func _kupa(y: float) -> float:
 		y += ch + gap
 	return y + 10
 
+## mini kahraman kartı: nadirlik renginde çerçeve, yuvarlatılmış portre, alt ad şeridi, ×adet madalyonu
+func _hero_card(id: String, amount: int) -> Node2D:
+	var C: Dictionary = D.CHARACTERS.get(id, {})
+	var rar := clampi(int(C.get("rarity", 1)), 1, 4)
+	var rc := Color(HUD.RAR_RM[rar])
+	var cw := 54.0
+	var chh := 72.0
+	var c := Node2D.new()
+	var fr := Node2D.new()
+	fr.draw.connect(func():
+		var r := Rect2(-cw * 0.5, -chh * 0.5, cw, chh)
+		fr.draw_style_box(ComicSkin.sb(INK, 8), Rect2(r.position + Vector2(3, 4), r.size))
+		fr.draw_style_box(ComicSkin.sb(rc, 8, 3.0, INK), r)
+		fr.draw_style_box(ComicSkin.sb(rc.lightened(0.35), 6), Rect2(r.position + Vector2(3, 3), Vector2(cw - 6, 3))))
+	c.add_child(fr)
+	var ht: Texture2D = UITex.get_tex("res://assets/ui/art/herocard/" + id + ".png")
+	if ht:
+		var img := UIK.round_image(ht, cw - 8, chh - 20, 5, Vector2(0.5, 0.12))
+		img.position = Vector2(-cw * 0.5 + 4, -chh * 0.5 + 4)
+		c.add_child(img)
+	var strip := Node2D.new()
+	strip.draw.connect(func():
+		var r := Rect2(-cw * 0.5 + 4, chh * 0.5 - 16, cw - 8, 12)
+		strip.draw_style_box(ComicSkin.sb(INK, 3), r))
+	c.add_child(strip)
+	var nm := _txt(c, str(C.get("name", "")), 10, Color.WHITE, "", Vector2(-cw * 0.5 + 4, chh * 0.5 - 18), cw - 8)
+	nm.align = 0.5
+	var bd := Node2D.new()
+	bd.position = Vector2(cw * 0.5 - 2, -chh * 0.5 + 4)
+	bd.draw.connect(func(): ScrCeremony._medal(bd, Vector2.ZERO, 12, Color("#e8322c"), 2.5))
+	c.add_child(bd)
+	_txt(bd, "×" + str(amount), 14, Color.WHITE, UIK.ink_stroke(1.2, 1.4), Vector2(-14, -11), 28).align = 0.5
+	return c
+
 func _claim_mil(id: String, kind: String, n: Node2D) -> void:
 	if not g.claim_milestone(id): return
 	_celebrate(n, "rubies" if kind == "rubies" else kind)
@@ -329,82 +366,34 @@ func _zirve(y: float) -> float:
 	var T: Dictionary = SideModes.tower_book(g.meta)
 	var k: int = int(T.cur)
 	var t_open: bool = int(g.progress.get(1, 0)) >= mpw
-	var h := 380.0
-	var pn := _poster(y, h, Color("#1c0d26"), Vector2(96, 150), Color(0.7, 0.4, 1.0, 0.12), 0.05)
-	# kule: 5 kat (üstte en yüksek)
-	var base := int(floor((k - 1) / 5.0)) * 5
-	var fw := 132.0
-	var fh := 44.0
-	var tx := 96.0
-	for j in 5:
-		var f := base + 5 - j
-		var F: Dictionary = SideModes.floor_def(f, nw, mpw)
-		var st := "done" if f < k else ("cur" if f == k else "up")
-		var fl := Node2D.new()
-		fl.position = Vector2(tx, 46 + j * (fh + 4) + fh * 0.5)
-		var wd: Dictionary = D.WORLDS[clampi(int(F.w), 1, nw) - 1]
-		var wc := JS.col(wd.color)
-		var boss: bool = F.boss
-		fl.draw.connect(func():
-			var r := Rect2(-fw * 0.5, -fh * 0.5, fw, fh)
-			if st == "cur":
-				var q := fmod(_t, 1.2) / 1.2
-				fl.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 10 + q * 6, 3.0, Color(RED, 0.8 * (1.0 - q))), r.grow(2 + q * 8))
-			var fill := RED if st == "cur" else (Color("#3a2a44") if st == "done" else wc.darkened(0.55))
-			if boss and st == "up": fill = Color("#5a0e18")
-			ComicSkin.panel(fl, r, fill, 8, 3.5, Vector2(2, 4))
-			# tuğla çizgileri
-			for bx in [-fw * 0.25, fw * 0.25]:
-				fl.draw_line(Vector2(bx, -fh * 0.5 + 4), Vector2(bx, fh * 0.5 - 4), Color(0, 0, 0, 0.3), 2.0)
-			fl.draw_line(Vector2(-fw * 0.5 + 4, 0), Vector2(fw * 0.5 - 4, 0), Color(0, 0, 0, 0.2), 2.0))
-		pn.add_child(fl)
-		_anim_in[fl] = 0.15 + (4 - j) * 0.07
-		_txt(fl, str(f), 22, Color.WHITE if st != "done" else Color(1, 1, 1, 0.5), UIK.ink_stroke(1.6, 2.0), Vector2(-fw * 0.5 + 8, -16), 50)
-		if boss: _icon(fl, load("res://assets/ui/art/icon/skull.png"), 22, Vector2(fw * 0.5 - 22, 0), Color(1, 0.85, 0.8) if st != "done" else Color(1, 1, 1, 0.4))
-		elif st == "done": _check(fl, Vector2(fw * 0.5 - 22, 0), 0.9)
-		if st == "cur":
-			_live.append(fl)
-			var tag := Node2D.new()
-			tag.position = Vector2(fw * 0.5 + 8, 0)
-			tag.draw.connect(func():
-				tag.draw_colored_polygon(PackedVector2Array([Vector2(0, 0), Vector2(12, -12), Vector2(12, 12)]), INK)
-				tag.draw_style_box(ComicSkin.sb(YEL, 6, 3.0), Rect2(10, -13, 44, 26)))
-			fl.add_child(tag)
-			_txt(tag, "SEN", 16, INK, "", Vector2(10, -11), 44).align = 0.5
-			tag.set_meta("bob", 0.0)
-			_live.append(tag)
-	# kule tepesi (sivri çatı) ve zemin
-	var roof := Node2D.new()
-	roof.position = Vector2(tx, 46)
-	roof.draw.connect(func():
-		var P := PackedVector2Array([Vector2(-fw * 0.5 - 8, -2), Vector2(0, -38), Vector2(fw * 0.5 + 8, -2)])
-		fl_poly(roof, P))
-	pn.add_child(roof)
-	var info_x := 186.0
+	var h := 412.0
+	var pn := _poster(y, h, Color("#1c0d26"), Vector2(84, 170), Color(0.7, 0.4, 1.0, 0.12), 0.05)
+	_tower(pn, k, nw, mpw)
+	var info_x := 204.0
 	var Fk: Dictionary = SideModes.floor_def(k, nw, mpw)
 	var wk: Dictionary = D.WORLDS[clampi(int(Fk.w), 1, nw) - 1]
-	_small(pn, "ŞU ANKİ KAT", 12, Color(0.85, 0.75, 1, 0.85), Vector2(info_x, 46), 160)
-	_txt(pn, str(k), 56, YEL, UIK.ink_stroke(3.0, 4.0), Vector2(info_x, 58), 160)
-	_wrap(pn, str(wk.name) + (" · BOSS KATI" if Fk.boss else ""), 15, Color.WHITE, Vector2(info_x, 124), 156, UIK.ink_stroke(1.2, 1.6))
+	_small(pn, "ŞU ANKİ KAT", 12, Color(0.85, 0.75, 1, 0.85), Vector2(info_x, 40), 140)
+	_txt(pn, str(k), 56, YEL, UIK.ink_stroke(3.0, 4.0), Vector2(info_x, 52), 140)
+	_wrap(pn, str(wk.name) + (" · BOSS KATI" if Fk.boss else ""), 15, Color.WHITE, Vector2(info_x, 122), 140, UIK.ink_stroke(1.2, 1.6))
 	_small(pn, "EN YÜKSEK  " + str(int(T.get("best", 0))), 12, Color(1, 1, 1, 0.8), Vector2(info_x, 172), 160)
 	_small(pn, "KAT BAŞI  " + JS.s(SideModes.tower_floor_gold(k)) + " ALTIN", 12, Color(1, 0.85, 0.5, 0.9), Vector2(info_x, 192), 160)
 	var nm := int(ceil(k / 10.0)) * 10
 	var ms := Node2D.new()
 	ms.position = Vector2(info_x, 218)
 	ms.draw.connect(func():
-		ms.draw_style_box(ComicSkin.sb(INK, 8), Rect2(2, 3, 156, 30))
-		ms.draw_style_box(ComicSkin.sb(Color("#4a1a6a"), 8, 2.5, Color("#a85cff")), Rect2(0, 0, 156, 30)))
+		ms.draw_style_box(ComicSkin.sb(INK, 8), Rect2(2, 3, 140, 30))
+		ms.draw_style_box(ComicSkin.sb(Color("#4a1a6a"), 8, 2.5, Color("#a85cff")), Rect2(0, 0, 140, 30)))
 	pn.add_child(ms)
 	_icon(ms, load("res://assets/fx/currency/gem.png"), 22, Vector2(18, 15))
 	_txt(ms, "KAT " + str(nm) + " · +" + str(10 + nm), 16, Color.WHITE, "", Vector2(32, 4), 120)
 	_anim_in[ms] = 0.4
 	if t_open:
-		_cta(pn, Vector2((_W.x - 32) * 0.5, h - 40), _W.x - 80, 54, "TIRMAN!", Color("#ff8a2a"), Color("#ffc21a"), func():
+		_cta(pn, Vector2((_W.x - 32) * 0.5, h - 38), _W.x - 80, 54, "TIRMAN!", Color("#ff8a2a"), Color("#ffc21a"), func():
 			g.audio.play("cta")
 			_close_now()
 			g.start_tower(), true, 28).set_meta("bob", 0.0)
 	else:
-		_cta(pn, Vector2((_W.x - 32) * 0.5, h - 40), _W.x - 80, 54, "DÜNYA 1'İ BİTİR", Color("#4a3a40"), Color("#4a3a40"), null, false, 22)
+		_cta(pn, Vector2((_W.x - 32) * 0.5, h - 38), _W.x - 80, 54, "DÜNYA 1'İ BİTİR", Color("#4a3a40"), Color("#4a3a40"), null, false, 22)
 	y += h + 24
 	# kâbus döngüsü
 	var N: Dictionary = SideModes.nm_book(g.meta)
@@ -428,12 +417,126 @@ func _zirve(y: float) -> float:
 		_cta(kp, Vector2((_W.x - 32) * 0.5, ch - 30), _W.x - 96, 44, "DÜNYA 10'U BİTİR", Color("#4a3a40"), Color("#4a3a40"), null, false, 20)
 	return y + ch + 16
 
-static func fl_poly(n: Node2D, P: PackedVector2Array) -> void:
-	var D2 := PackedVector2Array()
-	for p in P: D2.append(p + Vector2(2, 3))
-	n.draw_colored_polygon(D2, INK)
-	n.draw_colored_polygon(P, RED.darkened(0.25))
-	n.draw_polyline(PackedVector2Array([P[0], P[1], P[2], P[0]]), INK, 3.5, true)
+## çizgi roman kule: kayalık zemin, beş kat bandı (aşağı doğru genişler), kemerli pencereler,
+## kat başına kornişler, mazgallı tepe, sivri kızıl çatı ve dalgalanan bayrak. Şimdiki katın
+## penceresi yanar ve kat kızıl nabız atar; boss katının penceresi kızıl, içinde kafatası.
+func _tower(pn: Node2D, k: int, nw: int, mpw: int) -> void:
+	var tx := 84.0
+	var y0 := 108.0
+	var fh := 40.0
+	var base := int(floor((k - 1) / 5.0)) * 5
+	var floors: Array = []
+	for j in 5:
+		var f := base + 5 - j
+		var F: Dictionary = SideModes.floor_def(f, nw, mpw)
+		var wd: Dictionary = D.WORLDS[clampi(int(F.w), 1, nw) - 1]
+		floors.append({"f": f, "boss": bool(F.boss), "st": "done" if f < k else ("cur" if f == k else "up"), "wc": JS.col(wd.color)})
+	var hw := func(y: float) -> float: return 50.0 + (y - y0) / (fh * 5.0) * 16.0
+	var tw := Node2D.new()
+	tw.draw.connect(func():
+		var X := func(x: float, y: float) -> Vector2: return Vector2(tx + x, y)
+		var yb := y0 + fh * 5.0
+		# kayalık zemin
+		var rock := PackedVector2Array([X.call(-84, yb + 22), X.call(-62, yb + 4), X.call(-20, yb - 2), X.call(40, yb), X.call(78, yb + 10), X.call(88, yb + 26), X.call(-88, yb + 30)])
+		ComicArt.shape(tw, rock, Color("#33233a"), 4.0, Vector2(3, 4))
+		ComicArt.shade_right(tw, rock, tx + 20, Color("#251a2c"))
+		# katlar
+		for j in 5:
+			var F: Dictionary = floors[j]
+			var ya := y0 + j * fh
+			var yb2 := ya + fh
+			var a0: float = hw.call(ya)
+			var a1: float = hw.call(yb2)
+			var band := PackedVector2Array([X.call(-a0, ya), X.call(a0, ya), X.call(a1, yb2), X.call(-a1, yb2)])
+			var st: String = F.st
+			var stone := Color("#6a5878")
+			if st == "done": stone = Color("#3e3448")
+			elif st == "cur": stone = Color("#8a5a6a")
+			elif F.boss: stone = Color("#6a2430")
+			else: stone = stone.lerp((F.wc as Color).darkened(0.3), 0.25)
+			if st == "cur":
+				var q := fmod(_t, 1.2) / 1.2
+				var glow := PackedVector2Array()
+				for p in band: glow.append(Vector2(tx, ya + fh * 0.5) + (p - Vector2(tx, ya + fh * 0.5)) * (1.0 + 0.12 + q * 0.18))
+				tw.draw_colored_polygon(glow, Color(RED, 0.35 * (1.0 - q)))
+			ComicArt.shape(tw, band, stone, 4.0, Vector2(3, 4))
+			ComicArt.shade_right(tw, band, tx + 14, stone.darkened(0.28))
+			# tuğlalar
+			for r in 2:
+				var yy := ya + 14.0 + r * 14.0
+				var ww: float = hw.call(yy)
+				tw.draw_line(X.call(-ww + 3, yy), X.call(ww - 3, yy), Color(0, 0, 0, 0.3), 2.0)
+				var bx := -ww + 10.0 + (0.0 if (j + r) % 2 == 0 else 9.0)
+				while bx < ww - 6.0:
+					tw.draw_line(X.call(bx, yy - 14 if r == 0 else yy - 14), X.call(bx, yy), Color(0, 0, 0, 0.22), 2.0)
+					bx += 18.0
+			# kemerli pencere
+			var wx := 22.0
+			var wy := ya + 11.0
+			var win := PackedVector2Array([X.call(wx - 8, wy + 22), X.call(wx - 8, wy + 8)])
+			for i in 11:
+				var an := PI + i * PI / 10.0
+				win.append(X.call(wx + cos(an) * 8.0, wy + 8 + sin(an) * 8.0))
+			win.append(X.call(wx + 8, wy + 22))
+			var wcol := Color("#1a1022")
+			if st == "cur": wcol = Color(1.0, 0.8 * (0.85 + 0.15 * sin(_t * 9.0)), 0.3)
+			elif F.boss: wcol = Color("#ff3b4e") if st != "done" else Color("#5a1a22")
+			elif st == "up": wcol = Color("#2a1e3a")
+			ComicArt.shape(tw, win, wcol, 3.0, Vector2.ZERO)
+			# korniş (kat ayırıcı çıkıntı)
+			var cw: float = a1 + 6.0
+			var cor := PackedVector2Array([X.call(-cw, yb2 - 3), X.call(cw, yb2 - 3), X.call(cw, yb2 + 4), X.call(-cw, yb2 + 4)])
+			ComicArt.shape(tw, cor, Color("#4e405c") if st != "cur" else Color("#a0707e"), 3.0, Vector2(2, 3))
+		# mazgallı tepe
+		var tw0: float = hw.call(y0) + 4.0
+		var bt := PackedVector2Array([X.call(-tw0, y0 + 2), X.call(tw0, y0 + 2), X.call(tw0, y0 - 16), X.call(tw0 - 14, y0 - 16), X.call(tw0 - 14, y0 - 9), X.call(10, y0 - 9), X.call(10, y0 - 16), X.call(-10, y0 - 16), X.call(-10, y0 - 9), X.call(-tw0 + 14, y0 - 9), X.call(-tw0 + 14, y0 - 16), X.call(-tw0, y0 - 16)])
+		ComicArt.shape(tw, bt, Color("#5c4a6c"), 4.0, Vector2(3, 4))
+		ComicArt.shade_right(tw, bt, tx + 14, Color("#43354f"))
+		# sivri çatı
+		var roof := PackedVector2Array([X.call(-tw0 + 6, y0 - 16), X.call(0, y0 - 84), X.call(tw0 - 6, y0 - 16)])
+		ComicArt.shape(tw, roof, Color("#d02a34"), 4.0, Vector2(3, 4))
+		ComicArt.shade_right(tw, roof, tx + 1, Color("#8e1420"))
+		for i in 3:
+			var yy := y0 - 30.0 - i * 16.0
+			var ww := (yy - (y0 - 84.0)) / 68.0 * (tw0 - 6.0)
+			tw.draw_line(X.call(-ww + 4, yy), X.call(ww - 4, yy), Color(0, 0, 0, 0.25), 2.0)
+		# bayrak
+		var top: Vector2 = X.call(0, y0 - 84)
+		tw.draw_line(top, top + Vector2(0, -24), INK, 3.5, true)
+		var fl := PackedVector2Array()
+		for i in 7:
+			var u := i / 6.0
+			fl.append(top + Vector2(2 + u * 28, -24 + sin(_t * 5.0 + u * 3.0) * 3.0 * u))
+		for i in range(6, -1, -1):
+			var u := i / 6.0
+			fl.append(top + Vector2(2 + u * 28, -12 + sin(_t * 5.0 + u * 3.0) * 3.0 * u - u * 4.0))
+		ComicArt.shape(tw, fl, YEL, 3.0, Vector2(2, 3))
+		# sol kenar ışığı
+		tw.draw_line(X.call(-46, y0 + 4), X.call(-62, yb - 4), Color(1, 1, 1, 0.16), 3.0, true))
+	pn.add_child(tw)
+	_live.append(tw)
+	_anim_in[tw] = 0.12
+	tw.position = Vector2.ZERO
+	# kat numaraları, boss kafatası, tik ve SEN etiketi
+	for j in 5:
+		var F: Dictionary = floors[j]
+		var ya := y0 + j * fh
+		var a0: float = hw.call(ya + fh * 0.5)
+		var st: String = F.st
+		_txt(pn, str(int(F.f)), 22, Color.WHITE if st != "done" else Color(1, 1, 1, 0.45), UIK.ink_stroke(1.6, 2.0), Vector2(tx - a0 + 8, ya + 6), 44)
+		if F.boss: _icon(pn, load("res://assets/ui/art/icon/skull.png"), 13, Vector2(tx + 22, ya + 26), Color(0.1, 0.02, 0.04, 0.9))
+		elif st == "done": _check(pn, Vector2(tx - 2, ya + 22), 0.75)
+		if st == "cur":
+			var tag := Node2D.new()
+			tag.position = Vector2(tx + hw.call(ya + fh * 0.5) + 10, ya + fh * 0.5 + 2)
+			tag.draw.connect(func():
+				tag.draw_colored_polygon(PackedVector2Array([Vector2(-2, 0), Vector2(10, -11), Vector2(10, 11)]), INK)
+				tag.draw_style_box(ComicSkin.sb(INK, 6), Rect2(10, -10, 44, 26))
+				tag.draw_style_box(ComicSkin.sb(YEL, 6, 3.0), Rect2(8, -13, 44, 26)))
+			pn.add_child(tag)
+			_txt(tag, "SEN", 16, INK, "", Vector2(8, -11), 44).align = 0.5
+			tag.set_meta("bob", 0.0)
+			_live.append(tag)
 
 func _tick(dt: float) -> void:
 	if _road and _road_fill < _road_to:

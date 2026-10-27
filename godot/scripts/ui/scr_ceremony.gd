@@ -504,17 +504,71 @@ func _draw_back(n: Node2D, w: float, h: float, k: float, col: Color) -> void:
 	n.draw_circle(Vector2.ZERO, 40 * k, YEL)
 	n.draw_circle(Vector2(-14, -16) * k, 8 * k, Color(1, 1, 1, 0.7))
 
-## sivri patlama yıldızı (mürekkep gölgeli)
+## eski "patlama yıldızı" imzası korunur, görünüm yenilendi (çıkartma/şok fiyat görüntüsü yerine):
+##   5 köşe → gerçek yıldız (değerlendirme yıldızları)
+##   yassı (sy < 0,6) → eğik başlık plakası: mürekkep gölge, koyu gövde, kızıl alt şerit + sol sekme
+##   diğerleri → altıgen madalyon: mürekkep gölge ve kontur, iki tonlu dolgu, iç halka
 static func _star(n: Node2D, c: Vector2, r0: float, r1: float, pts: int, col: Color, ink: float, rot := 0.0, sy := 1.0) -> void:
-	var P := PackedVector2Array()
-	var I := PackedVector2Array()
-	for i in pts * 2:
-		var a := rot - PI * 0.5 + i * PI / pts
-		var rr := r0 if i % 2 == 0 else r1
-		P.append(c + Vector2(cos(a) * rr, sin(a) * rr * sy))
-		I.append(c + Vector2(cos(a) * (rr + ink * 1.6), sin(a) * (rr + ink * 1.6) * sy) + Vector2(ink, ink * 1.3))
-	n.draw_colored_polygon(I, INK)
-	n.draw_colored_polygon(P, col)
+	if pts == 5:
+		var P := PackedVector2Array()
+		var I := PackedVector2Array()
+		for i in pts * 2:
+			var a := rot - PI * 0.5 + i * PI / pts
+			var rr := r0 if i % 2 == 0 else r1
+			P.append(c + Vector2(cos(a) * rr, sin(a) * rr * sy))
+			I.append(c + Vector2(cos(a) * (rr + ink * 1.6), sin(a) * (rr + ink * 1.6) * sy) + Vector2(ink, ink * 1.3))
+		n.draw_colored_polygon(I, INK)
+		n.draw_colored_polygon(P, col)
+		return
+	if sy < 0.6:
+		_plate(n, c, r0 * 1.9, maxf(36.0, r0 * sy * 1.55), col, ink)
+		return
+	_medal(n, c, (r0 + r1) * 0.5 + ink * 0.4, col, ink, rot)
+
+## eğik başlık plakası (merkez c, genişlik w, yükseklik h)
+static func _plate(n: Node2D, c: Vector2, w: float, h: float, col: Color, ink: float) -> void:
+	var k := h * 0.28
+	var hw := w * 0.5
+	var hh := h * 0.5
+	var body := PackedVector2Array([c + Vector2(-hw + k, -hh), c + Vector2(hw + k * 0.4, -hh), c + Vector2(hw - k, hh), c + Vector2(-hw - k * 0.4, hh)])
+	var sh := PackedVector2Array()
+	for q in body: sh.append(q + Vector2(ink * 1.4, ink * 1.8))
+	n.draw_colored_polygon(sh, INK)
+	var rim := PackedVector2Array()
+	for q in body: rim.append(c + (q - c) * Vector2(1.0 + ink * 2.0 / w, 1.0 + ink * 2.0 / h))
+	n.draw_colored_polygon(rim, INK)
+	n.draw_colored_polygon(body, Color("#1a070c"))
+	# kızıl alt şerit
+	var t := 0.78
+	var a0 := body[3].lerp(body[0], 1.0 - t)
+	var a1 := body[2].lerp(body[1], 1.0 - t)
+	n.draw_colored_polygon(PackedVector2Array([a0, a1, body[2], body[3]]), col)
+	n.draw_line(a0, a1, INK, maxf(2.0, ink * 0.7))
+	# sol sekme
+	var tab := PackedVector2Array([body[0] + Vector2(-ink * 2.2 - 10, 0), body[0] + Vector2(-ink * 2.2, 0), body[3] + Vector2(-ink * 2.2, 0), body[3] + Vector2(-ink * 2.2 - 10, 0)])
+	n.draw_colored_polygon(tab, col)
+	# üst parıltı çizgisi
+	n.draw_line(body[0].lerp(body[1], 0.04) + Vector2(0, 4), body[0].lerp(body[1], 0.6) + Vector2(0, 4), Color(1, 1, 1, 0.12), 2.0)
+
+## altıgen madalyon (merkez c, yarıçap r)
+static func _medal(n: Node2D, c: Vector2, r: float, col: Color, ink: float, rot := 0.0) -> void:
+	var H := func(rr: float, off: Vector2) -> PackedVector2Array:
+		var P := PackedVector2Array()
+		for i in 6:
+			var a := rot - PI * 0.5 + i * TAU / 6.0
+			P.append(c + off + Vector2(cos(a), sin(a)) * rr)
+		return P
+	n.draw_colored_polygon(H.call(r + ink, Vector2(ink, ink * 1.3)), INK)
+	n.draw_colored_polygon(H.call(r + ink, Vector2.ZERO), INK)
+	var F: PackedVector2Array = H.call(r, Vector2.ZERO)
+	n.draw_colored_polygon(F, col.darkened(0.18))
+	# üst yarı açık ton (iki tonlu çizgi roman gölgesi)
+	var up := PackedVector2Array([F[5], F[0], F[1], (F[1] + F[2]) * 0.5, (F[4] + F[5]) * 0.5])
+	n.draw_colored_polygon(up, col)
+	var inner: PackedVector2Array = H.call(r * 0.74, Vector2.ZERO)
+	inner.append(inner[0])
+	n.draw_polyline(inner, col.darkened(0.35), maxf(1.5, r * 0.06), true)
+	n.draw_line(F[5].lerp(F[0], 0.3) + Vector2(0, r * 0.12), F[0].lerp(F[1], 0.7) + Vector2(0, r * 0.12), Color(1, 1, 1, 0.45), maxf(1.5, r * 0.07))
 
 # ═════════════ çizim ═════════════
 
