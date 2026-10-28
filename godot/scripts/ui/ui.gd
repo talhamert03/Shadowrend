@@ -23,6 +23,7 @@ var pause: ScrPause
 var missionend: ScrMissionEnd
 var gate: ScrGate
 var adwatch: ScrAdWatch
+var ads: Ads
 var evo: ScrEvo
 var ach: AchToast
 var ftue: FtueHint
@@ -110,6 +111,8 @@ func _ready() -> void:
 	uiroot.add_child(gate)
 	adwatch = ScrAdWatch.new(g)
 	uiroot.add_child(adwatch)
+	ads = Ads.new(g)
+	add_child(ads)
 	evo = ScrEvo.new(g)
 	uiroot.add_child(evo)
 	ach = AchToast.new(g)
@@ -614,6 +617,10 @@ func show_mission_end(won, info) -> void:
 	var na = g._achNew
 	g._achNew = []
 	if na is Array and na.size(): ach.push(na, 2.3)
+## ödüllü reklam (AdMob): yerleşim adı AdIds.REAL_UNITS anahtarı; ödül yalnız reklam izlenince
+func show_rewarded(placement: String, on_reward: Callable, on_fail := Callable()) -> void:
+	ads.show(placement, on_reward, on_fail)
+
 func show_ad_watch(n, cb) -> void:
 	missionend.hide_end()
 	adwatch.show_ad(int(n), cb)

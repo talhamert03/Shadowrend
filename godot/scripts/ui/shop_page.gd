@@ -18,6 +18,8 @@ const SHOP_META := {
 const DEAL_POOL := ["kemik", "kan", "kadim", "mistik"]
 const VITRINE := ["yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]
 const AD_CHEST_CD := 4 * 3600e3
+## reklamlı bonus sandık: ALTIN (gümüşün bir üstü)
+const AD_CHEST := "kemik"
 const MK_HC_W := 176.0          # kahraman kartı (2 sütun · 10 px aralık)
 const MK_GAP := 10.0
 const MK_GC_STEP := Vector2(185.0, 128.0)
@@ -165,6 +167,19 @@ func _chests() -> void:
 		if cd:
 			A.set_text(cd, ChestSystem.fmt_dur(ad_in))
 			_cd["ad"] = [A, cd]
+		# yakalamadaki gümüş sandık görseli yerine altın sandık; alt satır sandığın adını söyler
+		var cs := A.find(".chest-svg")
+		if cs and cs.img:
+			cs.img.visible = false
+			var C: Dictionary = ChestSystem.chests().get(AD_CHEST, {})
+			var tx: Texture2D = UITex.get_tex("res://assets/ui/art/chest/t" + str(clampi(int(C.get("tier", 3)), 1, 7)) + ".png")
+			if tx:
+				var sp := Sprite2D.new()
+				sp.texture = tx
+				sp.scale = Vector2.ONE * (minf(cs.size.x, cs.size.y) * 1.05 / maxf(tx.get_width(), tx.get_height()))
+				sp.position = cs.size * 0.5
+				cs.host.add_child(sp)
+		if ad_in <= 0: EventsPage.txt(A, A.find("em"), "Kısa bir reklam izle, ALTIN SANDIK senin", 0.0)
 		menu.btn(A, A.nodes[0], func(): _ad_tap(), 0.98)
 	_add("sec_sefer", K)
 	_add("sec_kral", K)
@@ -202,11 +217,11 @@ func _ad_tap() -> void:
 		g.audio.play("click")
 		g.ui.toast("SONRAKİ BONUS SANDIK İÇİN BEKLE")
 		return
-	g.ui.adwatch.show_ad(3, func():
+	g.ui.show_rewarded("magaza_sandik", func():
 		Store.set_item("kh_adchest", JS.s(Clock.now()))
 		g.audio.play("adreward")
 		menu.set_page("magaza", true)
-		g.ui.chest_ceremony("yaygin", -1, func(): _after_ceremony()))
+		g.ui.chest_ceremony(AD_CHEST, -1, func(): _after_ceremony()))
 
 func _vcard_tap(t: String) -> void:
 	var C: Dictionary = ChestSystem.chests()[t]

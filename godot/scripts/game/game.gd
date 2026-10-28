@@ -848,9 +848,12 @@ func game_over() -> void:
 
 func revive_with_ad() -> void:
 	if reviveUsed or state != "gameover": return
-	reviveUsed = true
 	audio.play("click")
-	ui.show_ad_watch(3, _on_revive)
+	# hak yalnız reklam sonuna dek izlenince harcanır (yüklenemezse tekrar denenebilir)
+	ui.show_rewarded("dirilis", func():
+		if reviveUsed or state != "gameover": return
+		reviveUsed = true
+		_on_revive())
 
 func _on_revive() -> void:
 	player.hp = JS.round_js(player.maxHp * 0.6)

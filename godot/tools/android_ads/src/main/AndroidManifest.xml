@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Godot eklenti v2 kaydı: Engine.get_singleton("ShadowAds") -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.ShadowAds"
+            android:value="com.shadowrend.ads.ShadowAds" />
+    </application>
+</manifest>

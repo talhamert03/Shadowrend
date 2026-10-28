@@ -184,7 +184,7 @@ func _ad_boost() -> void:
 		return
 	g.audio.play("click")
 	close()
-	g.ui.show_ad_watch(3, func():
+	g.ui.show_rewarded("sandik_hizlandir", func():
 		g.chests.apply_ad_boost(i)
 		g.audio.play("adreward")
 		g.ui.show_menu()

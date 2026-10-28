@@ -2,4 +2,12 @@
 *.import.tmp
 /build/
 /export_credentials.cfg
-build/
+android/build/build/
+android/build/.gradle/
+android/build/libs/
+android/build/assets/
+android/build/src/main/assets/
+tools/android_ads/local.properties
+tools/android_ads/build/
+tools/android_ads/.gradle/
+!addons/shadow_ads/android/
