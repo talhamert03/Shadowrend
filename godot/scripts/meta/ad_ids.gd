@@ -4,17 +4,17 @@ extends RefCounted
 ## gelmez, hesabın askıya alınma riski yoktur). Gerçek kimlikler AdMob panelinden gelince
 ## REAL_* doldurulur ve TEST = false yapılır.
 
-const TEST := true
+const TEST := false
 
 ## kendi telefonunda gerçek kimliklerle denerken: logcat'te "Use RequestConfiguration...
 ## setTestDeviceIds(Arrays.asList("…"))" satırındaki kimlik
 const TEST_DEVICE := ""
 
-const REAL_APP_ID := ""
+const REAL_APP_ID := "ca-app-pub-1770141144744598~2103434988"
 const REAL_UNITS := {
-	"magaza_sandik": "",
-	"sandik_hizlandir": "",
-	"dirilis": "",
+	"magaza_sandik": "ca-app-pub-1770141144744598/2965924667",
+	"sandik_hizlandir": "ca-app-pub-1770141144744598/2774352971",
+	"dirilis": "ca-app-pub-1770141144744598/3895862956",
 }
 
 const TEST_APP_ID := "ca-app-pub-3940256099942544~3347511713"
