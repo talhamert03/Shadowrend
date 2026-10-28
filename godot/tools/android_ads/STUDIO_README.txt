@@ -4,7 +4,7 @@ SHADOWREND — ANDROID STUDIO PROJESİ
 AÇMA
   Android Studio → File → Open → bu klasörü (içinde settings.gradle olan) seç.
   İlk açılışta Gradle senkronu birkaç dakika sürer (internet gerekir). "Upgrade" önerirse KABUL ETME.
-  JDK: Android Studio'nun kendi Java'sı (17 veya 21) uygundur.
+  JDK: Android Studio'nun kendi Java'sı (17–25) uygundur (proje Gradle 9.5.1 kullanır).
 
 İMZALI PAKET ÜRETME (Google Play için)
   Build → Generate Signed App Bundle or APK…
