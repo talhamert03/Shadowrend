@@ -1,13 +1,16 @@
 #!/bin/bash
-# Godot Android derleme şablonunu (android/build, depoda yok) kurar ve Gradle'ı 8.7'ye çeker
-# (şablondaki 8.2, JDK 17 dışında çalışmıyor; 8.7 hem 17 hem 21 ile çalışır).
-# Dışa aktarım: editör ayarlarında java_sdk_path = JDK 17, export_presets'te use_gradle_build=true.
+# Godot Android derleme şablonunu (android/build, depoda yok) kurar ve Google Play'in güncel
+# şartlarına çeker: hedef/derleme SDK 36 (Android 16), AGP 8.9.1 (SDK 36 desteği).
+# Godot 4.5.1 şablonu 16 KB sayfa hizalı (Play şartı). Dışa aktarım: JDK 17, use_gradle_build=true.
 set -e
 cd "$(dirname "$0")/../.."
-T="$HOME/.local/share/godot/export_templates/4.4.1.stable"
+T="$HOME/.local/share/godot/export_templates/4.5.1.stable"
+rm -rf android/build
 mkdir -p android/build
 unzip -o -q "$T/android_source.zip" -d android/build
 cat "$T/version.txt" > android/.build_version
 touch android/build/.gdignore
-sed -i 's#distributionUrl=.*#distributionUrl=https\\://services.gradle.org/distributions/gradle-8.7-bin.zip#' android/build/gradle/wrapper/gradle-wrapper.properties
+C=android/build/config.gradle
+sed -i "s/androidGradlePlugin: '[^']*'/androidGradlePlugin: '8.9.1'/; s/compileSdk         : [0-9]*/compileSdk         : 36/; s/targetSdk          : [0-9]*/targetSdk          : 36/; s/buildTools         : '[^']*'/buildTools         : '36.0.0'/" $C
+grep -E "androidGradlePlugin|compileSdk |targetSdk |buildTools" $C
 echo "android/build hazır"

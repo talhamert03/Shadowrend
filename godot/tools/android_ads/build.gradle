@@ -1,14 +1,14 @@
 // Shadowrend AdMob eklentisi (Godot Android eklentisi v2). Çıktı: build/outputs/aar/ShadowAds-release.aar
 // → addons/shadow_ads/android/ShadowAds.aar (tools/android_ads/build.sh kopyalar)
 plugins {
-    id 'com.android.library' version '8.2.0'
+    id 'com.android.library' version '8.9.1'
 }
 
 android {
     namespace 'com.shadowrend.ads'
-    compileSdk 34
+    compileSdk 36
     defaultConfig {
-        minSdk 21
+        minSdk 24
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -18,7 +18,7 @@ android {
 
 dependencies {
     // uygulamaya dışa aktarma eklentisi (addons/shadow_ads) Maven bağımlılığı olarak ekler
-    compileOnly 'org.godotengine:godot:4.4.1.stable'
+    compileOnly 'org.godotengine:godot:4.5.1.stable'
     compileOnly 'com.google.android.gms:play-services-ads:23.6.0'
     compileOnly 'com.google.android.ump:user-messaging-platform:3.1.0'
 }
