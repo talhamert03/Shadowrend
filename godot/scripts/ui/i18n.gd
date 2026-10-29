@@ -8,6 +8,7 @@ const LANGS := ["tr", "en"]
 static var lang := ""
 static var missing := {}
 static var _dict := {}
+static var _upper := {}            # DICT anahtarının to_upper() hali → çeviri (kodda büyütülen adlar: "KADIM …")
 static var _rules: Array = []      # [[RegEx, hedef]]
 static var _words := {}
 static var _caps: RegEx
@@ -33,6 +34,7 @@ static func _load() -> void:
 	var J = JSON.parse_string(f.get_as_text())
 	if not (J is Dictionary): return
 	_dict = J.get("DICT", {})
+	for k in _dict: _upper[str(k).to_upper()] = _dict[k]
 	_words = J.get("WORDS", {})
 	for r in J.get("RULES", []):
 		var re := RegEx.new()
@@ -55,6 +57,7 @@ static func t(s: String) -> String:
 	var lead := s.substr(0, s.find(k))
 	var tail := s.substr(s.find(k) + k.length())
 	var out = _dict.get(k)
+	if out == null and k == k.to_upper() and _upper.has(k): out = str(_upper[k]).to_upper()
 	if out == null:
 		for R in _rules:
 			var m: RegExMatch = (R[0] as RegEx).search(k)
@@ -63,6 +66,15 @@ static func t(s: String) -> String:
 				for i in range(m.get_group_count(), 0, -1):
 					to = to.replace("$" + str(i), t(m.get_string(i)))
 				out = to
+				break
+	if out == null:
+		# bileşik metin ("DÜNYA 3 · GÖREV 2 · İLK GEÇİŞ"): parçalar ayrı ayrı çevrilir
+		for sep in [" · ", " — "]:
+			if k.contains(sep):
+				var tp := PackedStringArray()
+				for part in k.split(sep): tp.append(t(part))
+				var j: String = str(sep).join(tp)
+				if j != k: out = j
 				break
 	if out == null and _caps.search(k) and k.length() <= 48 and _re_up2.search(k):
 		var any := false
@@ -74,13 +86,19 @@ static func t(s: String) -> String:
 			if _words.has(x):
 				any = true
 				w += str(_words[x])
+			elif _dict.has(x):
+				any = true
+				w += str(_dict[x])
+			elif _upper.has(x):
+				any = true
+				w += str(_upper[x]).to_upper()
 			else:
-				w += str(_dict.get(x, x))
+				w += x
 			last = m.get_end()
 		w += k.substr(last)
 		if any: out = w
 	if out == null:
-		if _re_lower.search(k): missing[k] = true
+		if _re_up2.search(k.to_upper()): missing[k] = true
 		out = k
 	var res: String = lead + str(out) + tail
 	_cache[s] = res

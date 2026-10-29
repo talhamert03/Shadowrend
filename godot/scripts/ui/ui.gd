@@ -147,6 +147,13 @@ func _ready() -> void:
 	sheet = ScrSheet.new(g)
 	uiroot.add_child(sheet)
 
+# geliştirici: missdump=yol — çıkışta çevirisi bulunmayan metinleri (I18n.missing) dosyaya yazar
+func _exit_tree() -> void:
+	var mp := _arg("missdump")
+	if mp == "": return
+	var f := FileAccess.open(mp, FileAccess.WRITE)
+	if f: f.store_string("\n".join(PackedStringArray(I18n.missing.keys())))
+
 func _arg(k: String, d: String = "") -> String:
 	for a in OS.get_cmdline_user_args():
 		if a == k: return "1"
@@ -594,7 +601,7 @@ func settings_open() -> bool: return settings.visible
 ## yasal belge / destek sayfası (sheet) — GEÇİCİ: menü sayfaları taşınınca tam sayfa
 func open_doc(kind: String, on_close := Callable()) -> void:
 	if kind == "support":
-		toast("DESTEK: destek@shadowrend.app")
+		toast("DESTEK: talhamert38@gmail.com")
 		return
 	sheet.doc(kind, on_close)
 func confirm_wipe() -> void: sheet.wipe()

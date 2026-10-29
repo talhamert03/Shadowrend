@@ -120,7 +120,7 @@ func doc(k: String, on_close := Callable()) -> void:
 	if _legal.is_empty():
 		var f := FileAccess.open("res://assets/ui/legal.json", FileAccess.READ)
 		if f: _legal = JSON.parse_string(f.get_as_text())
-	var D0: Dictionary = _legal.get(k, {})
+	var D0: Dictionary = _legal.get(k + "_en", _legal.get(k, {})) if I18n.lang == "en" else _legal.get(k, {})
 	var host := S.find(".lg-doc")
 	var body := S.find_id("#sh-body")
 	if host == null or D0.is_empty(): return
