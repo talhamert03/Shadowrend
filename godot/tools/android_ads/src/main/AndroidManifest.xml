@@ -5,5 +5,9 @@
         <meta-data
             android:name="org.godotengine.plugin.v2.ShadowAds"
             android:value="com.shadowrend.ads.ShadowAds" />
+        <!-- Google Play Billing: Engine.get_singleton("ShadowPay") -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.ShadowPay"
+            android:value="com.shadowrend.ads.ShadowPay" />
     </application>
 </manifest>

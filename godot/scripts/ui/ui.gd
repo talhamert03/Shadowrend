@@ -24,6 +24,7 @@ var missionend: ScrMissionEnd
 var gate: ScrGate
 var adwatch: ScrAdWatch
 var ads: Ads
+var pay: Pay
 var evo: ScrEvo
 var ach: AchToast
 var ftue: FtueHint
@@ -113,6 +114,8 @@ func _ready() -> void:
 	uiroot.add_child(adwatch)
 	ads = Ads.new(g)
 	add_child(ads)
+	pay = Pay.new(g)
+	add_child(pay)
 	evo = ScrEvo.new(g)
 	uiroot.add_child(evo)
 	ach = AchToast.new(g)

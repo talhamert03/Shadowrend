@@ -407,6 +407,7 @@ func _stone_shop() -> void:
 		h = maxf(h, P.position.y + P.nodes[0].size.y)
 		var pid: String = p.id
 		menu.btn(P, P.nodes[0], func(): _buy_pack(pid), 0.96)
+	refresh_prices()
 	var box := shell.find_id(K)
 	if box: shell.resize_h(box, h)
 
@@ -444,16 +445,24 @@ func _buy_pack(id: String) -> void:
 	for p in D.STONE_PACKS:
 		if p.id == id: pack = p
 	if pack == null: return
-	var total: float = float(pack.amount) + float(pack.bonus)
-	var first := not first_buy_used()
-	if g.buy_stone_pack(id):
-		if first:
-			g.add_stones(total)
-			Store.set_item("kh_firstbuy", "1")
-		var P = _pack_lyr.get(id)
-		menu.reward_from(P, P.nodes[0] if P else null)
-		render()
-		g.ui.toast("+" + str(int(total * 2 if first else total)) + " GEM ALINDI" + (" (×2!)" if first else ""))
+	g.buy_stone_pack(id)
+
+## gemler teslim edildi (Game.grant_stone_pack): uçuş efekti + bildirim
+func on_pack_granted(id: String, total: float, first: bool) -> void:
+	var P = _pack_lyr.get(id)
+	if P and is_instance_valid(P): menu.reward_from(P, P.nodes[0])
+	render()
+	g.ui.toast("+" + str(int(total * 2 if first else total)) + " GEM ALINDI" + (" (×2!)" if first else ""))
+
+## Play'den gelen yerel fiyatları paket kartlarına yaz
+func refresh_prices() -> void:
+	if g.ui.pay == null: return
+	for id in _pack_lyr:
+		var P = _pack_lyr[id]
+		if P == null or not is_instance_valid(P): continue
+		var pr: String = g.ui.pay.price(id)
+		var n = P.find(".sp-price")
+		if n and pr != "": P.set_text(n, pr)
 
 func _exchange() -> void:
 	var K := "#ruby-exchange"

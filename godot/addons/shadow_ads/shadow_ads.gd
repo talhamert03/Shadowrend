@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
-## Android dışa aktarımında (gradle derlemesi) ShadowAds AAR'ını, Google Mobile Ads + UMP
-## bağımlılıklarını ve AdMob uygulama kimliğini (manifest meta-data) ekler.
+## Android dışa aktarımında (gradle derlemesi) ShadowAds AAR'ını (reklam + ShadowPay faturalama),
+## Google Mobile Ads + UMP + Play Billing bağımlılıklarını ve AdMob uygulama kimliğini (manifest meta-data) ekler.
 
 var _exp: AdsExport
 
@@ -27,6 +27,7 @@ class AdsExport extends EditorExportPlugin:
 		return PackedStringArray([
 			"com.google.android.gms:play-services-ads:23.6.0",
 			"com.google.android.ump:user-messaging-platform:3.1.0",
+			"com.android.billingclient:billing:8.0.0",
 		])
 
 	func _get_android_manifest_application_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:

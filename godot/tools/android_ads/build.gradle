@@ -1,4 +1,4 @@
-// Shadowrend AdMob eklentisi (Godot Android eklentisi v2). Çıktı: build/outputs/aar/ShadowAds-release.aar
+// Shadowrend AdMob + Play Billing eklentisi (Godot Android eklentisi v2). Çıktı: build/outputs/aar/ShadowAds-release.aar
 // → addons/shadow_ads/android/ShadowAds.aar (tools/android_ads/build.sh kopyalar)
 plugins {
     id 'com.android.library' version '8.9.1'
@@ -21,4 +21,5 @@ dependencies {
     compileOnly 'org.godotengine:godot:4.5.1.stable'
     compileOnly 'com.google.android.gms:play-services-ads:23.6.0'
     compileOnly 'com.google.android.ump:user-messaging-platform:3.1.0'
+    compileOnly 'com.android.billingclient:billing:8.0.0'
 }

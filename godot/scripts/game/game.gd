@@ -1029,13 +1029,28 @@ func buy_stone_pack(id: String) -> bool:
 	for p in D.STONE_PACKS:
 		if p.id == id: pack = p
 	if pack == null: return false
-	if Backend.billing():
-		Backend.buy(id)
+	if Pay.required():
+		# gerçek ödeme: gemler Play onayından sonra grant_stone_pack ile gelir
+		ui.pay.buy(id)
 		return false
-	add_stones(pack.amount + pack.bonus)
+	grant_stone_pack(id)
+	return true
+
+## gem paketi teslimi (ödeme onayı ya da masaüstü geliştirme): miktar + bonus, ilk alışverişte ×2
+func grant_stone_pack(id: String) -> void:
+	var pack = null
+	for p in D.STONE_PACKS:
+		if p.id == id: pack = p
+	if pack == null: return
+	var total: float = float(pack.amount) + float(pack.bonus)
+	var first := not ShopPage.first_buy_used()
+	add_stones(total * 2.0 if first else total)
+	if first: Store.set_item("kh_firstbuy", "1")
 	audio.play("stonebuy")
 	ui.refresh_wallet()
-	return true
+	var shop = ui.menu.pages.get("magaza") if ui.menu else null
+	if shop: shop.on_pack_granted(id, total, first)
+	else: ui.toast("+" + str(int(total * 2 if first else total)) + " GEM ALINDI" + (" (×2!)" if first else ""))
 
 func exchange_stones(id: String) -> bool:
 	var ex = null
