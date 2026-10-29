@@ -436,7 +436,7 @@ func _draw_shine(n: Node2D) -> void:
 		if q.size() >= 3: n.draw_colored_polygon(q, Color(1, 1, 1, 0.13))
 
 func _draw_rays() -> void:
-	# başlık arkası: dönen sarı-turuncu ışınlar + sivri patlama (çizgi roman "POW" zemini)
+	# başlık arkası: dönen kızıl ışınlar + eğik başlık plakası
 	var a0 := _t * 0.3
 	var R := _W.x * 1.1
 	var al := clampf(_t / 0.4, 0.0, 1.0)
@@ -445,15 +445,8 @@ func _draw_rays() -> void:
 		_rays.draw_colored_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.1), sin(a - 0.1)) * R, Vector2(cos(a + 0.1), sin(a + 0.1)) * R]), Color(0.7, 0.07, 0.09, 0.11 * al))
 	var kb := clampf(_t / 0.35, 0.0, 1.0)
 	var s := _back_ease(kb) if kb < 1.0 else 1.0 + sin(_t * 3.0) * 0.02
-	var pts := PackedVector2Array()
-	for i in 22:
-		var a := -PI * 0.5 + i * TAU / 22.0 + 0.05
-		var rr := (150.0 if i % 2 == 0 else 112.0) * s
-		pts.append(Vector2(cos(a) * rr, sin(a) * rr * 0.42 - 6))
-	var ink := PackedVector2Array()
-	for p in pts: ink.append(p * 1.06 + Vector2(4, 5))
-	_rays.draw_colored_polygon(ink, Color(INK, al))
-	_rays.draw_colored_polygon(pts, Color(Color("#e8322c"), al))
+	# eğik başlık plakası (eski sivri patlama yerine; diğer ekranlarla aynı dil)
+	if al > 0.05: ScrCeremony._plate(_rays, Vector2(0, -4), 290.0 * s, 96.0 * s, Color("#e8322c"), 4.0)
 
 func _draw_reroll() -> void:
 	var n := int(g.rerolls)

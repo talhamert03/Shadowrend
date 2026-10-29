@@ -736,6 +736,9 @@ func _add_bar(idx: int, x: float, y: float, z: float, width: float, height: floa
 	hpFill.set_col(idx, c.r, c.g, c.b)
 	return idx + 1
 
+## geliştirici: hide=bars — düşman can çubukları çizilmez (tanıtım görüntüsü)
+var dev_nobars := false
+
 func _update_hp_bars(g) -> void:
 	var idx := 0
 	var p = g.player
@@ -744,6 +747,7 @@ func _update_hp_bars(g) -> void:
 		var py: float = r3._heroTopY + 12
 		idx = _add_bar(idx, p.x, py, p.y, 34, 5, frac, D.COLORS.gold if frac > 0.35 else D.COLORS.blood)
 	for e in g.enemies.pool.active:
+		if dev_nobars: break
 		if e.hp >= e.maxHp - 0.5 and not e.affix: continue
 		var frac := maxf(0.0, e.hp / e.maxHp)
 		if e.isBoss:

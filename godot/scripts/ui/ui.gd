@@ -326,6 +326,7 @@ func boot() -> void:
 					"props": r3.propGroup.visible = false
 					"decor": r3.decorGroup.visible = false
 					"fx": r3.fxMesh.visible = false; r3.fxMesh.scale = Vector3.ZERO
+					"bars": r3.fx.dev_nobars = true
 
 var _taps: Array = []
 var _gest: Array = []
