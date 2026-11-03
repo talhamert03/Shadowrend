@@ -229,6 +229,17 @@ func _home(dLeft: int, kReady: int) -> float:
 		wb.host.add_child(L)
 		_items.append(L)
 		var host: Node2D = L.nodes[0].node
+		# gölge/hale en altta: çerçevenin içi saydam, gölgesi üstte çizilirse resmi yarı yarıya karartıyordu
+		var sh := Node2D.new()
+		host.add_child(sh)
+		sh.draw.connect(func():
+			var ss := StyleBoxFlat.new()
+			ss.bg_color = Color(0, 0, 0, 0.0)
+			ss.set_corner_radius_all(16)
+			var k := 0.5 + 0.5 * sin(_t * 3.2)
+			ss.shadow_color = Color(col, 0.2 + 0.25 * k) if hot else Color(0, 0, 0, 0.5)
+			ss.shadow_size = 12 if hot else 6
+			sh.draw_style_box(ss, Rect2(0, 0, W, H)))
 		# zemin: dünyanın göğü + soldan koyu perde
 		var sky := UITex.get_tex(ClimbArt.BASE + "w" + str(int(B.w)) + "/tall_back.png")
 		if sky: host.add_child(UIK.round_image(sky, W, H, 16, Vector2(0.5, 0.35)))
@@ -265,11 +276,19 @@ func _home(dLeft: int, kReady: int) -> float:
 		var art := Node2D.new()
 		art.position = Vector2(W - 70, H * 0.5)
 		host.add_child(art)
-		# kupa ve kule elle çizim (ComicArt); günlükte sandık resmi
-		if t == "kupa":
-			art.draw.connect(func(): ComicArt.trophy(art, Vector2(0, 2), 0.78, _t))
-		elif t == "zirve":
-			art.draw.connect(func(): ComicArt.tower(art, Vector2(-4, 10), 0.5, _t))
+		# kupa ve kule boyalı resim (Higgsfield) + kıvılcım; günlükte sandık resmi
+		if t == "kupa" or t == "zirve":
+			var kup := t == "kupa"
+			var ptx := UITex.get_tex("res://assets/ui/art/events/" + ("trophy" if kup else "tower") + ".png")
+			var ph := 100.0 if kup else 116.0
+			var spc := Color("#ffe6a0") if kup else Color("#d9b8ff")
+			if ptx:
+				var ps := Sprite2D.new()
+				ps.texture = ptx
+				ps.scale = Vector2.ONE * (ph / ptx.get_height())
+				ps.position = Vector2(0, 2)
+				art.add_child(ps)
+				art.draw.connect(func(): ComicArt.sparkles(art, Vector2(0, 2), ptx.get_size() * (ph / ptx.get_height()), ph, _t, spc))
 		else:
 			var tex := UITex.get_tex(String(B.art))
 			if tex:
@@ -292,8 +311,6 @@ func _home(dLeft: int, kReady: int) -> float:
 			bd.set_border_width_all(3)
 			var k := 0.5 + 0.5 * sin(_t * 3.2)
 			bd.border_color = Color(col, 0.6 + 0.4 * k) if hot else Color(col.lerp(Color("#e9b86a"), 0.4), 0.5)
-			bd.shadow_color = Color(col, 0.2 + 0.25 * k) if hot else Color(0, 0, 0, 0.5)
-			bd.shadow_size = 12 if hot else 6
 			bd.anti_aliasing = true
 			fr.draw_style_box(bd, Rect2(0, 0, W, H))
 			# sol renk şeridi
@@ -335,7 +352,7 @@ func _home(dLeft: int, kReady: int) -> float:
 			bd2.add_child(bt)
 		var tt := t
 		menu.btn(L, L.nodes[0], func(): _tab_tap(tt), 0.96)
-		_anims.append({"n": L, "x": L.position.x, "d": 0.06 + idx * 0.09, "art": art, "ay": art.position.y, "gl": gl, "ga": gl.modulate.a, "fx": fr, "rays": rays, "badge": bd2})
+		_anims.append({"n": L, "x": L.position.x, "d": 0.06 + idx * 0.09, "art": art, "ay": art.position.y, "gl": gl, "ga": gl.modulate.a, "fx": fr, "rays": rays, "badge": bd2, "sh": sh})
 		L.position.x += 420.0
 		y += H + BAN_GAP
 		idx += 1
@@ -360,6 +377,8 @@ func _process(dt: float) -> void:
 		if gl: gl.modulate.a = float(A.ga) * (0.75 + 0.25 * sin(_t * 3.0 + float(A.d) * 5.0))
 		var fx: Node2D = A.fx
 		if fx: fx.queue_redraw()
+		var shd: Node2D = A.get("sh")
+		if shd: shd.queue_redraw()
 		var rays: Node2D = A.rays
 		if rays: rays.queue_redraw()
 		var bd = A.badge

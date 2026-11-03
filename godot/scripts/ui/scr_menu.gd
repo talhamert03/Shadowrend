@@ -113,8 +113,13 @@ func _build() -> void:
 	if _xpMat:
 		_xpMat.set_shader_parameter("c0", ComicSkin.YEL)
 		_xpMat.set_shader_parameter("c1", Color("#ff8a2a"))
-	btn(shell, shell.find_id("#btn-settings"), func(): g.audio.play("click"); g.ui.show_settings())
-	btn(shell, shell.find_id("#tb-daily"), func(): g.audio.play("click"); g.ui.show_daily_drawer())
+	var gear := shell.find_id("#btn-settings")
+	var daily := shell.find_id("#tb-daily")
+	# yakalamada günlük görevler ikonu dişliden 3 px aşağıdaydı: aynı ebeveynde dikey ortala
+	if gear and daily and gear.node.get_parent() == daily.node.get_parent():
+		daily.node.position.y = gear.node.position.y + (gear.size.y - daily.size.y) * 0.5
+	btn(shell, gear, func(): g.audio.play("click"); g.ui.show_settings())
+	btn(shell, daily, func(): g.audio.play("click"); g.ui.show_daily_drawer())
 	btn(shell, lv, func(): g.audio.play("click"); g.ui.show_account_journey())
 	for c in shell.find_all(".tb-cur"):
 		btn(shell, c, func(): g.audio.play("click"); set_page("magaza"))

@@ -207,7 +207,14 @@ func _kupa(y: float) -> float:
 	var h := 232.0
 	var pn := _poster(y, h, Color("#4a1a0a"), Vector2(80, 92), Color(1, 0.75, 0.2, 0.15), 0.05)
 	var cup := _hero_art(pn, null, 100, Vector2(80, 92), Color(1, 0.7, 0.2, 0.7))
-	cup.draw.connect(func(): ComicArt.trophy(cup, Vector2.ZERO, 1.05, _t))
+	var ctx := UITex.get_tex("res://assets/ui/art/events/trophy.png")
+	if ctx:
+		var cs := Sprite2D.new()
+		cs.texture = ctx
+		cs.scale = Vector2.ONE * (132.0 / ctx.get_height())
+		cs.position = Vector2(0, -4)
+		cup.add_child(cs)
+		cup.draw.connect(func(): ComicArt.sparkles(cup, Vector2(0, -4), ctx.get_size() * (132.0 / ctx.get_height()), 132.0, _t, Color("#ffe6a0")))
 	_small(pn, "HAYATTA KALDIĞIN SÜRE", 12, Color(1, 0.85, 0.7, 0.85), Vector2(156, 18), 200)
 	var big := _txt(pn, str(mins), 54, YEL, UIK.ink_stroke(3.0, 4.0), Vector2(156, 30), 200)
 	_txt(pn, "DK", 24, Color.WHITE, UIK.ink_stroke(2.0, 2.4), Vector2(162 + big.text_width(), 58), 60)

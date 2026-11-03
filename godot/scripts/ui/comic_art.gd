@@ -116,3 +116,16 @@ static func tower(n: CanvasItem, c: Vector2, s: float, t := 0.0) -> void:
 		var fk := 0.85 + 0.15 * sin(t * 7.0 + wy)
 		shape(n, win, Color(1.0, 0.78 * fk, 0.25 * fk), 3.5 * s, Vector2.ZERO)
 	n.draw_line(X.call(Vector2(-22, -36)), X.call(Vector2(-28, 56)), Color(1, 1, 1, 0.22), 3 * s, true)
+
+## boyalı (Higgsfield) prop resminin (Sprite2D olarak çizilir) çevresinde yanıp sönen dört köşeli
+## kıvılcımlar — etkinlik afişleri ve Kupa Yolu ekranı (kupa / kule). sz: resmin ekrandaki boyutu
+static func sparkles(n: CanvasItem, c: Vector2, sz: Vector2, h: float, t: float, spark: Color) -> void:
+	for i in 6:
+		var ph := fmod(t * 0.7 + i * 0.29, 1.0)
+		var a := sin(ph * PI)
+		if a < 0.05: continue
+		var p := c + Vector2(cos(i * 2.39) * sz.x * 0.5, (fmod(i * 0.618, 1.0) - 0.62) * sz.y * 0.8)
+		var r := (2.5 + 4.5 * a) * h / 110.0
+		var st := PackedVector2Array([p + Vector2(0, -r), p + Vector2(r * 0.22, -r * 0.22), p + Vector2(r, 0), p + Vector2(r * 0.22, r * 0.22),
+			p + Vector2(0, r), p + Vector2(-r * 0.22, r * 0.22), p + Vector2(-r, 0), p + Vector2(-r * 0.22, -r * 0.22)])
+		n.draw_colored_polygon(st, Color(spark, 0.9 * a))
