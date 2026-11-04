@@ -526,8 +526,10 @@ func _start_run_now(wi: int, mi: int) -> void:
 	if D.WEAPONS.has(cdef.startWeapon): weapons.slots[cdef.startWeapon] = 1
 	weapons.seed_default()
 	var sigW = weapons.W.get(cdef.startWeapon)
-	var sigMul := D.signaturePower(cdef.get("rarity"))
-	if sigW and sigMul > 1:
+	# nadirlik çarpanı × kahramana özel denge çarpanı (sigDmg: imza silahı yalnız bu kahramanın
+	# elinde ayarlanır; aynı silahı cephanelikten alan başka kahramanı etkilemez)
+	var sigMul := D.signaturePower(cdef.get("rarity")) * JS.num(cdef, "sigDmg", 1.0)
+	if sigW and absf(sigMul - 1.0) > 0.001:
 		for key in ["dmg", "dps"]:
 			var arr = sigW.get(key)
 			if arr is Array:

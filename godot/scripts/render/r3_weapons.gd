@@ -505,7 +505,9 @@ func _update_sling(g, dt: float) -> void:
 	if _slStoneHide > 0: _slStoneHide -= dt
 	var wind: float = clampf(W.slingWind, 0, 1)
 	var kick := _slingRecoil * _slingRecoil
-	slingSpin.rotation.z = -0.30 - 0.55 * wind * wind + _slingRecoil * 2.30
+	# atışta sapan göğe dönmesin (eski +2,30 rad ≈ 130° ters takla): hedefe bakar, küçük bir
+	# geri tepme + ileri fırlatma vuruşuyla oynar
+	slingSpin.rotation.z = -0.12 - 0.22 * wind * wind + kick * 0.32
 	slingInner.position.z = wind * 2 - kick * 9
 	slingInner.rotation.x = -kick * 0.30
 	var ss := 1 + wind * 0.06 - kick * 0.10

@@ -141,9 +141,10 @@ func waveTime(w: float, waves: float) -> float:
 	return total * (0.8 + 0.06 * (w - 1)) / sum
 
 func waveInterval(w: float) -> float:
+	# ilk dalgalar artık boş değil: dünya 1 bölüm 1'de bile sürekli akan bir sürü (eski 1,90/1,65/1,40)
 	if w <= 3:
-		return [1.90, 1.65, 1.40][int(w) - 1]
-	return maxf(0.34, 1.22 * pow(0.91, w - 3))
+		return [0.80, 0.72, 0.66][int(w) - 1]
+	return maxf(0.34, 1.0 * pow(0.92, w - 3))
 
 func waveBatch(w: float) -> float:
 	if w <= 2: return 1.0
@@ -152,7 +153,7 @@ func waveBatch(w: float) -> float:
 func waveHpMul(w: float) -> float: return 1.0 + (w - 1) * 0.25
 func waveDmgMul(w: float) -> float: return 1.0 + (w - 1) * 0.085
 
-func onScreenCap(w: float) -> float: return minf(64.0, 18.0 + w * 4)
+func onScreenCap(w: float) -> float: return minf(64.0, 26.0 + w * 4)
 
 func pressureAt(runT: float, waveT: float, dyn) -> float:
 	var f: float = 1.0 if (dyn == null or is_nan(float(dyn)) or is_inf(float(dyn))) else float(dyn)
@@ -273,11 +274,13 @@ func missionDef(w: int, m: int) -> Dictionary:
 	var isBoss := m == MISSIONS_PER_WORLD
 	var waves: float = 8.0 if isBoss else minf(9.0, 4.0 + ceil(m * 0.55))
 	var grace := 0.72 if (w == 1 and m <= 2) else (0.86 if (w == 1 and m <= 4) else 1.0)
+	# ilk iki görev: sürü yoğun ama vuruşları hafif (öğretici akış, sıkıcı değil)
+	var graceDmg := 0.6 if (w == 1 and m <= 2) else grace
 	# zorluk (v2): ilk iki görev öğretici kalır; sonrası daha sert (düşman canı +%18, hasarı +%12)
 	var hardHp := 1.0 if (w == 1 and m <= 2) else 1.18
 	var hardDmg := 1.0 if (w == 1 and m <= 2) else 1.12
 	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.12) * grace * hardHp
-	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * grace * hardDmg
+	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * graceDmg * hardDmg
 	var bossCurve := JS.num(wd, "bossCurve", 1.0)
 	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace * (1.0 if (w == 1 and m <= 2) else 1.15)
 	var mixOffset: float = (w - 1) * 2 + floor((m - 1) / 2.0)
@@ -349,7 +352,7 @@ func nextMission(prog: Dictionary) -> Dictionary:
 
 const GEAR_BUDGET := [0, 6, 11, 16, 23, 30]
 const _SIG := [1.0, 1.0, 1.12, 1.25, 1.45]
-const CHALLENGE := {"hp": 0.16, "dmg": 0.09, "bossHp": 0.10}
+const CHALLENGE := {"hp": 0.105, "dmg": 0.065, "bossHp": 0.075}   # dünya başına meydan okuma payı (beklenen güce ek)
 
 static func _lerpA(a: Array, x: float) -> float:
 	var i := mini(a.size() - 2, maxi(1, int(floor(x))))

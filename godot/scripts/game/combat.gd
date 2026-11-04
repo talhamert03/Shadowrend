@@ -8,6 +8,7 @@ const FEEL := {
 	"mergeWin": 0.42, "mergeMaxSize": 19,
 	"kickCrit": 2.6, "kickHurt": 4.2,
 }
+static var devDmg := 0.0   # geliştirici: bench=sn — toplam verilen hasar (kahraman dengesi ölçümü)
 const BLOOD := "#a31226"
 const BLOOD_DARK := "#6e0b18"
 
@@ -39,6 +40,7 @@ static func apply_hit(game, e: Ent.Enemy, base: float, angle: float = 0.0, knock
 			game.spawn_text(e.x, e.y - e.radius - 20, "KALKAN KIRILDI", "#cfd6e2", 12, true)
 			game.audio.play("shieldbreak")
 	e.regenT = 0
+	devDmg += minf(r.dmg, maxf(0.0, e.hp))
 	e.hp -= r.dmg
 	e.flash = D.FX.hitFlashTime
 	e.hurtAng = angle

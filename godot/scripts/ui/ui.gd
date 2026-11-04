@@ -9,6 +9,7 @@ var _shotT := 6.0
 var _gsI := 0
 var _t0 := 0.0
 var _god := false
+var _benchDone := false
 var _logT := 0.0
 var _hudDone := false
 var layer: CanvasLayer
@@ -285,7 +286,7 @@ func boot() -> void:
 			get_tree().create_timer(1.0).timeout.connect(func():
 				var E = g.enemies
 				E.aliveCap = 9999.0; E.osCap = 9999.0
-				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * 20.0, E.dmgMul * 0.05))
+				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "20")), E.dmgMul * 0.05))
 		if _arg("pudrop") != "":
 			# geliştirici: pudrop — kahramanın çevresine dört güç + XP kristalleri
 			get_tree().create_timer(1.2).timeout.connect(func():
@@ -520,6 +521,14 @@ func _process(_dt: float) -> void:
 				Input.parse_input_event(ev)
 	if _t0 > 0 and g.state == "playing":
 		if _god and g.player.hp < g.player.maxHp * 0.5: g.player.hp = g.player.maxHp
+		if _arg("bench") != "":
+			# geliştirici: bench=sn — seviye atlamadan imza silahıyla sabit süre; 4. sn'den itibaren hasar
+			g.player.xp = 0.0; g.player.pendingLevels = 0
+			if g.time < 4.0: Combat.devDmg = 0.0
+			elif g.time >= 4.0 + float(_arg("bench")) and not _benchDone:
+				_benchDone = true
+				print("BENCH ", g.player.charId, " dps=", snappedf(Combat.devDmg / float(_arg("bench")), 0.1), " kills=", g.kills)
+				get_tree().quit()
 		var now := Time.get_ticks_msec() / 1000.0
 		if now - _logT > 3.0:
 			_logT = now

@@ -609,7 +609,8 @@
     "emblem": "#7fd8ff",
     "rim": "rgba(127,216,255,0.48)"
    },
-   "emblem": "arrow"
+   "emblem": "arrow",
+   "sigDmg": 1.12
   },
   "sapanci": {
    "id": "sapanci",
@@ -622,7 +623,8 @@
    "startWeapon": "sapan",
    "lore": "Kızıl Hasat tarlasının bekçisi. Kuş kovmak için sapan sallamayı öğrenmiş bir çocuktu; kovduğu şey değişti, sapanı değişmedi. Deri kese şimdi yanında havada süzülüyor ve o yürüdükçe kendi kendine savuruyor.",
    "mods": {
-    "atkPct": 0.095,
+    "atkPct": 0.04,
+    "dmgPct": 0.05,
     "speedPct": 0.08,
     "maxHp": -4
    },
@@ -670,7 +672,8 @@
     "emblem": "#ffd98a",
     "rim": "rgba(255,222,158,0.5)"
    },
-   "emblem": "star"
+   "emblem": "star",
+   "sigDmg": 0.783
   },
   "simsek": {
    "id": "simsek",
@@ -700,7 +703,8 @@
     "emblem": "#7fdfff",
     "rim": "rgba(150,220,255,0.52)"
    },
-   "emblem": "bolt"
+   "emblem": "bolt",
+   "sigDmg": 3.017
   },
   "savasci": {
    "id": "savasci",
@@ -729,7 +733,8 @@
     "emblem": "#b8c0cc",
     "rim": "rgba(184,192,204,0.42)"
    },
-   "emblem": "shield"
+   "emblem": "shield",
+   "sigDmg": 0.707
   },
   "gokalev": {
    "id": "gokalev",
@@ -760,7 +765,8 @@
     "emblem": "#6fb7ff",
     "rim": "rgba(120,180,255,0.52)"
    },
-   "emblem": "flame"
+   "emblem": "flame",
+   "sigDmg": 1.708
   },
   "korsan": {
    "id": "korsan",
@@ -791,7 +797,8 @@
     "emblem": "#f5c044",
     "rim": "rgba(245,192,68,0.5)"
    },
-   "emblem": "cleaver"
+   "emblem": "cleaver",
+   "sigDmg": 1.298
   },
   "kralice": {
    "id": "kralice",
@@ -822,7 +829,8 @@
     "emblem": "#c9a6ff",
     "rim": "rgba(160,200,255,0.5)"
    },
-   "emblem": "star"
+   "emblem": "star",
+   "sigDmg": 0.461
   },
   "sovalye": {
    "id": "sovalye",
@@ -881,7 +889,8 @@
     "emblem": "#c9a77a",
     "rim": "rgba(201,167,122,0.45)"
    },
-   "emblem": "shield"
+   "emblem": "shield",
+   "sigDmg": 0.977
   },
   "fenerci": {
    "id": "fenerci",
@@ -911,7 +920,8 @@
     "emblem": "#7dffb8",
     "rim": "rgba(125,255,184,0.48)"
    },
-   "emblem": "star"
+   "emblem": "star",
+   "sigDmg": 1.828
   },
   "zehra": {
    "id": "zehra",
@@ -942,7 +952,8 @@
     "emblem": "#9cff5a",
     "rim": "rgba(156,255,90,0.5)"
    },
-   "emblem": "flame"
+   "emblem": "flame",
+   "sigDmg": 0.311
   },
   "demirhan": {
    "id": "demirhan",
@@ -973,7 +984,8 @@
     "emblem": "#ffd36a",
     "rim": "rgba(255,211,106,0.52)"
    },
-   "emblem": "bolt"
+   "emblem": "bolt",
+   "sigDmg": 0.554
   },
   "prizma": {
    "id": "prizma",
@@ -1004,7 +1016,8 @@
     "emblem": "#c9a6ff",
     "rim": "rgba(201,166,255,0.5)"
    },
-   "emblem": "eye"
+   "emblem": "eye",
+   "sigDmg": 0.321
   },
   "zaman": {
    "id": "zaman",
@@ -1036,7 +1049,8 @@
     "emblem": "#ffcf6a",
     "rim": "rgba(255,207,106,0.52)"
    },
-   "emblem": "bolt"
+   "emblem": "bolt",
+   "sigDmg": 0.952
   }
  },
  "CHAR_CARD_REQ": [
@@ -1149,7 +1163,10 @@
   "boss": "#c92a3c"
  },
  "DEFAULT_CHAR": "sapanci",
- "STARTER_CHARS": ["sapanci", "savasci"],
+ "STARTER_CHARS": [
+  "sapanci",
+  "savasci"
+ ],
  "DRAGON": {
   "spitCd": 2.9,
   "spitCount": 3,
@@ -2296,10 +2313,10 @@
   "pickupR": 18
  },
  "RAMP": {
-  "breathSec": 50,
-  "breathMul": 0.6,
-  "waveEaseSec": 6,
-  "waveEaseMul": 0.55,
+  "breathSec": 28,
+  "breathMul": 0.8,
+  "waveEaseSec": 5,
+  "waveEaseMul": 0.72,
   "gapMax": 2.9,
   "spread": 0.09
  },
@@ -5023,11 +5040,11 @@
     "Taş bir kez daha seker"
    ],
    "dmg": [
-    18,
-    23,
-    31,
-    48,
-    70
+    26,
+    34,
+    45,
+    69,
+    102
    ],
    "pierce": [
     1,
@@ -5037,11 +5054,11 @@
     2
    ],
    "cooldown": [
-    0.55,
-    0.52,
-    0.5,
-    0.47,
-    0.42
+    0.72,
+    0.68,
+    0.65,
+    0.61,
+    0.55
    ],
    "range": [
     360,
