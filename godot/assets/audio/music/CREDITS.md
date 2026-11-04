@@ -1,16 +1,19 @@
 # Müzik kaynakları
 
-Tüm parçalar **CC0 1.0 (kamu malı)** lisanslıdır — ticari kullanım serbest, atıf zorunlu değil.
-Lisans her parçanın kendi OpenGameArt sayfasında doğrulandı (2026-10-22). Dosyalar normalize
-edildi (loudnorm), baştaki sessizlik kırpıldı, savaş parçalarının tizleri hafifçe kısıldı.
+Tüm parçalar Shadowrend için **Higgsfield (ElevenLabs Music v2.5)** ile özel olarak üretildi
+(2026-11-04, Higgsfield ücretli abonelik; çıktılar ticari kullanıma uygundur). Enstrümantal,
+"Borderlands tarzı çizgi roman enerjisi + karanlık fantastik" yönergesiyle.
 
-| Dosya | Parça | Besteci | Kaynak |
-|---|---|---|---|
-| menu.ogg | Medieval: Exploration | RandomMind | https://opengameart.org/content/medieval-exploration |
-| battle_a.ogg | Army Approaching (JRPG Music Pack #5) | Juhani Junkala | https://opengameart.org/content/jrpg-pack-5-action |
-| battle_b.ogg | QaziJamJam (orchestral battle theme) | emmama | https://opengameart.org/content/qazijamjam-orchestral-battle-theme |
-| boss.ogg | Epic Boss Battle [Seamlessly Looping] | Juhani Junkala | https://opengameart.org/content/boss-battle-music |
-| victory.ogg | Victory Fanfare Short | cynicmusic | https://opengameart.org/content/victory-fanfare-short |
-| defeat.ogg | Lose Game Short Music Clip | robin-lamb | https://opengameart.org/content/lose-game-short-music-clip |
+İşleme: baştaki sessizlik kırpıldı, loudnorm ile normalize edildi (döngü parçaları −16 LUFS,
+kısa vuruşlar −14 LUFS), döngü parçalarına 0,4 sn giriş / 2,5 sn çıkış yumuşatması, OGG Vorbis q5.
 
-Teşekkürler: RandomMind, Juhani Junkala, emmama, cynicmusic, robin-lamb.
+| Dosya | İçerik | Süre |
+|---|---|---|
+| menu.ogg | Ana menü teması — alçak çello, karanlık koro, uzak savaş davulu, kirli gitar motifi | 90 sn |
+| battle_a.ogg | Savaş 1 — punch'lı davul, distorsiyonlu gitar riffleri, karanlık yaylılar, koro vuruşları | 120 sn |
+| battle_b.ogg | Savaş 2 — rock davulu, slide gitar, ürkütücü org ve bakır vuruşlar | 120 sn |
+| boss.ogg | Boss — taiko ve orkestral vurmalılar, ağır gitar, karanlık koro | 90 sn |
+| victory.ogg | Zafer vuruşu — bakır + gitar power chord | ~10 sn |
+| defeat.ogg | Yenilgi vuruşu — alçalan yaylılar, sönen koro, son davul | ~8 sn |
+
+Önceki CC0 OpenGameArt parçaları git geçmişinde duruyor.
