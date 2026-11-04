@@ -101,6 +101,10 @@ func sample() -> void:
 				_walk = Vector2(float(p[0]), float(p[1]))
 	if _walk != Vector2.ZERO and game.state == "playing":
 		mx = _walk.x; my = _walk.y
+		# walk=9,9 → sağa-sola, ileri-geri dolaşma (gerçek oyun hareketi gibi; akıcılık testi)
+		if _walk.x > 8.0:
+			var t: float = game.time
+			mx = cos(t * 0.9) * (0.6 + 0.4 * sin(t * 2.3)); my = sin(t * 0.7)
 var _walk = null
 
 ## Ekran-uzayı joystick çizimi (yalnız aktifken) — input.js render(ctx).

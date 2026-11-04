@@ -94,7 +94,8 @@
   "curse": 0.6,
   "altar": 0.8,
   "event": 1,
-  "ulthit": 0.06
+  "ulthit": 0.06,
+  "slashhit": 0.09
  },
  "variants": {
   "hit": 3,
@@ -189,7 +190,8 @@
   "ultready": 1,
   "ulthit": 3,
   "ultfire": 1,
-  "combo": 3
+  "combo": 3,
+  "slashhit": 3
  },
  "files": [
   "hit_0",
@@ -425,7 +427,10 @@
   "combo_0",
   "combo_1",
   "combo_2",
-  "combo_3"
+  "combo_3",
+  "slashhit_0",
+  "slashhit_1",
+  "slashhit_2"
  ],
  "uiSounds": [
   "click",

@@ -478,6 +478,7 @@ func _draw_sparks() -> void:
 		if k < 0.0 or k >= 1.0: continue
 		var p: Vector2 = s[0] + s[1] * (_t - float(s[2]))
 		var r: float = float(s[4]) * (1.0 - k)
+		if r < 0.35: continue        # sönmek üzere: dejenere çokgen (üçgenleme hatası) çizme
 		var c: Color = s[5]
 		c.a = 1.0 - k
 		_spark.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -r * 2.2), p + Vector2(r * 0.45, 0), p + Vector2(0, r * 2.2), p + Vector2(-r * 0.45, 0)]), c)
@@ -502,6 +503,14 @@ static func _back_ease(k: float) -> float:
 func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
+	# geliştirici: humanpick=sn — ekran gerçekten açılır, sn sonra ilk kart seçilir (akış testi)
+	if _pick == -1 and _mode != "bless" and cards.size() > 0:
+		var hp := ""
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("humanpick="): hp = a.substr(10)
+		if hp != "" and _t > float(hp):
+			_pick = 0
+			_pick_t = _t
 	_bg.modulate.a = clampf(_t / 0.25, 0.0, 1.0)
 	_rays.queue_redraw()
 	# başlık patlaması

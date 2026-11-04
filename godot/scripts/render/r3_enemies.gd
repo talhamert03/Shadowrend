@@ -210,6 +210,15 @@ func _release_enemy_models() -> void:
 	_groups = null
 
 # ═══════════ VAT GRUPLARI ═══════════
+## kontur geçişi (ikinci çizim) — cihaz zorlanınca kapanır, rahatlayınca geri gelir (Quality.stress)
+var _olOn := true
+func set_outline(on: bool) -> void:
+	if on == _olOn: return
+	_olOn = on
+	if _groups == null: return
+	for G in _groups:
+		for pr in G.get("ols", []): (pr[0] as ShaderMaterial).next_pass = pr[1] if on else null
+
 static var _noVat := OS.get_cmdline_user_args().has("novat")
 
 func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> void:
@@ -217,6 +226,7 @@ func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> 
 	var o := {"lift": lift, "rough_max": 0.48, "metal_min": 0.08, "metal_max": 0.22, "rim": true, "emissive_k": 1.0, "vat": true}
 	var mesh: ArrayMesh = V.mesh
 	var mats: Array = []
+	var ols: Array = []
 	for si in mesh.get_surface_count():
 		var src := V.src_mats[si] as BaseMaterial3D
 		var m := Shd.from_gltf(src, o)
@@ -225,8 +235,9 @@ func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> 
 		var ms: Array = [m]
 		if ol > 0.0:
 			var om := Shd.vat_outline(src.albedo_texture if src else null, src.albedo_color if src else Color.WHITE, ol)
-			m.next_pass = om
+			m.next_pass = om if _olOn else null
 			ms.append(om)
+			ols.append([m, om])
 		for mm: ShaderMaterial in ms:
 			mm.set_shader_parameter("vat_hi", V.hi)
 			mm.set_shader_parameter("vat_lo", V.lo)
@@ -243,7 +254,7 @@ func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> 
 	var cap := {"low": 90, "mid": 170, "high": 300}.get(Quality.tier, 170) as int
 	var im := IMesh.new(mesh, null, cap, true)
 	r3.scene.add_child(im)
-	_groups.append({"vat": true, "im": im, "mats": mats, "dur": float(V.dur), "corpses": [], "def": def,
+	_groups.append({"vat": true, "im": im, "mats": mats, "ols": ols, "dur": float(V.dur), "corpses": [], "def": def,
 		"baseScale": float(def.baseScale), "emI": emI, "types": def.types, "shadowR": float(def.get("shadowR", 11))})
 
 func _drive_vat(g, dt: float, EM: Dictionary, act: Array, tok: int, sh: int) -> int:

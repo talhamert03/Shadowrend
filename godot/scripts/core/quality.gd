@@ -69,11 +69,22 @@ func _device_ratio() -> float:
 	# canvas_items/expand esnemesinin ölçeği: min(W/390, H/844)
 	return maxf(1.0, minf(s.x / 390.0, s.y / 844.0))
 
+var _stallRun := 0.0          # art arda takılma süresi (sn)
+
 func sample(dt_ms: float, active: bool) -> bool:
 	if not (dt_ms > 0) or dt_ms >= STALL_MS:
 		_down = 0
 		_stall_at = _now_ms()
+		# tek seferlik takılma ölçüm değildir; ama SÜREKLİ ağır kareler (cihaz boğuluyor) de
+		# hiç ölçülmezse kalite asla düşmez ve oyun donmuş gibi kalır → acil kademe düşür
+		if active and dt_ms > 0 and dt_ms < 1500.0:
+			_stallRun += dt_ms / 1000.0
+			if _stallRun > 0.8:
+				_stallRun = 0.0
+				_stall_at = 0.0
+				return _panic()
 		return false
+	_stallRun = maxf(0.0, _stallRun - dt_ms / 1000.0 * 2.0)
 	if _stall_at > 0 and _now_ms() - _stall_at < 250: return false
 	frame_ms += (dt_ms - frame_ms) * 0.09
 	fps = 1000.0 / frame_ms
@@ -110,6 +121,19 @@ func sample(dt_ms: float, active: bool) -> bool:
 		return false
 	_down = 0; _up = 0
 	return false
+
+## sürekli ağır kare: efekt bütçesi tamamen kısılır ve çözünürlük bir adım iner
+func _panic() -> bool:
+	var ch := false
+	if stress < 1.0:
+		stress = 1.0
+		ch = true
+	if scale > floor_scale:
+		_scale_at = _now_ms()
+		scale = maxf(floor_scale, JS.round_js((scale - 0.1) * 10) / 10.0)
+		ch = true
+	if ch: _emit()
+	return ch
 
 func _step_down() -> bool:
 	# önce efekt yoğunluğu (parçacık/atmosfer/model sayısı), sonra çözünürlük

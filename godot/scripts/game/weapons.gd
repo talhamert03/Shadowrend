@@ -400,6 +400,10 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 	var out = g.enemies.query_circle(p.x, p.y, range_ + 40, scratch)
 	var tgt = _swTarget if kind == "normal" or spin else null
 	_swTarget = null
+	var nHit := 0
+	var hx := 0.0
+	var hy := 0.0
+	var ha := 0.0
 	for e in out:
 		if e.swordId == swingId: continue
 		var dx: float = e.x - p.x
@@ -413,7 +417,17 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 			var da := JS.wrap_pi(a - dir)
 			if absf(da) > half + e.radius / range_: continue
 		e.swordId = swingId
+		if nHit == 0:
+			hx = e.x; hy = e.y; ha = a
+		nHit += 1
 		Combat.apply_hit(g, e, dmg, a, knock, crit, kind == "echo")
+	# vuruş hissi: kılıç ete girince TEK tok kesik sesi + ilk düşmanda kıvılcım + hafif ekran tepmesi
+	# (düşman başına değil, savuruş başına — kalabalıkta kulak yormaz)
+	if nHit > 0 and kind != "echo":
+		g.audio.play("slashhit")
+		g.fx_impact(hx, hy, ha, 2, "#bfe8ff" if id == "yemin" else "#ffe2b0")
+		g.add_kick(dir, 1.1 + minf(1.4, nHit * 0.25))
+		if nHit >= 3: g.add_shake(0.05)
 	if g.props and g.props.n:
 		if spin: g.props.damage_area(p.x, p.y, range_ * 0.9, dmg * 0.7)
 		else: g.props.damage_area(p.x + cos(dir) * range_ * 0.55, p.y + sin(dir) * range_ * 0.55, range_ * 0.5, dmg * 0.7)

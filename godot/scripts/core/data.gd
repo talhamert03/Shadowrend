@@ -143,7 +143,7 @@ func waveTime(w: float, waves: float) -> float:
 func waveInterval(w: float) -> float:
 	# ilk dalgalar artık boş değil: dünya 1 bölüm 1'de bile sürekli akan bir sürü (eski 1,90/1,65/1,40)
 	if w <= 3:
-		return [0.80, 0.72, 0.66][int(w) - 1]
+		return [0.95, 0.86, 0.80][int(w) - 1]
 	return maxf(0.34, 1.0 * pow(0.92, w - 3))
 
 func waveBatch(w: float) -> float:
@@ -153,7 +153,7 @@ func waveBatch(w: float) -> float:
 func waveHpMul(w: float) -> float: return 1.0 + (w - 1) * 0.25
 func waveDmgMul(w: float) -> float: return 1.0 + (w - 1) * 0.085
 
-func onScreenCap(w: float) -> float: return minf(64.0, 26.0 + w * 4)
+func onScreenCap(w: float) -> float: return minf(56.0, 20.0 + w * 4)
 
 func pressureAt(runT: float, waveT: float, dyn) -> float:
 	var f: float = 1.0 if (dyn == null or is_nan(float(dyn)) or is_inf(float(dyn))) else float(dyn)
