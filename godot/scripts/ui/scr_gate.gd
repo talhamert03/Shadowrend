@@ -40,7 +40,11 @@ var _W := Vector2(390, 844)
 var _SR := Rect2()           # tüm ekran (yerel)
 var _root: Node2D            # içerik (açılışta söner)
 var _rays: Node2D
-var _panel: Node2D           # mürekkep çerçeveli dünya paneli
+var _panel: Node2D           # mürekkep çerçeveli dünya paneli (resim varken yalnız köşe bandı)
+var _art: Sprite2D = null    # tam ekran savaş girişi resmi
+var _art_s := 1.0
+var _shade: Node2D = null
+const ART := "res://assets/ui/art/gate_bg.jpg"
 var _panel_r := Rect2()
 var _isle: Node2D
 var _title: Node2D           # yıldız + GÖREV yazısı
@@ -91,15 +95,31 @@ func _build(info: Dictionary) -> void:
 	base.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(base)
 	_base = base
+	# tam ekran boyalı savaş sahnesi (Higgsfield · tek görsel): yavaşça yaklaşır; alt kısım koyulaşır
+	var gt: Texture2D = UITex.get_tex(ART)
+	if gt:
+		_art = Sprite2D.new()
+		_art.texture = gt
+		_art.position = _SR.get_center()
+		_art_s = maxf(_SR.size.x / gt.get_width(), _SR.size.y / gt.get_height())
+		_art.scale = Vector2.ONE * _art_s
+		add_child(_art)
+		var shade := Node2D.new()
+		_shade = shade
+		var sr := _SR
+		shade.draw.connect(func():
+			var y0 := sr.position.y + sr.size.y * 0.42
+			var y1 := sr.end.y
+			var clear := Color(0.03, 0.01, 0.03, 0.0)
+			var dark := Color(0.03, 0.01, 0.03, 0.86)
+			shade.draw_polygon(PackedVector2Array([Vector2(sr.position.x, y0), Vector2(sr.end.x, y0), Vector2(sr.end.x, y1), Vector2(sr.position.x, y1)]), PackedColorArray([clear, clear, dark, dark]))
+			var t0 := Color(0.03, 0.01, 0.03, 0.55)
+			shade.draw_polygon(PackedVector2Array([sr.position, Vector2(sr.end.x, sr.position.y), Vector2(sr.end.x, sr.position.y + 120), Vector2(sr.position.x, sr.position.y + 120)]), PackedColorArray([t0, t0, clear, clear])))
+		add_child(shade)
 	_root = Node2D.new()
 	add_child(_root)
 	_rays = Node2D.new()
-	_rays.position = Vector2(W.x * 0.5, W.y * 0.55)
-	_rays.draw.connect(_draw_rays)
 	_root.add_child(_rays)
-	var dots := Node2D.new()
-	dots.draw.connect(func(): _draw_dots(dots))
-	_root.add_child(dots)
 	# ── dünya paneli ──
 	var wn := clampi(int(info.get("worldNo", 1)), 1, 10)
 	_panel_r = Rect2(22, 60, W.x - 44, W.y * 0.36)
@@ -117,13 +137,13 @@ func _build(info: Dictionary) -> void:
 		bb.bg_color = wc.darkened(0.5)
 		bb.set_corner_radius_all(6)
 		under.draw_style_box(bb, pr))
-	_panel.add_child(under)
+	if _art == null: _panel.add_child(under)
 	var clip := Control.new()
 	clip.clip_contents = true
 	clip.position = pr.position + Vector2(5, 5)
 	clip.size = pr.size - Vector2(10, 10)
 	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.add_child(clip)
+	if _art == null: _panel.add_child(clip)
 	# panel içi: dünya renginde gece zemini, hale + yarım ton, ortada arena
 	var pfx := Node2D.new()
 	var csz := clip.size
@@ -164,7 +184,11 @@ func _build(info: Dictionary) -> void:
 		o.set_border_width_all(6)
 		o.border_color = INK
 		frame.draw_style_box(o, pr))
-	_panel.add_child(frame)
+	if _art == null: _panel.add_child(frame)
+	else:
+		# resim varken panelin ağaca girmeyen parçaları serbest bırakılır (ada clip'in içinde)
+		_isle = null
+		for n in [under, clip, frame]: n.free()
 	# köşe bandı: DÜNYA n · AD
 	var side := str(info.get("side", ""))
 	var eyebrow := side if side != "" else ("DÜNYA " + str(wn) + " · " + str(info.get("world", "")))
@@ -185,7 +209,7 @@ func _build(info: Dictionary) -> void:
 	_panel.add_child(band)
 	# ── başlık: kırmızı patlama + sarı GÖREV ──
 	_title = Node2D.new()
-	_title.position = Vector2(W.x * 0.5, _panel_r.end.y + 66)
+	_title.position = Vector2(W.x * 0.5, W.y * 0.6 if _art else _panel_r.end.y + 66)
 	_title.draw.connect(func(): ScrCeremony._star(_title, Vector2.ZERO, 150, 112, 13, Color("#e8322c"), 5.0, 0.0, 0.42))
 	_root.add_child(_title)
 	var tt := UIText.new()
@@ -411,6 +435,7 @@ func _process(dt: float) -> void:
 	if not visible or _root == null: return
 	_t += dt
 	_rays.rotation += dt * 0.15
+	if _art: _art.scale = Vector2.ONE * _art_s * (1.08 - 0.08 * (1.0 - pow(1.0 - minf(_t / 3.2, 1.0), 2.0)))
 	_step_anim()
 	_bar.queue_redraw()
 	if _doneAt >= 0:
@@ -423,6 +448,8 @@ func _process(dt: float) -> void:
 		_root.scale = Vector2.ONE * (1.0 + 0.05 * e)
 		_root.position = -_W * 0.5 * 0.05 * e
 		if _base: _base.visible = e < 1.0
+		if _art: _art.modulate.a = 1.0 - e
+		if _shade: _shade.modulate.a = 1.0 - e
 		_dev_shot(_t - _doneAt)
 		if ko >= 1.0:
 			visible = false

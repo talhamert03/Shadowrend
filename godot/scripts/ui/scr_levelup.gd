@@ -307,9 +307,16 @@ func _build_face(face: Node2D, c: Dictionary, K: Dictionary, col: Color) -> void
 		bg.draw_arc(mc, 30, 0.0, TAU, 40, col, 3.0, true)
 		bg.draw_arc(mc, 30, PI * 1.1, PI * 1.6, 12, Color(lite, 0.9), 3.0, true))
 	face.add_child(bg)
-	# glif (mürekkep rengi)
+	# boyalı kart simgesi (Higgsfield); yoksa eski glif (mürekkep rengi)
 	var gf := glyph_file(c)
-	var tex: Texture2D = load(GLYPH_DIR + gf + ".png") if ResourceLoader.exists(GLYPH_DIR + gf + ".png") else null
+	var pt := _painted_icon(c, gf)
+	var tex: Texture2D = null if pt else (load(GLYPH_DIR + gf + ".png") if ResourceLoader.exists(GLYPH_DIR + gf + ".png") else null)
+	if pt:
+		var ps := Sprite2D.new()
+		ps.texture = pt
+		ps.scale = Vector2.ONE * (56.0 / maxf(pt.get_width(), pt.get_height()))
+		ps.position = mc
+		face.add_child(ps)
 	if tex:
 		var sp := Sprite2D.new()
 		sp.texture = tex
@@ -610,6 +617,14 @@ func _input(ev: InputEvent) -> void:
 				_burst((C.node as Node2D).position, C.col, 26, 300.0)
 				g.audio.play("click")
 				pass  # titreşim kapalı
+
+## boyalı kart simgesi: imza kartında kahramanın kendi simgesi (sig_<kahraman>), diğerlerinde glif adı
+const CARD_ICON_DIR := "res://assets/ui/art/cardicon/"
+func _painted_icon(c: Dictionary, gf: String) -> Texture2D:
+	var nm := ("sig_" + str(g.meta.get("selectedChar", ""))) if bool(c.get("sig", false)) and g.meta else gf
+	var p := CARD_ICON_DIR + nm + ".png"
+	if not ResourceLoader.exists(p): p = CARD_ICON_DIR + gf + ".png"
+	return load(p) if ResourceLoader.exists(p) else null
 
 static func glyph_into(L: Lyr, nn: Lyr.N, gf: String) -> void:
 	if not (nn.img is Sprite2D): return
