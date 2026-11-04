@@ -42,7 +42,7 @@ const FIRE_PAL := {
 	# düşman atıcı büyüleri (models_meta "shot.pal") — modelin elindeki asa/kürenin rengi
 	"blood": {"cr": 1.00, "cg": 0.84, "cb": 0.84, "gx": 0.90, "gy": 0.08, "gz": 0.14, "tx": 1.00, "ty": 0.24, "tz": 0.28, "fx": 0.70, "fy": 0.04, "fz": 0.10},
 	"ember": {"cr": 1.00, "cg": 0.96, "cb": 0.76, "gx": 1.00, "gy": 0.50, "gz": 0.08, "tx": 1.00, "ty": 0.66, "tz": 0.20, "fx": 0.92, "fy": 0.34, "fz": 0.04},
-	"toxic": {"cr": 0.90, "cg": 1.00, "cb": 0.70, "gx": 0.42, "gy": 0.95, "gz": 0.18, "tx": 0.62, "ty": 1.00, "tz": 0.30, "fx": 0.28, "fy": 0.72, "fz": 0.10},
+	"toxic": {"cr": 0.92, "cg": 1.00, "cb": 0.55, "gx": 0.36, "gy": 0.92, "gz": 0.06, "tx": 0.50, "ty": 1.00, "tz": 0.10, "fx": 0.16, "fy": 0.58, "fz": 0.02},
 	"violet": {"cr": 1.00, "cg": 0.86, "cb": 1.00, "gx": 0.62, "gy": 0.22, "gz": 0.96, "tx": 0.86, "ty": 0.36, "tz": 1.00, "fx": 0.70, "fy": 0.08, "fz": 0.40},
 	"void": {"cr": 0.98, "cg": 0.95, "cb": 0.88, "gx": 0.40, "gy": 0.18, "gz": 0.72, "tx": 0.92, "ty": 0.86, "tz": 0.70, "fx": 0.22, "fy": 0.08, "fz": 0.42},
 	"seed": {"cr": 0.96, "cg": 1.00, "cb": 0.86, "gx": 0.50, "gy": 0.95, "gz": 0.34, "tx": 1.00, "ty": 0.62, "tz": 0.82, "fx": 0.40, "fy": 0.85, "fz": 0.30},
@@ -130,11 +130,13 @@ func _init(r) -> void:
 	S.add_child(bulletMesh)
 	bulletMetal = IMesh.new(sph, Shd.lit({"color": Color(1, 1, 1), "metalness": 0.95, "roughness": 0.34, "emissive": Color("#0b0c0e"), "emissive_k": 1.0, "rim": false}), 96)
 	S.add_child(bulletMetal)
-	var shaft := Geo.cylinder(0.55, 0.55, 15, 6)
-	var tip := Geo.cone(2.0, 6, 8)
-	var fletch := Geo.box(0.4, 3.4, 3.6)
+	# ok: okunur kalınlıkta şaft + belirgin uç + çapraz tüy (uzaktan çizgi gibi kaybolmasın)
+	var shaft := Geo.cylinder(1.0, 1.0, 20, 6)
+	var tip := Geo.cone(3.0, 8, 8)
+	var fletch := Geo.box(0.6, 5.0, 6.0)
+	var fletch2 := Geo.box(5.0, 0.6, 6.0)
 	var rx := Basis(Vector3(1, 0, 0), PI / 2)
-	var arrowGeo := Geo.merge([shaft, tip, fletch], [Transform3D(rx, Vector3(0, 0, -1.5)), Transform3D(rx, Vector3(0, 0, 8.5)), Transform3D(Basis(), Vector3(0, 0, -8))])
+	var arrowGeo := Geo.merge([shaft, tip, fletch, fletch2], [Transform3D(rx, Vector3(0, 0, -1.0)), Transform3D(rx, Vector3(0, 0, 12.5)), Transform3D(Basis(), Vector3(0, 0, -9.5)), Transform3D(Basis(), Vector3(0, 0, -9.5))])
 	arrowMesh = IMesh.new(arrowGeo, Shd.basic({}), 140)
 	S.add_child(arrowMesh)
 	# ── ruh kristali (XP) ──
@@ -366,6 +368,35 @@ func _add_fire(b, P: Dictionary, rs: float, T: float, lite: bool) -> void:
 				r * 1.15, r * 3.4, spin + s2 * (0.34 + (w1 if k == 0 else w2) * 0.18), P.fx, P.fy, P.fz)
 			_fb += 1
 
+## okun kendi yüksekliğinde (y=20) bitişik ışık: uçta sıkı parıltı + arkada ince, sönen iz.
+## 3B billboard olduğundan ok gövdesiyle birebir aynı yerde kalır (ayrı uçan "ikinci mermi" görünmez).
+func _arrow_trail(x: float, z: float, vx: float, vy: float, sc: float, c: Color) -> void:
+	var sp := sqrt(vx * vx + vy * vy)
+	if sp < 1.0 or _fg + 2 > FIRE_GLOW_MAX: return
+	var ux := vx / sp
+	var uz := vy / sp
+	var spin := atan2(vx, vy * Render3D.COS_TILT)
+	var tip := 13.0 * sc
+	_bb(fireGlow, _fg, x + ux * tip, 20, z + uz * tip, 15 * sc, 15 * sc, 0, c.r * 0.55, c.g * 0.55, c.b * 0.55); _fg += 1
+	var d := 26.0 * sc
+	_bb(fireGlow, _fg, x - ux * d, 20, z - uz * d, 7 * sc, 52 * sc, spin, c.r * 0.42, c.g * 0.42, c.b * 0.42); _fg += 1
+
+## düşman büyüsü: dolgun alev küresi + etrafında dönen iki kıvılcım + zemine düşen renkli ışık havuzu
+## (küre havada asılı "yüzen leke" gibi değil, yere bağlı ve tehlikeli okunur)
+func _add_spell(b, P: Dictionary, T: float, lite: bool) -> void:
+	_add_fire(b, P, 1.7, T, lite)
+	if _fg + 3 > FIRE_GLOW_MAX: return
+	var r: float = (b.r if b.r else 10.0) * 1.7
+	var ph: float = b.ph
+	# zemindeki ışık havuzu (kamera düzleminde değil, yere yatık görünsün diye basık)
+	_bb(fireGlow, _fg, b.x, 3, b.y, r * 4.2, r * 2.6, 0, P.gx * 0.32, P.gy * 0.32, P.gz * 0.32); _fg += 1
+	if lite: return
+	for k in 2:
+		var a := T * 9.0 + ph + k * PI
+		var ox := cos(a) * r * 1.5
+		var oz := sin(a) * r * 1.5
+		_bb(fireGlow, _fg, b.x + ox, FIRE_Y + sin(a * 0.5) * r * 0.6, b.y + oz, r * 0.9, r * 0.9, 0, P.cr * 0.8, P.cg * 0.8, P.cb * 0.8); _fg += 1
+
 func _update_projectiles(g) -> void:
 	var idx := 0
 	var mi := 0
@@ -385,6 +416,7 @@ func _update_projectiles(g) -> void:
 			var c := Color(FLAME_HEX[ft]).srgb_to_linear()
 			arrowMesh.set_col(ai, c.r, c.g, c.b)
 			ai += 1
+			_arrow_trail(b.x, b.y, b.vx, b.vy, sc, JS.col(b.color) if ft == 0 else Color(FLAME_HEX[ft]))
 		elif b.metal:
 			if mi >= 96: continue
 			var rr := maxf(1.0, b.r)
@@ -407,12 +439,11 @@ func _update_projectiles(g) -> void:
 			arrowMesh.set_ys(ai, b.x, 20, b.y, atan2(b.vx, b.vy), 1.3, 1.3, 1.3)
 			arrowMesh.set_col(ai, P.tx, P.ty, P.tz)
 			ai += 1
-			if _fg < FIRE_GLOW_MAX:
-				_bb(fireGlow, _fg, b.x, FIRE_Y, b.y, 22, 22, 0, P.gx * 0.35, P.gy * 0.35, P.gz * 0.35); _fg += 1
+			_arrow_trail(b.x, b.y, b.vx, b.vy, 1.3, Color(P.gx, P.gy, P.gz))
 		elif b.pal != "":
-			_add_fire(b, FIRE_PAL.get(b.pal, FIRE_PAL.necro), 1.45, T, lite)
+			_add_spell(b, FIRE_PAL.get(b.pal, FIRE_PAL.necro), T, lite)
 		else:
-			_add_fire(b, FIRE_PAL.harvest if b.hue else FIRE_PAL.necro, 1.45, T, lite)
+			_add_spell(b, FIRE_PAL.harvest if b.hue else FIRE_PAL.necro, T, lite)
 	bulletMesh.commit(idx)
 	bulletMetal.commit(mi)
 	arrowMesh.commit(ai)

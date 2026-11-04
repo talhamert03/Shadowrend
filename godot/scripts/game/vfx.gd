@@ -250,8 +250,10 @@ func _draw_hurt(U: Ultimate, f: Fx, u: float) -> void:
 ## sürekli akışlar: mermi kuyrukları, düşman mermileri, alan çemberleri, kılıç dalgaları
 func _draw_streams(U: Ultimate, g) -> void:
 	var P = g.pools
-	# oyuncu mermileri
+	# oyuncu mermileri (ok ve ateş topu 3B katmanda kendi izini taşır; burada yalnız küreler)
+	var tn := tan(Render3D.TILT)
 	for b in P.pBullets.active:
+		if b.isArrow or b.fireball: continue
 		if not g.in_view(b.x, b.y, 40): continue
 		var v := Vector2(b.vx, b.vy)
 		var sp := v.length()
@@ -259,24 +261,11 @@ func _draw_streams(U: Ultimate, g) -> void:
 		var dir := Vector2(v.x / sp, v.y / sp * SQ).normalized()
 		var col := Color(b.color) if b.color is String and b.color != "" else Color(0.6, 0.95, 1)
 		var L := clampf(sp * 0.07, 18.0, 56.0)
-		var hd := Vector2(b.x, b.y - 14.0)
+		# kürenin 3B yüksekliğiyle hizalı (ayrık iki görüntü oluşmasın)
+		var hd := Vector2(b.x, b.y - maxf(6.0, b.r) * tn)
 		U._streak(hd, dir, L, b.r * 2.6 + 4.0, col, 0.75)
 		U._glow(hd, b.r * 3.2 + 8.0, col, 0.55, 1.0, U._T)
-	# düşman mermileri: kızıl tehlike ışığı (okunur)
-	for b in P.eBullets.active:
-		if not g.in_view(b.x, b.y, 40): continue
-		var v := Vector2(b.vx, b.vy)
-		var sp := v.length()
-		if sp < 1.0: continue
-		var dir := Vector2(v.x / sp, v.y / sp * SQ).normalized()
-		var col := Color(1, 0.3, 0.26)
-		if b.kind == 1: col = Color(1, 0.86, 0.7)
-		elif b.kind == 2 and b.pal != "" and R3Fx.FIRE_PAL.has(b.pal):
-			var fp: Dictionary = R3Fx.FIRE_PAL[b.pal]
-			col = Color(fp.tx, fp.ty, fp.tz)
-		var hd := Vector2(b.x, b.y - 18.0)
-		U._streak(hd, dir, 38.0, b.r * 2.4 + 5.0, col, 0.85)
-		U._glow(hd, b.r * 3.0 + 12.0, col, 0.7, 1.0, U._T)
+	# düşman mermileri: 3B katmanda (r3_fx) çizilir — ok gövdesi/büyü küresi kendi parıltı ve iziyle
 	# alanlar (kor çemberi / mavi alev): yerde dönen ışık çemberi
 	for z in P.zones.active:
 		if not g.in_view(z.x, z.y, z.r): continue
@@ -294,7 +283,6 @@ func _draw_streams(U: Ultimate, g) -> void:
 	var W = g.weapons
 	# zaman bıçakları: uçanın altın ışık kuyruğu, süzülenin ışıltısı
 	if W and W.slots.has("saat"):
-		var tn := tan(Render3D.TILT)
 		for B in W.blades + W.bladeFly:
 			var st: int = B.st
 			if st == WeaponManager.BL_GONE: continue
