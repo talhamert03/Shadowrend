@@ -1,7 +1,7 @@
 class_name Game
 extends Node
 ## main.js — Oyun çekirdeği (birebir).
-## • 60 Hz sabit adım akümülatörü (MAX_STEPS 5, rdt ≤ 0,1)
+## • 60 Hz sabit adım akümülatörü (MAX_STEPS 3: yavaş telefonda yetişme sarmalı yerine hafif ağır çekim; rdt ≤ 0,1)
 ## • Kampanya: 10 dünya × 10 görev, dalga akışı, görev sonu ödülleri
 ## • Travma tabanlı pürüzsüz sarsıntı + yönlü tekme + zoom vurgusu
 ## • Sıfır tahsis havuzları · cüzdan (her zaman oku-topla-yaz)
@@ -10,7 +10,7 @@ extends Node
 ## çözünürlükte (web'deki #game tuvali), arayüz en üstte (web'deki DOM).
 
 const STEP := 1.0 / 60.0
-const MAX_STEPS := 5
+const MAX_STEPS := 3
 ## Geliştirme: hızlandırılmış simülasyon (yalnız -- speed=N ile)
 var devSpeed := 1
 const CULL_MARGIN := 72.0

@@ -330,7 +330,7 @@ func worldCleared(prog: Dictionary, w: int) -> bool:
 	return JS.i(prog.get(w - 1, 0)) >= MISSIONS_PER_WORLD
 
 func worldUnlocked(_prog: Dictionary, _w: int) -> bool:
-	return true   # yayında: return worldCleared(prog, w)
+	return worldCleared(_prog, _w)
 
 func missionUnlocked(prog: Dictionary, w: int, m: int) -> bool:
 	if not worldUnlocked(prog, w): return false

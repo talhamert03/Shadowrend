@@ -334,7 +334,8 @@ func update(dt: float) -> void:
 	inView = vis
 	Prof.e("en.grid")
 	Prof.b("en.sep")
-	separate()
+	# kalabalıkta (100+) itişme iki adımda bir: konum düzeltmesi 30 Hz'de de görünmez, maliyet yarıya iner
+	if pool.active.size() <= 100 or (_frame & 1) == 0: separate()
 	Prof.e("en.sep")
 
 	var B: Array = g.pools.eBullets.active
