@@ -1098,6 +1098,8 @@ func load_meta() -> Dictionary:
 	var co: Array = m.charsOwned if (m.get("charsOwned") is Array and m.charsOwned.size()) else [D.DEFAULT_CHAR]
 	for id in co:
 		if D.CHARACTERS.has(id): charsOwned.append(id)
+	for id in D.STARTER_CHARS:
+		if D.CHARACTERS.has(id) and not charsOwned.has(id): charsOwned.append(id)
 	if not charsOwned.has(D.DEFAULT_CHAR): charsOwned.push_front(D.DEFAULT_CHAR)
 	if D.UNLOCK_ALL_CHARS:
 		for id in D.CHARACTERS:

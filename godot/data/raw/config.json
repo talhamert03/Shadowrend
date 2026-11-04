@@ -1148,7 +1148,8 @@
   "muhafiz": "#c79a4a",
   "boss": "#c92a3c"
  },
- "DEFAULT_CHAR": "okcu",
+ "DEFAULT_CHAR": "sapanci",
+ "STARTER_CHARS": ["sapanci", "savasci"],
  "DRAGON": {
   "spitCd": 2.9,
   "spitCount": 3,
