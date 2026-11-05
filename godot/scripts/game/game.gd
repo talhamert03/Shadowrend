@@ -494,8 +494,7 @@ func _on_bless_picked(b) -> void:
 func _on_quality_changed() -> void:
 	if renderer3d:
 		renderer3d.resize()
-		# efekt bütçesi iki kademe düştüyse düşman konturu kapanır (köşe yükü yarıya iner)
-		if renderer3d.en: renderer3d.en.set_outline(Quality.stress < 0.6)
+
 
 func _start_run_now(wi: int, mi: int) -> void:
 	worldId = wi if wi else worldId
