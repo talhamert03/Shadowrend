@@ -267,7 +267,7 @@ func _ready() -> void:
 	UITex.request(UITex.manifest("savas"), true)
 	UITex.request(range(1, 11).map(func(i): return ArenaArt.path_of(i)), true)
 	# savaş giriş perdesi görseli: Oyna'ya basılınca eşzamanlı çözülmesin
-	UITex.request([ScrGate.ART], true)
+	UITex.request([ScrGate.next_art()], true)
 	# alt menü sekmeleri açılış ekranının ardında kurulacak: dokuları şimdiden arka planda çözülsün
 	for pg in BOOT_PAGES: UITex.request(UITex.manifest(pg))
 	_build_pools()

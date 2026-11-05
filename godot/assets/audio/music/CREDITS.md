@@ -17,3 +17,9 @@ kısa vuruşlar −14 LUFS), döngü parçalarına 0,4 sn giriş / 2,5 sn çık�
 | defeat.ogg | Yenilgi vuruşu — alçalan yaylılar, sönen koro, son davul | ~8 sn |
 
 Önceki CC0 OpenGameArt parçaları git geçmişinde duruyor.
+
+
+## 2026-11-05 yenileme
+menu, battle_a, battle_b ve boss parçaları oyuncu geri bildirimiyle (menü sakin/rahatsız etmeyen, savaş
+müziği efektleri bastırmayan) **ElevenLabs Music API** ile yeniden üretildi (ücretli abonelik, ticari kullanım).
+Ortalama seviye menü −21 dB, savaş −21,5 dB, boss −20,5 dB (eskiden −17…−19 dB); OGG Vorbis q6.

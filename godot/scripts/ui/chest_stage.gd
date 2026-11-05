@@ -125,7 +125,7 @@ func _init() -> void:
 		_env.sky = sky
 		_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 		_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-		_env.ambient_light_energy = 1.0
+		_env.ambient_light_energy = 1.3
 		_env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	var env := _env
 	var we := WorldEnvironment.new()
@@ -134,16 +134,16 @@ func _init() -> void:
 	# ışıklar (three fiziksel yoğunluk / π = Godot enerjisi)
 	var key := DirectionalLight3D.new()
 	key.light_color = Color("#ffeeda")
-	key.light_energy = 2.1 / PI
+	key.light_energy = 2.9 / PI
 	world.add_child(key)
 	key.look_at_from_position(Vector3(-70, 130, 90), Vector3.ZERO)
 	var fill := DirectionalLight3D.new()
 	fill.light_color = Color("#a8bcff")
-	fill.light_energy = 0.45 / PI
+	fill.light_energy = 0.75 / PI
 	world.add_child(fill)
 	fill.look_at_from_position(Vector3(90, 40, 50), Vector3.ZERO)
 	_rim = OmniLight3D.new()
-	_rim.light_energy = 1.7 / PI
+	_rim.light_energy = 2.6 / PI
 	_rim.omni_range = 600
 	_rim.omni_attenuation = 1.5
 	_rim.position = Vector3(0, 50, -75)

@@ -10,7 +10,7 @@ extends Node
 
 const DIR := "res://assets/audio/music/"
 const TRACKS := {"menu": ["menu"], "battle": ["battle_a", "battle_b"], "boss": ["boss"], "victory": ["victory"], "defeat": ["defeat"]}
-const GAIN := {"menu": 1.0, "battle": 0.78, "boss": 0.92, "victory": 1.0, "defeat": 1.0}
+const GAIN := {"menu": 0.9, "battle": 0.72, "boss": 0.85, "victory": 1.0, "defeat": 1.0}
 const SEAMLESS := ["boss"]
 const ONESHOT := ["victory", "defeat"]
 const XF := 3.0

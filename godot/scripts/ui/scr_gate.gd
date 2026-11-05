@@ -46,6 +46,16 @@ var _art: Sprite2D = null    # tam ekran savaş girişi resmi
 var _art_s := 1.0
 var _shade: Node2D = null
 const ART := "res://assets/ui/art/gate_bg.jpg"
+## savaş girişi görselleri: her girişte biri (arka arkaya aynısı gelmez); sıradaki önceden yüklenir
+const ARTS := ["res://assets/ui/art/gate_bg.jpg", "res://assets/ui/art/gate_bg2.jpg", "res://assets/ui/art/gate_bg3.jpg"]
+static var _next := ""
+static func next_art() -> String:
+	if _next == "": _next = ARTS[randi() % ARTS.size()]
+	return _next
+static func _advance() -> void:
+	var cur := next_art()
+	var opts: Array = ARTS.filter(func(a): return a != cur and ResourceLoader.exists(a))
+	_next = opts[randi() % opts.size()] if not opts.is_empty() else cur
 var _panel_r := Rect2()
 var _isle: Node2D
 var _title: Node2D           # yıldız + GÖREV yazısı
@@ -98,7 +108,11 @@ func _build(info: Dictionary) -> void:
 	add_child(base)
 	_base = base
 	# tam ekran boyalı savaş sahnesi (Higgsfield · tek görsel): yavaşça yaklaşır; alt kısım koyulaşır
-	var gt: Texture2D = UITex.get_tex(ART)
+	var ap := next_art()
+	if not ResourceLoader.exists(ap): ap = ART
+	var gt: Texture2D = UITex.get_tex(ap)
+	_advance()
+	UITex.request([next_art()], true)
 	if gt:
 		_art = Sprite2D.new()
 		_art.texture = gt
