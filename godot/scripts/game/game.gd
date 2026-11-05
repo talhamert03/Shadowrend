@@ -238,6 +238,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	PerfLog.err_ctx = self
 	FreezeWatch.start()
+	PerfLog._g = self
 	Clock.boot()
 	meta = load_meta()
 	progress = D.loadProgress()

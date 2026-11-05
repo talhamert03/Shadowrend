@@ -153,6 +153,9 @@ func _ready() -> void:
 	vp.msaa_3d = Viewport.MSAA_4X if tier == "high" else (Viewport.MSAA_2X if tier == "mid" else Viewport.MSAA_DISABLED)
 	vp.positional_shadow_atlas_size = 0
 	add_child(vp)
+	# cihaz ölçümü: performans raporu çizimin CPU/GPU süresini yazar (darboğaz teşhisi)
+	RenderingServer.viewport_set_measure_render_time(vp.get_viewport_rid(), true)
+	PerfLog.vp_rid = vp.get_viewport_rid()
 	view = TextureRect.new()
 	view.texture = vp.get_texture()
 	view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

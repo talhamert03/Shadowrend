@@ -144,15 +144,6 @@ func _step_down() -> bool:
 		scale = maxf(floor_scale, JS.round_js((scale - 0.1) * 10) / 10.0)
 		_emit()
 		return true
-	# her şey kısıldı ve hâlâ 60'a yetişemiyor (ısınan telefon): düzgün 30 FPS'e geç —
-	# 20–40 arası dalgalanan kare, sabit 30'dan çok daha takılgan hissettirir ve cihazı daha çok ısıtır
-	if is_mobile and cap_fps == 60 and now - _scale_at > 3000:
-		cap_fps = 30
-		target_ms = 33.4
-		frame_ms = 33.4
-		_apply_cap()
-		_emit()
-		return true
 	return false
 
 func _step_up() -> bool:
