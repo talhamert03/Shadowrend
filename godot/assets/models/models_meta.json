@@ -406,55 +406,121 @@
    "tris": 28886
   },
   "baltaci": {
-   "file": "heroes/savasci.glb",
+   "file": "heroes/baltaci.glb",
    "height": 91.2,
-   "scale": 91.2,
-   "pos": [
-    0.0005354094721372604,
-    7.889137045865731e-05,
-    -0.001210751607768401
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    -0.0018,
+    0.0,
+    -0.1089
    ],
-   "topY": 91.02192711820817,
-   "walkClip": "NlaTrack",
-   "walkRate": 1,
-   "floatingWeapon": "balta",
-   "lift": 0,
-   "tris": 4886,
-   "clips": [
-    "NlaTrack"
-   ],
-   "hasBones": true,
-   "_tmp": true
-  },
-  "avci": {
-   "file": "heroes/okcu.glb",
-   "height": 44.4,
-   "scale": 44.4,
-   "pos": [
-    0.009434998766744446,
-    -1.1064240771346849e-07,
-    -4.974172945759747e-08
-   ],
-   "topY": 0.7547996771869876,
+   "topY": 91.0,
    "walkClip": "Armature|walking_man|baselayer",
    "walkRate": 1,
-   "floatingWeapon": "arbalet",
-   "lift": 0,
-   "tris": 4254,
+   "floatingWeapon": "balta",
+   "lift": 0.35,
    "clips": [
     "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "_tmp": true
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "avci": {
+   "file": "heroes/avci.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    0.0011,
+    0.0,
+    -0.145
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "arbalet",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   },
   "kanrahip": {
-   "file": "heroes/demirhan.glb",
+   "file": "heroes/kanrahip.glb",
    "height": 91.2,
-   "baseScale": 52.114285714285714,
+   "baseScale": 50.666666666666664,
    "rigPos": [
-    0.0106,
+    0.0092,
     0.0,
-    -0.0759
+    -0.3422
    ],
    "topY": 91.0,
    "walkClip": "Armature|walking_man|baselayer",
@@ -499,50 +565,115 @@
      0,
      0.78
     ]
-   },
-   "_tmp": true
+   }
   },
   "gecedans": {
-   "file": "heroes/kralice.glb",
+   "file": "heroes/gecedans.glb",
    "height": 91.2,
-   "scale": 91.2,
-   "pos": [
-    -0.1868853972297284,
-    -0.10407419060893555,
-    -0.048546084517909094
-   ],
-   "topY": 90.97664587954641,
-   "walkClip": "NlaTrack",
-   "walkRate": 1,
-   "floatingWeapon": "hilal",
-   "lift": 0.62,
-   "tris": 33135,
-   "clips": [
-    "NlaTrack"
-   ],
-   "hasBones": true,
-   "_tmp": true
-  },
-  "ejder": {
-   "file": "heroes/zaman.glb",
-   "height": 91.2,
-   "baseScale": 91.2,
+   "baseScale": 50.666666666666664,
    "rigPos": [
-    0,
-    0,
-    0
+    -0.0002,
+    0.0,
+    0.0464
    ],
    "topY": 91.0,
-   "walkClip": "walk.001",
+   "walkClip": "Armature|walking_man|baselayer",
    "walkRate": 1,
-   "floatingWeapon": "ejderkilic",
-   "lift": 0.0,
+   "floatingWeapon": "hilal",
+   "lift": 0.35,
    "clips": [
-    "walk.001"
+    "Armature|walking_man|baselayer"
    ],
    "hasBones": true,
-   "tris": 28886,
-   "_tmp": true
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "ejder": {
+   "file": "heroes/ejder.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    0.0034,
+    0.0,
+    -0.1684
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "ejderkilic",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   }
  },
  "enemies": {
