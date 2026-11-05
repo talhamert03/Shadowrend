@@ -25,6 +25,7 @@ var count := 0
 var thief: Ent.Enemy = null
 var thiefT := 0.0
 var duel := {}
+var _forceId := ""
 
 func _init(g) -> void:
 	game = g
@@ -32,6 +33,10 @@ func _init(g) -> void:
 
 func reset() -> void:
 	next = 70 + randf() * 25
+	# geliştirici: evat=<sn> evid=<altar|xp|wind|thief> — ilk dünya olayını erkene al
+	for u in OS.get_cmdline_user_args():
+		if u.begins_with("evat="): next = float(u.substr(5))
+		if u.begins_with("evid="): _forceId = u.substr(5)
 	altar = {"on": false, "x": 0.0, "y": 0.0, "t": 0.0, "hold": 0.0}
 	buff = null; buffT = 0; count = 0
 	thief = null; thiefT = 0
@@ -170,6 +175,9 @@ func update(dt: float) -> void:
 		if r <= 0:
 			E = e
 			break
+	if _forceId != "":
+		for e in EV:
+			if e.id == _forceId: E = e
 	_start(E)
 
 func _start(E: Dictionary) -> void:

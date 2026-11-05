@@ -15,6 +15,8 @@ static var _lru: Array = []    # en son kullanılan sonda
 static var _total := 0.0
 static var _queue: Array = []  # istenmiş, henüz başlatılmamış
 static var _queued := {}
+static var battle := false     # savaşta menü dokuları arka planda çözülmez (iş parçacığı havuzu boş kalır)
+static var _urgent := {}
 static var _pending := {}      # yol → true (load_threaded_request yapıldı)
 
 # ── kullanım manifestosu: hangi sayfa hangi dokuları kullandı (bir sonraki açılışta ön yükleme) ──
@@ -116,6 +118,7 @@ static var waiting := 0
 static func await_ready(n: Node, paths: Array, max_s := 0.45) -> bool:
 	var need: Array = paths.filter(func(p): return not _cache.has(str(p)) and ResourceLoader.exists(str(p)))
 	if need.is_empty(): return false
+	for p in need: _urgent[str(p)] = true
 	request(need, true)
 	waiting += 1
 	var t0 := Time.get_ticks_msec()
@@ -140,7 +143,20 @@ static func poll() -> void:
 			var tx := ResourceLoader.load_threaded_get(p) as Texture2D
 			if tx: _put(p, tx)
 	while _pending.size() < MAX_PENDING and not _queue.is_empty():
-		var p: String = _queue.pop_front()
+		var p: String
+		if battle:
+			# savaşta yalnız şu an beklenen (await_ready) dokular yüklenir; menü kuyruğu bekler
+			var qi := -1
+			for i in _queue.size():
+				if _urgent.has(_queue[i]):
+					qi = i
+					break
+			if qi < 0: break
+			p = _queue[qi]
+			_queue.remove_at(qi)
+		else:
+			p = _queue.pop_front()
+		_urgent.erase(p)
 		_queued.erase(p)
 		if _cache.has(p): continue
 		if ResourceLoader.has_cached(p):

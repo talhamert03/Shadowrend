@@ -94,7 +94,8 @@ static func ui_text() -> String:
 static func report() -> String:
 	var a := session_text()
 	var u := ui_text()
-	var t := "Bu oturumdaki donmalar:\n" + (a if a != "" else "(yok)")
+	var t := "Bellek: " + str(int(OS.get_static_memory_usage() / 1048576.0)) + " MB · görüntü belleği " + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + " MB\n"
+	t += "Bu oturumdaki donmalar:\n" + (a if a != "" else "(yok)")
 	t += "\nArayüz (dokunma) donmaları:\n" + (u if u != "" else ("(yok)" if _jv else "(yalnız Android)"))
 	return t
 

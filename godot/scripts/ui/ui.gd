@@ -584,6 +584,7 @@ func show_game() -> void:
 	missionend.hide_end()
 	hud.show_game()
 func show_menu() -> void:
+	UITex.battle = false
 	hud.hide_hud()
 	missionend.hide_end()
 	pause.hide_pause()

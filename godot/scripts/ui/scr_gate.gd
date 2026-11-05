@@ -35,6 +35,7 @@ var _p := 0.0
 var _lastPct := -1
 var _lastStep := -1
 var _stars := -1
+var _kb := 0.0
 
 var _W := Vector2(390, 844)
 var _SR := Rect2()           # tüm ekran (yerel)
@@ -70,6 +71,7 @@ func play(info: Dictionary, cover: Callable, done: Callable) -> void:
 	_W = UIK.ui_size(get_viewport())
 	_stars = int(info.get("stars", -1))
 	_t = 0.0
+	_kb = 0.0
 	_covered = false
 	_finished = false
 	_doneAt = -1.0
@@ -463,7 +465,9 @@ func _process(dt: float) -> void:
 		_covered = true
 		pass  # titreşim kapalı
 		if on_cover.is_valid(): on_cover.call()
-	var k := clampf((_t - COVER + 0.12) / BAR, 0.0, 1.0)
+	# çubuk gerçek hazırlığı bekler: modeller/gölgelendiriciler bitmeden %92'yi geçmez
+	if _t >= COVER - 0.12: _kb = minf(_kb + dt / BAR, 0.92 if g.prepBusy else 1.0)
+	var k := _kb
 	var eb := k * 1.18 if k < 0.7 else 0.826 + (k - 0.7) * 0.58
 	_progress(minf(1.0, eb) * 100.0)
 	if k >= 1.0 and not _finished:

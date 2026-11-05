@@ -110,9 +110,19 @@ func _clear() -> void:
 	if _fx: _fx.queue_free(); _fx = null
 	if shell: shell.queue_free(); shell = null
 
+var _hp := -2.0
 func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
+	# geliştirici: humanpick=sn — ekran gerçekten açılır, sn sonra ilk seçenek seçilir
+	if _hp == -2.0:
+		_hp = -1.0
+		for u in OS.get_cmdline_user_args():
+			if u.begins_with("humanpick="): _hp = float(u.substr(10))
+	if _hp >= 0.0 and _t >= _hp and not done:
+		if _alt:
+			done = true; _picked = 0; _pickAt = _t
+		else: _pick(0)
 	if _alt:
 		_tick_altar(dt)
 		return

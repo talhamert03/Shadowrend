@@ -75,6 +75,56 @@ func prepare(floor_id) -> void:
 	_ensure_enemy_models(floor_id)
 	_ensure_boss_model(floor_id)
 
+## savaş perdesi arkasında, kareye bölünmüş hazırlık: modeller arka plan iş parçacığında okunur
+## (ana döngü akar, yükleme ekranı canlı kalır), her tür ayrı karede kurulur. Bitene dek
+## update() düşman çizimini atlar (yarım kurulumla eşzamanlı yüklemeye düşmesin).
+var prepping := false
+func prepare_async(floor_id) -> void:
+	prepping = true
+	var paths: Array = []
+	for id in r3.MODELS.enemies:
+		var d: Dictionary = r3.MODELS.enemies[id]
+		if d.floor == floor_id: paths.append("res://assets/models/" + str(d.file))
+	var bk := _boss_key_for(floor_id)
+	if r3.MODELS.bosses.has(bk): paths.append("res://assets/models/" + str(r3.MODELS.bosses[bk].file))
+	var req: Array = []
+	for p in paths:
+		if _scenes.has(p) or not ResourceLoader.exists(p): continue
+		if ResourceLoader.load_threaded_request(p) == OK: req.append(p)
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 12000:
+		var busy := false
+		for p in req:
+			if ResourceLoader.load_threaded_get_status(p) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				busy = true
+				break
+		if not busy: break
+		await r3.get_tree().process_frame
+	for p in req:
+		if ResourceLoader.load_threaded_get_status(p) == ResourceLoader.THREAD_LOAD_LOADED:
+			_scenes[p] = ResourceLoader.load_threaded_get(p)
+	await r3.get_tree().process_frame
+	if _emFloor != floor_id:
+		_emFloor = floor_id
+		_release_enemy_models()
+		var defs: Array = []
+		for id in r3.MODELS.enemies:
+			var d: Dictionary = r3.MODELS.enemies[id]
+			if d.floor == floor_id:
+				var dd := d.duplicate()
+				dd.id = id
+				defs.append(dd)
+		if not defs.is_empty():
+			_groups = []
+			var b := Quality.budget("modelEnemies")
+			var total: int = b if b else 10
+			for d in defs:
+				_load_model_group(d, total)
+				await r3.get_tree().process_frame
+	_ensure_boss_model(floor_id)
+	await r3.get_tree().process_frame
+	prepping = false
+
 func _scene(path: String) -> PackedScene:
 	if not _scenes.has(path): _scenes[path] = load(path)
 	return _scenes[path]
@@ -383,6 +433,7 @@ func update(g, dt: float) -> void:
 	var bossFound = null
 	var sh := 0
 	var wd = g.world_def()
+	if prepping: return
 	_ensure_enemy_models(wd.floor if wd else null)
 	_tok += 1
 	var tok := _tok

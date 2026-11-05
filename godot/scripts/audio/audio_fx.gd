@@ -89,6 +89,8 @@ func _stream(file: String) -> AudioStream:
 	if not _streams.has(file):
 		var path := "res://assets/audio/sfx/" + file + ".wav"
 		if _pending.has(file):
+			# arka planda yükleniyorsa ana iş parçacığı BEKLEMEZ: bu sefer ses atlanır
+			if ResourceLoader.load_threaded_get_status(path) == ResourceLoader.THREAD_LOAD_IN_PROGRESS: return null
 			_streams[file] = ResourceLoader.load_threaded_get(path)
 			_pending.erase(file)
 		else:
@@ -105,6 +107,10 @@ func warm(names: Array) -> void:
 			if _streams.has(file) or _pending.has(file): continue
 			var path := "res://assets/audio/sfx/" + file + ".wav"
 			if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path) == OK: _pending[file] = true
+
+## savaş perdesi arkasında: tüm efekt sesleri arka planda yüklenmeye başlar
+func warm_battle() -> void:
+	warm(variants.keys())
 
 ## audio.pick: rastgele, ardıl tekrar yok
 func _pick(nm: String, n: int) -> int:

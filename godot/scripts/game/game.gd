@@ -264,6 +264,8 @@ func _ready() -> void:
 	# ana sayfa dokuları arka planda çözülmeye başlasın (menü kurulurken hazır olsun)
 	UITex.request(UITex.manifest("savas"), true)
 	UITex.request(range(1, 11).map(func(i): return ArenaArt.path_of(i)), true)
+	# savaş giriş perdesi görseli: Oyna'ya basılınca eşzamanlı çözülmesin
+	UITex.request([ScrGate.ART], true)
 	# alt menü sekmeleri açılış ekranının ardında kurulacak: dokuları şimdiden arka planda çözülsün
 	for pg in BOOT_PAGES: UITex.request(UITex.manifest(pg))
 	_build_pools()
@@ -409,6 +411,7 @@ func _freeze_ctx() -> String:
 	var s := str(state) + " " + OS.get_model_name()
 	if worldId: s += " D" + str(worldId) + "-" + str(missionId) + " dalga " + str(wave) + " T=" + str(int(time)) + " kalan=" + str(int(waveTimer))
 	if enemies and pools.has("eBullets"): s += " düşman=" + str(enemies.pool.active.size()) + " mermi=" + str(pools.eBullets.active.size()) + "/" + str(pools.pBullets.active.size())
+	s += " bellek=" + str(int(OS.get_static_memory_usage() / 1048576.0)) + "MB görüntü=" + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + "MB"
 	s += " fps=" + str(int(Quality.fps)) + " kademe=" + Quality.tier + " stres=" + str(snappedf(Quality.stress, 0.01)) + " ölçek=" + str(Quality.scale)
 	return s
 
@@ -463,7 +466,8 @@ func start_run(wi: int = 0, mi: int = 0, seal = null) -> void:
 	var wd0: Dictionary = D.WORLDS[wId - 1]
 	var md0 := D.missionDef(wId, mId)
 	audio.unlock()
-	if renderer3d: renderer3d.prepare_world_enemies(wd0.floor)
+	# model yükleme/pişirme düğmeye basılan karede DEĞİL, yükleme perdesinin arkasında (_intro_mid)
+	UITex.battle = true
 	# savaş başında kart/kutsama seçimi YOK (oyuncu sahaya girer girmez oynar); seçimler sunakta
 	var bless = null
 	ui._ldHold = bless != null
@@ -478,11 +482,25 @@ func start_run(wi: int = 0, mi: int = 0, seal = null) -> void:
 
 ## Perde kapalıyken kurulum (web: tileGate → begin). Perde tutması duvar
 ## saatiyle biter (2400 ms) — kare döngüsünden bağımsız.
+var prepBusy := false
 func _intro_mid() -> void:
+	prepBusy = true
+	freeze = 9999.0
+	_curtain_at = -1
 	_start_run_now(_intro_wi, _intro_mi)
-	if renderer3d and not OS.get_cmdline_user_args().has("nowarm"): renderer3d.warm_scene()      # ilk çizim derlemeleri perdenin ardında
-	freeze = maxf(freeze, 2.3)
-	_curtain_at = _now_ms() + 2400.0
+	var wd = world_def()
+	if renderer3d:
+		await renderer3d.prepare_battle_async(str(wd.floor) if wd else "")
+		# ilk çizim gölgelendirici derlemeleri perdenin ardında (sunak dahil tüm gizli düğümler)
+		if not OS.get_cmdline_user_args().has("nowarm"):
+			renderer3d.warm_scene()
+			for i in 4: await get_tree().process_frame
+	# savaşta çalınacak seslerin hepsi bellekte olsun (ilk vuruşta disk okuması yok)
+	if audio: audio.warm_battle()
+	freeze = 0.35
+	_curtain_at = _now_ms() + 400.0
+	last = _now_ms()
+	prepBusy = false
 
 func _intro_end() -> void:
 	_introBusy = false

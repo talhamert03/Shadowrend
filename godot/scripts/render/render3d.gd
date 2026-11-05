@@ -1120,6 +1120,11 @@ func _rot_bone(b: int, axis: Vector3, a: float) -> void:
 # ═══════════ DIŞ API (main.js çağrıları) ═══════════
 
 func prepare_world_enemies(floor_id: String) -> void: en.prepare(floor_id)
+## savaş perdesi arkasında: düşman/boss modelleri kareye bölünerek, savaş içinde ilk kez beliren
+## 3B nesneler (sunak) gizli kurulur → warm_scene hepsinin gölgelendiricisini perde altında derler
+func prepare_battle_async(floor_id: String) -> void:
+	await en.prepare_async(floor_id)
+	if altarNode == null: _build_altar()
 func spawn_hit(x: float, y: float, ang: float, t: int, cr := 1.0, cg := 0.92, cb := 0.76) -> void: fx.spawn_hit(x, y, ang, t, cr, cg, cb)
 func spawn_death(x: float, y: float, ang: float, col: Color, big: bool) -> void: if death: death.spawn(x, y, ang, col, big)
 func spawn_pow(x: float, y: float) -> void: if death: death.pow_spark(x, y)
