@@ -68,6 +68,7 @@ func _open(placement: String) -> void:
 	_cur = placement
 	_got = false
 	AudioServer.set_bus_mute(0, true)
+	FreezeWatch.set_paused(true)
 	_p.show(_unit(placement))
 
 func _process(dt: float) -> void:
@@ -101,6 +102,7 @@ func _on_rewarded(_unit_id: String) -> void:
 
 func _on_closed(_unit_id: String) -> void:
 	AudioServer.set_bus_mute(0, false)
+	FreezeWatch.set_paused(false)
 	var pl := _cur
 	_cur = ""
 	var cb := _on_reward if _got else _on_fail
@@ -116,6 +118,7 @@ func _on_closed(_unit_id: String) -> void:
 func _on_show_failed(unit_id: String, err: String) -> void:
 	push_warning("ShadowAds show_failed " + unit_id + " " + err)
 	AudioServer.set_bus_mute(0, false)
+	FreezeWatch.set_paused(false)
 	var pl := _cur
 	_cur = ""
 	g.ui.toast("REKLAM AÇILAMADI · BİRAZ SONRA DENE")

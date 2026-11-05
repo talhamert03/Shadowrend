@@ -2,7 +2,7 @@ class_name HeroesPage
 extends Node2D
 ## ui.js renderChars — KAHRAMAN sayfası: 3 sütunlu kart ızgarası (CHARACTERS sırası).
 ## Kart durumu: gizemli (kart yok / kart var), sahip (ilerleme), geliştirilebilir, azami;
-## seçili kahraman "SEÇİLİ" rozeti ve gümüş hale taşır. Kart sanatı yakalamada; çubuk
+## seçili kahraman "SEÇİLİ" rozeti ve beyaz seçim halkası taşır (çerçeve hep nadirlik rengi). Kart sanatı yakalamada; çubuk
 ## yazısı/dolumu ve seviye burada yazılır. Dokununca kahraman detayı açılır.
 ## Yakalama: pg_kahraman (kabuk) · hc_<id>_<m0|mp|own|up|max>[_sel].
 
@@ -90,7 +90,7 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color("#1a1420")
 		sb.set_corner_radius_all(14)
-		sb.shadow_color = Color(rc, 0.35) if sel else Color(0, 0, 0, 0.45)
+		sb.shadow_color = Color(1, 1, 1, 0.22) if sel else Color(0, 0, 0, 0.45)
 		sb.shadow_size = 12 if sel else 5
 		bg.draw_style_box(sb, Rect2(0, 0, w, h))
 		bg.draw_set_transform(Vector2.ZERO))
@@ -142,13 +142,21 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		pl.corner_radius_bottom_right = 13
 		var ph := 57.0 if two else 43.0
 		fr.draw_style_box(pl, Rect2(1, h - ph - 1, w - 2, ph))
-		# çerçeve: nadirlik rengi; seçili altın
+		# çerçeve: HER ZAMAN nadirlik rengi (seçili kart altın görünüp Efsanevi sanılmasın);
+		# seçili kart: kalın nadirlik çerçevesi + dışında ince beyaz seçim halkası
 		var bd := StyleBoxFlat.new()
 		bd.bg_color = Color(0, 0, 0, 0)
 		bd.set_corner_radius_all(14)
 		bd.set_border_width_all(3 if sel else 2)
-		bd.border_color = Color("#f2c46d") if sel else Color(rc, 0.85 if owned else 0.5)
+		bd.border_color = Color(rc, 1.0) if sel else Color(rc, 0.85 if owned else 0.5)
 		fr.draw_style_box(bd, Rect2(0, 0, w, h))
+		if sel:
+			var ring := StyleBoxFlat.new()
+			ring.bg_color = Color(0, 0, 0, 0)
+			ring.set_corner_radius_all(17)
+			ring.set_border_width_all(2)
+			ring.border_color = Color(1, 1, 1, 0.92)
+			fr.draw_style_box(ring, Rect2(-4, -4, w + 8, h + 8))
 		# ilerleme çubuğu
 		if need != null and (not owned and cards > 0 or owned):
 			var bw := w - 20.0
@@ -191,7 +199,7 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		hn.add_child(rb)
 		rb.draw.connect(func():
 			var pill := StyleBoxFlat.new()
-			pill.bg_color = Color("#f2c46d")
+			pill.bg_color = Color("#f4f1ea")      # nötr beyaz rozet (altın = Efsanevi ile karışmasın)
 			pill.set_corner_radius_all(8)
 			rb.draw_style_box(pill, Rect2(w - 52, 6, 46, 15)))
 		var st := HeroesPage._lbl(false, 800, 8, 1.0, "#2a1a0a", "SEÇİLİ", 46)

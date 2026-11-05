@@ -237,6 +237,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	PerfLog.err_ctx = self
+	FreezeWatch.start()
 	Clock.boot()
 	meta = load_meta()
 	progress = D.loadProgress()
@@ -400,12 +401,24 @@ func resize() -> void:
 func world_def(id: int = 0) -> Dictionary:
 	return D.world(id if id else worldId)
 
+func _exit_tree() -> void:
+	FreezeWatch.stop()
+
+func _freeze_ctx() -> String:
+	var s := str(state) + " " + OS.get_model_name()
+	if worldId: s += " D" + str(worldId) + "-" + str(missionId) + " dalga " + str(wave) + " T=" + str(int(time)) + " kalan=" + str(int(waveTimer))
+	if enemies and pools.has("eBullets"): s += " düşman=" + str(enemies.pool.active.size()) + " mermi=" + str(pools.eBullets.active.size()) + "/" + str(pools.pBullets.active.size())
+	s += " fps=" + str(int(Quality.fps)) + " kademe=" + Quality.tier + " stres=" + str(snappedf(Quality.stress, 0.01)) + " ölçek=" + str(Quality.scale)
+	return s
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		FreezeWatch.set_paused(true)
 		if state == "playing": pause_game()
 		save_meta(true)
 		Store.flush()
 	elif what == NOTIFICATION_APPLICATION_RESUMED or what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		FreezeWatch.set_paused(false)
 		last = _now_ms()
 
 # ═══════════ ARENA ═══════════
@@ -1704,6 +1717,8 @@ func in_view(x: float, y: float, m: float = CULL_MARGIN) -> bool:
 # ═══════════ ANA DÖNGÜ ═══════════
 
 func _process(_delta: float) -> void:
+	FreezeWatch.beat(_freeze_ctx)
+	Prof.cur = "frame"
 	var clk := _now_ms()
 	var rdtMs := clk - last
 	last = clk
@@ -1792,10 +1807,12 @@ func _process(_delta: float) -> void:
 			if steps == MAX_STEPS * devSpeed: acc = 0
 	Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
 	Prof.frame()
+	Prof.cur = "motor-cizim"      # betik bitti: buradan sonraki donma motor/GPU tarafında
 
 var _ultauto := -1.0
 var _dieat := 0.0
 var _vfxtest := false
+var _stallTest := 0
 var _pauseat := 0.0
 var _vfxT := 0.0
 func update(dt: float) -> void:
@@ -1806,6 +1823,12 @@ func update(dt: float) -> void:
 			if u.begins_with("dieat="): _dieat = float(u.substr(6))
 			if u == "vfxtest": _vfxtest = true
 			if u.begins_with("pauseat="): _pauseat = float(u.substr(8))
+	# geliştirici: stalltest — 6. sn'de 3,5 sn yapay donma (donma bekçisi testi)
+	if _stallTest == 0 and time > 6.0:
+		_stallTest = 1 if OS.get_cmdline_user_args().has("stalltest") else 2
+		if _stallTest == 1:
+			Prof.b("stalltest")
+			OS.delay_msec(3500)
 	# geliştirici: vfxtest — savaş ışık katmanının tüm efektleri sırayla (görsel kontrol)
 	if _vfxtest:
 		_vfxT += dt

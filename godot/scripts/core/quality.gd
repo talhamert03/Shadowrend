@@ -8,8 +8,8 @@ signal changed
 
 const BUDGETS := {
 	"low":  {"particles": 220, "modelEnemies": 18, "enemies": 130, "atmo": 40,  "impacts": 14, "props": 66, "dpr": 2.0,  "tex": 512,  "texHero": 768},
-	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.6, "tex": 512,  "texHero": 1024},
-	"high": {"particles": 700, "modelEnemies": 52, "enemies": 460, "atmo": 110, "impacts": 30, "props": 78, "dpr": 3.0,  "tex": 1024, "texHero": 1536},
+	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.2, "tex": 512,  "texHero": 1024},
+	"high": {"particles": 700, "modelEnemies": 52, "enemies": 460, "atmo": 110, "impacts": 30, "props": 78, "dpr": 2.6,  "tex": 1024, "texHero": 1536},
 }
 const FLEX := {"particles": 0.45, "modelEnemies": 0.25, "enemies": 0.15, "atmo": 0.6, "impacts": 0.30, "props": 0.0, "dpr": 0.0, "tex": 0.0, "texHero": 0.0}
 const STALL_MS := 120.0
@@ -39,9 +39,10 @@ func init(t: String, mobile: bool) -> void:
 	is_mobile = mobile
 	# net görüntü öncelikli: önce efekt bütçesi kısılır, çözünürlük en çok %78'e iner (eskiden %58 —
 	# karakterler pikselli/bulanık görünüyordu)
-	floor_scale = 0.78 if mobile else 0.8
+	floor_scale = 0.7 if mobile else 0.8
 	# Mobilde 60'a sabit (sim 60 Hz; 120 Hz'de fazla kare yalnız ısı üretir).
 	cap_fps = 60 if mobile else 0
+	target_ms = 16.7
 	_apply_cap()
 
 func _apply_cap() -> void:
@@ -145,6 +146,15 @@ func _step_down() -> bool:
 	if scale > floor_scale and now - _scale_at > 3000:
 		_scale_at = now
 		scale = maxf(floor_scale, JS.round_js((scale - 0.1) * 10) / 10.0)
+		_emit()
+		return true
+	# her şey kısıldı ve hâlâ 60'a yetişemiyor (ısınan telefon): düzgün 30 FPS'e geç —
+	# 20–40 arası dalgalanan kare, sabit 30'dan çok daha takılgan hissettirir ve cihazı daha çok ısıtır
+	if is_mobile and cap_fps == 60 and now - _scale_at > 3000:
+		cap_fps = 30
+		target_ms = 33.4
+		frame_ms = 33.4
+		_apply_cap()
 		_emit()
 		return true
 	return false

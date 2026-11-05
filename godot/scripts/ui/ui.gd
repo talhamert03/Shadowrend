@@ -475,6 +475,7 @@ func _dump_ci() -> void:
 	for k in mk.slice(0, 15): print("MAT ", mats[k], " ", k)
 
 func _process(_dt: float) -> void:
+	Prof.cur = "ui"
 	Prof.hitch(_dt)
 	if _arg("dumpci") != "" and Engine.get_process_frames() == int(_arg("dumpci")): _dump_ci()
 	if _arg("drawprobe") != "" and Engine.get_process_frames() == int(_arg("drawprobe")): _draw_probe()

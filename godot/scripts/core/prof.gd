@@ -6,7 +6,9 @@ static var _t0 := {}
 static var _frames := 0
 static var _last := 0.0
 
+static var cur := ""     # son girilen aşama (donma bekçisi okur; her zaman güncel, maliyetsiz)
 static func b(k: String) -> void:
+	cur = k
 	if on: _t0[k] = Time.get_ticks_usec()
 
 static var _mx := {}
