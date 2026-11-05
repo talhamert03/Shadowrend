@@ -92,6 +92,14 @@ var ravenMesh: IMesh         # kuzgun mermisi (Kuzgun Lordu): kanat çırpan kuz
 var ravenEye: IMesh          # kuzgunların mor gözleri
 var flockMesh: IMesh         # Kuzgun Fırtınası: gökte dönen sürü
 var flockEye: IMesh
+var mineMesh: IMesh          # Tuzakçı mayını: dikenli demir göbek
+var mineLight: IMesh         # mayının yanıp sönen ışığı
+var wellCore: IMesh          # çekim kuyusu çekirdeği (kara küre)
+var wellRing: IMesh          # yığılma halkası (iki eğik halka)
+var threadMesh: IMesh        # Kukla Ustası ipleri (öz + hale)
+const MINE_MAX := 40
+const WELL_MAX := 8
+const THREAD_MAX := 16
 const BOOM_MAX := 40
 const THORN_MAX := 80
 const RAVEN_MAX := 90
@@ -380,6 +388,52 @@ func _build_hero_projectiles(S: Node3D) -> void:
 	tmat.set_shader_parameter("rim_c", Vector3(1.0, 0.6, 0.7))
 	thornMesh = IMesh.new(tg, tmat, THORN_MAX)
 	S.add_child(thornMesh)
+	# MAYIN: basık göbek + 8 sivri diken + üst halka
+	var spikes: Array = [Geo.cylinder(5.5, 6.5, 4.0, 12)]
+	var sx: Array = [Transform3D(Basis(), Vector3(0, 2.0, 0))]
+	for i in 8:
+		var an := i * TAU / 8.0
+		spikes.append(Geo.cone(1.3, 4.5, 5))
+		sx.append(Transform3D(Basis(Vector3(0, 1, 0), -an) * Basis(Vector3(0, 0, 1), -PI / 2), Vector3(cos(an) * 6.2, 2.0, sin(an) * 6.2)))
+	spikes.append(Geo.torus(2.0, 0.6, 5, 10)); sx.append(Transform3D(Basis(), Vector3(0, 4.4, 0)))
+	var mmat := Shd.lit({"color": Color("#5a5a62"), "emissive": Color("#2a1408"), "emissive_k": 0.4, "roughness": 0.4, "metalness": 0.7, "rim": true})
+	if Quality.tier != "low": mmat.next_pass = Shd.outline(null, Color(0.05, 0.04, 0.03), 1.2)
+	mineMesh = IMesh.new(Geo.merge(spikes, sx), mmat, MINE_MAX)
+	S.add_child(mineMesh)
+	mineLight = IMesh.new(Geo.sphere(1.0, 8, 6), Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false}), MINE_MAX)
+	S.add_child(mineLight)
+	# ÇEKİM KUYUSU: ışığı yutan kara küre + mor yığılma halkaları
+	wellCore = IMesh.new(Geo.sphere(1.0, 20, 14), Shd.basic({"color": Color("#05010a")}), WELL_MAX)
+	S.add_child(wellCore)
+	wellRing = IMesh.new(Geo.merge([Geo.torus(1.0, 0.08, 6, 40), Geo.torus(1.35, 0.04, 5, 40)],
+		[Transform3D(Basis(), Vector3.ZERO), Transform3D(Basis(Vector3(1, 0, 0), 0.35), Vector3.ZERO)]),
+		Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), WELL_MAX * 2)
+	S.add_child(wellRing)
+	# İP: z ∈ [0,1] uzanan ince kutu (öz) — boyu ölçekle uzar
+	var tb := Geo.merge([Geo.box(1.0, 1.0, 1.0)], [Transform3D(Basis(), Vector3(0, 0, 0.5))])
+	threadMesh = IMesh.new(tb, Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), THREAD_MAX * 2)
+	S.add_child(threadMesh)
+
+## KUKLA İPLERİ: süzülen makaradan bağlı düşmanlara; öz ince ve parlak, dışında yumuşak hale, titreşir
+func _update_threads(g, T: float) -> void:
+	var P: PackedVector2Array = g.weapons.tetherPts if g.weapons else PackedVector2Array()
+	var n := 0
+	var i := 0
+	while i + 1 < P.size() and n + 2 <= THREAD_MAX * 2:
+		var a: Vector2 = P[i]
+		var b: Vector2 = P[i + 1]
+		i += 2
+		var d := b - a
+		var L := d.length()
+		if L < 4.0: continue
+		var yaw := atan2(d.x, d.y)
+		var wob := 1.0 + 0.25 * sin(T * 22.0 + i)
+		threadMesh.set_ys(n, a.x, 34.0, a.y, yaw, 0.55 * wob, 0.55 * wob, L)
+		threadMesh.set_col(n, 1.0, 0.42, 0.86, 1)
+		threadMesh.set_ys(n + 1, a.x, 34.0, a.y, yaw, 2.6, 2.6, L)
+		threadMesh.set_col(n + 1, 0.32, 0.04, 0.26, 1)
+		n += 2
+	threadMesh.commit(n)
 
 ## KUZGUN FIRTINASI: süper boyunca kahramanın tepesinde dönen, dalıp çıkan kuzgun sürüsü
 func _update_flock(g) -> void:
@@ -607,7 +661,36 @@ func _update_projectiles(g) -> void:
 	var bi := 0
 	var ti := 0
 	var ri := 0
+	var mi2 := 0
+	var wi2 := 0
 	for b in g.pools.pBullets.active:
+		if b.mine:
+			if mi2 >= MINE_MAX: continue
+			var hgt := 4.0
+			if not b.mArmed: hgt = 6.0 + sin(minf(1.0, b.mT / maxf(0.01, b.mFly)) * PI) * 90.0
+			var spin2 := 0.0 if b.mArmed else T * 14.0
+			mineMesh.set_ys(mi2, b.x, hgt, b.y, spin2 + b.ph, 1.25, 1.25, 1.25)
+			mineMesh.set_col(mi2, 1, 1, 1, 1)
+			var blink := 1.0 if not b.mArmed else (0.35 + 0.65 * float(int(T * (4.0 + 8.0 * float(b.life < 1.0))) % 2))
+			mineLight.set_ys(mi2, b.x, hgt + 6.5, b.y, 0.0, 1.6, 1.6, 1.6)
+			mineLight.set_col(mi2, 1.0 * blink, 0.55 * blink, 0.15 * blink, 1)
+			mi2 += 1
+			continue
+		if b.well:
+			if wi2 >= WELL_MAX: continue
+			var op := 0.35 if not b.mArmed else minf(1.0, b.mT / 0.25)
+			var R: float = b.mR * op
+			var core := maxf(6.0, R * 0.28) * (1.0 + 0.06 * sin(T * 9.0))
+			var wy := 30.0 if b.mArmed else 46.0
+			wellCore.set_ys(wi2, b.x, wy, b.y, 0.0, core, core, core)
+			wellCore.set_col(wi2, 1, 1, 1, 1)
+			for k in 2:
+				var rr: float = core * (1.6 + k * 0.9)
+				wellRing.set_ys(wi2 * 2 + k, b.x, wy, b.y, T * (3.0 - k * 5.0), rr, rr * 0.6, rr)
+				var a2 := 0.95 - k * 0.35
+				wellRing.set_col(wi2 * 2 + k, 0.75 * a2, 0.42 * a2, 1.0 * a2, 1)
+			wi2 += 1
+			continue
 		if b.boomer:
 			if bi >= BOOM_MAX: continue
 			var bs := maxf(1.0, b.r * 0.12)
@@ -687,6 +770,9 @@ func _update_projectiles(g) -> void:
 	arrowMesh.commit(ai)
 	crescentMesh.commit(ci)
 	boomerMesh.commit(bi)
+	mineMesh.commit(mi2); mineLight.commit(mi2)
+	wellCore.commit(wi2); wellRing.commit(wi2 * 2)
+	_update_threads(g, T)
 	thornMesh.commit(ti)
 	ravenMesh.commit(ri)
 	ravenEye.commit(ri)

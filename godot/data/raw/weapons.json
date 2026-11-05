@@ -329,6 +329,62 @@
     "cd": 0.9,
     "volley": 1
    }
+  },
+  "tuzakci": {
+   "weapon": "tuzak",
+   "pas": "zirh",
+   "name": "Ölüm Tarlası",
+   "desc": "Dikenli Mayın evrimleşir: bir mayın daha, daha büyük patlama.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1,
+    "areaAdd": 1
+   }
+  },
+  "barutcu": {
+   "weapon": "barut",
+   "pas": "gazap",
+   "name": "Top Ağızlı",
+   "desc": "Geniş Namlu evrimleşir: 2 saçma daha, daha sık ateş.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 2
+   }
+  },
+  "kukla": {
+   "weapon": "ip",
+   "pas": "hasatrun",
+   "name": "Büyük Perde",
+   "desc": "Makara Haçı evrimleşir: bir ip daha, daha sert çeker.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "targetsAdd": 1
+   }
+  },
+  "cellat": {
+   "weapon": "satir",
+   "pas": "keskinlik",
+   "name": "Kızıl Hüküm",
+   "desc": "İnfaz Satırı evrimleşir: daha sık savurur, infaz eşiği yükselir.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "execAdd": 1
+   }
+  },
+  "karadelik": {
+   "weapon": "kuyu",
+   "pas": "kulkani",
+   "name": "Tekillik",
+   "desc": "Boşluk Küresi evrimleşir: kuyu büyür, daha sık açılır.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "areaAdd": 1
+   }
   }
  },
  "TAGS": {

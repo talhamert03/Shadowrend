@@ -43,6 +43,13 @@ const ULT_ID := {
 		"pal": {"tox": "#ff6a8a", "deep": "#4a0a18", "glass": "#5a0f22", "rot": "#140206", "pool": "#3a0a14", "pool2": "#5a1020", "wet": "#ff4a6a", "wet2": "#a01a3a", "bub": "#6a1428", "bub2": "#ff7a9a"},
 		"desc": "Kızıl gül tohumları fırlar; yerde dikenli bir gül bahçesi açar, içindekileri yavaşlatıp eritir."},
 	"kuzgun":   {"name": "KUZGUN FIRTINASI", "col": "#f0e0ff", "c2": "#a64aff", "k": "bolt", "snd": "bolt",  "base": 10, "hr": 90.0, "ravens": true, "desc": "Gök kararır; kuzgun sürüsü tepede döner, sürünün üstüne mor yıldırımlar iner."},
+	"tuzakci":  {"name": "MAYIN YAĞMURU", "col": "#ffe0b0", "c2": "#ff7a1a", "k": "stone",  "snd": "stone",  "base": 13, "hr": 70.0,
+		"pal": {"ball": "#6a6a74", "ball2": "#ff7a1a"}, "desc": "Gökten dikenli mayınlar yağar; yere çarpınca patlayıp sürüyü dağıtır."},
+	"barutcu":  {"name": "BARUT YAĞMURU", "col": "#ffe6c0", "c2": "#ff5a1a", "k": "meteor", "snd": "meteor", "base": 9,  "hr": 110.0, "desc": "Barut fıçıları gökten düşer; her biri alevli bir patlamayla yeri sarsar."},
+	"kukla":    {"name": "KUKLA AĞI",     "col": "#ffe0f6", "c2": "#ff5ad0", "k": "mirror", "snd": "vortex", "base": 0,  "hr": 0.0,
+		"pal": {"noprism": true}, "desc": "Altı makara yükselir; aralarında parlayan ipler gerilir, ağın içindekileri biçer."},
+	"cellat":   {"name": "İNFAZ GÜNÜ",    "col": "#ffd0d0", "c2": "#d81a2a", "k": "slam",   "snd": "slam",   "base": 0,  "hr": 0.0,   "desc": "Satır yere iner; kızıl şok dalgası yayılır, sürüyü savurur."},
+	"karadelik": {"name": "OLAY UFKU",    "col": "#f0e0ff", "c2": "#7a2aff", "k": "vortex", "snd": "vortex", "base": 0,  "hr": 0.0, "pull": true, "desc": "Cadının çevresinde dev bir kara delik döner; sürüyü içine çekip ezer."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi
@@ -384,6 +391,16 @@ func update(dt: float) -> void:
 			var cx: float = ox if k == "slam" else p.x
 			var cy: float = oy if k == "slam" else p.y
 			_area(cx, cy, W.r)
+			# OLAY UFKU (Kara Delik Cadısı): girdabın içindekiler merkeze çekilir
+			if C.get("pull", false):
+				for e in game.enemies.query_circle(cx, cy, W.r * 1.6 + 40.0, _sc):
+					if e.hp <= 0 or e.isBoss: continue
+					var ddx: float = cx - e.x
+					var ddy: float = cy - e.y
+					var dd := sqrt(ddx * ddx + ddy * ddy)
+					if dd < 20.0 or dd > W.r * 1.6 + e.radius: continue
+					var pl := minf(dd - 18.0, 320.0 * dt)
+					e.x += ddx / dd * pl; e.y += ddy / dd * pl
 			if k == "vortex" and randf() < dt * 30:
 				game.spawn_burst(cx + cos(W.t * 9) * W.r, cy + sin(W.t * 9) * W.r * 0.62, C.col, 2, 90, 2.4, 0.4, true)
 		if W.t >= W.dur: W.on = false
@@ -547,7 +564,7 @@ func _render_now() -> void:
 				"bolt": _draw_bolt(s, u, post, K)
 				"meteor": _draw_meteor(s, u, post, K)
 				"cannon": _draw_ball(s, u, post, K, 150, 12, Color("#c8ffe6"), Color("#2fcf98"), true)
-				"stone": _draw_ball(s, u, post, K, 110, 9, Color("#f0dcb4"), Color("#a8804a"), false)
+				"stone": _draw_ball(s, u, post, K, 110, 9, _pc("ball", Color("#f0dcb4")), _pc("ball2", Color("#a8804a")), false)
 				"slash": _draw_slash(s, u, post, K)
 				"spike": _draw_spike(s, u, post, K)
 				"grave": _draw_grave(s, u, post, K)
@@ -1397,7 +1414,7 @@ func _draw_mirror(tt: float) -> void:
 		var gb: Vector2 = ga.lerp(_mir[sg[1]], gr)
 		_thick(_GA, PackedVector2Array([ga, gb]), 26.0, _ca(_dc, 0.32 * sm), false)
 		_thick(_G, PackedVector2Array([A, hd]), 30.0 + 20.0 * fl, _ca(_dc, 0.42 * sm), false)
-		_thick(_T, PackedVector2Array([A, hd]), 11.0 + 6.0 * fl, _ca(_lc.lerp(pc, 0.35), 0.9 * sm), false)
+		_thick(_T, PackedVector2Array([A, hd]), 11.0 + 6.0 * fl, _ca(_lc.lerp(pc, 0.0 if _pal.get("noprism", false) else 0.35), 0.9 * sm), false)
 		_thick(_T, PackedVector2Array([A, hd]), 3.5 + 2.0 * fl, Color(1, 1, 1, sm), false)
 		if gr < 1.0:
 			_glow(hd, 46.0, WHITE, 0.8 * fo, 1.0, _T)

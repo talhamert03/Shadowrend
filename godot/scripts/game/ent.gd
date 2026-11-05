@@ -103,6 +103,10 @@ class PBullet:
 	var hitSet := {}       # bumerang: bu bacakta vurulanlar (aynı bacakta ikinci kez vurmaz)
 	var bx0 := 0.0; var by0 := 0.0; var bdir := 0.0; var bD := 0.0; var bCurve := 0.0   # bumerang gidiş yolu
 	var thorn := false     # diken (Gül Cadısı): kızıl diken + yaprak izi
+	var kn := 130.0        # isabette geri itme (Barutçu saçması sert iter)
+	var mine := false      # mayın (Tuzakçı): yay çizip düşer, kurulur, temasta patlar
+	var well := false      # çekim kuyusu (Kara Delik Cadısı): hedef noktada açılır, çeker, ezer, içe çöker
+	var mx := 0.0; var my := 0.0; var mT := 0.0; var mFly := 0.5; var mArmed := false; var mR := 50.0; var mHold := 0.0; var mTick := 0.0
 	var raven := false     # kuzgun (Kuzgun Lordu): kanat çırpan kuzgun + tüy izi
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
@@ -118,6 +122,7 @@ class PBullet:
 		crescent = false
 		boomer = false; boomRet = false; boomT = 0.0; boomOut = 0.7; hitSet.clear()
 		thorn = false; raven = false
+		mine = false; well = false; mT = 0.0; mArmed = false; mTick = 0.0; kn = 130.0
 		return self
 
 class EBullet:
@@ -198,6 +203,7 @@ class Enemy:
 	var hurtT := 0.0; var entryT := 0.0; var prey := false; var _ultN := 0; var _acc := 0.0
 	var phase := 0; var weakT := 0.0; var _wkFx := 0.0
 	var waveHit := 0; var lastCrit := false
+	var slowT := 0.0       # yavaşlama (Kukla Ustası ipi): süre boyunca hız %50
 	# render tarafının yazdığı alanlar (render3d: __mdlTok/__mdlTop/__aliveTok/__bound/__score)
 	var mdlTok := 0; var mdlTop := 0.0; var aliveTok := 0; var bound = null; var score := 0.0
 	# VAT çizimi (r3_enemies): animasyon zamanı + yumuşatılmış konum/yön

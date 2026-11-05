@@ -17,7 +17,7 @@ enum { SLASH, HIT, RING, CAST, BOLT, HURT, DEATH, BEAM }
 const SWORD_COL := {
 	"kilic": "#ffd88a", "pala": "#ff8a4a", "yemin": "#7fe8ff", "tackilic": "#c08aff",
 	"kurek": "#8dffb8", "cekic": "#ffd23a",
-	"mizrak": "#5fe0c8", "tirpan": "#5aff9a", "balta": "#ff8a7a", "ejderkilic": "#ff9a4a",
+	"mizrak": "#5fe0c8", "tirpan": "#5aff9a", "satir": "#ff4a5a", "balta": "#ff8a7a", "ejderkilic": "#ff9a4a",
 }
 ## saplayan silahlar: yay yerine ileri çizgi izi
 const THRUST := {"mizrak": true}

@@ -103,7 +103,13 @@
   "boomer": 0.06,
   "scythe": 0.06,
   "thorn": 0.06,
-  "raven": 0.06
+  "raven": 0.06,
+  "trapthrow": 0.07,
+  "minepop": 0.05,
+  "blunder": 0.07,
+  "string": 0.12,
+  "cleave": 0.07,
+  "void": 0.07
  },
  "variants": {
   "hit": 3,
@@ -207,7 +213,13 @@
   "boomer": 3,
   "scythe": 3,
   "thorn": 3,
-  "raven": 3
+  "raven": 3,
+  "trapthrow": 3,
+  "minepop": 3,
+  "blunder": 3,
+  "string": 3,
+  "cleave": 3,
+  "void": 3
  },
  "files": [
   "hit_0",

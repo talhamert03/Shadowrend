@@ -29,13 +29,15 @@ const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": 
 	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM",
 	"prizma": "RUH", "zaman": "CELIK",
 	"baltaci": "CELIK", "avci": "AYAZ", "kanrahip": "KOR", "gecedans": "RUH", "ejder": "KOR",
-	"mizrakci": "CELIK", "bumerang": "YILDIRIM", "tirpanci": "RUH", "gulcadi": "KOR", "kuzgun": "RUH"}
+	"mizrakci": "CELIK", "bumerang": "YILDIRIM", "tirpanci": "RUH", "gulcadi": "KOR", "kuzgun": "RUH",
+	"tuzakci": "CELIK", "barutcu": "KOR", "kukla": "RUH", "cellat": "CELIK", "karadelik": "YILDIRIM"}
 
-const MUL_MAP_BASE := {"cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
+const MUL_MAP_BASE := {"hold": "hold", "cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
 	"waveR": "waveR", "waveLife": "waveLife", "widthMul": "width", "refillMul": "refill"}
 const ADD_MAP := {"volley": "volley", "pierce": "pierce", "count": "count", "targets": "targets"}
-const SCALAR_ADD := {"bounceAdd": "bounce", "flame": "flame", "shatterAdd": "shatter",
+const SCALAR_ADD := {"execAdd": "execAdd", "areaAdd": "areaAdd", "lifeAdd": "lifeAdd", "targetsAdd": "targetsAdd", "slowAdd": "slowAdd",
+	"bounceAdd": "bounce", "flame": "flame", "shatterAdd": "shatter",
 	"explodeAdd": "explode", "homingAdd": "homing", "rainAdd": "rain", "critAdd": "critAdd", "critMultAdd": "critMultAdd",
 	"spinAdd": "spin", "twinAdd": "twin", "waveAdd": "wave", "echoAdd": "echo",
 	"chainAdd": "chain", "shockAdd": "shock", "knockAdd": "knock", "stormAdd": "storm",
@@ -156,6 +158,7 @@ func reset() -> void:
 	W = D.WEAPONS.duplicate(true)
 	slots = {}; passives = {}; synApplied = {}; specialTaken = {}; sigLvl = {}
 	evolved = false; wEvolved = false
+	tethers = []; tetherPts = PackedVector2Array()
 	swordT = 0.5; swing = 0; swingDur = 0.18; swingDir = 0; swingRange = 0; swingArc = 0
 	swingId = 0; swingKind = "normal"; swingCount = 0
 	swordQueue = []
@@ -228,6 +231,7 @@ func update(dt: float) -> void:
 			if kd == "gun": update_gun(id, dt)
 			elif kd == "beam": update_beam(id, dt)
 			elif kd == "blades": update_blades(id, dt)
+			elif kd == "tether": update_tether(id, dt)
 	if not _delayed.is_empty(): _update_delayed(dt)
 	var i := pending.size() - 1
 	while i >= 0:
@@ -404,6 +408,7 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 	var tgt = _swTarget if kind == "normal" or spin else null
 	_swTarget = null
 	var nHit := 0
+	var execTh: float = (float(Wd.execute[L]) if Wd.get("execute") is Array else 0.0) * (1.0 + 0.25 * wi(Wd, "execAdd"))
 	var hx := 0.0
 	var hy := 0.0
 	var ha := 0.0
@@ -423,7 +428,12 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 		if nHit == 0:
 			hx = e.x; hy = e.y; ha = a
 		nHit += 1
-		Combat.apply_hit(g, e, dmg, a, knock, crit, kind == "echo")
+		var dHit := dmg
+		# İNFAZ (Cellat): canı eşiğin altındaki düşman tek vuruşta biter (elitte eşik yarı, boss hariç)
+		if execTh > 0.0 and not e.isBoss and e.hp > 0.0 and e.hp <= e.maxHp * (execTh * (0.5 if e.elite else 1.0)):
+			dHit = maxf(dmg, e.hp + 1.0)
+			_exec_fx(e)
+		Combat.apply_hit(g, e, dHit, a, knock, crit, kind == "echo")
 	# vuruş hissi: kılıç ete girince TEK tok kesik sesi + ilk düşmanda kıvılcım + hafif ekran tepmesi
 	# (düşman başına değil, savuruş başına — kalabalıkta kulak yormaz)
 	if nHit > 0 and kind != "echo":
@@ -762,7 +772,29 @@ func fire_gun(id: String) -> void:
 		b.metal = JS.truthy(Wd.get("metallic"))
 		b.crescent = JS.truthy(Wd.get("crescent"))
 		b.thorn = JS.truthy(Wd.get("thorn"))
+		if Wd.get("knock") is float or Wd.get("knock") is int: b.kn = float(Wd.knock)
 		b.raven = JS.truthy(Wd.get("raven"))
+		if JS.truthy(Wd.get("mine")) or JS.truthy(Wd.get("well")):
+			# yay/düz uçuşla hedef noktaya gider; orada mayın kurulur ya da kuyu açılır
+			var isMine := JS.truthy(Wd.get("mine"))
+			b.mine = isMine; b.well = not isMine
+			var tx: float = nearest.x if nearest else p.x + cos(sh) * 200.0
+			var ty: float = nearest.y if nearest else p.y + sin(sh) * 200.0
+			if v > 0:
+				var oa := randf() * TAU
+				var od := 40.0 + randf() * 50.0
+				tx += cos(oa) * od; ty += sin(oa) * od
+			if isMine:
+				# hareketli hedefin biraz önüne: düşman mayına doğru yürür
+				var la := atan2(p.y - ty, p.x - tx)
+				tx += cos(la) * 26.0; ty += sin(la) * 26.0
+			b.bx0 = ox; b.by0 = oy; b.mx = tx; b.my = ty; b.mT = 0.0; b.mArmed = false
+			var dd := JS.hypot(tx - ox, ty - oy)
+			b.mFly = clampf(dd / maxf(200.0, float(Wd.speed)), 0.3, 0.8)
+			b.mR = float(Wd.areaR[L]) * (1.0 + 0.12 * wi(Wd, "areaAdd")) if Wd.get("areaR") is Array else 55.0
+			b.mHold = JS.num(Wd, "hold", 0.6)
+			b.life = b.mFly + float(Wd.bulletLife) * (1.0 + 0.2 * wi(Wd, "lifeAdd"))
+			b.pierce = 999
 		if JS.truthy(Wd.get("boomer")):
 			# parametrik yol: hedefin biraz ötesine hızlı ve hafif kıvrımlı gidiş, sonra kahramana düz dönüş
 			b.boomer = true
@@ -915,6 +947,7 @@ func fire_judgement(id: String, Wd: Dictionary) -> void:
 	Quality.haptic("crit")
 
 func update_arrow(b, dt: float) -> bool:
+	if b.mine or b.well: return _update_trap(b, dt)
 	b.life -= dt
 	if b.life <= 0: return true
 	if b.boomer:
@@ -1002,7 +1035,7 @@ func update_arrow(b, dt: float) -> bool:
 		if dx * dx + dy * dy > rr * rr: continue
 		b.lastHit = e
 		if b.boomer: b.hitSet[e.get_instance_id()] = true
-		Combat.apply_hit(g, e, b.dmg, b.angle, 130, b.critAdd, false)
+		Combat.apply_hit(g, e, b.dmg, b.angle, b.kn, b.critAdd, false)
 		if b.thorn:
 			g.spawn_burst(e.x, e.y - 8, "#ff4a6a", 5, 150, 2.4, 0.34, true)
 			g.spawn_burst(e.x, e.y - 8, "#2f8a3a", 2, 110, 2.0, 0.3, true)
@@ -1100,6 +1133,159 @@ func update_arrow(b, dt: float) -> bool:
 	elif randf() < dt * 28:
 		g.pools.particles.take().setup(b.x, b.y, 0, 0, 0.22, 2, b.color, 1, 0, true)
 	return false
+
+# ── MAYIN (Tuzakçı) ve ÇEKİM KUYUSU (Kara Delik Cadısı) ──
+func _update_trap(b, dt: float) -> bool:
+	var g = game
+	b.life -= dt
+	b.mT += dt
+	if not b.mArmed:
+		var u: float = minf(1.0, b.mT / maxf(0.01, b.mFly))
+		var nx: float = lerpf(b.bx0, b.mx, u)
+		var ny: float = lerpf(b.by0, b.my, u)
+		b.vx = (nx - b.x) / maxf(dt, 0.001); b.vy = (ny - b.y) / maxf(dt, 0.001)
+		b.x = nx; b.y = ny
+		if u >= 1.0:
+			b.mArmed = true
+			b.mT = 0.0
+			b.vx = 0.0; b.vy = 0.0
+			if b.mine:
+				g.spawn_burst(b.x, b.y, "#8a6a4a", 8, 120, 2.4, 0.35, false)
+				g.audio.play("trapthrow")
+			else:
+				g.audio.play("void")
+				g.add_shake(0.05)
+		return false
+	if b.mine:
+		var boom: bool = b.life <= 0.0
+		if not boom:
+			var out = g.enemies.query_circle(b.x, b.y, b.r + 40.0, scratch)
+			for e in out:
+				if e.hp <= 0: continue
+				var rr: float = b.r + e.radius + 4.0
+				if (e.x - b.x) * (e.x - b.x) + (e.y - b.y) * (e.y - b.y) <= rr * rr:
+					boom = true
+					break
+		if boom:
+			_mine_boom(b)
+			return true
+		return false
+	# kuyu: çeker, aralıklı ezer, sonunda içe çöker
+	var R: float = b.mR * minf(1.0, b.mT / 0.25)
+	var out2 = g.enemies.query_circle(b.x, b.y, R + 30.0, scratch)
+	b.mTick -= dt
+	var tick: bool = b.mTick <= 0.0
+	if tick: b.mTick = 0.4
+	for e in out2:
+		if e.hp <= 0: continue
+		var dx: float = b.x - e.x
+		var dy: float = b.y - e.y
+		var d := sqrt(dx * dx + dy * dy)
+		if d > R + e.radius: continue
+		if not e.isBoss and d > 6.0:
+			var pull: float = (190.0 + 140.0 * (1.0 - d / maxf(1.0, R))) * dt
+			e.x += dx / d * minf(pull, d - 4.0)
+			e.y += dy / d * minf(pull, d - 4.0)
+		if tick: Combat.apply_hit(g, e, b.dmg, atan2(-dy, -dx), 0, b.critAdd, false)
+	# içe akan yıldız tozu
+	if g.in_view(b.x, b.y, R) and randf() < dt * 40.0:
+		var an := randf() * TAU
+		var rr2 := R * (0.8 + randf() * 0.3)
+		var sp := 260.0
+		g.pools.particles.take().setup(b.x + cos(an) * rr2, b.y + sin(an) * rr2 * 0.62, -cos(an) * sp, -sin(an) * sp * 0.62,
+			0.35, 2.4, "#c08aff" if randf() < 0.6 else "#ffffff", 0.97, 0, true)
+	if b.life <= 0.0:
+		g.explode(b.x, b.y, b.dmg * 2.0, R * 0.95, true)
+		if b.split > 0: spawn_split(b)
+		g.spawn_burst(b.x, b.y, "#b46cff", 22, 300, 3.2, 0.6, true)
+		g.spawn_burst(b.x, b.y, "#1a0a2a", 14, 200, 3.4, 0.7, false)
+		g.pools.rings.take().setup(b.x, b.y, R * 1.3, 0.45, "#c08aff")
+		if g.renderer3d: g.renderer3d.spawn_hit(b.x, b.y, 0, 2, 0.75, 0.45, 1.0)
+		g.add_shake(0.14)
+		g.audio.play("ulthit")
+		return true
+	return false
+
+func _mine_boom(b) -> void:
+	var g = game
+	var R: float = b.mR
+	g.explode(b.x, b.y, b.dmg, R, true)
+	if b.mHold > 0.0:
+		for e in g.enemies.query_circle(b.x, b.y, R + 30.0, scratch):
+			if e.hp <= 0 or e.isBoss: continue
+			var dx: float = e.x - b.x
+			var dy: float = e.y - b.y
+			if dx * dx + dy * dy <= (R + e.radius) * (R + e.radius):
+				e.stopT = maxf(e.stopT, b.mHold)
+				e.stopMv = true
+	g.spawn_burst(b.x, b.y, "#ffb04a", 12, 260, 3.0, 0.45, true)
+	g.spawn_burst(b.x, b.y, "#5a4a3a", 8, 180, 3.2, 0.6, false)
+	g.pools.rings.take().setup(b.x, b.y, R * 1.15, 0.35, "#ffd08a")
+	if g.renderer3d: g.renderer3d.spawn_flame_impact(b.x, b.y, 0.0, 1.2)
+	g.audio.play("minepop")
+	if b.split > 0: spawn_split(b)
+
+## İP BAĞI (Kukla Ustası): en yakın düşmanlara parlak ipler bağlanır; aralıklı hasar + yavaşlatma,
+## ölen düşmanın ipi bir sonrakine atlar. tetherPts: çizici için [kaynak, hedef] çiftleri
+var tethers: Array = []
+var tetherPts := PackedVector2Array()
+func update_tether(id: String, dt: float) -> void:
+	var g = game
+	var p = g.player
+	var L := lvl(id) - 1
+	var Wd: Dictionary = W[id]
+	var rng: float = float(Wd.range[L]) if Wd.get("range") is Array else 260.0
+	var maxN: int = int(Wd.targets[L]) + int(wi(Wd, "targetsAdd")) if Wd.get("targets") is Array else 2
+	var src := floatPos if floatPos != Vector2.ZERO else Vector2(p.x, p.y)
+	# kopanları çıkar
+	var keep: Array = []
+	for t in tethers:
+		var e = t[0]
+		if e.hp <= 0 or e.aliveTok != t[1]: continue
+		var dx: float = e.x - p.x
+		var dy: float = e.y - p.y
+		if dx * dx + dy * dy > rng * rng * 1.69: continue
+		keep.append(t)
+	tethers = keep
+	if tethers.size() < maxN:
+		var cand = g.enemies.query_circle(p.x, p.y, rng, [])
+		cand = cand.filter(func(e): return e.hp > 0 and _vis(e) and not tethers.any(func(t): return t[0] == e))
+		cand.sort_custom(func(a, c): return (a.x - p.x) * (a.x - p.x) + (a.y - p.y) * (a.y - p.y) < (c.x - p.x) * (c.x - p.x) + (c.y - p.y) * (c.y - p.y))
+		for e in cand:
+			if tethers.size() >= maxN: break
+			tethers.append([e, e.aliveTok])
+			g.spawn_burst(e.x, e.y - 12, "#ff7ad8", 4, 120, 2.0, 0.25, true)
+	tetherPts.resize(0)
+	for t in tethers:
+		tetherPts.append(src); tetherPts.append(Vector2(t[0].x, t[0].y))
+	var tt: float = gunT.get(id, 0.0) - dt
+	if tt > 0.0 or tethers.is_empty():
+		gunT[id] = maxf(0.0, tt)
+		return
+	gunT[id] = Wd.cooldown[L] * p.atkMult
+	var dmg: float = float(Wd.dmg[L])
+	var slow := JS.num(Wd, "slow", 0.6) * (1.0 + 0.3 * wi(Wd, "slowAdd"))
+	for t in tethers:
+		var e = t[0]
+		e.slowT = maxf(e.slowT, slow)
+		Combat.apply_hit(g, e, dmg, atan2(e.y - src.y, e.x - src.x), 0, JS.num(Wd, "critAdd"), false)
+		if wi(Wd, "shock") > 0 and e.hp > 0 and randf() < 0.5:
+			g.explode(e.x, e.y, dmg * (0.35 + 0.1 * wi(Wd, "shock")), 26.0 + wi(Wd, "shock") * 6.0, true)
+		if randf() < 0.5: g.spawn_burst(e.x, e.y - 14, "#ffb0ec", 2, 90, 1.8, 0.22, true)
+	floatFireCount += 1
+	p.trigger_ranged_attack(atan2(tethers[0][0].y - p.y, tethers[0][0].x - p.x))
+	g.audio.play(str(Wd.get("sfx", "string")))
+
+var _execTxtT := 0.0
+func _exec_fx(e) -> void:
+	var g = game
+	g.spawn_burst(e.x, e.y - 14, "#ff2a3a", 10, 240, 3.0, 0.4, true)
+	g.spawn_burst(e.x, e.y - 14, "#2a0006", 6, 160, 3.2, 0.5, false)
+	if g.renderer3d: g.renderer3d.spawn_hit(e.x, e.y, 0.0, 2, 1.0, 0.2, 0.25)
+	var now: float = g.time
+	if now - _execTxtT > 0.6:
+		_execTxtT = now
+		g.spawn_text(e.x, e.y - 60, "İNFAZ", "#ff4a5a", 18, true)
 
 # ── PRİZMA KRİSTALİ: süzülen kristalden hedefe delici ışın; ışın düşmandan düşmana kırılıp seker ──
 func update_beam(id: String, dt: float) -> void:

@@ -104,7 +104,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0
-	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.thief = false; e.duelTok = 0
+	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.thief = false; e.duelTok = 0
 	e.thiefStep = 0
 	e.txt = null; e.txtT = -9
 	e.seed = randf() * 6.283
@@ -587,6 +587,9 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		if e.stopT > 0:
 			mvx *= 0.2; mvy *= 0.2
 		else: e.stopMv = false
+	if e.slowT > 0.0:
+		e.slowT -= dt
+		mvx *= 0.5; mvy *= 0.5
 	e.mvAmt = absf(mvx) + absf(mvy)
 	e.kx *= 0.86; e.ky *= 0.86
 	e.x += (mvx + e.kx) * dt

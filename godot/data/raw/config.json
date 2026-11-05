@@ -1366,6 +1366,162 @@
    },
    "emblem": "bolt",
    "sigDmg": 0.98
+  },
+  "tuzakci": {
+   "id": "tuzakci",
+   "rarity": 1,
+   "name": "TUZAKÇI",
+   "title": "Kapan Ustası",
+   "price": 4500,
+   "stonePrice": 150,
+   "style": "ranged",
+   "startWeapon": "tuzak",
+   "lore": "Kızıl Ay'ın ilk avcılarından biri; yaratıkları kovalamaz, onları bekler. Dikenli mayınlarını sürünün yoluna serper, sonra arkasına yaslanıp patlamaları sayar.",
+   "mods": {
+    "maxHp": 10,
+    "armor": 1,
+    "dmgPct": 0.02
+   },
+   "perks": [
+    "İmza: Dikenli Mayın — yanında süzülen ayı kapanı",
+    "Sürünün yoluna mayın fırlatır; üstüne basan patlar ve yerine çivilenir",
+    "Azami can +10, zırh +1, hasar +%2",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#5a3a22",
+    "hood": "#7a5a3a",
+    "eye": "#ffd08a",
+    "emblem": "#ff8a2a",
+    "rim": "rgba(255,138,42,0.45)"
+   },
+   "emblem": "shield",
+   "sigDmg": 0.24
+  },
+  "barutcu": {
+   "id": "barutcu",
+   "rarity": 2,
+   "name": "BARUTÇU",
+   "title": "Kara Barut",
+   "price": 15600,
+   "stonePrice": 460,
+   "style": "ranged",
+   "startWeapon": "barut",
+   "lore": "Limanlar yanarken barut fıçılarının üstünde dans eden korsan kızı. Geniş ağızlı tüfeği yakın mesafede bir duvar gibi patlar; arkasında yalnız duman ve sessizlik kalır.",
+   "mods": {
+    "dmgPct": 0.06,
+    "atkPct": 0.04,
+    "maxHp": 4
+   },
+   "perks": [
+    "İmza: Geniş Namlu — yanında süzülen pirinç tüfek",
+    "Yakın mesafede saçma yelpazesi; sürüyü geri savurur",
+    "Hasar +%6, saldırı hızı +%4, azami can +4",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#5a1014",
+    "hood": "#1a0a0a",
+    "eye": "#ffb04a",
+    "emblem": "#ff5a1a",
+    "rim": "rgba(255,90,26,0.5)"
+   },
+   "emblem": "flame",
+   "sigDmg": 2.0
+  },
+  "kukla": {
+   "id": "kukla",
+   "rarity": 3,
+   "name": "KUKLA USTASI",
+   "title": "İpler Hanımı",
+   "price": 42000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "ip",
+   "lore": "Terk edilmiş bir tiyatronun son oyuncusu. Kızıl Ay'da sahneye çıkan yaratıkları ipleriyle bağlar; onlar kıpırdadıkça ipler daha da sıkılır.",
+   "mods": {
+    "dmgPct": 0.08,
+    "atkPct": 0.05,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: Makara Haçı — yanında süzülen kukla makarası",
+    "Parlak iplerle birkaç düşmanı bağlar: sürekli hasar + yavaşlatma",
+    "Hasar +%8, saldırı hızı +%5, azami can +6",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#3a1430",
+    "hood": "#5a1a4a",
+    "eye": "#ff9ae8",
+    "emblem": "#ff5ad0",
+    "rim": "rgba(255,90,208,0.5)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 1.35
+  },
+  "cellat": {
+   "id": "cellat",
+   "rarity": 3,
+   "name": "CELLAT",
+   "title": "Son Hüküm",
+   "price": 42000,
+   "stonePrice": 1100,
+   "style": "melee",
+   "startWeapon": "satir",
+   "lore": "Kalenin cellatı, hükmü veren değil uygulayan. Kızıl Ay'da hüküm herkese çıktı; o da dev satırını omzuna aldı. Yarı ölüleri tek darbede bitirir.",
+   "mods": {
+    "dmgPct": 0.1,
+    "maxHp": 14,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: İnfaz Satırı — yanında süzülen kızıl ağızlı dev satır",
+    "Ağır savuruş; canı azalmış düşmanı tek vuruşta infaz eder",
+    "Hasar +%10, azami can +14, zırh +1",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#1a1414",
+    "hood": "#0a0808",
+    "eye": "#ff3a4a",
+    "emblem": "#d81a2a",
+    "rim": "rgba(216,26,42,0.5)"
+   },
+   "emblem": "skull",
+   "sigDmg": 0.64
+  },
+  "karadelik": {
+   "id": "karadelik",
+   "rarity": 4,
+   "name": "KARA DELİK CADISI",
+   "title": "Boşluğun Kızı",
+   "price": 102000,
+   "stonePrice": 2500,
+   "style": "ranged",
+   "startWeapon": "kuyu",
+   "lore": "Yıldızların arasındaki karanlığı dinledi ve karanlık ona cevap verdi. Elinde dönen boşluk küresi ışığı bile yutar; açtığı kuyular sürüyü içine çekip ezer.",
+   "mods": {
+    "dmgPct": 0.15,
+    "critChance": 0.05,
+    "atkPct": 0.05,
+    "maxHp": 8
+   },
+   "perks": [
+    "İmza: Boşluk Küresi — yanında süzülen kara küre",
+    "Hedefe çekim kuyusu açar: çeker, ezer, sonunda içe çöker",
+    "Hasar +%15, kritik +%5, saldırı hızı +%5, azami can +8",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#140a24",
+    "hood": "#1a0a3a",
+    "eye": "#c08aff",
+    "emblem": "#9a5aff",
+    "rim": "rgba(154,90,255,0.55)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.135
   }
  },
  "CHAR_CARD_REQ": [
@@ -5763,6 +5919,635 @@
     "myth": true,
     "glyph": "yikici"
    }
+  ],
+  "tuzakci": [
+   {
+    "id": "sig_tz1",
+    "name": "Keskin Dişler",
+    "desc": "Mayın hasarı +%15.",
+    "boost": {
+     "weapon": "tuzak",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_tz2",
+    "name": "Hızlı Kurulum",
+    "desc": "Mayın %10 daha sık fırlar.",
+    "boost": {
+     "weapon": "tuzak",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_tz3",
+    "name": "Geniş Patlama",
+    "desc": "Patlama alanı %12 büyür.",
+    "boost": {
+     "weapon": "tuzak",
+     "areaAdd": 1
+    }
+   },
+   {
+    "id": "sig_tz4",
+    "name": "Ağır Kapan",
+    "desc": "Hasar +%10, çivileme uzar.",
+    "boost": {
+     "weapon": "tuzak",
+     "dmg": 1.1,
+     "hold": 1.3
+    }
+   },
+   {
+    "id": "sig_tz5",
+    "name": "Uzun Atış",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "tuzak",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_tz6",
+    "name": "Avcı Sezgisi",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "tuzak",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_tz7",
+    "name": "Çifte Kapan",
+    "desc": "Her atışta bir mayın daha.",
+    "boost": {
+     "weapon": "tuzak",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_tz8",
+    "name": "Kıymık Mayın",
+    "desc": "Patlayan mayın keskin kıymıklar saçar.",
+    "boost": {
+     "weapon": "tuzak",
+     "splitAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sacilan",
+    "max": 3
+   },
+   {
+    "id": "sig_tz9",
+    "name": "Mayın Yağmuru",
+    "desc": "Düzenli atışlarda hedefin üstüne mayınlar yağar.",
+    "boost": {
+     "weapon": "tuzak",
+     "rainAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur",
+    "max": 3
+   },
+   {
+    "id": "sig_tz10",
+    "name": "Sabırlı Avcı",
+    "desc": "Mayınlar %20 daha uzun kurulu kalır.",
+    "boost": {
+     "weapon": "tuzak",
+     "lifeAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "nobet",
+    "max": 3
+   },
+   {
+    "id": "sig_tz11",
+    "name": "Ölüm Tarlası",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "tuzak",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "barutcu": [
+   {
+    "id": "sig_br1",
+    "name": "İnce Barut",
+    "desc": "Saçma hasarı +%15.",
+    "boost": {
+     "weapon": "barut",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_br2",
+    "name": "Hızlı Dolum",
+    "desc": "Tüfek %10 daha sık ateşler.",
+    "boost": {
+     "weapon": "barut",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_br3",
+    "name": "Sıkı Namlu",
+    "desc": "Yelpaze %20 daralır, saçma daha uzağa gider.",
+    "boost": {
+     "weapon": "barut",
+     "spreadMul": 0.8,
+     "life": 1.15
+    }
+   },
+   {
+    "id": "sig_br4",
+    "name": "Ağır Saçma",
+    "desc": "Hasar +%10, geri itme +%25.",
+    "boost": {
+     "weapon": "barut",
+     "dmg": 1.1,
+     "knock": 1.25
+    }
+   },
+   {
+    "id": "sig_br5",
+    "name": "Kurşun Saçma",
+    "desc": "Saçmalar bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "barut",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_br6",
+    "name": "Korsan Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "barut",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_br7",
+    "name": "Çifte Dolgu",
+    "desc": "Her atışta 2 saçma daha.",
+    "boost": {
+     "weapon": "barut",
+     "volley": 2
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ciftnamlu",
+    "max": 2
+   },
+   {
+    "id": "sig_br8",
+    "name": "Alevli Barut",
+    "desc": "Saçmalar tutuşur, yakarak hasar verir.",
+    "boost": {
+     "weapon": "barut",
+     "flame": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "cehennem",
+    "max": 3
+   },
+   {
+    "id": "sig_br9",
+    "name": "Barut Fıçısı",
+    "desc": "Saçma isabetinde küçük patlama.",
+    "boost": {
+     "weapon": "barut",
+     "explodeAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "barutfici",
+    "max": 3
+   },
+   {
+    "id": "sig_br10",
+    "name": "Topçu Kanı",
+    "desc": "Hasar +%20, geri itme +%20.",
+    "boost": {
+     "weapon": "barut",
+     "dmg": 1.2,
+     "knock": 1.2
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "gulle",
+    "max": 3
+   },
+   {
+    "id": "sig_br11",
+    "name": "Kara Barut",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "barut",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "kukla": [
+   {
+    "id": "sig_kk1",
+    "name": "Keskin İp",
+    "desc": "İp hasarı +%15.",
+    "boost": {
+     "weapon": "ip",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_kk2",
+    "name": "Hızlı Parmaklar",
+    "desc": "İpler %10 daha sık çeker.",
+    "boost": {
+     "weapon": "ip",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_kk3",
+    "name": "Uzun İpler",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "ip",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_kk4",
+    "name": "Sıkı Düğüm",
+    "desc": "Yavaşlatma %30 uzar, hasar +%6.",
+    "boost": {
+     "weapon": "ip",
+     "slowAdd": 1,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_kk5",
+    "name": "İnce Dikiş",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "ip",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_kk6",
+    "name": "Gergin Sahne",
+    "desc": "Hasar +%10, menzil +%6.",
+    "boost": {
+     "weapon": "ip",
+     "dmg": 1.1,
+     "range": 1.06
+    }
+   },
+   {
+    "id": "sig_kk7",
+    "name": "Yeni Kukla",
+    "desc": "Bir düşman daha bağlanır.",
+    "boost": {
+     "weapon": "ip",
+     "targetsAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "zincir",
+    "max": 3
+   },
+   {
+    "id": "sig_kk8",
+    "name": "Kopan İp",
+    "desc": "İpler çekerken küçük patlamalar yapar.",
+    "boost": {
+     "weapon": "ip",
+     "shockAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlama",
+    "max": 3
+   },
+   {
+    "id": "sig_kk9",
+    "name": "Kukla Ordusu",
+    "desc": "İki düşman daha bağlanır.",
+    "boost": {
+     "weapon": "ip",
+     "targetsAdd": 2
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "salvo",
+    "max": 2
+   },
+   {
+    "id": "sig_kk10",
+    "name": "Ölüm Dansı",
+    "desc": "İp hasarı +%25, yavaşlatma uzar.",
+    "boost": {
+     "weapon": "ip",
+     "dmg": 1.25,
+     "slowAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_kk11",
+    "name": "Perde İner",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "ip",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "cellat": [
+   {
+    "id": "sig_cl1",
+    "name": "Bilenmiş Satır",
+    "desc": "Satır hasarı +%15.",
+    "boost": {
+     "weapon": "satir",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_cl2",
+    "name": "Hızlı Hüküm",
+    "desc": "Satır %10 daha sık savrulur.",
+    "boost": {
+     "weapon": "satir",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_cl3",
+    "name": "Geniş Savuruş",
+    "desc": "Savuruş yayı %15 genişler.",
+    "boost": {
+     "weapon": "satir",
+     "arc": 1.15
+    }
+   },
+   {
+    "id": "sig_cl4",
+    "name": "Demir Kol",
+    "desc": "Geri itme +%25, hasar +%6.",
+    "boost": {
+     "weapon": "satir",
+     "knock": 1.25,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_cl5",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%10, hasar +%5.",
+    "boost": {
+     "weapon": "satir",
+     "range": 1.1,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_cl6",
+    "name": "Cellat Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "satir",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_cl7",
+    "name": "Acımasız Hüküm",
+    "desc": "İnfaz eşiği %25 yükselir.",
+    "boost": {
+     "weapon": "satir",
+     "execAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 3
+   },
+   {
+    "id": "sig_cl8",
+    "name": "Yer Yarığı",
+    "desc": "Darbe yerde kızıl bir yarık açar.",
+    "boost": {
+     "weapon": "satir",
+     "shockAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sarsinti",
+    "max": 3
+   },
+   {
+    "id": "sig_cl9",
+    "name": "Kanlı Dalga",
+    "desc": "Her savuruş ileri kızıl bir dalga salar.",
+    "boost": {
+     "weapon": "satir",
+     "waveAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kesik",
+    "max": 2
+   },
+   {
+    "id": "sig_cl10",
+    "name": "Kesin Hüküm",
+    "desc": "İnfaz eşiği %50 yükselir, hasar +%10.",
+    "boost": {
+     "weapon": "satir",
+     "execAdd": 2,
+     "dmg": 1.1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "tacnisan",
+    "max": 2
+   },
+   {
+    "id": "sig_cl11",
+    "name": "Son Söz",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "satir",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci",
+    "max": 5
+   }
+  ],
+  "karadelik": [
+   {
+    "id": "sig_kd1",
+    "name": "Derin Boşluk",
+    "desc": "Kuyu hasarı +%15.",
+    "boost": {
+     "weapon": "kuyu",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_kd2",
+    "name": "Hızlı Çağrı",
+    "desc": "Kuyu %10 daha sık açılır.",
+    "boost": {
+     "weapon": "kuyu",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_kd3",
+    "name": "Olay Ufku",
+    "desc": "Kuyu alanı %12 büyür.",
+    "boost": {
+     "weapon": "kuyu",
+     "areaAdd": 1
+    }
+   },
+   {
+    "id": "sig_kd4",
+    "name": "Sonsuz Çekim",
+    "desc": "Kuyu %20 daha uzun açık kalır.",
+    "boost": {
+     "weapon": "kuyu",
+     "lifeAdd": 1
+    }
+   },
+   {
+    "id": "sig_kd5",
+    "name": "Yıldız Tozu",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kuyu",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_kd6",
+    "name": "Uzak Gök",
+    "desc": "Menzil +%15, hasar +%5.",
+    "boost": {
+     "weapon": "kuyu",
+     "range": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_kd7",
+    "name": "İkiz Kuyu",
+    "desc": "Her salışta bir kuyu daha açılır.",
+    "boost": {
+     "weapon": "kuyu",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_kd8",
+    "name": "Süpernova",
+    "desc": "Çöken kuyu kıymık yıldızlar saçar.",
+    "boost": {
+     "weapon": "kuyu",
+     "splitAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nova",
+    "max": 3
+   },
+   {
+    "id": "sig_kd9",
+    "name": "Kara Yağmur",
+    "desc": "Düzenli salışlarda gökten boşluk küreleri düşer.",
+    "boost": {
+     "weapon": "kuyu",
+     "rainAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur",
+    "max": 3
+   },
+   {
+    "id": "sig_kd10",
+    "name": "Dev Ufuk",
+    "desc": "Kuyu alanı %24 büyür, hasar +%10.",
+    "boost": {
+     "weapon": "kuyu",
+     "areaAdd": 2,
+     "dmg": 1.1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 2
+   },
+   {
+    "id": "sig_kd11",
+    "name": "Evrenin Sonu",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "kuyu",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
   ]
  },
  "SPECIAL_PERKS": [
@@ -7758,6 +8543,318 @@
    "bounce": 0,
    "rain": 0,
    "homing": 2,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "tuzak": {
+   "name": "Dikenli Mayın",
+   "kind": "gun",
+   "class": "celik",
+   "floatVisual": true,
+   "mine": true,
+   "sfx": "trapthrow",
+   "descNew": "Tuzakçı'nın yanında süzülen ayı kapanı — sürünün yoluna dikenli mayın fırlatır; üstüne basan patlar ve yerine çivilenir.",
+   "descUp": [
+    "Hasar +, patlama büyür",
+    "Daha sık fırlatır",
+    "İkinci mayın",
+    "Hasar +, çivileme uzar"
+   ],
+   "dmg": [
+    30,
+    40,
+    54,
+    72,
+    95
+   ],
+   "pierce": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cooldown": [
+    1.25,
+    1.15,
+    1.05,
+    0.97,
+    0.9
+   ],
+   "speed": 480,
+   "volley": [
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "spread": 0.4,
+   "bulletLife": 4.5,
+   "range": [
+    320,
+    330,
+    340,
+    350,
+    360
+   ],
+   "areaR": [
+    56,
+    60,
+    64,
+    68,
+    74
+   ],
+   "hold": 0.6,
+   "color": "#ff8a2a",
+   "rainColor": "#ffd08a",
+   "r": 10,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "barut": {
+   "name": "Geniş Namlu",
+   "kind": "gun",
+   "class": "kor",
+   "floatVisual": true,
+   "metallic": true,
+   "sfx": "blunder",
+   "descNew": "Barutçu'nun yanında süzülen geniş ağızlı tüfek — yakın mesafede saçma yelpazesi patlatır, sürüyü geri savurur.",
+   "descUp": [
+    "Hasar +, +1 saçma",
+    "Daha çabuk doldurur",
+    "+1 delme, hasar +",
+    "+2 saçma, hasar +"
+   ],
+   "dmg": [
+    9,
+    12,
+    16,
+    21,
+    28
+   ],
+   "pierce": [
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "cooldown": [
+    1.1,
+    1.0,
+    0.92,
+    0.85,
+    0.78
+   ],
+   "speed": 860,
+   "volley": [
+    6,
+    7,
+    7,
+    7,
+    9
+   ],
+   "spread": 0.1,
+   "bulletLife": 0.38,
+   "range": [
+    250,
+    255,
+    260,
+    265,
+    275
+   ],
+   "color": "#ffd08a",
+   "rainColor": "#ffb04a",
+   "r": 4,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "knock": 280
+  },
+  "ip": {
+   "name": "Makara Haçı",
+   "kind": "tether",
+   "class": "ruh",
+   "floatVisual": true,
+   "sfx": "string",
+   "descNew": "Kukla Ustası'nın yanında süzülen makara — parlak iplerle birkaç düşmanı bağlar; bağlılar sürekli hasar alır ve yavaşlar.",
+   "descUp": [
+    "Hasar +, +1 ip",
+    "Daha sık çeker",
+    "Hasar +, menzil +",
+    "+1 ip, hasar +"
+   ],
+   "dmg": [
+    9,
+    12,
+    16,
+    21,
+    28
+   ],
+   "targets": [
+    2,
+    3,
+    3,
+    3,
+    4
+   ],
+   "cooldown": [
+    0.42,
+    0.4,
+    0.38,
+    0.36,
+    0.34
+   ],
+   "range": [
+    250,
+    260,
+    270,
+    285,
+    300
+   ],
+   "slow": 0.6,
+   "color": "#ff7ad8",
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "satir": {
+   "name": "İnfaz Satırı",
+   "melee": true,
+   "sfx": "cleave",
+   "descNew": "Cellat'ın yanında süzülen dev satır — ağır savurur, canı azalmış düşmanı tek vuruşta infaz eder.",
+   "descUp": [
+    "Hasar +, infaz eşiği +",
+    "Daha çabuk savurur",
+    "Hasar +, geri itme +",
+    "Ağır hüküm, infaz eşiği +"
+   ],
+   "dmg": [
+    32,
+    43,
+    58,
+    77,
+    100
+   ],
+   "cooldown": [
+    1.3,
+    1.2,
+    1.1,
+    1.0,
+    0.92
+   ],
+   "range": [
+    130,
+    134,
+    138,
+    144,
+    150
+   ],
+   "arc": [
+    2.1,
+    2.1,
+    2.1,
+    2.1,
+    2.1
+   ],
+   "knock": [
+    420,
+    450,
+    480,
+    520,
+    570
+   ],
+   "execute": [
+    0.16,
+    0.18,
+    0.2,
+    0.22,
+    0.25
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kuyu": {
+   "name": "Boşluk Küresi",
+   "kind": "gun",
+   "class": "ruh",
+   "floatVisual": true,
+   "well": true,
+   "sfx": "void",
+   "descNew": "Kara Delik Cadısı'nın yanında süzülen boşluk küresi — hedefe çekim kuyusu açar; sürüyü çeker, ezer, sonunda içe çöker.",
+   "descUp": [
+    "Hasar +, kuyu büyür",
+    "Daha sık açar",
+    "Hasar +, kuyu uzun sürer",
+    "İkinci kuyu"
+   ],
+   "dmg": [
+    13,
+    18,
+    24,
+    32,
+    42
+   ],
+   "pierce": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "cooldown": [
+    2.6,
+    2.45,
+    2.3,
+    2.15,
+    2.0
+   ],
+   "speed": 520,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.5,
+   "bulletLife": 2.2,
+   "range": [
+    340,
+    350,
+    360,
+    370,
+    380
+   ],
+   "areaR": [
+    105,
+    112,
+    120,
+    128,
+    138
+   ],
+   "color": "#9a5aff",
+   "rainColor": "#e0c8ff",
+   "r": 10,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
    "critAdd": 0,
    "critMultAdd": 0
   }
