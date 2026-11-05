@@ -87,7 +87,16 @@ static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D)
 		bn.draw.connect(func(): _draw_pill(bn, r, bc))
 		parent.add_child(bn)
 		var fz := 16.0 if r.size.y >= 32 else 13.0
-		_txt(parent, lbl, fz, INK if bc == YEL else Color.WHITE, 1.0, Vector2(r.position.x, r.position.y + (r.size.y - fz * 1.25) * 0.5), r.size.x, "" if bc == YEL else UIK.ink_stroke(1.2, 1.4))
+		var tc := INK if bc == YEL else Color.WHITE
+		var tsh := "" if bc == YEL else UIK.ink_stroke(1.2, 1.4)
+		var tt := _txt(parent, lbl, fz, tc, 1.0, Vector2(r.position.x, r.position.y + (r.size.y - fz * 1.25) * 0.5), r.size.x, tsh)
+		# dar düğmede (yan yana iki düğme) yazı sığana kadar küçülür
+		var gd := 0
+		while tt.text_width() > r.size.x - 8.0 and fz > 8.0 and gd < 8:
+			fz -= 1.0
+			gd += 1
+			tt.style(false, 1000, fz, 0.4, tc, tsh)
+			tt.position.y = r.position.y + (r.size.y - fz * 1.25) * 0.5
 
 static func _txt(parent: Node2D, s: String, sz: float, col: Color, ls: float, pos: Vector2, w: float, sh := "") -> UIText:
 	var t := UIText.new()
@@ -101,111 +110,142 @@ static func _txt(parent: Node2D, s: String, sz: float, col: Color, ls: float, po
 	parent.add_child(t)
 	return t
 
+## kart gövdesi tek üçgen ağında (TriBatch): eskiden her daire/ışın/kutu ayrı çizim çağrısıydı
+## (kart başına ~115 çağrı, çanta ~800) ve uyumluluk çizicisinde dokunuşlarda kare düşürüyordu.
+## Dış kenarlara 1 px saydamlaşan kuşak eklenir (kenar yumuşatma — görüntü eskisiyle aynı).
 static func _draw_body(n: Node2D, w: float, h: float, col: Color, ic: Vector2, info: Dictionary) -> void:
+	var B := TriBatch.new()
 	var rr := Rect2(0, 0, w, h)
 	var locked: bool = info.locked
 	var sel: bool = info.sel
 	var dark := col.darkened(0.5)
 	var lite := col.lightened(0.35)
-	if sel:
-		# seçili: sarı ışıma halkası
-		var gl := StyleBoxFlat.new()
-		gl.bg_color = Color(YEL, 0.35)
-		gl.set_corner_radius_all(16)
-		n.draw_style_box(gl, rr.grow(5))
-	var sh := StyleBoxFlat.new()
-	sh.bg_color = INK
-	sh.set_corner_radius_all(11)
-	n.draw_style_box(sh, Rect2(Vector2(3, 5), rr.size))
-	var b := StyleBoxFlat.new()
-	b.bg_color = col
-	b.set_corner_radius_all(11)
-	n.draw_style_box(b, rr)
+	if sel: fill_rr(B, rr.grow(5), 16, Color(YEL, 0.35))
+	fill_rr(B, Rect2(Vector2(3, 5), rr.size), 11, INK)
+	fill_rr(B, rr, 11, col)
 	var box := PackedVector2Array([Vector2(3, 3), Vector2(w - 3, 3), Vector2(w - 3, h - 3), Vector2(3, h - 3)])
+	var rc := Color(lite, 0.22 if locked else 0.5)
 	for i in 14:
 		var a := i * TAU / 14.0
 		var tri := PackedVector2Array([ic, ic + Vector2(cos(a - 0.12), sin(a - 0.12)) * w * 1.4, ic + Vector2(cos(a + 0.12), sin(a + 0.12)) * w * 1.4])
 		for q in Geometry2D.intersect_polygons(tri, box):
-			if q.size() >= 3: n.draw_colored_polygon(q, Color(lite, 0.22 if locked else 0.5))
+			if q.size() >= 3: B.poly(q, rc)
 	# yarım ton (alt)
+	var hc := Color(dark, 0.4)
 	for yy in 7:
 		for xx in 12:
 			var p := Vector2(6 + xx * 9.0 + (4.5 if yy % 2 else 0.0), 96 + yy * 9.0)
-			if p.x < w - 5 and p.y < h - 5: n.draw_circle(p, 0.6 + yy * 0.32, Color(dark, 0.4))
+			if p.x < w - 5 and p.y < h - 5: B.circle(p, 0.6 + yy * 0.32, hc, 6 if yy < 3 else 8)
 	# madalyon
 	var mr := 36.0
-	n.draw_circle(ic + Vector2(3, 4), mr, INK)
-	n.draw_circle(ic, mr, INK)
-	n.draw_circle(ic, mr - 4, Color("#3c3646") if locked else Color("#fffaf0"))
+	disc(B, ic + Vector2(3, 4), mr, INK)
+	disc(B, ic, mr, INK)
+	disc(B, ic, mr - 4, Color("#3c3646") if locked else Color("#fffaf0"))
 	if not locked:
-		n.draw_arc(ic, mr - 4, PI * 0.1, PI * 0.9, 18, Color(col, 0.4), 6.0, true)
-		n.draw_circle(ic + Vector2(-13, -15), 5.5, Color(1, 1, 1, 0.9))
+		arc(B, ic, mr - 4, PI * 0.1, PI * 0.9, 6.0, Color(col, 0.4))
+		disc(B, ic + Vector2(-13, -15), 5.5, Color(1, 1, 1, 0.9))
 	# ad şeridi
-	n.draw_colored_polygon(PackedVector2Array([Vector2(2, 99), Vector2(w - 2, 96), Vector2(w - 2, 118), Vector2(2, 120)]), Color(INK, 0.85))
+	B.poly(PackedVector2Array([Vector2(2, 99), Vector2(w - 2, 96), Vector2(w - 2, 118), Vector2(2, 120)]), Color(INK, 0.85))
 	# nadirlik elmasları
 	var rk: int = info.rk
 	for j in 5:
 		var q := Vector2(w * 0.5 + (j - 2) * 11.0, 128)
-		n.draw_colored_polygon(PackedVector2Array([q + Vector2(0, -5.5), q + Vector2(5.5, 0), q + Vector2(0, 5.5), q + Vector2(-5.5, 0)]), INK)
+		B.poly(PackedVector2Array([q + Vector2(0, -5.5), q + Vector2(5.5, 0), q + Vector2(0, 5.5), q + Vector2(-5.5, 0)]), INK)
 		var on := j < rk
-		n.draw_colored_polygon(PackedVector2Array([q + Vector2(0, -3), q + Vector2(3, 0), q + Vector2(0, 3), q + Vector2(-3, 0)]), (Color.WHITE if on else Color("#3a3444")) if not locked else Color("#5a5060"))
+		B.poly(PackedVector2Array([q + Vector2(0, -3), q + Vector2(3, 0), q + Vector2(0, 3), q + Vector2(-3, 0)]), (Color.WHITE if on else Color("#3a3444")) if not locked else Color("#5a5060"))
 	# ilerleme çubuğu
 	if not locked:
 		var br := Rect2(7, h - 21, w - 14, 15)
-		var bs := StyleBoxFlat.new()
-		bs.bg_color = Color("#241d2c")
-		bs.set_corner_radius_all(7)
-		bs.set_border_width_all(2)
-		bs.border_color = INK
-		n.draw_style_box(bs, br)
+		fill_rr(B, br, 7, INK)
+		fill_rr(B, br.grow(-2), 5, Color("#241d2c"), false)
 		var need = info.need
 		var k := 1.0 if need == null else clampf(float(info.cards) / maxf(1.0, float(need)), 0.0, 1.0)
 		if k > 0.02:
 			var fc := YEL if need == null or k >= 1.0 else GREEN
-			var fs := StyleBoxFlat.new()
-			fs.bg_color = fc
-			fs.set_corner_radius_all(5)
-			n.draw_style_box(fs, Rect2(br.position + Vector2(2, 2), Vector2(maxf(10.0, (br.size.x - 4) * k), br.size.y - 4)))
-			n.draw_line(br.position + Vector2(6, 4.5), br.position + Vector2(maxf(8.0, (br.size.x - 4) * k - 2), 4.5), Color(1, 1, 1, 0.45), 2.0)
+			fill_rr(B, Rect2(br.position + Vector2(2, 2), Vector2(maxf(10.0, (br.size.x - 4) * k), br.size.y - 4)), 5, fc)
+			B.rect(Rect2(br.position + Vector2(6, 3.5), Vector2(maxf(2.0, (br.size.x - 4) * k - 8), 2)), Color(1, 1, 1, 0.45))
 	# dış kontur
-	var o := StyleBoxFlat.new()
-	o.bg_color = Color(0, 0, 0, 0)
-	o.set_corner_radius_all(11)
-	o.set_border_width_all(4)
-	o.border_color = YEL if sel else INK
-	n.draw_style_box(o, rr)
-	if sel:
-		var o2 := StyleBoxFlat.new()
-		o2.bg_color = Color(0, 0, 0, 0)
-		o2.set_corner_radius_all(14)
-		o2.set_border_width_all(2)
-		o2.border_color = INK
-		n.draw_style_box(o2, rr.grow(2))
-	if info.on and not sel:
-		# kuşanılı: yeşil iç kontur
-		var o3 := StyleBoxFlat.new()
-		o3.bg_color = Color(0, 0, 0, 0)
-		o3.set_corner_radius_all(9)
-		o3.set_border_width_all(2)
-		o3.border_color = GREEN.lightened(0.2)
-		n.draw_style_box(o3, rr.grow(-4))
+	ring_rr(B, rr, 11, 4, YEL if sel else INK)
+	if sel: ring_rr(B, rr.grow(2), 14, 2, INK)
+	if info.on and not sel: ring_rr(B, rr.grow(-4), 9, 2, GREEN.lightened(0.2))
+	B.flush(n)
+
+# ── TriBatch şekil yardımcıları (kenar yumuşatma kuşaklı) ──
+
+static func rr_pts(r: Rect2, rad: float, seg := 6) -> PackedVector2Array:
+	var P := PackedVector2Array()
+	rad = clampf(rad, 0.0, minf(r.size.x, r.size.y) * 0.5)
+	var cs := [Vector2(r.end.x - rad, r.position.y + rad), Vector2(r.end.x - rad, r.end.y - rad), Vector2(r.position.x + rad, r.end.y - rad), Vector2(r.position.x + rad, r.position.y + rad)]
+	for ci in 4:
+		var a0 := -PI * 0.5 + ci * PI * 0.5
+		for i in seg + 1:
+			var a := a0 + PI * 0.5 * i / seg
+			P.append(cs[ci] + Vector2(cos(a), sin(a)) * rad)
+	return P
+
+static func _strip(B: TriBatch, A: PackedVector2Array, Bv: PackedVector2Array, ca: Color, cb: Color) -> void:
+	var n := A.size()
+	for i in n:
+		var j := (i + 1) % n
+		B.V.append(A[i]); B.V.append(A[j]); B.V.append(Bv[j])
+		B.C.append(ca); B.C.append(ca); B.C.append(cb)
+		B.V.append(A[i]); B.V.append(Bv[j]); B.V.append(Bv[i])
+		B.C.append(ca); B.C.append(cb); B.C.append(cb)
+
+static func fill_rr(B: TriBatch, r: Rect2, rad: float, c: Color, aa := true) -> void:
+	var P := rr_pts(r, rad)
+	B.fan(r.get_center(), P, c)
+	if aa: _strip(B, P, rr_pts(r.grow(1.0), rad + 1.0), c, Color(c, 0.0))
+
+static func ring_rr(B: TriBatch, r: Rect2, rad: float, wd: float, c: Color) -> void:
+	var O := rr_pts(r, rad)
+	var I := rr_pts(r.grow(-wd), maxf(0.0, rad - wd))
+	_strip(B, O, I, c, c)
+	_strip(B, rr_pts(r.grow(1.0), rad + 1.0), O, Color(c, 0.0), c)
+	_strip(B, I, rr_pts(r.grow(-wd - 1.0), maxf(0.0, rad - wd - 1.0)), c, Color(c, 0.0))
+
+static func disc(B: TriBatch, c: Vector2, r: float, col: Color) -> void:
+	var seg := clampi(int(r * 1.2), 12, 48)
+	var P := PackedVector2Array()
+	var Q := PackedVector2Array()
+	for i in seg:
+		var u := Vector2.from_angle(i * TAU / seg)
+		P.append(c + u * r)
+		Q.append(c + u * (r + 1.0))
+	B.fan(c, P, col)
+	_strip(B, P, Q, col, Color(col, 0.0))
+
+static func arc(B: TriBatch, c: Vector2, r: float, a0: float, a1: float, wd: float, col: Color, seg := 18) -> void:
+	for i in seg:
+		var u0 := Vector2.from_angle(lerpf(a0, a1, float(i) / seg))
+		var u1 := Vector2.from_angle(lerpf(a0, a1, float(i + 1) / seg))
+		var p0 := c + u0 * (r - wd * 0.5)
+		var p1 := c + u1 * (r - wd * 0.5)
+		var q0 := c + u0 * (r + wd * 0.5)
+		var q1 := c + u1 * (r + wd * 0.5)
+		B.V.append_array(PackedVector2Array([p0, p1, q1, p0, q1, q0]))
+		for k in 6: B.C.append(col)
 
 static func _draw_badge(n: Node2D, kind: String) -> void:
 	match kind:
 		"on":
-			n.draw_circle(Vector2(1.5, 2), 11, INK)
-			n.draw_circle(Vector2.ZERO, 11, INK)
-			n.draw_circle(Vector2.ZERO, 8.5, GREEN)
+			var B := TriBatch.new()
+			disc(B, Vector2(1.5, 2), 11, INK)
+			disc(B, Vector2.ZERO, 11, INK)
+			disc(B, Vector2.ZERO, 8.5, GREEN)
+			B.flush(n)
 			n.draw_polyline(PackedVector2Array([Vector2(-4.5, 0), Vector2(-1, 3.5), Vector2(5, -3.5)]), Color.WHITE, 3.0, true)
 		"ready":
 			ScrCeremony._star(n, Vector2.ZERO, 13, 9, 9, YEL, 2.0)
 			n.draw_colored_polygon(PackedVector2Array([Vector2(0, -7), Vector2(6, 0), Vector2(2, 0), Vector2(2, 6), Vector2(-2, 6), Vector2(-2, 0), Vector2(-6, 0)]), INK)
 		"up":
-			n.draw_circle(Vector2(1.5, 2), 10, INK)
-			n.draw_circle(Vector2.ZERO, 10, INK)
-			n.draw_circle(Vector2.ZERO, 7.5, GREEN)
-			n.draw_colored_polygon(PackedVector2Array([Vector2(0, -5.5), Vector2(5, 1), Vector2(-5, 1)]), Color.WHITE)
-			n.draw_rect(Rect2(-2, 0, 4, 5), Color.WHITE)
+			var B := TriBatch.new()
+			disc(B, Vector2(1.5, 2), 10, INK)
+			disc(B, Vector2.ZERO, 10, INK)
+			disc(B, Vector2.ZERO, 7.5, GREEN)
+			B.poly(PackedVector2Array([Vector2(0, -5.5), Vector2(5, 1), Vector2(-5, 1)]), Color.WHITE)
+			B.rect(Rect2(-2, 0, 4, 5), Color.WHITE)
+			B.flush(n)
 
 static func _draw_pill(n: Node2D, r: Rect2, c: Color) -> void:
 	var rad := int(r.size.y * 0.5)

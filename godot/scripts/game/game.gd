@@ -1243,7 +1243,8 @@ func can_upgrade_char(id) -> bool:
 	var need = cards_for_next(id)
 	if need == null: return false
 	return char_card_count(id) >= need and read_rubies() >= gold_for_next(id)
-func upgrade_char(id) -> bool:
+## quiet: ses + sayfa yenileme çağırana kalır (yükseltme töreni kendi zamanlamasıyla çalar)
+func upgrade_char(id, quiet := false) -> bool:
 	if not can_upgrade_char(id):
 		audio.play("error")
 		return false
@@ -1255,6 +1256,7 @@ func upgrade_char(id) -> bool:
 	meta.charCards[id] = char_card_count(id) - need
 	meta.charLevels[id] = char_level(id) + 1
 	save_meta()
+	if quiet: return true
 	audio.play("heroup")
 	ui.show_armory()
 	return true
@@ -1312,7 +1314,7 @@ func can_upgrade_gear(id) -> bool:
 	var need = cards_for_next_gear(id)
 	if need == null: return false
 	return gear_card_count(id) >= need and read_rubies() >= gold_for_next_gear(id)
-func upgrade_gear(id) -> bool:
+func upgrade_gear(id, quiet := false) -> bool:
 	if not can_upgrade_gear(id):
 		audio.play("error")
 		return false
@@ -1324,7 +1326,7 @@ func upgrade_gear(id) -> bool:
 	meta.gearCards[id] = gear_card_count(id) - need
 	meta.gearLevels[id] = gear_level(id) + 1
 	save_meta()
-	audio.play("levelup")
+	if not quiet: audio.play("levelup")
 	return true
 func add_gear_cards(id, n) -> bool:
 	if gear_by_id(id) == null or not (n > 0): return false

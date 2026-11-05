@@ -41,6 +41,7 @@ var sheet: ScrSheet
 var battlepass: ScrBattlePass
 var event_scr: ScrEvent
 var celebrate: ScrCelebrate
+var upfx: ScrUpFx
 var settings: ScrSettings
 var _gradeL: CanvasLayer
 var _grade: ColorRect
@@ -147,6 +148,8 @@ func _ready() -> void:
 	uiroot.add_child(event_scr)
 	celebrate = ScrCelebrate.new(g)
 	uiroot.add_child(celebrate)
+	upfx = ScrUpFx.new(g)
+	uiroot.add_child(upfx)
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
 	sheet = ScrSheet.new(g)
 	uiroot.add_child(sheet)
@@ -248,8 +251,15 @@ func boot() -> void:
 			var cid := ov.substr(4)
 			g.add_char_cards(cid, 300)
 			g.add_rubies(90000)
-			chardetail.open(cid)
-			chardetail._upgrade()
+			get_tree().create_timer(float(_arg("ovt", "0.1"))).timeout.connect(func():
+				chardetail.open(cid)
+				chardetail._upgrade())
+		elif ov.begins_with("upg:"):
+			# geliştirici: eşya yükseltme töreni — upg:<eşya id> (ovt=sn gecikme)
+			var gid := ov.substr(4)
+			g.add_gear_cards(gid, 300)
+			g.add_rubies(90000)
+			get_tree().create_timer(float(_arg("ovt", "0.1"))).timeout.connect(func(): menu.pages["cephane"]._upgrade(gid))
 		elif ov == "gift": celebrate.gift({"h": 6.5, "gold": 240, "chest": "ahsap", "full": false})
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
@@ -345,13 +355,18 @@ var _gest: Array = []
 ## geliştirici: her alt ağacı tek tek gizleyip çizim çağrısı düşüşünü ölçer — drawprobe=<kare>
 func _draw_probe() -> void:
 	var cands: Array = []
-	var st: Array = [[get_tree().root, 0]]
+	var r0: Node = get_tree().root
+	var sub := _arg("probesub")
+	if sub != "":
+		var f := get_tree().root.find_child(sub, true, false)
+		if f: r0 = f
+	var st: Array = [[r0, 0 if sub == "" else 2]]
 	while st.size():
 		var it: Array = st.pop_back()
 		var x: Node = it[0]
 		if x is CanvasItem and not (x as CanvasItem).visible: continue
 		if x is CanvasItem and int(it[1]) >= 2: cands.append(x)
-		if int(it[1]) < 9:
+		if int(it[1]) < (9 if sub == "" else 7):
 			for c in x.get_children(): st.append([c, int(it[1]) + (1 if x is CanvasItem else 0)])
 	var base := 0.0
 	for k in 3: await get_tree().process_frame
@@ -364,7 +379,7 @@ func _draw_probe() -> void:
 		await get_tree().process_frame
 		var d := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
 		(x as CanvasItem).visible = true
-		if base - d >= 40: res.append([base - d, str(x.get_path()).replace("/root/Main/UI/", ""), x.get_class()])
+		if base - d >= (40 if sub == "" else 15): res.append([base - d, str(x.get_path()).replace("/root/Main/UI/", ""), x.get_class()])
 	res.sort_custom(func(a, b): return a[0] > b[0])
 	print("PROBE base=", base, " cands=", cands.size())
 	for r in res.slice(0, 40): print("PROBE ", r[0], " ", r[2], " ", r[1])
@@ -548,6 +563,15 @@ func _process(_dt: float) -> void:
 			_gsI += 1
 			if _gsI >= L.size() and _arg("quit") != "": get_tree().quit()
 		return
+	# geliştirici: mshots=6.0,6.3,… — menüde duvar saatine göre çoklu kare (shot yolu + _i)
+	var ms := _arg("mshots", "")
+	if ms != "" and _shot != "":
+		var L2 := ms.split(",")
+		if _gsI < L2.size() and Time.get_ticks_msec() / 1000.0 - _t0 >= float(L2[_gsI]):
+			get_viewport().get_texture().get_image().save_png(_shot.replace(".png", "_" + str(_gsI) + ".png"))
+			_gsI += 1
+			if _gsI >= L2.size() and _arg("quit") != "": get_tree().quit()
+		return
 	if _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(_shot)
@@ -602,7 +626,7 @@ func show_menu() -> void:
 ## dönüş hediyesi: tören/katman/savaş sürerken bekler (üstlerine açılıp onları kilitlemesin)
 func _gift_when_free(G) -> void:
 	var busy: bool = g.state != "menu" or is_instance_valid(g.boot_screen) or (ceremony and ceremony.visible) or sheet.visible or chestinspect.visible \
-		or chestbuy.visible or celebrate.visible or quests.visible or battlepass.visible or event_scr.visible or settings.visible
+		or chestbuy.visible or celebrate.visible or (upfx != null and upfx.visible) or quests.visible or battlepass.visible or event_scr.visible or settings.visible
 	if busy:
 		get_tree().create_timer(0.5).timeout.connect(func(): _gift_when_free(G))
 		return
@@ -783,6 +807,9 @@ func _unhandled_input(ev: InputEvent) -> void:
 func handle_back() -> bool:
 	if gate and gate.visible: return true
 	if ceremony and ceremony.visible: return true
+	if upfx and upfx.visible:
+		if upfx._t > 0.9: upfx._close()
+		return true
 	if celebrate and celebrate.visible:
 		celebrate._close()
 		return true

@@ -46,6 +46,16 @@ func btn_top(L: Lyr, n: Lyr.N, cb: Callable, press_scale := 0.97, grow := 8.0) -
 func scroll_area(L: Lyr, n: Lyr.N) -> void:
 	if n and n.scroller: _scrolls.append({"lyr": L, "n": n})
 
+## tek düğümün düğmesini kaldır
+func unbtn_node(L: Lyr, n: Lyr.N) -> void:
+	for B in _btns.duplicate():
+		if B.lyr == L and B.n == n: _btns.erase(B)
+
+## son eklenen düğmenin elle verilen dokunma kutusu, düğümünün görünür (kaydırma
+## kırpılmış) dikdörtgeniyle de kesişsin
+func clip_last() -> void:
+	if _btns.size(): _btns[-1]["clipn"] = true
+
 ## bir katmanın düğmelerini kaldır (katman yeniden kurulurken)
 func unbtn(L: Lyr) -> void:
 	for B in _btns.duplicate():
@@ -100,6 +110,7 @@ func _rect(B: Dictionary) -> Rect2:
 	var L: Lyr = B.lyr
 	# hit: katman yerelinde elle verilen dokunma kutusu (çizim dönüşümüyle kayan düğümler için)
 	var r: Rect2 = B.hit if B.get("hit", Rect2()).has_area() else L.visible_rect_of(B.n)
+	if B.get("clipn", false): r = r.intersection(L.visible_rect_of(B.n))
 	if r.size.x <= 0 or r.size.y <= 0: return Rect2()
 	return _clip(L, (L.get_global_transform() * r).grow(B.grow))
 

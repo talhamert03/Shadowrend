@@ -33,6 +33,11 @@ func _init(m) -> void:
 	name = "Armory"
 
 func render() -> void:
+	Prof.s("armory.render")
+	_render_now()
+	Prof.t("armory.render")
+
+func _render_now() -> void:
 	if shell == null:
 		shell = Lyr.make("pg_cephane", SKIP)
 		add_child(shell)
@@ -51,15 +56,23 @@ func render() -> void:
 	_cardOf.clear()
 	_lazy.clear()
 	_pop = null
-	_decks()
+	Prof.s("ar.decks"); _decks(); Prof.t("ar.decks")
+	Prof.s("ar.slots")
 	var dy := _slots_and_stats()
+	Prof.t("ar.slots")
+	Prof.s("ar.bag")
 	_bag(dy)
+	Prof.t("ar.bag")
 
 # ═════════════ yardımcılar ═════════════
 
+## kart yakalamasının yalnız kökü + tepsi düğmeleri gerekir (görüntüyü GearCard çizer):
+## görsel alt ağaçlar hiç kurulmaz (kart başına ~1,7 ms → dokunuşta tüm çanta takılmasın)
+const CARD_SKIP := [".kc-art", ".kc-pips", ".kc-name", ".kc-bar", ".kc-lock", ".kc-badge", ".kc-on", ".kc-ready"]
+
 func _add(key: String, parent: Lyr.N, pos: Vector2) -> Lyr:
 	if not FileAccess.file_exists(Lyr.BASE + key + ".json"): return null
-	var C := Lyr.make(key)
+	var C := Lyr.make(key, CARD_SKIP if key.begins_with("kc") else [])
 	parent.host.add_child(C)
 	C.position = pos
 	_items.append(C)
@@ -463,6 +476,42 @@ func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 			elif k.contains(".out"):
 				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid))
 				info.acts.append([r, "ÇIKAR", Color("#e8463c")])
+		# geliştirilebilirse tepside GELİŞTİR: büyük düğme yerini alır, diğerleri alt sırada yan yana
+		if g.can_upgrade_gear(gid) and info.acts.size():
+			var big := -1
+			for j in info.acts.size():
+				if (info.acts[j][0] as Rect2).size.y >= 32.0: big = j
+			var low: Rect2 = info.acts[-1][0]
+			var up_r: Rect2
+			var rest: Array = []
+			if big >= 0:
+				up_r = info.acts[big][0]
+				for j in info.acts.size():
+					if j != big: rest.append(info.acts[j])
+				rest.push_front(info.acts[big])
+			else:
+				up_r = Rect2(low.position - Vector2(0, 36), Vector2(low.size.x, 32))
+				rest = info.acts.duplicate()
+			# alt sıra: kalan düğmeler low satırını eşit böler
+			var n := rest.size()
+			var gap := 4.0
+			var cw := (low.size.x - gap * (n - 1)) / n
+			var nacts: Array = [[up_r, "GELİŞTİR", GearCard.GREEN]]
+			for j in n:
+				var rr := Rect2(low.position + Vector2(j * (cw + gap), 0), Vector2(cw, low.size.y))
+				nacts.append([rr, rest[j][1], rest[j][2]])
+			info.acts = nacts
+			# dokunma alanları: yakalanan düğmeler yerine yeni dikdörtgenler (kart köküne göre)
+			for b in C.find_all(".kc-act"): menu.unbtn_node(C, b)
+			for a2 in nacts:
+				var lbl: String = a2[1]
+				var cb: Callable
+				if lbl == "GELİŞTİR": cb = func(): _upgrade(gid)
+				elif lbl == "İNCELE": cb = func(): g.audio.play("click"); g.ui.open_gear_detail(gid)
+				elif lbl == "KUŞAN": cb = func(): _equip(gid)
+				else: cb = func(): sel_id = ""; g.toggle_equip(gid)
+				menu.btn(C, root_n, cb, 1.0, 2.0, Rect2(o + (a2[0] as Rect2).position, (a2[0] as Rect2).size))
+				menu.clip_last()
 	GearCard.build(root_n.node, root_n.size, info, _gear_tex(str(x.icon)))
 	_cardOf[gid] = {"C": C, "args": [grid, x, locked, pos]}
 	return C
@@ -514,6 +563,21 @@ func _card_tap(id: String, locked: bool) -> void:
 	sel_id = id
 	_rebuild_card(old)
 	_rebuild_card(id)
+
+## karttaki GELİŞTİR: yükseltme töreni; kapanınca yalnız bu kart yeniden kurulur
+func _upgrade(id: String) -> void:
+	if not g.can_upgrade_gear(id):
+		g.audio.play("error")
+		return
+	var lv0: int = g.gear_level(id)
+	if not g.upgrade_gear(id, true): return
+	g.ui.menu.refresh_wallet()
+	ScrUpFx.play_gear(g, g.gear_by_id(id), lv0, func(): on_gear_upgraded(id))
+
+## eşya geliştirildi: kuşanılıysa statlar değişir → sayfa; değilse yalnız kartı
+func on_gear_upgraded(id: String) -> void:
+	if g.is_equipped(id): render()
+	else: _rebuild_card(id)
 
 func _equip(id: String) -> void:
 	sel_id = ""

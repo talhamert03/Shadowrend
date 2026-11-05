@@ -45,7 +45,15 @@ static func ink_stroke(px := 2.0, drop := 3.0, col := "rgb(13, 8, 18)") -> Strin
 	return ", ".join(o)
 
 ## "rgba(0, 0, 0, 0.9) 0px 0px 8px, rgba(...) 0px 2px 4px" → [[Color, dx, dy, blur], ...]
+static var _shCache := {}
+## CSS text-shadow ayrıştırma (önbellekli: aynı dize yüzlerce metinde tekrar eder)
 static func shadows(s: String) -> Array:
+	if _shCache.has(s): return _shCache[s]
+	var r := _shadows(s)
+	_shCache[s] = r
+	return r
+
+static func _shadows(s: String) -> Array:
 	var out := []
 	if s == "" or s == "none": return out
 	var depth := 0

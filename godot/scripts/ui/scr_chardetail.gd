@@ -408,23 +408,18 @@ func _upgrade() -> void:
 	if not g.can_upgrade_char(id):
 		g.audio.play("error")
 		return
-	if not g.upgrade_char(id): return
+	var lv0: int = g.char_level(id)
+	if not g.upgrade_char(id, true): return
 	var lv: int = g.char_level(id)
-	g.audio.play("levelup")
 	g.ui.menu.refresh_wallet()
 	_new_skill = ""
 	for u in D.signatureUnlocks(id, lv):
 		if not u.get("locked", true) and int(u.get("minLvl", 0)) == lv: _new_skill = str(u.name)
-	_build()
-	_pop_t = _t
-	_pop_lv = lv
-	var mp := _medal.get_global_transform_with_canvas().origin
-	var lp: Vector2 = get_global_transform_with_canvas().affine_inverse() * mp
-	for i in 26:
-		var a := randf() * TAU
-		var sp := randf_range(160, 420)
-		_parts.append({"p": lp, "v": Vector2(cos(a), sin(a)) * sp + Vector2(0, -140), "life": randf_range(0.5, 0.9), "max": 0.9, "c": YEL if i % 3 else _rc})
-	if _new_skill != "": g.ui.toast("YENİ YETENEK: " + _new_skill)
+	var cid := id
+	# tören kapanınca detay + kahraman sayfası yeni seviyeyle kurulur
+	ScrUpFx.play_hero(g, id, lv0, _new_skill, func():
+		if visible and id == cid: _build()
+		g.ui.show_armory())
 
 # ═════════════ efektler ═════════════
 

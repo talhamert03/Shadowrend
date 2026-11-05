@@ -171,6 +171,8 @@ func _idle_refresh(dt: float) -> void:
 
 ## kullanıcı etkileşimde mi (dokunuş, kaydırma, savurma, sayfa geçişi)
 func busy() -> bool:
+	# yükseltme töreni sürerken boşta kurulumlar bekler (törende kare düşmesin)
+	if g.ui.upfx and g.ui.upfx.visible: return true
 	return _press >= 0 or _drag != null or not _fling.is_empty() or not _slides.is_empty()
 
 ## v59 _navTap: dokunulan sekmeden halka yayılır, simge ezilip zıplar
