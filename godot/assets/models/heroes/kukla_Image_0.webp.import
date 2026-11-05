@@ -18,9 +18,9 @@ dest_files=["res://.godot/imported/kukla_Image_0.webp-d2474b5d4ac28c415f4c27e1d1
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.92
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
