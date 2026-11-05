@@ -27,7 +27,8 @@ const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukl
 	"kiragi": "AYAZ", "buzkalp": "AYAZ", "hayalet": "AYAZ", "hasatrun": "RUH", "kanemici": "RUH", "statik": "YILDIRIM", "demir": "CELIK", "kulkani": "KOR"}
 const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ",
 	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM",
-	"prizma": "RUH", "zaman": "CELIK"}
+	"prizma": "RUH", "zaman": "CELIK",
+	"baltaci": "CELIK", "avci": "AYAZ", "kanrahip": "KOR", "gecedans": "RUH", "ejder": "KOR"}
 
 const MUL_MAP_BASE := {"cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
@@ -728,7 +729,10 @@ func fire_gun(id: String) -> void:
 	if JS.truthy(Wd.get("orb")) and not JS.truthy(Wd.get("flameVisual")) and not JS.truthy(Wd.get("cannonVisual")) and not JS.truthy(Wd.get("floatVisual")):
 		ox = p.x + cos(ang) * 16; oy = p.y + sin(ang) * 16 - 6
 	elif JS.truthy(Wd.get("arrow")) and not JS.truthy(Wd.get("bowVisual")):
-		ox = p.x + cos(ang) * 30; oy = p.y - 16 + sin(ang) * 14
+		# yapışık düşmanda ok, hedefin ARKASINDAN doğup ıskalamasın: çıkış mesafesi hedefe göre kısalır
+		ang = atan2(nearest.y - p.y, nearest.x - p.x)
+		var reach := minf(30.0, sqrt(nearestD2) * 0.4)
+		ox = p.x + cos(ang) * reach; oy = p.y - 16 + sin(ang) * reach * 0.46
 	var flame := wi(Wd, "flame")
 	var homing := wi(Wd, "homing")
 	var explode := wi(Wd, "explode")
@@ -751,6 +755,7 @@ func fire_gun(id: String) -> void:
 		b.frag = false
 		b.smoke = 1 if JS.truthy(Wd.get("smokeTrail")) else 0
 		b.metal = JS.truthy(Wd.get("metallic"))
+		b.crescent = JS.truthy(Wd.get("crescent"))
 		b.fireball = JS.truthy(Wd.get("fireball"))
 		b.pal = str(Wd.get("firePal", ""))
 		b.ph = randf() * 6.2831

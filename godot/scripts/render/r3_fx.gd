@@ -84,6 +84,11 @@ var arrowMesh: IMesh
 # Ayaz Suru (Buz Muhafızı süperi): yerden fışkıran 3B buz kristali kümeleri
 var iceMesh: IMesh
 const ICE_MAX := 40
+# hilal bıçağı mermisi (Gece Dansçısı): yere yatık, kendi ekseninde hızla dönen gümüş-mor hilal
+var crescentMesh: IMesh
+const CRES_MAX := 120
+# Ejder Nefesi süperi: gökte süzülen boyalı kızıl ejder (kameraya bakan tabela, kanat "nefesi")
+var dragonMesh: IMesh
 # cevher / kalp
 var gemMesh: IMesh
 var gemCore: IMesh
@@ -156,6 +161,13 @@ func _init(r) -> void:
 	if Quality.tier != "low": iceMat.next_pass = Shd.outline(null, Color(0.08, 0.2, 0.42), 1.3)
 	iceMesh = IMesh.new(iceGeo, iceMat, ICE_MAX)
 	S.add_child(iceMesh)
+	var cresMat := Shd.lit({"color": Color("#ece2ff"), "emissive": Color("#8a4aff"), "emissive_k": 1.6, "roughness": 0.15, "metalness": 0.7, "rim": true})
+	if Quality.tier != "low": cresMat.next_pass = Shd.outline(null, Color(0.12, 0.05, 0.26), 1.2)
+	var cg := Geo.torus(1.0, 0.16, 5, 16, PI * 1.2)
+	dragonMesh = IMesh.new(Geo.plane(1, 1), Shd.basic({"map": "srgb", "tex": r3.tex("res://assets/fx/dragon_sky.png"), "alpha": true, "zwrite": false, "cull": "none", "order": 7}), 1)
+	S.add_child(dragonMesh)
+	crescentMesh = IMesh.new(Geo.merge([cg], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2).scaled(Vector3(1, 1, 0.45)), Vector3.ZERO)]), cresMat, CRES_MAX)
+	S.add_child(crescentMesh)
 	# ── ruh kristali (XP) ──
 	var soul := _crystal_geo(6, 1.35, 0.95, 0.66, 0.12)
 	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.96}), 380)
@@ -263,6 +275,7 @@ func update(g, dt: float) -> void:
 	_update_bombs(g)
 	_update_orbit_blades(g)
 	_update_ice(g)
+	_update_dragon(g)
 	_update_hp_bars(g)
 
 # ═══════════ AYAZ SURU (3B buz kristalleri) ═══════════
@@ -305,6 +318,29 @@ func _update_ice(g) -> void:
 			iceMesh.set_col(n, 1, 1, 1)
 			n += 1
 	iceMesh.commit(n)
+
+func _update_dragon(g) -> void:
+	var U = g.ult
+	if not (U and U.fx > 0 and U.id.get("dragon", false)):
+		dragonMesh.commit(0)
+		return
+	var t: float = U.t
+	var a: float = minf(1.0, t / 0.45) * float(U._fade_out())
+	if a <= 0.01:
+		dragonMesh.commit(0)
+		return
+	var p = g.player
+	# yukarıdan süzülerek gelir, kahramanın üstünde asılı kalır; kanatlar yavaşça "nefes alır"
+	var glide := 1.0 - minf(1.0, t / 0.9)
+	var x: float = p.x + sin(t * 0.8) * 30.0
+	var z: float = p.y - 20.0 - glide * 420.0
+	var y := 210.0 + sin(t * 2.4) * 10.0
+	var flap := 1.0 + sin(t * 4.2) * 0.06
+	var w := 560.0 * flap
+	var h := 315.0 * (2.0 - flap)
+	dragonMesh.set_bb(0, x, y, z, w, h, 0.0, cam)
+	dragonMesh.set_col(0, 1, 1, 1, a)
+	dragonMesh.commit(1)
 
 func _ice_shards(g, x: float, y: float, sd: float) -> void:
 	if not g.in_view(x, y, 60): return
@@ -470,6 +506,7 @@ func _update_projectiles(g) -> void:
 	var idx := 0
 	var mi := 0
 	var ai := 0
+	var ci := 0
 	_fb = 0; _fg = 0
 	var lite := Quality.stress > 0.55
 	var T: float = g.time
@@ -486,6 +523,14 @@ func _update_projectiles(g) -> void:
 			arrowMesh.set_col(ai, c.r, c.g, c.b)
 			ai += 1
 			_arrow_trail(b.x, b.y, b.vx, b.vy, sc, JS.col(b.color) if ft == 0 else Color(FLAME_HEX[ft]))
+		elif b.crescent:
+			if ci >= CRES_MAX: continue
+			var cs := maxf(10.0, b.r * 2.2)
+			crescentMesh.set_ys(ci, b.x, 20, b.y, T * 16.0 + b.ph, cs, cs, cs)
+			var cc := JS.col(b.color).srgb_to_linear()
+			crescentMesh.set_col(ci, cc.r, cc.g, cc.b)
+			ci += 1
+			_arrow_trail(b.x, b.y, b.vx, b.vy, 0.7, JS.col(b.color))
 		elif b.metal:
 			if mi >= 96: continue
 			var rr := maxf(1.0, b.r)
@@ -516,6 +561,7 @@ func _update_projectiles(g) -> void:
 	bulletMesh.commit(idx)
 	bulletMetal.commit(mi)
 	arrowMesh.commit(ai)
+	crescentMesh.commit(ci)
 
 func _update_fire_hits(g, dt: float) -> void:
 	var fr := 0

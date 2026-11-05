@@ -218,6 +218,61 @@
     "cd": 0.9,
     "pierce": 1
    }
+  },
+  "baltaci": {
+   "weapon": "balta",
+   "pas": "zirh",
+   "name": "Kurt Kralının Baltası",
+   "desc": "Kuzey Baltası evrimleşir: daha sık, daha geniş savurur.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "arc": 1.1
+   }
+  },
+  "avci": {
+   "weapon": "arbalet",
+   "pas": "keskinlik",
+   "name": "Gümüş Kıyamet",
+   "desc": "Gümüş Arbalet evrimleşir: cıvata bir düşmanı daha deler, daha sık atar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "pierce": 1
+   }
+  },
+  "kanrahip": {
+   "weapon": "kadeh",
+   "pas": "kalp",
+   "name": "Kızıl Ay Kadehi",
+   "desc": "Kan Kadehi evrimleşir: küreler daha büyük patlar, daha sık akar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "explodeAdd": 1
+   }
+  },
+  "gecedans": {
+   "weapon": "hilal",
+   "pas": "cabukluk",
+   "name": "Tutulma Yelpazesi",
+   "desc": "Hilal Bıçakları evrimleşir: yelpazeye bir bıçak daha eklenir, daha sık fırlar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
+  },
+  "ejder": {
+   "weapon": "ejderkilic",
+   "pas": "gazap",
+   "name": "Kızıl Ejder Kılıcı",
+   "desc": "Ejder Kılıcı evrimleşir: daha sık savrulur, alev dalgası büyür.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "waveR": 1.2
+   }
   }
  },
  "TAGS": {

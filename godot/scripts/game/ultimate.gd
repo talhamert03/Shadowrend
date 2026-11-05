@@ -31,6 +31,11 @@ const ULT_ID := {
 	"zehra":    {"name": "ZEHİR BATAĞI",  "col": "#e4ffc8", "c2": "#5fc832", "k": "poison", "snd": "meteor", "base": 7,  "hr": 96.0,  "desc": "Zehir şişeleri fırlar; yerde kaynayan batak düşmanı yavaşlatıp eritir."},
 	"prizma":   {"name": "AYNA LABİRENTİ", "col": "#f6eeff", "c2": "#b46cff", "k": "mirror", "snd": "vortex", "base": 0,  "hr": 0.0,   "desc": "Altı kristal ayna yükselir; ışın aynadan aynaya sekip bir ağ örer, ağın içindekileri yakar."},
 	"zaman":    {"name": "ZAMAN DURDURMA", "col": "#fff1c8", "c2": "#ffb24a", "k": "timestop", "snd": "slam", "base": 0, "hr": 0.0,  "desc": "Zaman durur: düşmanlar ve mermileri 3 sn donar, sonunda donmuş olanların hepsi birden parçalanır."},
+	"baltaci":  {"name": "KUZEY HİDDETİ", "col": "#e8eef6", "c2": "#c8463a", "k": "slam",   "snd": "slam",   "base": 0,  "hr": 0.0,   "desc": "Balta yere iner; buz kırığı çatlaklarla bir şok dalgası yayılır, sürüyü savurur."},
+	"avci":     {"name": "GÜMÜŞ YAĞMUR",  "col": "#f2f6ff", "c2": "#9fb8ff", "k": "moon",   "snd": "moon",   "base": 16, "hr": 70.0,  "desc": "Gökten gümüş cıvatalar yağar; her biri düşmanı yere çiviler."},
+	"kanrahip": {"name": "KAN GİRDABI",   "col": "#ffd0d4", "c2": "#e01e3a", "k": "vortex", "snd": "vortex", "base": 0,  "hr": 0.0,   "desc": "Üç kan orağı rahibin çevresinde dönerek genişler; değdiği her şeyi biçer."},
+	"gecedans": {"name": "HİLAL FIRTINASI", "col": "#f0e2ff", "c2": "#a66aff", "k": "slash", "snd": "slash",  "base": 14, "hr": 80.0,  "desc": "Gece yarılır; çapraz hilal kesikleri sürünün üstünde açılır."},
+	"ejder":    {"name": "EJDER NEFESİ",  "col": "#ffe0b0", "c2": "#ff5a1e", "k": "meteor", "snd": "meteor", "base": 9,  "hr": 120.0, "dragon": true, "desc": "Gökte kızıl ejder belirir; ağzından düşen ateş topları sürüyü kavurur."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi
@@ -468,6 +473,7 @@ func render(_ctx: Ctx2D = null) -> void:
 	_dc = Color(String(C.c2))
 	if k == "moon": _draw_sky_moon(p.x, p.y - 300, t)
 	if k == "cannon": _draw_ghost_ship(ox - 260, oy - 250, t)
+	if C.get("dragon", false): _draw_dragon(p.x, p.y - 330, t)
 	if K:
 		var tall := k == "moon" or k == "meteor" or k == "anvil" or k == "bolt"
 		var mg := 340.0 if tall else 150.0
@@ -990,6 +996,13 @@ func _draw_slam(x: float, y: float, r: float, tt: float, dur: float) -> void:
 		var an := i * TAU / 8 + 0.4
 		_disc(_M, c + Vector2(cos(an) * r, sin(an) * r * SQ), 10.0 * (1 - u) + 3.0, Color("#d8c2a8"), a * 0.7, 0.0)
 	if u < 0.35: _glow(c, 120, WHITE, (1.0 - u / 0.35) * 0.8, SQ, _T)
+
+# ══ EJDER NEFESİ (ejder): gökte kanat açan kızıl ejder silüeti; ağzından ateş topları düşer ══
+func _draw_dragon(x: float, y: float, tt: float) -> void:
+	# ejderin kendisi 3B tabelada (r3_fx._update_dragon); burada yalnız gökte kızıl ateş ışıması
+	var a := minf(1.0, tt / 0.35) * _fade_out()
+	if a <= 0: return
+	_glow(Vector2(x, y), 320, _dc, 0.28 * a, 0.7)
 
 # ══ HAYALET BORDA (korsan): parlayan yeşil hayalet gemi ══
 func _draw_ghost_ship(x: float, y: float, tt: float) -> void:

@@ -15,10 +15,16 @@ const SWORD_SPECS := {
 		"trailInner": [0.32, 0.86, 1.00], "trailOuter": [0.92, 1.00, 1.00], "echoHex": "#9fe4ff", "shockHex": ["#eafcff", "#6fc8ff"], "waveHex": "#a8eeff", "trailFade": 10},
 	"kurek": {"weapon": "kurek", "flameHex": ["#8a6a4a", "#a8845a", "#c9a77a"], "coreHex": "#f0e2c4",
 		"trailInner": [0.62, 0.46, 0.30], "trailOuter": [0.96, 0.88, 0.70], "echoHex": "#c9a77a", "shockHex": ["#f0e2c4", "#a8845a"], "waveHex": "#e8d4b0", "trailFade": 9},
+	"balta": {"weapon": "balta", "flameHex": ["#c8463a", "#e0604a", "#f0a08a"], "coreHex": "#f4f6fa",
+		"trailInner": [0.80, 0.86, 0.95], "trailOuter": [1.00, 0.42, 0.34], "echoHex": "#cfd8e6", "shockHex": ["#e8eef6", "#c8463a"], "waveHex": "#dfe6f0", "trailFade": 10},
+	"ejderkilic": {"weapon": "ejderkilic", "flameHex": ["#ff3a10", "#ff6a1e", "#ffb24a"], "coreHex": "#fff0c0",
+		"trailInner": [1.00, 0.30, 0.08], "trailOuter": [1.00, 0.78, 0.30], "echoHex": "#ff8a4a", "shockHex": ["#ffd08a", "#ff4a1e"], "waveHex": "#ff9a4a", "trailFade": 12},
 	"cekic": {"weapon": "cekic", "flameHex": ["#ffb43a", "#ffd36a", "#fff0b0"], "coreHex": "#fff8e0",
 		"trailInner": [1.00, 0.70, 0.22], "trailOuter": [0.70, 0.86, 1.00], "echoHex": "#9fd4ff", "shockHex": ["#fff4c8", "#7fb8ff"], "waveHex": "#ffe08a", "trailFade": 11},
 }
 const TRAIL_SEGS := 48
+## prosedürel imza silahları (Meshy kredisi harcanmadan oyun içinde modellenir)
+const PROC_WEAPONS := ["balta", "ejderkilic", "arbalet", "kadeh", "hilal"]
 
 var r3
 var S: Node3D
@@ -38,6 +44,7 @@ func _init(r) -> void:
 	_build_arcs()
 
 func _wscene(k: String) -> Node3D:
+	if PROC_WEAPONS.has(k): return _build_proc(k)
 	var m = r3.MODELS.weapons.get(k)
 	if m == null: return null
 	var ps: PackedScene = load("res://assets/models/" + str(m.file))
@@ -142,8 +149,8 @@ func _float_rebuild(id: String) -> void:
 		floatGlow = _quad_inst("res://assets/fx/glow.png", 3, 3)
 	floatGlow.commit(0)
 	if id == "": return
-	var proc := id == "kazan" or id == "prizma"
-	var m := (_build_staff() if id == "kazan" else _build_prism()) if proc else _wscene(id)
+	var proc := id == "kazan" or id == "prizma" or PROC_WEAPONS.has(id)
+	var m := (_build_staff() if id == "kazan" else (_build_prism() if id == "prizma" else _build_proc(id))) if proc else _wscene(id)
 	if m == null: return
 	_foCol = Color(str(D.WEAPONS[id].get("color", "#ffffff")))
 	if not proc:
@@ -191,13 +198,20 @@ func _update_float(g, dt: float) -> void:
 	_foRecoil = maxf(0.0, _foRecoil - dt * 4.0)
 	# hedefe dönük; salınım + atışta geri tepme ve şişme
 	var tgt = W.nearest
-	if _foId == "prizma":
+	if _foId == "hilal":
+		# üç hilal göbek etrafında döner; atışta hızlanır (bıçak yelpazesi açılır)
+		_foYaw += dt * (2.2 + _foRecoil * 12.0)
+	elif _foId == "kadeh":
+		var ob := floatInner.get_child(0).get_child(0).get_node_or_null("orbit") if floatInner.get_child_count() else null
+		if ob: (ob as Node3D).rotation.y = _foT * 2.6
+		if tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
+	elif _foId == "prizma":
 		# kristal kendi ekseninde döner, atışta hızlanır; küçük kırıklar yörüngede
 		_foYaw += dt * (1.1 + _foRecoil * 9.0)
 		var orb := floatInner.get_child(0).get_node_or_null("orbit") if floatInner.get_child_count() else null
 		if orb: orb.rotation.y = -_foT * 2.3
 	elif tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
-	floatInner.rotation = Vector3(-_foRecoil * 0.35 if _foId != "prizma" else 0.0, _foYaw, sin(_foT * 2.2) * 0.12)
+	floatInner.rotation = Vector3(-_foRecoil * 0.35 if (_foId != "prizma" and _foId != "hilal") else 0.0, _foYaw, sin(_foT * 2.2) * 0.12)
 	floatInner.scale = Vector3.ONE * (1.0 + _foRecoil * 0.16)
 	var k := 0.55 + 0.25 * sin(_foT * 3.1) + _foRecoil * 0.9
 	var gy := _foY + (40.0 if _foId == "kazan" else 0.0)      # asada ışık kristalde
@@ -257,6 +271,211 @@ func _build_staff() -> Node3D:
 	holder.add_child(root)
 	root.position = Vector3(0, 6, 0)
 	return holder
+
+# ═══════════ PROSEDÜREL İMZA SİLAHLARI (yeni beş kahraman) ═══════════
+func _pmat(col: String, emis: String, ek: float, rough: float, metal: float, ink: Color, olw := 1.3) -> ShaderMaterial:
+	var m := Shd.lit({"color": Color(col), "emissive": Color(emis), "emissive_k": ek, "roughness": rough, "metalness": metal, "rim": true})
+	if Quality.tier != "low": m.next_pass = Shd.outline(null, ink, olw)
+	return m
+
+static func _seg(a: Vector3, b: Vector3, r0: float, r1: float, n := 7) -> Array:
+	var d := b - a
+	return [Geo.cylinder(r1, r0, d.length(), n), Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())), (a + b) * 0.5)]
+
+func _build_proc(k: String) -> Node3D:
+	match k:
+		"balta": return _build_axe()
+		"ejderkilic": return _build_dragon_blade()
+		"arbalet": return _build_crossbow()
+		"kadeh": return _build_chalice()
+		"hilal": return _build_crescents()
+	return null
+
+## silüet parçası: 2B profil → kalın parça; edge>0 ise biraz büyütülmüş ince bir kenar plakası (parlak
+## çelik ağız) arkasına eklenir — çizgi roman konturuyla birlikte "dövme metal" okunur
+func _plate(parent: Node3D, poly: PackedVector2Array, depth: float, mat: Material, xf: Transform3D, edge := 0.0, edge_mat: Material = null) -> void:
+	Render3D.mesh_node(Geo.extrude(poly, depth), mat, parent).transform = xf
+	if edge > 0.0 and edge_mat:
+		var big := Geometry2D.offset_polygon(poly, edge)
+		if big.size(): Render3D.mesh_node(Geo.extrude(big[0], depth * 0.45), edge_mat, parent).transform = xf
+
+static func _arc_pts(c: Vector2, r: float, a0: float, a1: float, n: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in n + 1:
+		var a := lerpf(a0, a1, float(i) / n)
+		out.append(c + Vector2(cos(a), sin(a)) * r)
+	return out
+
+## KUZEY BALTASI (Baltacı): sakallı çift ağızlı dövme demir baş (silüet), parlak bilenmiş ağız şeridi,
+## perçinler, sargılı meşe sap, kurt kafası topuz — sap orijinde, +X; baş düzlemi yatay (üstten okunur)
+func _build_axe() -> Node3D:
+	var root := Node3D.new()
+	var wood := _pmat("#6a4428", "#000000", 0.0, 0.8, 0.0, Color(0.12, 0.07, 0.04))
+	var iron := _pmat("#8e98a6", "#1a2030", 0.35, 0.35, 0.8, Color(0.07, 0.08, 0.1))
+	var edge := _pmat("#eef3fa", "#5a6a80", 0.6, 0.12, 0.95, Color(0.1, 0.11, 0.14), 1.0)
+	var leather := _pmat("#3a2418", "#000000", 0.0, 0.9, 0.0, Color(0.08, 0.05, 0.03), 1.0)
+	var brass := _pmat("#c9963a", "#3a2408", 0.4, 0.3, 0.8, Color(0.16, 0.09, 0.03), 1.0)
+	var rx := Basis(Vector3(0, 0, 1), -PI / 2)
+	var flat := Basis(Vector3(1, 0, 0), -PI / 2)      # XY silüet → XZ (yatay)
+	Render3D.mesh_node(Geo.cylinder(2.0, 2.5, 76.0, 10), wood, root).transform = Transform3D(rx, Vector3(38, 0, 0))
+	for i in 4:
+		Render3D.mesh_node(Geo.cylinder(2.8, 2.8, 2.6, 10), leather, root).transform = Transform3D(rx, Vector3(5 + i * 5.0, 0, 0))
+	Render3D.mesh_node(Geo.lathe(PackedVector2Array([Vector2(0, -5), Vector2(2.6, -4), Vector2(3.6, -1.5), Vector2(2.4, 1.5), Vector2(0, 2.5)]), 10), brass, root).transform = Transform3D(rx, Vector3(-2.0, 0, 0))
+	# büyük ağız (sakallı, +Y) ve küçük karşı ağız (−Y)
+	var big := PackedVector2Array([Vector2(56, 3), Vector2(53, 9), Vector2(47, 17), Vector2(44, 26), Vector2(49, 31), Vector2(58, 33),
+		Vector2(68, 33), Vector2(77, 30), Vector2(80, 24), Vector2(77, 15), Vector2(72, 8), Vector2(70, 3)])
+	var small := PackedVector2Array([Vector2(57, -3), Vector2(54, -9), Vector2(52, -16), Vector2(58, -19), Vector2(66, -19), Vector2(73, -16), Vector2(71, -9), Vector2(69, -3)])
+	var sock := PackedVector2Array([Vector2(55, -4.5), Vector2(71, -4.5), Vector2(71, 4.5), Vector2(55, 4.5)])
+	for poly in [big, small]:
+		_plate(root, poly, 4.2, iron, Transform3D(flat, Vector3.ZERO), 1.6, edge)
+	_plate(root, sock, 8.0, iron, Transform3D(flat, Vector3.ZERO))
+	for pz in [Vector2(60, 0), Vector2(66, 0), Vector2(62, 20), Vector2(70, 22)]:
+		Render3D.mesh_node(Geo.sphere(1.3, 8, 6), brass, root).position = Vector3(pz.x, 2.6, -pz.y)
+	Render3D.mesh_node(Geo.cone(2.2, 8.0, 8), iron, root).transform = Transform3D(rx, Vector3(78.0, 0, 0))
+	return root
+
+## EJDER KILICI (Ejder Şövalyesi): alev dalgalı kenarlı geniş bıçak (silüet), ortasında akkor kor damarı,
+## ejder kanadı balçak, sargılı kabza, yakut gözlü topuz — sap orijinde, +X; bıçak düzlemi yatay
+func _build_dragon_blade() -> Node3D:
+	var root := Node3D.new()
+	var steel := _pmat("#3c3036", "#ff3a08", 0.3, 0.28, 0.75, Color(0.07, 0.02, 0.02))
+	var edge := _pmat("#ffd8a0", "#ff6a1e", 1.4, 0.15, 0.6, Color(0.18, 0.05, 0.02), 1.0)
+	var ember := Shd.lit({"color": Color("#ffcf6a"), "emissive": Color("#ff5a10"), "emissive_k": 3.0, "roughness": 0.4, "rim": false})
+	var gold := _pmat("#d89a34", "#5a2a08", 0.6, 0.3, 0.75, Color(0.18, 0.08, 0.02), 1.0)
+	var grip := _pmat("#2a1410", "#000000", 0.0, 0.9, 0.0, Color(0.06, 0.03, 0.02), 1.0)
+	var gem := Shd.lit({"color": Color("#ff3a2a"), "emissive": Color("#ff1a0a"), "emissive_k": 2.4, "roughness": 0.1, "rim": true})
+	var rx := Basis(Vector3(0, 0, 1), -PI / 2)
+	var flat := Basis(Vector3(1, 0, 0), -PI / 2)
+	Render3D.mesh_node(Geo.cylinder(1.7, 2.0, 15.0, 10), grip, root).transform = Transform3D(rx, Vector3(6, 0, 0))
+	for i in 3:
+		Render3D.mesh_node(Geo.torus(1.9, 0.45, 5, 10), gold, root).transform = Transform3D(Basis(Vector3(0, 1, 0), PI / 2), Vector3(1.5 + i * 4.5, 0, 0))
+	Render3D.mesh_node(Geo.lathe(PackedVector2Array([Vector2(0, -6), Vector2(2.4, -5), Vector2(3.4, -2.5), Vector2(2.6, 0.5), Vector2(1.6, 1.5)]), 10), gold, root).transform = Transform3D(rx, Vector3(-1.0, 0, 0))
+	Render3D.mesh_node(Geo.sphere(1.8, 10, 8), gem, root).position = Vector3(-6.6, 0, 0)
+	# bıçak: kökten uca incelen, iki kenarı faz kaymalı alev dalgalı
+	var top := PackedVector2Array(); var bot := PackedVector2Array()
+	for k in 15:
+		var x := 17.0 + k * 5.4
+		var w := 7.2 * (1.0 - pow(float(k) / 15.0, 1.6)) + 0.8
+		top.append(Vector2(x, w + sin(k * 1.3) * 1.1))
+		bot.append(Vector2(x, -w - sin(k * 1.3 + 1.6) * 1.1))
+	var blade := PackedVector2Array()
+	blade.append_array(top)
+	blade.append(Vector2(101.0, 0.0))
+	bot.reverse()
+	blade.append_array(bot)
+	_plate(root, blade, 2.6, steel, Transform3D(flat, Vector3.ZERO), 1.3, edge)
+	var vein := PackedVector2Array([Vector2(18, 1.1), Vector2(70, 0.6), Vector2(88, 0.0), Vector2(70, -0.6), Vector2(18, -1.1)])
+	Render3D.mesh_node(Geo.extrude(vein, 3.4), ember, root).transform = Transform3D(flat, Vector3.ZERO)
+	# balçak: iki geriye kıvrık, parmaklı ejder kanadı (silüet) + ortada yakut
+	for sd in [-1.0, 1.0]:
+		var wing := PackedVector2Array([Vector2(17, sd * 3), Vector2(19, sd * 9), Vector2(16, sd * 15), Vector2(10, sd * 20), Vector2(12, sd * 14),
+			Vector2(7, sd * 16), Vector2(10, sd * 10), Vector2(5, sd * 10), Vector2(12, sd * 4)])
+		_plate(root, wing, 3.0, gold, Transform3D(flat, Vector3.ZERO))
+	Render3D.mesh_node(Geo.icosahedron(2.6), gem, root).position = Vector3(16.0, 1.6, 0)
+	return root
+
+## GÜMÜŞ ARBALET (Canavar Avcısı): ceviz kundak (üstten silüet), kavisli çelik yay kolları, gergin kiriş,
+## pirinç tetik ve ön üzengi, yüklü gümüş cıvata — namlu +Z (hedefe bakar)
+func _build_crossbow() -> Node3D:
+	var root := Node3D.new()
+	var wood := _pmat("#5a3620", "#000000", 0.0, 0.7, 0.0, Color(0.1, 0.06, 0.03))
+	var steel := _pmat("#aeb8c6", "#1a2236", 0.3, 0.25, 0.85, Color(0.07, 0.08, 0.11))
+	var brass := _pmat("#c9963a", "#3a2408", 0.4, 0.3, 0.8, Color(0.16, 0.09, 0.03), 1.0)
+	var silver := Shd.lit({"color": Color("#f2f6ff"), "emissive": Color("#8fb0ff"), "emissive_k": 1.6, "roughness": 0.12, "metalness": 0.9, "rim": true})
+	var str_m := Shd.lit({"color": Color("#e8dcc0"), "roughness": 0.9})
+	var up := Basis(Vector3(1, 0, 0), PI / 2)          # XY silüet → XZ (y → +Z ileri)
+	var stock := PackedVector2Array([Vector2(-3.2, -22), Vector2(3.2, -22), Vector2(4.2, -12), Vector2(2.6, -2), Vector2(2.6, 14), Vector2(1.8, 22),
+		Vector2(-1.8, 22), Vector2(-2.6, 14), Vector2(-2.6, -2), Vector2(-4.2, -12)])
+	_plate(root, stock, 5.0, wood, Transform3D(up, Vector3.ZERO))
+	_plate(root, PackedVector2Array([Vector2(-1.2, -2), Vector2(1.2, -2), Vector2(1.2, 21), Vector2(-1.2, 21)]), 1.2, steel, Transform3D(up, Vector3(0, 3.0, 0)))
+	# yay kolları: kökten öne-dışa çıkıp uçta geriye kıvrılır (recurve), kalınlık uca doğru incelir
+	var limb := PackedVector2Array()
+	var back := PackedVector2Array()
+	for k in 13:
+		var t := float(k) / 12.0
+		var x := 2.0 + t * 24.0
+		var y := 15.0 + sin(t * PI * 0.9) * 5.0 - t * t * 9.0
+		var w := 2.2 * (1.0 - t * 0.6)
+		limb.append(Vector2(x, y + w)); back.append(Vector2(x, y - w))
+	back.reverse()
+	limb.append_array(back)
+	var mir := PackedVector2Array()
+	for v in limb: mir.append(Vector2(-v.x, v.y))
+	mir.reverse()
+	_plate(root, limb, 2.2, steel, Transform3D(up, Vector3(0, 0.5, 0)))
+	_plate(root, mir, 2.2, steel, Transform3D(up, Vector3(0, 0.5, 0)))
+	# kiriş: kol uçlarından tetik yuvasına
+	var tipL := Vector3(26.0, 0.5, 15.0 + sin(PI * 0.9) * 5.0 - 9.0)
+	var nock := Vector3(0, 1.2, -2.0)
+	for tp in [tipL, Vector3(-tipL.x, tipL.y, tipL.z)]:
+		var sg := _seg(tp, nock, 0.3, 0.3, 4)
+		Render3D.mesh_node(sg[0], str_m, root).transform = sg[1]
+	Render3D.mesh_node(Geo.torus(4.0, 0.8, 5, 12, PI), brass, root).transform = Transform3D(Basis(Vector3(0, 1, 0), PI / 2), Vector3(0, 0, 22.5))
+	Render3D.mesh_node(Geo.box(2.0, 5.0, 2.0), brass, root).position = Vector3(0, -3.8, -6.0)
+	# yüklü cıvata: gümüş şaft, elmas uç, üç kanatçık
+	var rz := Basis(Vector3(1, 0, 0), PI / 2)
+	Render3D.mesh_node(Geo.cylinder(0.65, 0.65, 26.0, 6), silver, root).transform = Transform3D(rz, Vector3(0, 3.4, 9.0))
+	Render3D.mesh_node(Geo.cone(1.8, 6.0, 4), silver, root).transform = Transform3D(rz, Vector3(0, 3.4, 25.0))
+	for k in 3:
+		var fl := PackedVector2Array([Vector2(0, 0), Vector2(3.2, -1.5), Vector2(3.2, -5.0), Vector2(0, -3.6)])
+		_plate(root, fl, 0.4, str_m, Transform3D(Basis(Vector3(0, 0, 1), k * TAU / 3.0) * up, Vector3(0, 3.4, -1.5)))
+	return root
+
+## KAN KADEHİ (Kan Rahibi): tornalanmış altın ayin kadehi (ayak, düğümlü sap, kabartma halkalı çanak),
+## yakut taşlar, ağzına dek ışıyan kan, üstünde süzülen damla ve yörüngede kan damlacıkları
+func _build_chalice() -> Node3D:
+	var root := Node3D.new()
+	var gold := _pmat("#e2a840", "#4a2406", 0.5, 0.22, 0.85, Color(0.18, 0.08, 0.02), 1.1)
+	var dark := _pmat("#5a1a10", "#000000", 0.0, 0.4, 0.6, Color(0.1, 0.02, 0.01), 1.0)
+	var blood := Shd.lit({"color": Color("#ff2a3a"), "emissive": Color("#b00818"), "emissive_k": 2.6, "roughness": 0.08, "rim": true})
+	var ruby := Shd.lit({"color": Color("#ff3a4a"), "emissive": Color("#a0081a"), "emissive_k": 1.8, "roughness": 0.1, "rim": true})
+	var prof := PackedVector2Array([Vector2(0, -6), Vector2(7.5, -6), Vector2(7.8, -4.8), Vector2(5.0, -3.6), Vector2(2.0, -1.5),
+		Vector2(1.5, 1.5), Vector2(3.2, 3.0), Vector2(3.2, 4.4), Vector2(1.5, 5.6), Vector2(1.6, 8.0), Vector2(4.5, 9.4),
+		Vector2(7.8, 11.5), Vector2(9.4, 15.0), Vector2(9.8, 18.4), Vector2(10.6, 19.0), Vector2(10.4, 19.8), Vector2(9.0, 19.6)])
+	Render3D.mesh_node(Geo.lathe(prof, 22), gold, root)
+	Render3D.mesh_node(Geo.torus(9.6, 0.7, 5, 22), dark, root).transform = Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3(0, 14.0, 0))
+	Render3D.mesh_node(Geo.cylinder(9.0, 9.0, 0.6, 22), blood, root).position = Vector3(0, 18.8, 0)
+	for k in 6:
+		var an := k * TAU / 6.0
+		var r := Render3D.mesh_node(Geo.icosahedron(1.25), ruby, root)
+		r.position = Vector3(cos(an) * 9.5, 14.0, sin(an) * 9.5)
+	var drop := Render3D.mesh_node(Geo.lathe(PackedVector2Array([Vector2(0, 0), Vector2(1.8, 0.8), Vector2(2.4, 2.4), Vector2(1.6, 4.2), Vector2(0, 6.0)]), 12), blood, root)
+	drop.position = Vector3(0, 24.0, 0)
+	var orbit := Node3D.new()
+	orbit.name = "orbit"
+	root.add_child(orbit)
+	for k in 3:
+		var an := k * TAU / 3.0
+		Render3D.mesh_node(Geo.sphere(1.1, 8, 6), blood, orbit).position = Vector3(cos(an) * 14.0, 20.0 + k * 1.5, sin(an) * 14.0)
+	var holder := Node3D.new()
+	holder.add_child(root)
+	root.position = Vector3(0, -8, 0)
+	return holder
+
+## HİLAL BIÇAKLARI (Gece Dansçısı): göbekte mor ay taşı (kafes içinde), çevresinde üç sivri boynuzlu hilal
+## bıçak (silüet: iki çember farkı) — parlak ağız şeritli; döner
+func _build_crescents() -> Node3D:
+	var root := Node3D.new()
+	var steel := _pmat("#d8ccf2", "#4a2a8a", 0.7, 0.18, 0.85, Color(0.1, 0.05, 0.2))
+	var edge := _pmat("#ffffff", "#b07aff", 1.6, 0.1, 0.6, Color(0.14, 0.06, 0.26), 1.0)
+	var moon := Shd.lit({"color": Color("#d8b8ff"), "emissive": Color("#8a4aff"), "emissive_k": 2.4, "roughness": 0.1, "rim": true})
+	var silver := _pmat("#e6e8f0", "#2a2a40", 0.3, 0.2, 0.9, Color(0.1, 0.1, 0.14), 1.0)
+	Render3D.mesh_node(Geo.icosahedron(3.2), moon, root)
+	Render3D.mesh_node(Geo.torus(4.6, 0.5, 5, 16), silver, root).transform = Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3.ZERO)
+	# hilal: dış çember yayı + içe kaymış iç çember yayı → iki sivri boynuz
+	var outer := _arc_pts(Vector2.ZERO, 11.0, -2.2, 2.2, 18)
+	var inner := _arc_pts(Vector2(4.2, 0), 8.6, 1.95, -1.95, 16)
+	var cres := PackedVector2Array()
+	cres.append_array(outer)
+	cres.append_array(inner)
+	var flat := Basis(Vector3(1, 0, 0), -PI / 2)
+	for k in 3:
+		var an := k * TAU / 3.0
+		var holder := Node3D.new()
+		root.add_child(holder)
+		holder.transform = Transform3D(Basis(Vector3(0, 1, 0), an), Vector3(cos(an) * 13.0, 0, -sin(an) * 13.0))
+		_plate(holder, cres, 1.6, steel, Transform3D(flat * Basis(Vector3(0, 0, 1), PI), Vector3.ZERO), 0.9, edge)
+	return root
 
 ## PRİZMA KRİSTALİ (Prizma Büyücüsü): altıgen çift piramit ışık kristali, belinde altın bilezik,
 ## çevresinde dönen üç renkli küçük kırık — prosedürel
@@ -575,8 +794,9 @@ func _build_sword(spec: Dictionary) -> void:
 	var sword := _wscene(spec.weapon)
 	if sword == null: return
 	# metal 0,22 · pürüz 0,44 · öz-ışık 0x120e0a (renkleri soldurmasın)
-	Shd.convert_tree(sword, {"rim": false, "metal": 0.22, "rough": 0.44, "emissive": Color("#120e0a"), "emissive_k": 1.0, "keep_emap": false})
-	_bladeLen = float(r3.MODELS.weapons[spec.weapon].get("bladeLen", 74))
+	if not PROC_WEAPONS.has(spec.weapon):
+		Shd.convert_tree(sword, {"rim": false, "metal": 0.22, "rough": 0.44, "emissive": Color("#120e0a"), "emissive_k": 1.0, "keep_emap": false})
+	_bladeLen = float(r3.MODELS.weapons[spec.weapon].get("bladeLen", 74)) if r3.MODELS.weapons.has(spec.weapon) else 74.0
 	var L := _bladeLen
 	swordSpinner = Render3D.node()
 	swordSpinner.add_child(sword)

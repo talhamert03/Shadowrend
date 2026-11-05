@@ -1051,6 +1051,165 @@
    },
    "emblem": "bolt",
    "sigDmg": 0.952
+  },
+  "baltaci": {
+   "id": "baltaci",
+   "rarity": 1,
+   "name": "BALTACI",
+   "title": "Kurt Postu",
+   "price": 1500,
+   "stonePrice": 150,
+   "style": "melee",
+   "startWeapon": "balta",
+   "lore": "Kuzeyin donmuş ormanlarında kurtlarla büyüdü. Kızıl Ay doğduğunda köyünü koruyan son adam oydu; baltası artık elinde değil, yanında süzülüyor ve her savuruşta karanlığı geri itiyor.",
+   "mods": {
+    "maxHp": 12,
+    "armor": 1,
+    "dmgPct": 0.03
+   },
+   "perks": [
+    "İmza: Kuzey Baltası — yanında süzülen çift ağızlı savaş baltası",
+    "Geniş yay çizerek savurur, sürüyü geri iter",
+    "Azami can +12, zırh +1, hasar +%3",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#4a4f57",
+    "hood": "#7a2a24",
+    "eye": "#ffd9a0",
+    "emblem": "#c9cdd4",
+    "rim": "rgba(201,205,212,0.45)"
+   },
+   "emblem": "shield",
+   "sigDmg": 0.659
+  },
+  "avci": {
+   "id": "avci",
+   "rarity": 2,
+   "name": "CANAVAR AVCISI",
+   "title": "Gümüş Cıvata",
+   "price": 5200,
+   "stonePrice": 460,
+   "style": "ranged",
+   "startWeapon": "arbalet",
+   "lore": "Gece yaratıklarının izini sürmek onun mesleği. Kızıl Ay'ın getirdiklerini tek tek saydı, hepsine birer gümüş cıvata ayırdı. Arbaleti yanında süzülür; hiç ıskalamaz, hiç acımaz.",
+   "mods": {
+    "atkPct": 0.08,
+    "critChance": 0.04,
+    "speedPct": 0.05,
+    "maxHp": -4
+   },
+   "perks": [
+    "İmza: Gümüş Arbalet — yanında süzülen ağır arbalet",
+    "Cıvata sırayla düşmanları deler geçer",
+    "Saldırı hızı +%8, kritik +%4, hız +%5, azami can −4",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#4a3626",
+    "hood": "#2b2018",
+    "eye": "#e8f0ff",
+    "emblem": "#e8f0ff",
+    "rim": "rgba(232,240,255,0.45)"
+   },
+   "emblem": "arrow",
+   "sigDmg": 1.254
+  },
+  "kanrahip": {
+   "id": "kanrahip",
+   "rarity": 3,
+   "name": "KAN RAHİBİ",
+   "title": "Kızıl Ayin",
+   "price": 14000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "kadeh",
+   "lore": "Kızıl Ay tarikatının en yaşlı rahibiydi; ayine son anda ihanet etti ve ayın kanını kendi kadehine döktü. Şimdi o kadehten akan kan, onu yaratanları avlıyor.",
+   "mods": {
+    "dmgPct": 0.1,
+    "lifeSteal": 0.02,
+    "maxHp": 8
+   },
+   "perks": [
+    "İmza: Kan Kadehi — yanında süzülen kadeh",
+    "Kan küreleri hedefi kovalar, değdiği yerde patlar",
+    "Hasar +%10, can çalma +%2, azami can +8",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#5a0f16",
+    "hood": "#7a1420",
+    "eye": "#ff3a4a",
+    "emblem": "#ffcf6a",
+    "rim": "rgba(255,58,74,0.5)"
+   },
+   "emblem": "flame",
+   "sigDmg": 0.376
+  },
+  "gecedans": {
+   "id": "gecedans",
+   "rarity": 3,
+   "name": "GECE DANSÇISI",
+   "title": "Hilal Bıçağı",
+   "price": 14000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "hilal",
+   "lore": "Gölgeler arasında dans eden bir suikastçı; Kızıl Ay'ın altında bıçaklarını hilal biçiminde dövdü. Yanında süzülen hilaller yelpaze gibi açılır, sürüyü tek nefeste biçer.",
+   "mods": {
+    "atkPct": 0.1,
+    "critChance": 0.06,
+    "speedPct": 0.1,
+    "dodge": 0.05,
+    "maxHp": -6
+   },
+   "perks": [
+    "İmza: Hilal Bıçakları — yanında süzülen hilaller",
+    "Bıçaklar yelpaze gibi açılıp delip geçer",
+    "Saldırı hızı +%10, kritik +%6, hız +%10, kaçınma +%5, azami can −6",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#2a1a3e",
+    "hood": "#3a2456",
+    "eye": "#e2ccff",
+    "emblem": "#c9a6ff",
+    "rim": "rgba(201,166,255,0.5)"
+   },
+   "emblem": "eye",
+   "sigDmg": 0.743
+  },
+  "ejder": {
+   "id": "ejder",
+   "rarity": 4,
+   "name": "EJDER ŞÖVALYESİ",
+   "title": "Kor Pullu",
+   "price": 34000,
+   "stonePrice": 2500,
+   "style": "melee",
+   "startWeapon": "ejderkilic",
+   "lore": "Son kızıl ejderi yendi ve onun pullarından zırhını dövdü. Ejderin öfkesi kılıcında yaşıyor; her savuruşunda önüne bir alev dalgası salar, her süper gücünde göğü ejder ateşi yakar.",
+   "mods": {
+    "dmgPct": 0.16,
+    "critChance": 0.05,
+    "maxHp": 16,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Ejder Kılıcı — yanında süzülen alevli dev kılıç",
+    "Her savuruş önüne ateş dalgası salar",
+    "Hasar +%16, kritik +%5, azami can +16, zırh +1",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#4a0e0a",
+    "hood": "#7a1a10",
+    "eye": "#ffb24a",
+    "emblem": "#ffb24a",
+    "rim": "rgba(255,140,60,0.55)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.237
   }
  },
  "CHAR_CARD_REQ": [
@@ -4223,6 +4382,606 @@
      "critMultAdd": 0.55
     }
    }
+  ],
+  "baltaci": [
+   {
+    "id": "sig_bt1",
+    "name": "Bilenmiş Ağız",
+    "desc": "Balta hasarı +%15.",
+    "boost": {
+     "weapon": "balta",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_bt2",
+    "name": "Hızlı Savuruş",
+    "desc": "Balta %10 daha sık savrulur.",
+    "boost": {
+     "weapon": "balta",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_bt3",
+    "name": "Geniş Yay",
+    "desc": "Savuruş yayı %15 genişler.",
+    "boost": {
+     "weapon": "balta",
+     "arc": 1.15
+    }
+   },
+   {
+    "id": "sig_bt4",
+    "name": "Kurt Gücü",
+    "desc": "Geri itme +%25, hasar +%6.",
+    "boost": {
+     "weapon": "balta",
+     "knock": 1.25,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_bt5",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%10, hasar +%5.",
+    "boost": {
+     "weapon": "balta",
+     "range": 1.1,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_bt6",
+    "name": "Kuzey Öfkesi",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "balta",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_bt7",
+    "name": "Kasırga Balta",
+    "desc": "Aralıklı geniş bir çevirme darbesi savurur.",
+    "boost": {
+     "weapon": "balta",
+     "spinAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga"
+   },
+   {
+    "id": "sig_bt8",
+    "name": "Deprem Darbesi",
+    "desc": "Her darbe zemine şok halkası yayar.",
+    "boost": {
+     "weapon": "balta",
+     "shockAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_bt9",
+    "name": "İkiz Balta",
+    "desc": "Ters yönden gecikmeli ikinci bir darbe iner.",
+    "boost": {
+     "weapon": "balta",
+     "twinAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_bt10",
+    "name": "Kurt Ulumasu",
+    "desc": "Darbenin hayalet yankısı bir kez daha vurur.",
+    "boost": {
+     "weapon": "balta",
+     "echoAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yanki"
+   },
+   {
+    "id": "sig_bt11",
+    "name": "Kemik Kıran",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "balta",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
+  ],
+  "avci": [
+   {
+    "id": "sig_av1",
+    "name": "Gümüş Uç",
+    "desc": "Cıvata hasarı +%15.",
+    "boost": {
+     "weapon": "arbalet",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_av2",
+    "name": "Hızlı Kurgu",
+    "desc": "Arbalet %10 daha sık atar.",
+    "boost": {
+     "weapon": "arbalet",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_av3",
+    "name": "Delici Cıvata",
+    "desc": "Cıvata bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "arbalet",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_av4",
+    "name": "Sert Yay",
+    "desc": "Cıvata hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "arbalet",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_av5",
+    "name": "Avcı Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "arbalet",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_av6",
+    "name": "Uzun Menzil",
+    "desc": "Cıvata ömrü +%20, hasar +%5.",
+    "boost": {
+     "weapon": "arbalet",
+     "life": 1.2,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_av7",
+    "name": "Çifte Cıvata",
+    "desc": "Arbalet aynı anda bir cıvata daha atar.",
+    "boost": {
+     "weapon": "arbalet",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_av8",
+    "name": "Gümüş Yağmuru",
+    "desc": "Düzenli atışlarda hedefin üstüne cıvata yağar.",
+    "boost": {
+     "weapon": "arbalet",
+     "rainAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "yagmur"
+   },
+   {
+    "id": "sig_av9",
+    "name": "Seken Cıvata",
+    "desc": "Cıvata duvardan seker gibi bir düşmana daha geçer.",
+    "boost": {
+     "weapon": "arbalet",
+     "bounceAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_av10",
+    "name": "Takipçi Cıvata",
+    "desc": "Cıvata hedefi hafifçe kovalar.",
+    "boost": {
+     "weapon": "arbalet",
+     "homingAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci"
+   },
+   {
+    "id": "sig_av11",
+    "name": "Canavar Katili",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "arbalet",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci"
+   }
+  ],
+  "kanrahip": [
+   {
+    "id": "sig_kr1",
+    "name": "Koyu Kan",
+    "desc": "Kan küresi hasarı +%15.",
+    "boost": {
+     "weapon": "kadeh",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_kr2",
+    "name": "Akan Ayin",
+    "desc": "Kadeh %10 daha sık salar.",
+    "boost": {
+     "weapon": "kadeh",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_kr3",
+    "name": "Delen Kan",
+    "desc": "Küre bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "kadeh",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_kr4",
+    "name": "Hızlı Akış",
+    "desc": "Küre hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "kadeh",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_kr5",
+    "name": "Kızıl Ayin",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kadeh",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_kr6",
+    "name": "Uzun Ömür",
+    "desc": "Küre ömrü +%20, hasar +%5.",
+    "boost": {
+     "weapon": "kadeh",
+     "life": 1.2,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_kr7",
+    "name": "Kan Patlaması",
+    "desc": "Patlama çapı ve gücü artar.",
+    "boost": {
+     "weapon": "kadeh",
+     "explodeAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlama"
+   },
+   {
+    "id": "sig_kr8",
+    "name": "İkiz Kadeh",
+    "desc": "Kadeh aynı anda bir küre daha salar.",
+    "boost": {
+     "weapon": "kadeh",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_kr9",
+    "name": "Bölünen Kan",
+    "desc": "Küre çarpınca küçük kan damlalarına bölünür.",
+    "boost": {
+     "weapon": "kadeh",
+     "splitAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_kr10",
+    "name": "Kan Bağı",
+    "desc": "Küreler hedefi daha sıkı kovalar.",
+    "boost": {
+     "weapon": "kadeh",
+     "homingAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci"
+   },
+   {
+    "id": "sig_kr11",
+    "name": "Kızıl Ay Ayini",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "kadeh",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
+  ],
+  "gecedans": [
+   {
+    "id": "sig_gd1",
+    "name": "Keskin Hilal",
+    "desc": "Bıçak hasarı +%15.",
+    "boost": {
+     "weapon": "hilal",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_gd2",
+    "name": "Gece Ritmi",
+    "desc": "Bıçaklar %10 daha sık fırlar.",
+    "boost": {
+     "weapon": "hilal",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_gd3",
+    "name": "Delen Hilal",
+    "desc": "Bıçak bir düşmanı daha deler geçer.",
+    "boost": {
+     "weapon": "hilal",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_gd4",
+    "name": "Rüzgâr Bıçağı",
+    "desc": "Bıçak hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "hilal",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_gd5",
+    "name": "Gölge Vuruşu",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "hilal",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_gd6",
+    "name": "Geniş Yelpaze",
+    "desc": "Yelpaze %15 genişler, hasar +%5.",
+    "boost": {
+     "weapon": "hilal",
+     "spreadMul": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_gd7",
+    "name": "Fazladan Hilal",
+    "desc": "Yelpazeye bir bıçak daha eklenir.",
+    "boost": {
+     "weapon": "hilal",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_gd8",
+    "name": "Seken Hilal",
+    "desc": "Bıçak bir düşmana daha seker.",
+    "boost": {
+     "weapon": "hilal",
+     "bounceAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_gd9",
+    "name": "Ay Tutulması",
+    "desc": "Düzenli atışlarda hedefin üstüne hilal yağar.",
+    "boost": {
+     "weapon": "hilal",
+     "rainAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur"
+   },
+   {
+    "id": "sig_gd10",
+    "name": "Gölge Takibi",
+    "desc": "Bıçaklar hedefi hafifçe kovalar.",
+    "boost": {
+     "weapon": "hilal",
+     "homingAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci"
+   },
+   {
+    "id": "sig_gd11",
+    "name": "Gece Kraliçesinin Dansı",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "hilal",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci"
+   }
+  ],
+  "ejder": [
+   {
+    "id": "sig_ej1",
+    "name": "Ejder Çeliği",
+    "desc": "Kılıç hasarı +%15.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_ej2",
+    "name": "Ejder Öfkesi",
+    "desc": "Kılıç %10 daha sık savrulur.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_ej3",
+    "name": "Geniş Kanat",
+    "desc": "Savuruş yayı %15 genişler.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "arc": 1.15
+    }
+   },
+   {
+    "id": "sig_ej4",
+    "name": "Kor Dalgası",
+    "desc": "Alev dalgası %20 büyür, hasar +%6.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "waveR": 1.2,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_ej5",
+    "name": "Uzun Pençe",
+    "desc": "Menzil +%10, hasar +%5.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "range": 1.1,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_ej6",
+    "name": "Ejder Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_ej7",
+    "name": "Alev Kasırgası",
+    "desc": "Aralıklı geniş bir alev çevirmesi savurur.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "spinAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga"
+   },
+   {
+    "id": "sig_ej8",
+    "name": "Ejder Nefesi",
+    "desc": "Alev dalgasının yanına iki dalga daha açılır.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "fanAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_ej9",
+    "name": "İkiz Pençe",
+    "desc": "Ters yönden gecikmeli ikinci bir darbe iner.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "twinAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_ej10",
+    "name": "Ejder Kükremesi",
+    "desc": "Darbenin hayalet yankısı bir kez daha vurur.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "echoAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yanki"
+   },
+   {
+    "id": "sig_ej11",
+    "name": "Ejder Kıran",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "ejderkilic",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
   ]
  },
  "SPECIAL_PERKS": [
@@ -5650,6 +6409,284 @@
    "hourglass": 0,
    "critAdd": 0,
    "critMultAdd": 0
+  },
+  "balta": {
+   "name": "Kuzey Baltası",
+   "melee": true,
+   "descNew": "Baltacı'nın yanında süzülen çift ağızlı savaş baltası — geniş yay çizerek savurur, sürüyü geri iter.",
+   "descUp": [
+    "Hasar +, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +, darbe sertleşir",
+    "Ağır kesik, geri itme +"
+   ],
+   "dmg": [
+    22,
+    30,
+    41,
+    54,
+    70
+   ],
+   "cooldown": [
+    1.0,
+    0.92,
+    0.84,
+    0.76,
+    0.68
+   ],
+   "range": [
+    122,
+    126,
+    130,
+    134,
+    140
+   ],
+   "arc": [
+    2.45,
+    2.45,
+    2.45,
+    2.45,
+    2.45
+   ],
+   "knock": [
+    340,
+    370,
+    400,
+    440,
+    490
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "arbalet": {
+   "name": "Gümüş Arbalet",
+   "kind": "gun",
+   "class": "celik",
+   "floatVisual": true,
+   "arrow": true,
+   "sfx": "crossbow",
+   "descNew": "Avcının yanında süzülen ağır arbalet — gümüş cıvatası sırayla düşmanları deler geçer.",
+   "descUp": [
+    "Hasar +, +1 delme",
+    "Daha çabuk kurulur",
+    "+1 delme, hasar +",
+    "Çifte cıvata"
+   ],
+   "dmg": [
+    30,
+    42,
+    58,
+    78,
+    104
+   ],
+   "pierce": [
+    2,
+    2,
+    3,
+    3,
+    4
+   ],
+   "cooldown": [
+    0.95,
+    0.88,
+    0.8,
+    0.72,
+    0.64
+   ],
+   "speed": 660,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.12,
+   "bulletLife": 1.3,
+   "color": "#b8c8f0",
+   "rainColor": "#ffe2a0",
+   "r": 6,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kadeh": {
+   "name": "Kan Kadehi",
+   "kind": "gun",
+   "class": "kor",
+   "orb": true,
+   "floatVisual": true,
+   "fireball": true,
+   "firePal": "blood",
+   "sfx": "bloodcast",
+   "descNew": "Rahibin yanında süzülen kan kadehi — hedefi kovalayan kan küreleri salar, değdiği yerde kan patlar.",
+   "descUp": [
+    "Hasar +, patlama büyür",
+    "Daha sık salar",
+    "+1 delme, hasar +",
+    "Çifte kan küresi"
+   ],
+   "dmg": [
+    22,
+    30,
+    41,
+    55,
+    74
+   ],
+   "pierce": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "cooldown": [
+    1.0,
+    0.92,
+    0.84,
+    0.76,
+    0.68
+   ],
+   "speed": 360,
+   "volley": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "spread": 0.3,
+   "bulletLife": 2.2,
+   "color": "#ff3a4a",
+   "rainColor": "#ff6a6a",
+   "r": 10,
+   "flame": 0,
+   "explode": 1,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 1,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "hilal": {
+   "name": "Hilal Bıçakları",
+   "kind": "gun",
+   "class": "ruh",
+   "floatVisual": true,
+   "crescent": true,
+   "sfx": "crescent",
+   "descNew": "Gece Dansçısı'nın yanında süzülen hilal bıçakları — yelpaze gibi açılıp sürüyü biçer.",
+   "descUp": [
+    "Hasar +, +1 bıçak",
+    "Daha sık fırlatır",
+    "+1 delme, hasar +",
+    "+1 bıçak, hasar +"
+   ],
+   "dmg": [
+    14,
+    19,
+    26,
+    35,
+    46
+   ],
+   "pierce": [
+    2,
+    2,
+    3,
+    3,
+    4
+   ],
+   "cooldown": [
+    1.1,
+    1.0,
+    0.92,
+    0.84,
+    0.76
+   ],
+   "speed": 540,
+   "volley": [
+    3,
+    4,
+    4,
+    4,
+    5
+   ],
+   "spread": 0.2,
+   "bulletLife": 1.1,
+   "color": "#c9a6ff",
+   "rainColor": "#e2ccff",
+   "r": 7,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "ejderkilic": {
+   "name": "Ejder Kılıcı",
+   "melee": true,
+   "descNew": "Ejder Şövalyesi'nin yanında süzülen alevli dev kılıç — her savuruşta önüne ateş dalgası salar.",
+   "descUp": [
+    "Hasar +, menzil biraz uzar",
+    "Daha çabuk savurur",
+    "Hasar +, alev dalgası güçlenir",
+    "Ejder alevi, geri itme +"
+   ],
+   "dmg": [
+    28,
+    38,
+    52,
+    70,
+    94
+   ],
+   "cooldown": [
+    0.95,
+    0.88,
+    0.8,
+    0.72,
+    0.64
+   ],
+   "range": [
+    130,
+    134,
+    138,
+    144,
+    150
+   ],
+   "arc": [
+    2.25,
+    2.25,
+    2.25,
+    2.25,
+    2.25
+   ],
+   "knock": [
+    300,
+    330,
+    360,
+    400,
+    450
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "wave": 1,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "waveR": 1,
+   "waveLife": 1
   }
  },
  "WEAPON_CLASSES": {

@@ -95,7 +95,10 @@
   "altar": 0.8,
   "event": 1,
   "ulthit": 0.06,
-  "slashhit": 0.09
+  "slashhit": 0.09,
+  "crossbow": 0.06,
+  "bloodcast": 0.06,
+  "crescent": 0.06
  },
  "variants": {
   "hit": 3,
@@ -191,7 +194,10 @@
   "ulthit": 3,
   "ultfire": 1,
   "combo": 3,
-  "slashhit": 3
+  "slashhit": 3,
+  "crossbow": 3,
+  "bloodcast": 3,
+  "crescent": 3
  },
  "files": [
   "hit_0",
@@ -430,7 +436,16 @@
   "combo_3",
   "slashhit_0",
   "slashhit_1",
-  "slashhit_2"
+  "slashhit_2",
+  "crossbow_0",
+  "crossbow_1",
+  "crossbow_2",
+  "bloodcast_0",
+  "bloodcast_1",
+  "bloodcast_2",
+  "crescent_0",
+  "crescent_1",
+  "crescent_2"
  ],
  "uiSounds": [
   "click",

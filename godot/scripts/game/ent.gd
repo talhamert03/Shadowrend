@@ -95,6 +95,7 @@ class PBullet:
 	var explode := 0; var split := 0; var frag := false; var smoke := 0; var metal := false
 	var fireball := false; var ph := 0.0; var nova := 0; var burned := false; var critAdd := 0.0
 	var stone := false; var shatter := 0
+	var crescent := false  # hilal bıçağı (Gece Dansçısı): dönen hilal ağı
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
 	var tgt = null; var tgtTok := -1   # güdümlü merminin kilitli hedefi
@@ -106,6 +107,7 @@ class PBullet:
 		lastHit = null
 		split = 0; frag = false; smoke = 0; metal = false
 		fireball = false; ph = 0.0; burned = false; nova = 0; pal = ""
+		crescent = false
 		return self
 
 class EBullet:

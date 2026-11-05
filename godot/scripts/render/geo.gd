@@ -258,3 +258,36 @@ static func merge(list: Array, xforms: Array = []) -> ArrayMesh:
 		var t: Transform3D = xforms[i] if i < xforms.size() else Transform3D.IDENTITY
 		st.append_from(list[i], 0, t)
 	return st.commit()
+
+## Düzlemsel siluetten kalın parça (XY düzlemi, kalınlık Z): ön/arka yüz + yan duvarlar, sert normaller.
+## Silah profilleri (balta ağzı, kılıç bıçağı, hilal, arbalet kundağı) için.
+static func extrude(poly: PackedVector2Array, depth: float) -> ArrayMesh:
+	var P := poly.duplicate()
+	var area := 0.0
+	for i in P.size():
+		var a: Vector2 = P[i]; var b: Vector2 = P[(i + 1) % P.size()]
+		area += a.x * b.y - b.x * a.y
+	if area < 0: P.reverse()
+	var tri := Geometry2D.triangulate_polygon(P)
+	var pos := PackedVector3Array(); var nrm := PackedVector3Array(); var uv := PackedVector2Array(); var idx := PackedInt32Array()
+	var h := depth * 0.5
+	var n := P.size()
+	# ön (+Z) ve arka (−Z)
+	for side in [1.0, -1.0]:
+		var base := pos.size()
+		for p in P:
+			pos.append(Vector3(p.x, p.y, h * side)); nrm.append(Vector3(0, 0, side)); uv.append(p * 0.02)
+		for t in range(0, tri.size(), 3):
+			if side > 0: idx.append_array([base + tri[t], base + tri[t + 1], base + tri[t + 2]])
+			else: idx.append_array([base + tri[t], base + tri[t + 2], base + tri[t + 1]])
+	# yan duvarlar (dışa bakan sert normal)
+	for i in n:
+		var a: Vector2 = P[i]; var b: Vector2 = P[(i + 1) % n]
+		var d := (b - a)
+		if d.length() < 1e-5: continue
+		var on := Vector3(d.y, -d.x, 0).normalized()
+		var base := pos.size()
+		for v in [Vector3(a.x, a.y, h), Vector3(a.x, a.y, -h), Vector3(b.x, b.y, -h), Vector3(b.x, b.y, h)]:
+			pos.append(v); nrm.append(on); uv.append(Vector2(v.x, v.z) * 0.02)
+		idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	return _mesh(pos, nrm, uv, idx)
