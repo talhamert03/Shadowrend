@@ -1396,7 +1396,7 @@
     "rim": "rgba(255,138,42,0.45)"
    },
    "emblem": "shield",
-   "sigDmg": 0.24
+   "sigDmg": 0.52
   },
   "barutcu": {
    "id": "barutcu",
@@ -1522,6 +1522,315 @@
    },
    "emblem": "bolt",
    "sigDmg": 0.135
+  },
+  "zincirci": {
+   "id": "zincirci",
+   "rarity": 1,
+   "name": "ZİNCİRCİ",
+   "title": "Zindan Bekçisi",
+   "price": 4500,
+   "stonePrice": 150,
+   "style": "ranged",
+   "startWeapon": "zincir",
+   "lore": "Kızıl Ay gecesi kapıları kırılan zindanın son bekçisi. Kaçan her yaratığı kancasıyla geri sürükler; zincirlerinden kurtulan olmadı.",
+   "mods": {
+    "maxHp": 12,
+    "armor": 2
+   },
+   "perks": [
+    "İmza: Kancalı Zincir — yanında süzülen kancalı zincir",
+    "Kanca fırlatır: hattaki düşmanları takar, dönüşte kendine sürükleyip çarpar",
+    "Azami can +12, zırh +2",
+    "Sıradan"
+   ],
+   "colors": {
+    "cloak": "#4a3424",
+    "hood": "#6a4a30",
+    "eye": "#ffb45a",
+    "emblem": "#c8c0b0",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "shield",
+   "sigDmg": 0.54
+  },
+  "simyaci": {
+   "id": "simyaci",
+   "rarity": 1,
+   "name": "SİMYACI",
+   "title": "Kızıl İksir",
+   "price": 4500,
+   "stonePrice": 150,
+   "style": "ranged",
+   "startWeapon": "iksir",
+   "lore": "Lonca kapanınca laboratuvarını sırtında taşıyan genç simyacı. Kızıl Ay'ın altında kaynattığı iksirler yere değdiği an alev alır.",
+   "mods": {
+    "dmgPct": 0.03,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: İksir Şişesi — yanında süzülen i̇ksir şişesi",
+    "İksir şişesi fırlatır: çarpınca patlar, yerde yanan alev göleti bırakır",
+    "Hasar +%3, azami can +6",
+    "Sıradan"
+   ],
+   "colors": {
+    "cloak": "#1e3a24",
+    "hood": "#2a4a2e",
+    "eye": "#8aff6a",
+    "emblem": "#ff9a2a",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "flame",
+   "sigDmg": 0.56
+  },
+  "falci": {
+   "id": "falci",
+   "rarity": 2,
+   "name": "KADER FALCISI",
+   "title": "Kartların Kızı",
+   "price": 15600,
+   "stonePrice": 460,
+   "style": "ranged",
+   "startWeapon": "tarot",
+   "lore": "Çadırına giren herkesin falına ölüm çıkardı; sonra Kızıl Ay doğdu ve kartlar kendi kendine dönmeye başladı. Artık kaderi o savuruyor.",
+   "mods": {
+    "dmgPct": 0.05,
+    "critChance": 0.03,
+    "maxHp": 4
+   },
+   "perks": [
+    "İmza: Kader Kartları — yanında süzülen kader kartları",
+    "Dönen tarot kartları: her kart rastgele ATEŞ, BUZ ya da YILDIRIM etkisi taşır",
+    "Hasar +%5, kritik şansı +%3, azami can +4",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#3a1440",
+    "hood": "#5a1a5a",
+    "eye": "#ffd86a",
+    "emblem": "#d8a0ff",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.5
+  },
+  "kamci": {
+   "id": "kamci",
+   "rarity": 2,
+   "name": "KAMÇI USTASI",
+   "title": "Diken Kraliçesi",
+   "price": 15600,
+   "stonePrice": 460,
+   "style": "melee",
+   "startWeapon": "kamci",
+   "lore": "Gül bahçelerinin bekçisiydi; dikenli sarmaşıklar Kızıl Ay'da kana susayınca onları kamçıya ördü. Şaklamasını duyan geri dönmez.",
+   "mods": {
+    "dmgPct": 0.05,
+    "atkPct": 0.05,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: Dikenli Kamçı — yanında süzülen dikenli kamçı",
+    "Uzun dikenli kamçı: çizgideki herkesi keser, ucundaki düşmana kritik vurur",
+    "Hasar +%5, saldırı hızı +%5, azami can +6",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#3a0a14",
+    "hood": "#5a0a1e",
+    "eye": "#ff4a6a",
+    "emblem": "#ff3a5a",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "flame",
+   "sigDmg": 0.53
+  },
+  "golge": {
+   "id": "golge",
+   "rarity": 2,
+   "name": "GÖLGE SUİKASTÇI",
+   "title": "Hayalet Bıçak",
+   "price": 15600,
+   "stonePrice": 460,
+   "style": "ranged",
+   "startWeapon": "golge",
+   "lore": "Loncanın en sessiz bıçağıydı; Kızıl Ay gölgesini ondan kopardı. Şimdi gölgesi onun yerine öldürüyor, o ise izliyor.",
+   "mods": {
+    "dmgPct": 0.04,
+    "critChance": 0.04,
+    "speedPct": 0.05
+   },
+   "perks": [
+    "İmza: Gölge Klonu — yanında süzülen gölge klonu",
+    "Gölge klonu salar: düşmandan düşmana sıçrayarak keser",
+    "Hasar +%4, kritik şansı +%4, hız +%5",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#0a0e14",
+    "hood": "#141a24",
+    "eye": "#5ae8ff",
+    "emblem": "#5ae8ff",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 1.75
+  },
+  "kemik": {
+   "id": "kemik",
+   "rarity": 3,
+   "name": "KEMİK EFENDİSİ",
+   "title": "Ölüler Kralı",
+   "price": 42000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "kemik",
+   "lore": "Mezarlığın altında uyuyan eski kral. Kızıl Ay onu uyandırdı ama kalbi yok; öldürdüğü her yaratık, ordusuna bir asker daha katar.",
+   "mods": {
+    "dmgPct": 0.08,
+    "maxHp": 8,
+    "armor": 1
+   },
+   "perks": [
+    "İmza: Kemik Mızrağı — yanında süzülen kemik mızrağı",
+    "Kemik mızrakları atar; öldürdüğü düşmanlardan iskelet hizmetkâr kaldırır",
+    "Hasar +%8, azami can +8, zırh +1",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#14181a",
+    "hood": "#1e2420",
+    "eye": "#7dff8a",
+    "emblem": "#7dff8a",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 1.0
+  },
+  "ayaz": {
+   "id": "ayaz",
+   "rarity": 3,
+   "name": "AYAZ GELİNİ",
+   "title": "Kışın Kızı",
+   "price": 42000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "ayaz",
+   "lore": "Düğün gecesi donan gelin. Kızıl Ay'ın sıcaklığı ona ulaşamadı; dokunduğu her şey buz tutar ve en ufak darbede paramparça olur.",
+   "mods": {
+    "dmgPct": 0.07,
+    "atkPct": 0.06,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: Buz Kırıkları — yanında süzülen buz kırıkları",
+    "Buz kırıkları: üç ayaz yükü düşmanı dondurur, donmuş düşman vurulunca parçalanır",
+    "Hasar +%7, saldırı hızı +%6, azami can +6",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#cfe8f4",
+    "hood": "#e8f4ff",
+    "eye": "#8fd6ff",
+    "emblem": "#8fd6ff",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.71
+  },
+  "totem": {
+   "id": "totem",
+   "rarity": 3,
+   "name": "TOTEM ŞAMANI",
+   "title": "Ruhların Sesi",
+   "price": 42000,
+   "stonePrice": 1100,
+   "style": "ranged",
+   "startWeapon": "totem",
+   "lore": "Ormanın son şamanı. Atalarının ruhlarını oyma totemlere bağlar; diktiği her totem, Kızıl Ay'ın yaratıklarına ruh ateşi yağdırır.",
+   "mods": {
+    "maxHp": 12,
+    "armor": 1,
+    "dmgPct": 0.05
+   },
+   "perks": [
+    "İmza: Ruh Totemi — yanında süzülen ruh totemi",
+    "Yere ruh totemleri diker; totemler en yakın düşmana ruh ateşi atar",
+    "Azami can +12, zırh +1, Hasar +%5",
+    "Epik"
+   ],
+   "colors": {
+    "cloak": "#1a3a34",
+    "hood": "#24504a",
+    "eye": "#4affd8",
+    "emblem": "#4affd8",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "shield",
+   "sigDmg": 1.8
+  },
+  "yildiz": {
+   "id": "yildiz",
+   "rarity": 4,
+   "name": "YILDIZ ÇAĞIRAN",
+   "title": "Gök Bilgesi",
+   "price": 102000,
+   "stonePrice": 2500,
+   "style": "ranged",
+   "startWeapon": "yildiz",
+   "lore": "Gözlemevinin yaşlı bilgesi; yıldızların yerini ezbere bilir. Kızıl Ay gökyüzünü kızıla boyayınca yıldızları birer birer yere indirmeye başladı.",
+   "mods": {
+    "dmgPct": 0.14,
+    "critChance": 0.05,
+    "atkPct": 0.04,
+    "maxHp": 8
+   },
+   "perks": [
+    "İmza: Yıldız Çağrısı — yanında süzülen yıldız çağrısı",
+    "Yere işaretlediği noktalara gökten yıldız indirir; çarpan yıldız alanı paramparça eder",
+    "Hasar +%14, kritik şansı +%5, saldırı hızı +%4, azami can +8",
+    "Efsanevi"
+   ],
+   "colors": {
+    "cloak": "#141c3a",
+    "hood": "#1a2650",
+    "eye": "#ffd86a",
+    "emblem": "#ffd86a",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.4
+  },
+  "siren": {
+   "id": "siren",
+   "rarity": 4,
+   "name": "DENİZ SİRENİ",
+   "title": "Dalgaların Sesi",
+   "price": 102000,
+   "stonePrice": 2500,
+   "style": "ranged",
+   "startWeapon": "siren",
+   "lore": "Fırtınalı kıyıların sireni. Kızıl Ay denizi kana boyayınca karaya çıktı; şarkısını duyan yaratık, kendi sürüsüne diş geçirir.",
+   "mods": {
+    "dmgPct": 0.12,
+    "atkPct": 0.06,
+    "maxHp": 10
+   },
+   "perks": [
+    "İmza: Siren Şarkısı — yanında süzülen siren şarkısı",
+    "Şarkı dalgası: değdiği düşmanları büyüler, büyülenenler birbirine saldırır",
+    "Hasar +%12, saldırı hızı +%6, azami can +10",
+    "Efsanevi"
+   ],
+   "colors": {
+    "cloak": "#0a2a3a",
+    "hood": "#0e3a4a",
+    "eye": "#5affe0",
+    "emblem": "#ff8ad8",
+    "rim": "rgba(255,255,255,0.4)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.62
   }
  },
  "CHAR_CARD_REQ": [
@@ -1665,7 +1974,7 @@
   "zombi": {
    "name": "İskelet Savaşçı",
    "hp": 22,
-   "speed": 46,
+   "speed": 56,
    "radius": 15,
    "dmg": 12,
    "xp": 1,
@@ -1676,7 +1985,7 @@
   "atici": {
    "name": "İskelet Büyücü",
    "hp": 30,
-   "speed": 48,
+   "speed": 56,
    "radius": 14,
    "dmg": 10,
    "xp": 2,
@@ -1692,7 +2001,7 @@
   "muhafiz": {
    "name": "Mezar Muhafızı",
    "hp": 88,
-   "speed": 33,
+   "speed": 40,
    "radius": 21,
    "dmg": 22,
    "xp": 5,
@@ -1703,7 +2012,7 @@
   "agir": {
    "name": "Ağır Pençe",
    "hp": 165,
-   "speed": 27,
+   "speed": 33,
    "radius": 26,
    "dmg": 30,
    "xp": 9,
@@ -1714,7 +2023,7 @@
   "patlayici": {
    "name": "Tuz Koşucusu",
    "hp": 26,
-   "speed": 78,
+   "speed": 88,
    "radius": 19,
    "dmg": 0,
    "xp": 3,
@@ -1729,7 +2038,7 @@
   "kral": {
    "name": "İskelet Kral",
    "hp": 560,
-   "speed": 20,
+   "speed": 24,
    "radius": 34,
    "dmg": 34,
    "xp": 26,
@@ -6548,6 +6857,1265 @@
     "glyph": "yikici",
     "max": 5
    }
+  ],
+  "zincirci": [
+   {
+    "id": "sig_zc1",
+    "name": "Paslı Kanca",
+    "desc": "Kanca hasarı +%15.",
+    "boost": {
+     "weapon": "zincir",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_zc2",
+    "name": "Hızlı Bilek",
+    "desc": "Kanca %10 daha sık atılır.",
+    "boost": {
+     "weapon": "zincir",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_zc3",
+    "name": "Uzun Zincir",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "zincir",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_zc4",
+    "name": "Sert Çekiş",
+    "desc": "Zincir %20 daha hızlı çeker.",
+    "boost": {
+     "weapon": "zincir",
+     "knock": 1.2
+    }
+   },
+   {
+    "id": "sig_zc5",
+    "name": "Kemik Kıran",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "zincir",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_zc6",
+    "name": "Ağır Halka",
+    "desc": "Hasar +%12.",
+    "boost": {
+     "weapon": "zincir",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_zc7",
+    "name": "Çifte Kanca",
+    "desc": "Her atışta bir kanca daha.",
+    "boost": {
+     "weapon": "zincir",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_zc8",
+    "name": "Zincir Darbesi",
+    "desc": "Sürüklenenler sana çarpınca daha sert yer.",
+    "boost": {
+     "weapon": "zincir",
+     "pinAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "zincir",
+    "max": 3
+   },
+   {
+    "id": "sig_zc9",
+    "name": "Demir Fırtına",
+    "desc": "Kanca daha uzağa uçar, hasar +%10.",
+    "boost": {
+     "weapon": "zincir",
+     "range": 1.2,
+     "dmg": 1.1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kasirga",
+    "max": 2
+   },
+   {
+    "id": "sig_zc10",
+    "name": "Zindan Kapısı",
+    "desc": "Hasar +%25, kanca daha sık.",
+    "boost": {
+     "weapon": "zincir",
+     "dmg": 1.25,
+     "cd": 0.92
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_zc11",
+    "name": "Son Kilit",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "zincir",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "simyaci": [
+   {
+    "id": "sig_sm1",
+    "name": "Koyu Karışım",
+    "desc": "İksir hasarı +%15.",
+    "boost": {
+     "weapon": "iksir",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_sm2",
+    "name": "Seri Şişe",
+    "desc": "%10 daha sık atar.",
+    "boost": {
+     "weapon": "iksir",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_sm3",
+    "name": "Geniş Göl",
+    "desc": "Alev göleti %12 büyür.",
+    "boost": {
+     "weapon": "iksir",
+     "areaAdd": 1
+    }
+   },
+   {
+    "id": "sig_sm4",
+    "name": "Uzun Yanış",
+    "desc": "Göl %20 daha uzun yanar.",
+    "boost": {
+     "weapon": "iksir",
+     "lifeAdd": 1
+    }
+   },
+   {
+    "id": "sig_sm5",
+    "name": "Uçucu Buhar",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "iksir",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_sm6",
+    "name": "Uzak Atış",
+    "desc": "Menzil +%15, hasar +%5.",
+    "boost": {
+     "weapon": "iksir",
+     "range": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_sm7",
+    "name": "İkiz Şişe",
+    "desc": "Her atışta bir şişe daha.",
+    "boost": {
+     "weapon": "iksir",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_sm8",
+    "name": "Patlayıcı Formül",
+    "desc": "Şişe çarpınca daha büyük patlar.",
+    "boost": {
+     "weapon": "iksir",
+     "explodeAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlama",
+    "max": 3
+   },
+   {
+    "id": "sig_sm9",
+    "name": "Alev Denizi",
+    "desc": "Göl %24 büyür, hasar +%10.",
+    "boost": {
+     "weapon": "iksir",
+     "areaAdd": 2,
+     "dmg": 1.1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "alevyagmur",
+    "max": 2
+   },
+   {
+    "id": "sig_sm10",
+    "name": "Simya Ustası",
+    "desc": "Hasar +%25, göl daha uzun.",
+    "boost": {
+     "weapon": "iksir",
+     "dmg": 1.25,
+     "lifeAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "cehennem",
+    "max": 3
+   },
+   {
+    "id": "sig_sm11",
+    "name": "Felsefe Taşı",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "iksir",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "falci": [
+   {
+    "id": "sig_fc1",
+    "name": "Keskin Kenar",
+    "desc": "Kart hasarı +%15.",
+    "boost": {
+     "weapon": "tarot",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_fc2",
+    "name": "Hızlı El",
+    "desc": "%10 daha sık savurur.",
+    "boost": {
+     "weapon": "tarot",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_fc3",
+    "name": "Uzak Deste",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "tarot",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_fc4",
+    "name": "Buz Kraliçe",
+    "desc": "Buz kartı daha uzun yavaşlatır.",
+    "boost": {
+     "weapon": "tarot",
+     "slowAdd": 1
+    }
+   },
+   {
+    "id": "sig_fc5",
+    "name": "Şanslı Kart",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "tarot",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_fc6",
+    "name": "Ateş Asası",
+    "desc": "Ateş kartı daha büyük patlar.",
+    "boost": {
+     "weapon": "tarot",
+     "explodeAdd": 1
+    }
+   },
+   {
+    "id": "sig_fc7",
+    "name": "Fazladan Kart",
+    "desc": "Her savuruşta bir kart daha.",
+    "boost": {
+     "weapon": "tarot",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "uclu",
+    "max": 2
+   },
+   {
+    "id": "sig_fc8",
+    "name": "Yıldırım Kulesi",
+    "desc": "Yıldırım kartı bir düşmana daha sıçrar.",
+    "boost": {
+     "weapon": "tarot",
+     "chainAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "zincir",
+    "max": 3
+   },
+   {
+    "id": "sig_fc9",
+    "name": "Delen Kader",
+    "desc": "Kartlar bir düşmanı daha delip geçer.",
+    "boost": {
+     "weapon": "tarot",
+     "pierce": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "nisan",
+    "max": 2
+   },
+   {
+    "id": "sig_fc10",
+    "name": "Büyük Arkana",
+    "desc": "Hasar +%25, kartlar daha sık.",
+    "boost": {
+     "weapon": "tarot",
+     "dmg": 1.25,
+     "cd": 0.92
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_fc11",
+    "name": "Ölüm Kartı",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "tarot",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "kamci": [
+   {
+    "id": "sig_km1",
+    "name": "Dikenli Örgü",
+    "desc": "Kamçı hasarı +%15.",
+    "boost": {
+     "weapon": "kamci",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_km2",
+    "name": "Hızlı Şaklama",
+    "desc": "%10 daha sık şaklar.",
+    "boost": {
+     "weapon": "kamci",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_km3",
+    "name": "Uzun Kamçı",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "kamci",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_km4",
+    "name": "Kanlı Uç",
+    "desc": "Kritik hasarı +%30.",
+    "boost": {
+     "weapon": "kamci",
+     "critMultAdd": 0.3
+    }
+   },
+   {
+    "id": "sig_km5",
+    "name": "Gül Dikeni",
+    "desc": "Kritik şansı +%8.",
+    "boost": {
+     "weapon": "kamci",
+     "critAdd": 0.08
+    }
+   },
+   {
+    "id": "sig_km6",
+    "name": "Sert Bilek",
+    "desc": "Hasar +%12.",
+    "boost": {
+     "weapon": "kamci",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_km7",
+    "name": "Çift Şaklama",
+    "desc": "Her atakta bir kamçı daha.",
+    "boost": {
+     "weapon": "kamci",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ciftkayis",
+    "max": 2
+   },
+   {
+    "id": "sig_km8",
+    "name": "Diken Yayı",
+    "desc": "Menzil +%20, hasar +%8.",
+    "boost": {
+     "weapon": "kamci",
+     "range": 1.2,
+     "dmg": 1.08
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik",
+    "max": 3
+   },
+   {
+    "id": "sig_km9",
+    "name": "Kızıl Gül",
+    "desc": "Kritik şansı +%10, kritik hasarı +%25.",
+    "boost": {
+     "weapon": "kamci",
+     "critAdd": 0.1,
+     "critMultAdd": 0.25
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ayazkesik",
+    "max": 2
+   },
+   {
+    "id": "sig_km10",
+    "name": "Kraliçenin Öfkesi",
+    "desc": "Hasar +%25, daha sık.",
+    "boost": {
+     "weapon": "kamci",
+     "dmg": 1.25,
+     "cd": 0.92
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "kasirga",
+    "max": 3
+   },
+   {
+    "id": "sig_km11",
+    "name": "Son Şaklama",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "kamci",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "golge": [
+   {
+    "id": "sig_gl1",
+    "name": "Kara Bıçak",
+    "desc": "Gölge hasarı +%15.",
+    "boost": {
+     "weapon": "golge",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_gl2",
+    "name": "Sessiz Adım",
+    "desc": "%10 daha sık salar.",
+    "boost": {
+     "weapon": "golge",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_gl3",
+    "name": "Uzun Gölge",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "golge",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_gl4",
+    "name": "Zincir Suikast",
+    "desc": "Gölge bir düşmana daha sıçrar.",
+    "boost": {
+     "weapon": "golge",
+     "targetsAdd": 1
+    }
+   },
+   {
+    "id": "sig_gl5",
+    "name": "Ölümcül Kesik",
+    "desc": "Kritik şansı +%8, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "golge",
+     "critAdd": 0.08,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_gl6",
+    "name": "Keskin Uç",
+    "desc": "Hasar +%12.",
+    "boost": {
+     "weapon": "golge",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_gl7",
+    "name": "İkinci Gölge",
+    "desc": "Her salışta bir gölge daha.",
+    "boost": {
+     "weapon": "golge",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_gl8",
+    "name": "Gölge Zinciri",
+    "desc": "Gölge iki düşmana daha sıçrar.",
+    "boost": {
+     "weapon": "golge",
+     "targetsAdd": 2
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "zincir",
+    "max": 3
+   },
+   {
+    "id": "sig_gl9",
+    "name": "Karanlık Dans",
+    "desc": "Hasar +%15, daha sık.",
+    "boost": {
+     "weapon": "golge",
+     "dmg": 1.15,
+     "cd": 0.9
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "kasirga",
+    "max": 2
+   },
+   {
+    "id": "sig_gl10",
+    "name": "Hayalet Ordu",
+    "desc": "Hasar +%25, bir sıçrama daha.",
+    "boost": {
+     "weapon": "golge",
+     "dmg": 1.25,
+     "targetsAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_gl11",
+    "name": "Son Nefes",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "golge",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "kemik": [
+   {
+    "id": "sig_ke1",
+    "name": "Sivri Kemik",
+    "desc": "Mızrak hasarı +%15.",
+    "boost": {
+     "weapon": "kemik",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_ke2",
+    "name": "Hızlı Çağrı",
+    "desc": "%10 daha sık atar.",
+    "boost": {
+     "weapon": "kemik",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_ke3",
+    "name": "Uzun Mızrak",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "kemik",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_ke4",
+    "name": "Sadık Ölüler",
+    "desc": "İskeletler %25 daha uzun yaşar.",
+    "boost": {
+     "weapon": "kemik",
+     "lifeAdd": 1
+    }
+   },
+   {
+    "id": "sig_ke5",
+    "name": "Kara Büyü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kemik",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_ke6",
+    "name": "Kalabalık Mezar",
+    "desc": "+1 iskelet.",
+    "boost": {
+     "weapon": "kemik",
+     "count": 1
+    }
+   },
+   {
+    "id": "sig_ke7",
+    "name": "Çift Mızrak",
+    "desc": "Her atışta bir mızrak daha.",
+    "boost": {
+     "weapon": "kemik",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_ke8",
+    "name": "Delen Kemik",
+    "desc": "Mızraklar bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "kemik",
+     "pierce": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nisan",
+    "max": 3
+   },
+   {
+    "id": "sig_ke9",
+    "name": "Ölü Ordusu",
+    "desc": "+2 iskelet, hasar +%8.",
+    "boost": {
+     "weapon": "kemik",
+     "count": 2,
+     "dmg": 1.08
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "nobet",
+    "max": 2
+   },
+   {
+    "id": "sig_ke10",
+    "name": "Mezar Kralı",
+    "desc": "Hasar +%25, daha sık.",
+    "boost": {
+     "weapon": "kemik",
+     "dmg": 1.25,
+     "cd": 0.92
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_ke11",
+    "name": "Ebedi Hükümdar",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "kemik",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "ayaz": [
+   {
+    "id": "sig_ay1",
+    "name": "Keskin Buz",
+    "desc": "Kırık hasarı +%15.",
+    "boost": {
+     "weapon": "ayaz",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_ay2",
+    "name": "Soğuk Rüzgâr",
+    "desc": "%10 daha sık savurur.",
+    "boost": {
+     "weapon": "ayaz",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_ay3",
+    "name": "Uzak Kar",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "ayaz",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_ay4",
+    "name": "Derin Don",
+    "desc": "Donma %25 uzun sürer.",
+    "boost": {
+     "weapon": "ayaz",
+     "hold": 1.25
+    }
+   },
+   {
+    "id": "sig_ay5",
+    "name": "Kırağı",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "ayaz",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_ay6",
+    "name": "Cam Kırığı",
+    "desc": "Parçalanma %20 daha sert.",
+    "boost": {
+     "weapon": "ayaz",
+     "shatterAdd": 1
+    }
+   },
+   {
+    "id": "sig_ay7",
+    "name": "Buz Yelpazesi",
+    "desc": "Her savuruşta bir kırık daha.",
+    "boost": {
+     "weapon": "ayaz",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "uclu",
+    "max": 2
+   },
+   {
+    "id": "sig_ay8",
+    "name": "Delen Ayaz",
+    "desc": "Kırıklar bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "ayaz",
+     "pierce": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nisan",
+    "max": 3
+   },
+   {
+    "id": "sig_ay9",
+    "name": "Buz Devri",
+    "desc": "Parçalanma sertleşir, hasar +%10.",
+    "boost": {
+     "weapon": "ayaz",
+     "shatterAdd": 2,
+     "dmg": 1.1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ayazkesik",
+    "max": 2
+   },
+   {
+    "id": "sig_ay10",
+    "name": "Kış Kraliçesi",
+    "desc": "Hasar +%25, daha sık.",
+    "boost": {
+     "weapon": "ayaz",
+     "dmg": 1.25,
+     "cd": 0.92
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "kasirga",
+    "max": 3
+   },
+   {
+    "id": "sig_ay11",
+    "name": "Mutlak Sıfır",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "ayaz",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "totem": [
+   {
+    "id": "sig_tt1",
+    "name": "Oyma Ruh",
+    "desc": "Ruh ateşi hasarı +%15.",
+    "boost": {
+     "weapon": "totem",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_tt2",
+    "name": "Hızlı Dikim",
+    "desc": "Totem %10 daha sık dikilir.",
+    "boost": {
+     "weapon": "totem",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_tt3",
+    "name": "Uzun Bakış",
+    "desc": "Totem menzili +%15.",
+    "boost": {
+     "weapon": "totem",
+     "range": 1.15
+    }
+   },
+   {
+    "id": "sig_tt4",
+    "name": "Kadim Ağaç",
+    "desc": "Totemler %20 daha uzun kalır.",
+    "boost": {
+     "weapon": "totem",
+     "lifeAdd": 1
+    }
+   },
+   {
+    "id": "sig_tt5",
+    "name": "Ata Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "totem",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_tt6",
+    "name": "Ruh Davulu",
+    "desc": "Hasar +%12.",
+    "boost": {
+     "weapon": "totem",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_tt7",
+    "name": "Ruh Ormanı",
+    "desc": "+1 totem.",
+    "boost": {
+     "weapon": "totem",
+     "count": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nobet",
+    "max": 2
+   },
+   {
+    "id": "sig_tt8",
+    "name": "İkiz Alev",
+    "desc": "Her totem bir ruh ateşi daha atar.",
+    "boost": {
+     "weapon": "totem",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_tt9",
+    "name": "Ataların Öfkesi",
+    "desc": "Hasar +%15, totem daha sık.",
+    "boost": {
+     "weapon": "totem",
+     "dmg": 1.15,
+     "cd": 0.9
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "firtina",
+    "max": 2
+   },
+   {
+    "id": "sig_tt10",
+    "name": "Büyük Totem",
+    "desc": "Hasar +%25, totem uzun kalır.",
+    "boost": {
+     "weapon": "totem",
+     "dmg": 1.25,
+     "lifeAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_tt11",
+    "name": "Ruhların Sesi",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "totem",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "yildiz": [
+   {
+    "id": "sig_yz1",
+    "name": "Parlak Yıldız",
+    "desc": "Yıldız hasarı +%15.",
+    "boost": {
+     "weapon": "yildiz",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_yz2",
+    "name": "Hızlı Gök",
+    "desc": "%10 daha sık çağırır.",
+    "boost": {
+     "weapon": "yildiz",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_yz3",
+    "name": "Geniş Krater",
+    "desc": "Patlama %12 büyür.",
+    "boost": {
+     "weapon": "yildiz",
+     "areaAdd": 1
+    }
+   },
+   {
+    "id": "sig_yz4",
+    "name": "Uzak Gözlem",
+    "desc": "Menzil +%15, hasar +%5.",
+    "boost": {
+     "weapon": "yildiz",
+     "range": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_yz5",
+    "name": "Kuyruklu Yıldız",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "yildiz",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_yz6",
+    "name": "Gök Ağırlığı",
+    "desc": "Hasar +%12.",
+    "boost": {
+     "weapon": "yildiz",
+     "dmg": 1.12
+    }
+   },
+   {
+    "id": "sig_yz7",
+    "name": "Takımyıldız",
+    "desc": "Her çağrıda bir yıldız daha.",
+    "boost": {
+     "weapon": "yildiz",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "yagmur",
+    "max": 2
+   },
+   {
+    "id": "sig_yz8",
+    "name": "Süpernova",
+    "desc": "Patlama %24 büyür.",
+    "boost": {
+     "weapon": "yildiz",
+     "areaAdd": 2
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "nova",
+    "max": 2
+   },
+   {
+    "id": "sig_yz9",
+    "name": "Yıldız Yağmuru",
+    "desc": "Hasar +%15, daha sık.",
+    "boost": {
+     "weapon": "yildiz",
+     "dmg": 1.15,
+     "cd": 0.9
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "tasyagmuru",
+    "max": 2
+   },
+   {
+    "id": "sig_yz10",
+    "name": "Gökkubbe",
+    "desc": "Hasar +%25, bir yıldız daha.",
+    "boost": {
+     "weapon": "yildiz",
+     "dmg": 1.25,
+     "volley": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "kadimfirtina",
+    "max": 2
+   },
+   {
+    "id": "sig_yz11",
+    "name": "Evrenin Gözü",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "yildiz",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
+  ],
+  "siren": [
+   {
+    "id": "sig_sr1",
+    "name": "Tatlı Ses",
+    "desc": "Şarkı hasarı +%15.",
+    "boost": {
+     "weapon": "siren",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_sr2",
+    "name": "Hızlı Nakarat",
+    "desc": "%10 daha sık söyler.",
+    "boost": {
+     "weapon": "siren",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_sr3",
+    "name": "Uzak Yankı",
+    "desc": "Menzil +%15, hasar +%4.",
+    "boost": {
+     "weapon": "siren",
+     "range": 1.15,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_sr4",
+    "name": "Geniş Dalga",
+    "desc": "Dalga %20 genişler.",
+    "boost": {
+     "weapon": "siren",
+     "arc": 1.2
+    }
+   },
+   {
+    "id": "sig_sr5",
+    "name": "Büyülü Not",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "siren",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_sr6",
+    "name": "Derin Büyü",
+    "desc": "Büyü %25 uzun sürer.",
+    "boost": {
+     "weapon": "siren",
+     "duration": 1.25
+    }
+   },
+   {
+    "id": "sig_sr7",
+    "name": "Koro",
+    "desc": "Her şarkıda bir dalga daha.",
+    "boost": {
+     "weapon": "siren",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz",
+    "max": 2
+   },
+   {
+    "id": "sig_sr8",
+    "name": "Dev Dalga",
+    "desc": "Dalga %35 genişler, hasar +%8.",
+    "boost": {
+     "weapon": "siren",
+     "arc": 1.35,
+     "dmg": 1.08
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "sokdalga",
+    "max": 2
+   },
+   {
+    "id": "sig_sr9",
+    "name": "Fırtına Şarkısı",
+    "desc": "Hasar +%15, daha sık.",
+    "boost": {
+     "weapon": "siren",
+     "dmg": 1.15,
+     "cd": 0.9
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "firtina",
+    "max": 2
+   },
+   {
+    "id": "sig_sr10",
+    "name": "Okyanusun Kalbi",
+    "desc": "Hasar +%25, büyü uzar.",
+    "boost": {
+     "weapon": "siren",
+     "dmg": 1.25,
+     "duration": 1.2
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "girdap",
+    "max": 3
+   },
+   {
+    "id": "sig_sr11",
+    "name": "Son Şarkı",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "siren",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici",
+    "max": 5
+   }
   ]
  },
  "SPECIAL_PERKS": [
@@ -8575,11 +10143,11 @@
     0
    ],
    "cooldown": [
-    1.25,
-    1.15,
-    1.05,
-    0.97,
-    0.9
+    1.8,
+    1.66,
+    1.52,
+    1.4,
+    1.3
    ],
    "speed": 480,
    "volley": [
@@ -8599,11 +10167,11 @@
     360
    ],
    "areaR": [
-    56,
-    60,
-    64,
-    68,
-    74
+    42,
+    46,
+    49,
+    52,
+    57
    ],
    "hold": 0.6,
    "color": "#ff8a2a",
@@ -8857,6 +10425,520 @@
    "homing": 0,
    "critAdd": 0,
    "critMultAdd": 0
+  },
+  "zincir": {
+   "name": "Kancalı Zincir",
+   "kind": "hook",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Zincircinin yanında süzülen kanca — en yakın düşmana zincir fırlatır; hattakileri takıp kendine sürükler.",
+   "descUp": [
+    "Hasar +, menzil +",
+    "Daha sık fırlatır",
+    "Hasar +",
+    "İkinci kanca"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    22,
+    30,
+    40,
+    52,
+    66
+   ],
+   "cooldown": [
+    1.5,
+    1.4,
+    1.3,
+    1.2,
+    1.1
+   ],
+   "range": [
+    260,
+    270,
+    285,
+    300,
+    320
+   ],
+   "volley": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "speed": 900,
+   "knock": 1.0,
+   "pin": 0,
+   "color": "#c8c0b0",
+   "sfx": "chainthrow"
+  },
+  "iksir": {
+   "name": "İksir Şişesi",
+   "kind": "flask",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Simyacının yanında süzülen iksir — sürüye yay çizen şişeler atar; kırılan şişe yerde alev göleti bırakır.",
+   "descUp": [
+    "Hasar +, göl büyür",
+    "Daha sık atar",
+    "İkinci şişe",
+    "Hasar +, göl uzar"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    16,
+    22,
+    29,
+    38,
+    48
+   ],
+   "cooldown": [
+    1.6,
+    1.5,
+    1.4,
+    1.3,
+    1.2
+   ],
+   "range": [
+    320,
+    330,
+    345,
+    360,
+    380
+   ],
+   "volley": [
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "areaR": [
+    50,
+    54,
+    58,
+    62,
+    68
+   ],
+   "bulletLife": 2.4,
+   "areaAdd": 0,
+   "lifeAdd": 0,
+   "explode": 0,
+   "color": "#ff9a2a",
+   "sfx": "flaskthrow"
+  },
+  "tarot": {
+   "name": "Kader Kartları",
+   "kind": "tarot",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Falcının yanında süzülen kart destesi — yelpaze gibi kart savurur; her kart ateş, buz ya da yıldırım çıkar.",
+   "descUp": [
+    "Hasar +, +1 kart",
+    "Daha sık savurur",
+    "Kartlar delip geçer",
+    "+1 kart, hasar +"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    14,
+    19,
+    25,
+    33,
+    42
+   ],
+   "cooldown": [
+    0.9,
+    0.85,
+    0.8,
+    0.75,
+    0.7
+   ],
+   "volley": [
+    2,
+    2,
+    3,
+    3,
+    4
+   ],
+   "spread": 0.2,
+   "speed": 560,
+   "pierce": [
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "range": 520,
+   "bulletLife": 1.3,
+   "chain": 0,
+   "slowAdd": 0,
+   "explode": 0,
+   "color": "#d8a0ff",
+   "sfx": "cardthrow"
+  },
+  "kamci": {
+   "name": "Dikenli Kamçı",
+   "kind": "lash",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Kamçı Ustası'nın dikenli kamçısı — öne doğru şaklar; hattaki herkesi keser, ucuna denk gelen kritik yer.",
+   "descUp": [
+    "Hasar +, menzil +",
+    "Daha sık şaklar",
+    "Hasar +",
+    "Çift şaklama"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    26,
+    35,
+    46,
+    60,
+    76
+   ],
+   "cooldown": [
+    0.9,
+    0.85,
+    0.8,
+    0.75,
+    0.7
+   ],
+   "range": [
+    220,
+    230,
+    240,
+    255,
+    270
+   ],
+   "volley": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "color": "#ff3a5a"
+  },
+  "golge": {
+   "name": "Gölge Klonu",
+   "kind": "shade",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Suikastçının gölgesi — en yakın düşmana atılır, kestikçe bir sonrakine sıçrar.",
+   "descUp": [
+    "Hasar +, +1 sıçrama",
+    "Daha sık salar",
+    "Hasar +",
+    "İkinci gölge"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    20,
+    27,
+    36,
+    47,
+    60
+   ],
+   "cooldown": [
+    1.4,
+    1.3,
+    1.2,
+    1.1,
+    1.0
+   ],
+   "targets": [
+    3,
+    3,
+    4,
+    4,
+    5
+   ],
+   "volley": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "range": 360,
+   "targetsAdd": 0,
+   "color": "#5ae8ff"
+  },
+  "kemik": {
+   "name": "Kemik Mızrağı",
+   "kind": "bone",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Kemik Efendisi'nin yanında süzülen kafatası — delici kemik mızrakları atar; mızrağın öldürdüğü düşman iskelet olup sana hizmet eder.",
+   "descUp": [
+    "Hasar +, +1 iskelet",
+    "Daha sık atar",
+    "Mızraklar delip geçer",
+    "İkinci mızrak, +1 iskelet"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    18,
+    24,
+    32,
+    42,
+    54
+   ],
+   "cooldown": [
+    0.95,
+    0.9,
+    0.85,
+    0.8,
+    0.75
+   ],
+   "volley": [
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "pierce": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "count": [
+    2,
+    3,
+    3,
+    4,
+    5
+   ],
+   "speed": 620,
+   "range": 520,
+   "lifeAdd": 0,
+   "color": "#efe6d0",
+   "sfx": "bonethrow"
+  },
+  "ayaz": {
+   "name": "Buz Kırıkları",
+   "kind": "frost",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Ayaz Gelini'nin yanında süzülen buz tacı — yelpaze gibi buz kırığı savurur; üç kırık düşmanı dondurur, donmuşu paramparça eder.",
+   "descUp": [
+    "Hasar +, +1 kırık",
+    "Daha sık savurur",
+    "+1 kırık",
+    "Kırıklar delip geçer"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    10,
+    14,
+    18,
+    24,
+    30
+   ],
+   "cooldown": [
+    0.75,
+    0.7,
+    0.66,
+    0.62,
+    0.58
+   ],
+   "volley": [
+    3,
+    3,
+    4,
+    4,
+    5
+   ],
+   "spread": 0.2,
+   "speed": 640,
+   "pierce": [
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "bulletLife": 0.9,
+   "range": 480,
+   "hold": 1.0,
+   "shatter": 0,
+   "color": "#8fd6ff",
+   "sfx": "iceshard"
+  },
+  "totem": {
+   "name": "Ruh Totemi",
+   "kind": "totem",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Şamanın diktiği ruh totemi — birkaç saniye yerde kalır, menzile gireni ruh ateşiyle vurur.",
+   "descUp": [
+    "Hasar +, +1 totem",
+    "Daha sık diker",
+    "Totemler daha hızlı ateşler",
+    "Çift ruh ateşi, +1 totem"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    12,
+    16,
+    21,
+    28,
+    36
+   ],
+   "cooldown": [
+    3.2,
+    3.0,
+    2.8,
+    2.6,
+    2.4
+   ],
+   "count": [
+    2,
+    2,
+    3,
+    3,
+    4
+   ],
+   "duration": [
+    7,
+    7,
+    7.5,
+    8,
+    8.5
+   ],
+   "rate": [
+    0.8,
+    0.75,
+    0.7,
+    0.65,
+    0.6
+   ],
+   "volley": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "range": [
+    340,
+    350,
+    360,
+    380,
+    400
+   ],
+   "lifeAdd": 0,
+   "color": "#4affd8",
+   "sfx": "totemplant"
+  },
+  "yildiz": {
+   "name": "Yıldız Çağrısı",
+   "kind": "star",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Yıldız Çağıran'ın yanında süzülen gök küresi — düşmanların altına işaret koyar; işaretli yere gökten yıldız düşer.",
+   "descUp": [
+    "Hasar +, +1 yıldız",
+    "Daha sık çağırır",
+    "Patlama büyür",
+    "+1 yıldız, hasar +"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    40,
+    54,
+    70,
+    90,
+    115
+   ],
+   "cooldown": [
+    3.0,
+    2.8,
+    2.6,
+    2.4,
+    2.2
+   ],
+   "volley": [
+    1,
+    2,
+    2,
+    3,
+    3
+   ],
+   "areaR": [
+    46,
+    50,
+    54,
+    58,
+    64
+   ],
+   "delay": 0.75,
+   "range": 420,
+   "areaAdd": 0,
+   "color": "#ffd86a"
+  },
+  "siren": {
+   "name": "Siren Şarkısı",
+   "kind": "song",
+   "class": "ruh",
+   "floatVisual": true,
+   "descNew": "Sirenin yanında süzülen deniz kabuğu — önüne şarkı dalgası yayar; değdiği düşman büyülenip sürüsüne saldırır.",
+   "descUp": [
+    "Hasar +, dalga genişler",
+    "Daha sık söyler",
+    "İkinci dalga",
+    "Büyü uzar, hasar +"
+   ],
+   "critAdd": 0,
+   "critMultAdd": 0,
+   "dmg": [
+    18,
+    24,
+    32,
+    42,
+    54
+   ],
+   "cooldown": [
+    1.2,
+    1.12,
+    1.05,
+    0.98,
+    0.9
+   ],
+   "range": [
+    300,
+    315,
+    330,
+    350,
+    370
+   ],
+   "arc": 1.2,
+   "duration": 2.4,
+   "volley": [
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "speed": 330,
+   "color": "#5affe0",
+   "sfx": "sirensong"
   }
  },
  "WEAPON_CLASSES": {

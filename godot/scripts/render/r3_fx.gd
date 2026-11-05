@@ -279,8 +279,13 @@ func set_point_scale(pr: float, h: float) -> void:
 
 # ═══════════ KARE ═══════════
 
+var mechR: R3Mech
 func update(g, dt: float) -> void:
 	cam = r3.camera.global_transform.basis
+	if mechR == null:
+		mechR = R3Mech.new()
+		r3.scene.add_child(mechR)
+	mechR.update(g)
 	_update_projectiles(g)
 	_update_fire_hits(g, dt)
 	_update_impacts(dt)

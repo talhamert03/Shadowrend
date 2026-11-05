@@ -50,6 +50,18 @@ const ULT_ID := {
 		"pal": {"noprism": true}, "desc": "Altı makara yükselir; aralarında parlayan ipler gerilir, ağın içindekileri biçer."},
 	"cellat":   {"name": "İNFAZ GÜNÜ",    "col": "#ffd0d0", "c2": "#d81a2a", "k": "slam",   "snd": "slam",   "base": 0,  "hr": 0.0,   "desc": "Satır yere iner; kızıl şok dalgası yayılır, sürüyü savurur."},
 	"karadelik": {"name": "OLAY UFKU",    "col": "#f0e0ff", "c2": "#7a2aff", "k": "vortex", "snd": "vortex", "base": 0,  "hr": 0.0, "pull": true, "desc": "Cadının çevresinde dev bir kara delik döner; sürüyü içine çekip ezer."},
+	"zincirci": {"name": "ZİNDAN ZİNCİRLERİ", "col": "#f0e8d8", "c2": "#a8784a", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0, "pull": true, "desc": "Zincirler kahramanın çevresinde döner; sürüyü içine çekip ezer."},
+	"simyaci":  {"name": "İKSİR YAĞMURU", "col": "#f0ffd8", "c2": "#ff8a2a", "k": "poison", "snd": "meteor", "base": 7, "hr": 96.0,
+		"pal": {"tox": "#ffb04a", "deep": "#3a1a04", "glass": "#2a4a1a", "rot": "#140a02", "pool": "#3a1a04", "pool2": "#5a2a08", "wet": "#ff8a2a", "wet2": "#a04a10", "bub": "#6a3a10", "bub2": "#ffd06a"},
+		"desc": "Gökten iksir şişeleri yağar; kırılan şişeler yerde kaynayan alev batağı açar."},
+	"falci":    {"name": "KADER ÇARKI",   "col": "#f6e8ff", "c2": "#c070ff", "k": "mirror", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Altı dev tarot kartı yükselir; aralarında kader ışınları örülür, ağın içindekileri yakar."},
+	"kamci":    {"name": "DİKEN FIRTINASI", "col": "#ffd8e0", "c2": "#ff2a4a", "k": "slash", "snd": "slash", "base": 14, "hr": 80.0, "desc": "Kızıl dikenli kamçı izleri sürünün üstünde çapraz açılır, her şeyi biçer."},
+	"golge":    {"name": "GÖLGE DANSI",   "col": "#d8f8ff", "c2": "#2ad8ff", "k": "slash",  "snd": "slash",  "base": 14, "hr": 80.0, "desc": "Karanlık yarılır; gölge klonların kesikleri sürünün üstünde çaprazlanır."},
+	"kemik":    {"name": "ÖLÜ ORDUSU",    "col": "#e8ffe8", "c2": "#4adf6a", "k": "grave",  "snd": "slam",   "base": 14, "hr": 80.0, "desc": "Toprak yarılır; kemik eller mezarlardan fışkırır, düşmanı yerine çiviler."},
+	"ayaz":     {"name": "MUTLAK SIFIR",  "col": "#eef8ff", "c2": "#7fd0ff", "k": "spike",  "snd": "spike",  "base": 0, "hr": 70.0, "desc": "Buz mızrakları halka halka fışkırır; değdiği düşmanı dondurur."},
+	"totem":    {"name": "ATA RUHLARI",   "col": "#d8fff4", "c2": "#2affc8", "k": "bolt",   "snd": "bolt",   "base": 10, "hr": 90.0, "desc": "Ataların ruhları göğü yarar; sürünün üstüne turkuaz ruh yıldırımları iner."},
+	"yildiz":   {"name": "YILDIZ YAĞMURU", "col": "#fff6d0", "c2": "#ffc83a", "k": "meteor", "snd": "meteor", "base": 9, "hr": 120.0, "desc": "Gök açılır; altın yıldızlar çapraz düşer, çarptığı yeri paramparça eder."},
+	"siren":    {"name": "DEV DALGA",     "col": "#d8fff8", "c2": "#2ae0d0", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Sirenin çevresinde dev bir dalga döner; sürüyü süpürüp ezer."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi

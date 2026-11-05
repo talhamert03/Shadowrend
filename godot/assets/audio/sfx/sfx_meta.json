@@ -109,7 +109,17 @@
   "blunder": 0.07,
   "string": 0.12,
   "cleave": 0.07,
-  "void": 0.07
+  "void": 0.07,
+  "chainthrow": 0.08,
+  "chainpull": 0.1,
+  "flaskthrow": 0.08,
+  "cardthrow": 0.07,
+  "whipcrack": 0.08,
+  "bonethrow": 0.07,
+  "iceshard": 0.07,
+  "totemplant": 0.3,
+  "sirensong": 0.3,
+  "starfall": 0.08
  },
  "variants": {
   "hit": 3,
@@ -219,7 +229,17 @@
   "blunder": 3,
   "string": 3,
   "cleave": 3,
-  "void": 3
+  "void": 3,
+  "chainthrow": 3,
+  "chainpull": 3,
+  "flaskthrow": 3,
+  "cardthrow": 3,
+  "whipcrack": 3,
+  "bonethrow": 3,
+  "iceshard": 3,
+  "totemplant": 3,
+  "sirensong": 3,
+  "starfall": 3
  },
  "files": [
   "hit_0",

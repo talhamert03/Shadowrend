@@ -78,6 +78,11 @@ static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D)
 		if kind != "":
 			bd.draw.connect(func(): _draw_badge(bd, kind))
 			parent.add_child(bd)
+	# nadirlik parıltısı (Nadir ve üstü; bulunamayan kartta yok)
+	if not locked:
+		var rk2: int = info.rk
+		var tier := 0 if rk2 <= 2 else (1 if rk2 == 3 else (2 if rk2 == 4 else 3))
+		rarity_glow(parent, sz, 11.0, ScrCeremony.rank_col(ChestSystem.rk(int(x.rarity))), tier, not info.wear)
 	# seçili: tepsi düğmeleri
 	for a in info.acts:
 		var r: Rect2 = a[0]
@@ -97,6 +102,32 @@ static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D)
 			gd += 1
 			tt.style(false, 1000, fz, 0.4, tc, tsh)
 			tt.position.y = r.position.y + (r.size.y - fz * 1.25) * 0.5
+
+## nadirlik parıltısı (kart çerçevesinde dolaşan ışık + hale + yıldızcıklar; görseli kapatmaz)
+## tier: 1 nadir (hale + kontur), 2 epik (+1 dolaşan ışık, 3 yıldız), 3 efsanevi (+2 ışık, 6 yıldız)
+static var _glowSh: Shader
+static func rarity_glow(parent: Node, sz: Vector2, radius: float, col: Color, tier: int, dim := false) -> ColorRect:
+	if tier <= 0: return null
+	if _glowSh == null: _glowSh = load("res://shaders/ui/rarity_glow.gdshader")
+	var pad := 16.0
+	var r := ColorRect.new()
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.position = -Vector2(pad, pad)
+	r.size = sz + Vector2(pad, pad) * 2.0
+	var m := ShaderMaterial.new()
+	m.shader = _glowSh
+	m.set_shader_parameter("box", sz)
+	m.set_shader_parameter("pad", pad)
+	m.set_shader_parameter("radius", radius)
+	m.set_shader_parameter("col", col.lightened(0.15))
+	m.set_shader_parameter("level", ([0.0, 0.55, 0.8, 1.0][tier]) * (0.45 if dim else 1.0))
+	m.set_shader_parameter("comets", [0.0, 0.0, 1.0, 2.0][tier])
+	m.set_shader_parameter("sparks", [0.0, 0.0, 3.0, 6.0][tier])
+	m.set_shader_parameter("speed", [0.0, 0.0, 0.2, 0.26][tier])
+	m.set_shader_parameter("seed", randf())
+	r.material = m
+	parent.add_child(r)
+	return r
 
 static func _txt(parent: Node2D, s: String, sz: float, col: Color, ls: float, pos: Vector2, w: float, sh := "") -> UIText:
 	var t := UIText.new()

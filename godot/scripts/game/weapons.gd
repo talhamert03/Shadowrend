@@ -30,7 +30,9 @@ const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": 
 	"prizma": "RUH", "zaman": "CELIK",
 	"baltaci": "CELIK", "avci": "AYAZ", "kanrahip": "KOR", "gecedans": "RUH", "ejder": "KOR",
 	"mizrakci": "CELIK", "bumerang": "YILDIRIM", "tirpanci": "RUH", "gulcadi": "KOR", "kuzgun": "RUH",
-	"tuzakci": "CELIK", "barutcu": "KOR", "kukla": "RUH", "cellat": "CELIK", "karadelik": "YILDIRIM"}
+	"tuzakci": "CELIK", "barutcu": "KOR", "kukla": "RUH", "cellat": "CELIK", "karadelik": "YILDIRIM",
+	"zincirci": "CELIK", "simyaci": "KOR", "falci": "RUH", "kamci": "KOR", "golge": "YILDIRIM",
+	"kemik": "RUH", "ayaz": "AYAZ", "totem": "RUH", "yildiz": "YILDIRIM", "siren": "AYAZ"}
 
 const MUL_MAP_BASE := {"hold": "hold", "cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
@@ -48,6 +50,7 @@ const SCALAR_ADD := {"execAdd": "execAdd", "areaAdd": "areaAdd", "lifeAdd": "lif
 static var _passives_merged := false
 
 var game
+var mech: HeroMech
 var scratch: Array = []
 var bolts: Array = []
 
@@ -146,6 +149,7 @@ func _init(g) -> void:
 		for k in EXTRA_PASSIVES:
 			if not D.PASSIVES.has(k): D.PASSIVES[k] = EXTRA_PASSIVES[k]
 	for i in 8: bolts.append({"x": 0.0, "y": 0.0, "life": 0.0})
+	mech = HeroMech.new(g, self)
 	reset()
 
 func tag_name(t: String) -> String:
@@ -156,6 +160,7 @@ func reset() -> void:
 	cursed = {}; curses = 0
 	tagN = {}; tagDone = {}
 	W = D.WEAPONS.duplicate(true)
+	if mech: mech.reset()
 	slots = {}; passives = {}; synApplied = {}; specialTaken = {}; sigLvl = {}
 	evolved = false; wEvolved = false
 	tethers = []; tetherPts = PackedVector2Array()
@@ -232,7 +237,9 @@ func update(dt: float) -> void:
 			elif kd == "beam": update_beam(id, dt)
 			elif kd == "blades": update_blades(id, dt)
 			elif kd == "tether": update_tether(id, dt)
+			elif HeroMech.KINDS.has(kd): mech.update(id, kd, dt)
 	if not _delayed.is_empty(): _update_delayed(dt)
+	mech.tick(dt)
 	var i := pending.size() - 1
 	while i >= 0:
 		var q = pending[i]

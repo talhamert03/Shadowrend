@@ -1214,6 +1214,546 @@
      0.78
     ]
    }
+  },
+  "zincirci": {
+   "file": "heroes/zincirci.glb",
+   "height": 91.2,
+   "baseScale": 50.6666688477553,
+   "rigPos": [
+    0.0036,
+    0.0,
+    -0.1342
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "zincir",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "simyaci": {
+   "file": "heroes/simyaci.glb",
+   "height": 91.2,
+   "baseScale": 50.6666688477553,
+   "rigPos": [
+    -0.0022,
+    0.0,
+    -0.1489
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "iksir",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "falci": {
+   "file": "heroes/falci.glb",
+   "height": 91.2,
+   "baseScale": 50.6666688477553,
+   "rigPos": [
+    0.0069,
+    0.0,
+    -0.2961
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "tarot",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "kamci": {
+   "file": "heroes/kamci.glb",
+   "height": 91.2,
+   "baseScale": 50.666663604754085,
+   "rigPos": [
+    -0.0028,
+    0.0,
+    -0.2125
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "kamci",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "golge": {
+   "file": "heroes/golge.glb",
+   "height": 91.2,
+   "baseScale": 50.6666688477553,
+   "rigPos": [
+    0.0034,
+    0.0,
+    -0.0344
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "golge",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "kemik": {
+   "file": "heroes/kemik.glb",
+   "height": 91.2,
+   "baseScale": 50.666663604754085,
+   "rigPos": [
+    -0.0012,
+    0.0,
+    -0.3283
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "kemik",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "ayaz": {
+   "file": "heroes/ayaz.glb",
+   "height": 91.2,
+   "baseScale": 50.66667409075731,
+   "rigPos": [
+    0.0002,
+    0.0,
+    -0.4486
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "ayaz",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "totem": {
+   "file": "heroes/totem.glb",
+   "height": 91.2,
+   "baseScale": 50.666663604754085,
+   "rigPos": [
+    0.003,
+    0.0,
+    -0.0636
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "totem",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "yildiz": {
+   "file": "heroes/yildiz.glb",
+   "height": 91.2,
+   "baseScale": 50.666663604754085,
+   "rigPos": [
+    0.017,
+    0.0,
+    -0.1441
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "yildiz",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "siren": {
+   "file": "heroes/siren.glb",
+   "height": 91.2,
+   "baseScale": 50.6666688477553,
+   "rigPos": [
+    0.0505,
+    0.0,
+    -0.3855
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "siren",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   }
  },
  "enemies": {
@@ -2460,6 +3000,36 @@
    "proc": true
   },
   "kuyu": {
+   "proc": true
+  },
+  "zincir": {
+   "proc": true
+  },
+  "iksir": {
+   "proc": true
+  },
+  "tarot": {
+   "proc": true
+  },
+  "kamci": {
+   "proc": true
+  },
+  "golge": {
+   "proc": true
+  },
+  "kemik": {
+   "proc": true
+  },
+  "ayaz": {
+   "proc": true
+  },
+  "totem": {
+   "proc": true
+  },
+  "yildiz": {
+   "proc": true
+  },
+  "siren": {
    "proc": true
   }
  }

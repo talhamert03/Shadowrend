@@ -385,6 +385,115 @@
     "cd": 0.9,
     "areaAdd": 1
    }
+  },
+  "zincirci": {
+   "weapon": "zincir",
+   "pas": "demir",
+   "name": "Zindan Efendisi",
+   "desc": "Kancalı Zincir evrimleşir: bir kanca daha, daha sert çeker.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
+  },
+  "simyaci": {
+   "weapon": "iksir",
+   "pas": "kulkani",
+   "name": "Büyük Eser",
+   "desc": "İksir Şişesi evrimleşir: göl büyür, daha sert yakar.",
+   "boost": {
+    "dmg": 1.2,
+    "areaAdd": 1,
+    "lifeAdd": 1
+   }
+  },
+  "falci": {
+   "weapon": "tarot",
+   "pas": "keskinlik",
+   "name": "Kader Çarkı",
+   "desc": "Kader Kartları evrimleşir: bir kart daha, daha sert kesik.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.92,
+    "volley": 1
+   }
+  },
+  "kamci": {
+   "weapon": "kamci",
+   "pas": "gazap",
+   "name": "Gül Fırtınası",
+   "desc": "Dikenli Kamçı evrimleşir: daha uzun, daha sert şaklar.",
+   "boost": {
+    "dmg": 1.2,
+    "range": 1.12,
+    "cd": 0.92
+   }
+  },
+  "golge": {
+   "weapon": "golge",
+   "pas": "cabukluk",
+   "name": "Gölge Lejyonu",
+   "desc": "Gölge Klonu evrimleşir: iki sıçrama daha, daha sık.",
+   "boost": {
+    "dmg": 1.15,
+    "cd": 0.9,
+    "targetsAdd": 2
+   }
+  },
+  "kemik": {
+   "weapon": "kemik",
+   "pas": "hasatrun",
+   "name": "Ölüler Ordusu",
+   "desc": "Kemik Mızrağı evrimleşir: iki iskelet daha, daha sert.",
+   "boost": {
+    "dmg": 1.18,
+    "count": 2
+   }
+  },
+  "ayaz": {
+   "weapon": "ayaz",
+   "pas": "keskinlik",
+   "name": "Ebedi Kış",
+   "desc": "Buz Kırıkları evrimleşir: bir kırık daha, parçalanma sertleşir.",
+   "boost": {
+    "dmg": 1.15,
+    "volley": 1,
+    "shatterAdd": 1
+   }
+  },
+  "totem": {
+   "weapon": "totem",
+   "pas": "kalp",
+   "name": "Ata Ormanı",
+   "desc": "Ruh Totemi evrimleşir: bir totem daha, daha sık ateş.",
+   "boost": {
+    "dmg": 1.15,
+    "count": 1,
+    "cd": 0.9
+   }
+  },
+  "yildiz": {
+   "weapon": "yildiz",
+   "pas": "gazap",
+   "name": "Kıyamet Gecesi",
+   "desc": "Yıldız Çağrısı evrimleşir: bir yıldız daha, daha büyük krater.",
+   "boost": {
+    "dmg": 1.18,
+    "volley": 1,
+    "areaAdd": 1
+   }
+  },
+  "siren": {
+   "weapon": "siren",
+   "pas": "cabukluk",
+   "name": "Okyanus Korosu",
+   "desc": "Siren Şarkısı evrimleşir: bir dalga daha, daha geniş.",
+   "boost": {
+    "dmg": 1.15,
+    "volley": 1,
+    "arc": 1.15
+   }
   }
  },
  "TAGS": {

@@ -44,6 +44,9 @@ func _render_now() -> void:
 		shell.stretch_h(Scr.dh_of(self))
 		root = shell.nodes[0]
 		menu.scroll_area(shell, root)
+		# dizilim başlığının sağındaki "dokun: geç · tekrar: adlandır" ipucu kaldırıldı
+		var hint := shell.find(".kzd-hint")
+		if hint: shell.set_hidden(hint, true)
 		var sw := shell.find_id("#kz-swap")
 		if sw: menu.btn(shell, sw, func(): g.audio.play("click"); menu.set_page("kahraman"))
 		for k in ["#kz-hero", "#kz-sets", "#kz-stats", ".kz-note", "#kz-bag", "#armory-shop"]:

@@ -204,6 +204,10 @@ class Enemy:
 	var phase := 0; var weakT := 0.0; var _wkFx := 0.0
 	var waveHit := 0; var lastCrit := false
 	var slowT := 0.0       # yavaşlama (Kukla Ustası ipi): süre boyunca hız %50
+	var frost := 0         # ayaz yükü (Ayaz Gelini): 3'te donar
+	var frozenT := 0.0     # donmuş: kıpırdamaz, temas hasarı vermez
+	var charmT := 0.0      # büyülenmiş (Deniz Sireni): en yakın düşmana saldırır
+	var charmCd := 0.0
 	# render tarafının yazdığı alanlar (render3d: __mdlTok/__mdlTop/__aliveTok/__bound/__score)
 	var mdlTok := 0; var mdlTop := 0.0; var aliveTok := 0; var bound = null; var score := 0.0
 	# VAT çizimi (r3_enemies): animasyon zamanı + yumuşatılmış konum/yön

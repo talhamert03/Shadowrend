@@ -56,6 +56,7 @@ var worldHue := 0.0
 var worldColor := "#ff3b4e"
 var worldBoss := ""
 var speedMul := 1.0
+var _charmScratch: Array = []
 var eliteChance := 0.0
 var bossKind := "lord"
 
@@ -104,7 +105,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0
-	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.thief = false; e.duelTok = 0
+	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.frost = 0; e.frozenT = 0.0; e.charmT = 0.0; e.charmCd = 0.0; e.thief = false; e.duelTok = 0
 	e.thiefStep = 0
 	e.txt = null; e.txtT = -9
 	e.seed = randf() * 6.283
@@ -583,9 +584,39 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		mvx = dx / d * e.speed
 		mvy = dy / d * e.speed
 
+	# büyülenmiş (Deniz Sireni): kahramanı bırakır, en yakın düşmana yürüyüp ona vurur
+	if e.charmT > 0.0 and not e.isBoss:
+		e.charmT -= dt
+		e.charmCd -= dt
+		var vic = null
+		var vd := 220.0 * 220.0
+		for o in query_circle(e.x, e.y, 220.0, _charmScratch):
+			if o == e or o.hp <= 0 or o.charmT > 0.0: continue
+			var od: float = (o.x - e.x) * (o.x - e.x) + (o.y - e.y) * (o.y - e.y)
+			if od < vd:
+				vd = od
+				vic = o
+		if vic:
+			var cdist := sqrt(vd)
+			mvx = (vic.x - e.x) / maxf(cdist, 1.0) * e.speed * 1.2
+			mvy = (vic.y - e.y) / maxf(cdist, 1.0) * e.speed * 1.2
+			if cdist < e.radius + vic.radius + 6.0 and e.charmCd <= 0.0:
+				e.charmCd = 0.5
+				Combat.apply_hit(g, vic, maxf(2.0, e.dmg * 0.45), atan2(vic.y - e.y, vic.x - e.x), 40.0, 0.0, false)
+				if g.in_view(e.x, e.y, 40): g.spawn_burst(vic.x, vic.y - 8, "#ff8ad8", 4, 120, 2.0, 0.3, true)
+		else:
+			mvx = -dx / maxf(sqrt(d2), 1.0) * e.speed * 0.5
+			mvy = -dy / maxf(sqrt(d2), 1.0) * e.speed * 0.5
+		if g.in_view(e.x, e.y, 40) and randf() < dt * 3.0:
+			g.spawn_burst(e.x, e.y - e.radius - 18, "#ff8ad8", 1, 30, 2.6, 0.6, true)
+	# donmuş (Ayaz Gelini): kıpırdamaz
+	if e.frozenT > 0.0:
+		mvx = 0.0; mvy = 0.0
+		e.stopT = maxf(e.stopT, 0.05)
 	if e.stopMv:
 		if e.stopT > 0:
-			mvx *= 0.2; mvy *= 0.2
+			# vuruşta kısa yavaşlama (eskiden 0,2: yakın dövüşte düşman yerinde duruyor gibiydi)
+			mvx *= 0.55; mvy *= 0.55
 		else: e.stopMv = false
 	if e.slowT > 0.0:
 		e.slowT -= dt
@@ -604,7 +635,7 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		if e.isBoss: _props.damage_area(e.x, e.y, e.radius + 18, 9999)
 		elif not _many or ((_frame + e.pi) & 1) == 0: _props.resolve(e, e.radius * 0.62)
 	var rr2: float = e.radius + p.radius
-	if d2 < rr2 * rr2:
+	if d2 < rr2 * rr2 and e.frozenT <= 0.0 and e.charmT <= 0.0:
 		var hp0: float = p.hp
 		Combat.damage_player(g, e.dmg, e.x, e.y)
 		if p.hp < hp0: melee_hit_fx(e, p)

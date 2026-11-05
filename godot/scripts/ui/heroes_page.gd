@@ -190,7 +190,7 @@ func _card(id: String, w: float, h: float) -> Lyr:
 		pl.bg_color = Color(0.05, 0.035, 0.07, 0.86)
 		pl.corner_radius_bottom_left = 13
 		pl.corner_radius_bottom_right = 13
-		var ph := 57.0 if two else 43.0
+		var ph := (71.0 if two else 57.0) if (owned or cards > 0) else (57.0 if two else 43.0)
 		fr.draw_style_box(pl, Rect2(1, h - ph - 1, w - 2, ph))
 		# çerçeve: HER ZAMAN nadirlik rengi (seçili kart altın görünüp Efsanevi sanılmasın);
 		# seçili kart: kalın nadirlik çerçevesi + dışında ince beyaz seçim halkası
@@ -207,28 +207,46 @@ func _card(id: String, w: float, h: float) -> Lyr:
 			ring.set_border_width_all(2)
 			ring.border_color = Color(1, 1, 1, 0.92)
 			fr.draw_style_box(ring, Rect2(-4, -4, w + 8, h + 8))
-		# ilerleme çubuğu
-		if need != null and (not owned and cards > 0 or owned):
-			var bw := w - 20.0
+		# kart çubuğu (ekipman kartlarındaki gibi): mürekkep konturlu, içinde "sahip/gereken"
+		if owned or cards > 0:
+			var br := Rect2(8, h - 21, w - 16, 15)
+			var ink := StyleBoxFlat.new()
+			ink.bg_color = Color("#0d0812")
+			ink.set_corner_radius_all(8)
+			fr.draw_style_box(ink, br)
 			var tr := StyleBoxFlat.new()
-			tr.bg_color = Color(1, 1, 1, 0.10)
-			tr.set_corner_radius_all(3)
-			fr.draw_style_box(tr, Rect2(10, h - 13, bw, 6))
-			var frac := clampf(float(cards) / maxf(1.0, float(need)), 0.0, 1.0)
+			tr.bg_color = Color("#241d2c")
+			tr.set_corner_radius_all(6)
+			fr.draw_style_box(tr, br.grow(-2))
+			var frac := 1.0 if need == null else clampf(float(cards) / maxf(1.0, float(need)), 0.0, 1.0)
 			if frac > 0.0:
 				var fl := StyleBoxFlat.new()
-				fl.bg_color = Color("#5be38a") if up else rc.lerp(Color.WHITE, 0.15)
-				fl.set_corner_radius_all(3)
-				fr.draw_style_box(fl, Rect2(10, h - 13, maxf(6.0, bw * frac), 6)))
-	nm.position = Vector2(0, h - (54 if two else 40))
+				fl.bg_color = Color("#ffd23a") if need == null or frac >= 1.0 else (Color("#4cbf5e") if owned else rc.lerp(Color.WHITE, 0.1))
+				fl.set_corner_radius_all(5)
+				var fw := maxf(10.0, (br.size.x - 4.0) * frac)
+				fr.draw_style_box(fl, Rect2(br.position + Vector2(2, 2), Vector2(fw, br.size.y - 4)))
+				fr.draw_line(br.position + Vector2(6, 4.5), br.position + Vector2(maxf(8.0, fw - 2.0), 4.5), Color(1, 1, 1, 0.4), 2.0))
+	# nadirlik parıltısı (Nadir ve üstü): çerçevede dolaşan ışık + hale + yıldızcıklar
+	var rr := int(def.get("rarity", 1))
+	GearCard.rarity_glow(hn, Vector2(w, h), 14.0, rc, clampi(rr - 1, 0, 3), not owned)
+	nm.position = Vector2(0, h - (68 if two else 54))
 	hn.add_child(nm)
 	var sub := ""
-	if not owned: sub = (str(cards) + "/" + str(int(need) if need != null else 2) + " KART") if cards > 0 else "SANDIKTAN ÇIKAR"
-	elif need == null: sub = "AZAMİ"
+	if not owned: sub = "KİLİTLİ" if cards > 0 else "SANDIKTAN ÇIKAR"
 	else: sub = "SV " + str(g.char_level(id)) + (" · GELİŞTİR" if up else "")
 	var sb2 := HeroesPage._lbl(false, 700, 8.5, 1.2, ("#7dffa8" if up else rc.lerp(Color.WHITE, 0.45).to_html()) if owned else "#9c94a3", sub, w)
-	sb2.position = Vector2(0, h - 26)
+	sb2.position = Vector2(0, h - (38 if owned or cards > 0 else 26))
 	hn.add_child(sb2)
+	if owned or cards > 0:
+		var ct := UIText.new()
+		ct.style(false, 1000, 11.5, 0.6, Color.WHITE, UIK.ink_stroke(1.2, 1.2))
+		ct.align = 0.5
+		ct.nowrap = true
+		ct.wrap_w = w
+		ct.size = Vector2(w, 16)
+		ct.text = "MAKS" if need == null else str(cards) + "/" + str(int(need))
+		ct.position = Vector2(0, h - 22)
+		hn.add_child(ct)
 	# nadirlik etiketi (sol üst)
 	var rt := HeroesPage._lbl(false, 800, 7.5, 1.4, rc.lerp(Color.WHITE, 0.3).to_html(), str(rar.get("name", "")), w - 12)
 	rt.align = 0.0

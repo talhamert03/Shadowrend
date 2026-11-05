@@ -31,7 +31,8 @@ const SWORD_SPECS := {
 const TRAIL_SEGS := 48
 ## prosedürel imza silahları (Meshy kredisi harcanmadan oyun içinde modellenir)
 const PROC_WEAPONS := ["balta", "ejderkilic", "arbalet", "kadeh", "hilal", "mizrak", "tirpan", "bumerang", "gul", "kuzgun",
-	"tuzak", "barut", "ip", "satir", "kuyu"]
+	"tuzak", "barut", "ip", "satir", "kuyu",
+	"zincir", "iksir", "tarot", "kamci", "golge", "kemik", "ayaz", "totem", "yildiz", "siren"]
 
 var r3
 var S: Node3D
@@ -215,6 +216,13 @@ func _update_float(g, dt: float) -> void:
 	elif _foId == "bumerang":
 		# bumerang kendi çevresinde döner, atışta hızlanır
 		_foYaw += dt * (3.0 + _foRecoil * 16.0)
+	elif _foId in ["zincir", "iksir", "tarot", "kamci", "golge", "kemik", "ayaz", "totem", "yildiz", "siren"]:
+		var nob := floatInner.get_child(0).get_node_or_null("orbit") if floatInner.get_child_count() else null
+		if nob:
+			var spd := {"zincir": 0.9, "iksir": 1.4, "tarot": 1.2, "kamci": 2.0, "golge": 2.6, "kemik": 0.0, "ayaz": 1.6, "totem": 0.5, "yildiz": 1.8, "siren": 0.7}
+			(nob as Node3D).rotation.y = _foT * float(spd[_foId]) + _foRecoil * 1.2
+			if _foId == "kemik" or _foId == "totem": (nob as Node3D).rotation.x = sin(_foT * 2.0) * 0.12
+		if tgt: _foYaw = lerp_angle(_foYaw, atan2(tgt.x - _foX, tgt.y - _foZ), minf(1.0, dt * 6.0))
 	elif _foId == "ip" or _foId == "tuzak":
 		var pob := floatInner.get_child(0).get_node_or_null("orbit") if floatInner.get_child_count() else null
 		if pob: (pob as Node3D).rotation = Vector3(sin(_foT * 2.1) * 0.25 + _foRecoil * 0.4, _foT * 0.6, sin(_foT * 1.7) * 0.2)
@@ -321,7 +329,188 @@ func _build_proc(k: String) -> Node3D:
 		"arbalet": return _build_crossbow()
 		"kadeh": return _build_chalice()
 		"hilal": return _build_crescents()
+		"zincir": return _build_hook()
+		"iksir": return _build_flask()
+		"tarot": return _build_deck()
+		"kamci": return _build_whip_coil()
+		"golge": return _build_shadow_daggers()
+		"kemik": return _build_skull()
+		"ayaz": return _build_ice_crown()
+		"totem": return _build_mini_totem()
+		"yildiz": return _build_star_orb()
+		"siren": return _build_conch()
 	return null
+
+# ═══════════ PROSEDÜREL İMZA SİLAHLARI (on yeni kahraman) — "orbit" çocuğu döner ═══════════
+
+## ZİNCİR: ağır demir kanca + sarmal zincir halkaları
+func _build_hook() -> Node3D:
+	var root := Node3D.new()
+	var iron := _pmat("#6a6460", "#2a1a10", 0.3, 0.35, 0.85, Color(0.05, 0.04, 0.03))
+	var rust := _pmat("#8a5a3a", "#3a1a08", 0.4, 0.6, 0.5, Color(0.08, 0.04, 0.02))
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	# kanca: kalın gövde + kıvrık uç (torus yayı) + sivri uç
+	Render3D.mesh_node(Geo.cylinder(1.6, 1.8, 14.0, 8), iron, orb).position = Vector3(0, 8, 0)
+	Render3D.mesh_node(Geo.torus(5.5, 1.5, 7, 18, PI * 1.25), iron, orb).transform = Transform3D(Basis(Vector3(1, 0, 0), PI / 2) * Basis(Vector3(0, 0, 1), PI * 0.9), Vector3(-5.5, 1, 0))
+	Render3D.mesh_node(Geo.cone(1.6, 5.0, 6), iron, orb).transform = Transform3D(Basis(Vector3(0, 0, 1), 0.5), Vector3(-10.2, 4.0, 0))
+	Render3D.mesh_node(Geo.torus(2.4, 0.7, 6, 12), rust, orb).position = Vector3(0, 16, 0)
+	# zincir: halkalar kancanın üstünden yukarı doğru sarmal
+	for i in 6:
+		var l := Render3D.mesh_node(Geo.torus(1.9, 0.6, 5, 10), rust, orb)
+		l.transform = Transform3D(Basis(Vector3(0, 1, 0), i * PI / 2.0) * Basis(Vector3(1, 0, 0), PI / 2), Vector3(sin(i * 0.8) * 2.0, 19.0 + i * 3.2, cos(i * 0.8) * 2.0))
+	return root
+
+## İKSİR: yuvarlak cam şişe, içinde kaynayan turuncu iksir, mantar tıpa, boyun sargısı
+func _build_flask() -> Node3D:
+	var root := Node3D.new()
+	var glass := Shd.lit({"color": Color("#cfffe0"), "emissive": Color("#3aff6a"), "emissive_k": 0.6, "roughness": 0.05, "metalness": 0.1, "rim": true})
+	var brew := Shd.lit({"color": Color("#ffb04a"), "emissive": Color("#ff6a10"), "emissive_k": 2.6, "roughness": 0.3, "rim": false})
+	var cork := _pmat("#8a6a44", "#000000", 0.0, 0.9, 0.0, Color(0.1, 0.06, 0.03), 1.0)
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	Render3D.mesh_node(Geo.sphere(7.5, 16, 12), brew, orb).position = Vector3(0, 6, 0)
+	var g := Render3D.mesh_node(Geo.sphere(8.6, 18, 12), glass, orb)
+	g.position = Vector3(0, 6.5, 0)
+	g.transparency = 0.55
+	Render3D.mesh_node(Geo.cylinder(2.6, 3.0, 8.0, 10), glass, orb).position = Vector3(0, 17, 0)
+	Render3D.mesh_node(Geo.cylinder(2.8, 2.4, 3.6, 10), cork, orb).position = Vector3(0, 22.5, 0)
+	Render3D.mesh_node(Geo.torus(3.2, 0.6, 5, 12), cork, orb).position = Vector3(0, 14.5, 0)
+	for i in 3:
+		var b := Render3D.mesh_node(Geo.sphere(1.2, 6, 5), brew, orb)
+		b.position = Vector3(cos(i * 2.1) * 4.0, 10.0 + i * 1.2, sin(i * 2.1) * 4.0)
+	return root
+
+## TAROT: havada yelpaze açılmış beş kart (her biri farklı renkte parlayan arma)
+func _build_deck() -> Node3D:
+	var root := Node3D.new()
+	var paper := _pmat("#2a1440", "#5a2a8a", 0.5, 0.6, 0.1, Color(0.05, 0.02, 0.08), 1.0)
+	var trim := _pmat("#e8c060", "#8a5a10", 0.8, 0.3, 0.8, Color(0.1, 0.06, 0.02), 0.8)
+	var cols := ["#ff7a2a", "#7fd8ff", "#d8a0ff", "#ffd86a", "#ff5a9a"]
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	for i in 5:
+		var card := Node3D.new()
+		orb.add_child(card)
+		card.transform = Transform3D(Basis(Vector3(0, 0, 1), (i - 2) * 0.32), Vector3((i - 2) * 3.0, 8.0 + absf(i - 2) * -0.8, -i * 0.6))
+		Render3D.mesh_node(Geo.box(9.0, 14.0, 0.8), paper, card)
+		Render3D.mesh_node(Geo.box(9.8, 14.8, 0.5), trim, card).position = Vector3(0, 0, -0.3)
+		var sym := Shd.lit({"color": Color(cols[i]), "emissive": Color(cols[i]), "emissive_k": 2.4, "roughness": 0.2, "rim": false})
+		Render3D.mesh_node(Geo.icosahedron(2.2), sym, card).position = Vector3(0, 0, 0.8)
+	return root
+
+## KAMÇI: sarılı dikenli kamçı (yatay halkalar) + gül kabza
+func _build_whip_coil() -> Node3D:
+	var root := Node3D.new()
+	var leather := _pmat("#4a0a14", "#ff1a3a", 0.5, 0.6, 0.1, Color(0.08, 0.01, 0.02))
+	var thorn := _pmat("#2a3a1a", "#5aff4a", 0.2, 0.5, 0.1, Color(0.03, 0.05, 0.02), 1.0)
+	var rose := Shd.lit({"color": Color("#ff3a5a"), "emissive": Color("#ff0a2a"), "emissive_k": 1.8, "roughness": 0.4, "rim": true})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	for i in 3:
+		Render3D.mesh_node(Geo.torus(7.0 - i * 0.8, 0.9, 6, 24), leather, orb).transform = Transform3D(Basis(Vector3(1, 0, 0), 0.25 * (i - 1)), Vector3(0, 4.0 + i * 2.2, 0))
+	for i in 10:
+		var an := i * TAU / 10.0
+		Render3D.mesh_node(Geo.cone(0.6, 2.2, 4), thorn, orb).transform = Transform3D(Basis(Vector3(0, 1, 0), -an) * Basis(Vector3(0, 0, 1), -PI / 2), Vector3(cos(an) * 7.6, 6.0, sin(an) * 7.6))
+	Render3D.mesh_node(Geo.cylinder(1.4, 1.6, 10.0, 8), leather, orb).transform = Transform3D(Basis(Vector3(0, 0, 1), 0.5), Vector3(5, 13, 0))
+	Render3D.mesh_node(Geo.icosahedron(2.6), rose, orb).position = Vector3(7.6, 17.5, 0)
+	return root
+
+## GÖLGE: çapraz iki kavisli hançer + karanlık duman çekirdek
+func _build_shadow_daggers() -> Node3D:
+	var root := Node3D.new()
+	var blade := _pmat("#1a1e28", "#2ad8ff", 0.9, 0.2, 0.8, Color(0.02, 0.03, 0.05), 1.0)
+	var edge := Shd.lit({"color": Color("#b8f4ff"), "emissive": Color("#2ad8ff"), "emissive_k": 2.2, "roughness": 0.1, "rim": false})
+	var core := Shd.basic({"color": Color("#04060a")})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	Render3D.mesh_node(Geo.sphere(4.0, 12, 8), core, orb).position = Vector3(0, 8, 0)
+	for s2 in [-1.0, 1.0]:
+		var d := Node3D.new()
+		orb.add_child(d)
+		d.transform = Transform3D(Basis(Vector3(0, 1, 0), s2 * 0.6) * Basis(Vector3(0, 0, 1), s2 * 0.5), Vector3(0, 8, 0))
+		var poly := PackedVector2Array([Vector2(0, -1.2), Vector2(9, -1.8), Vector2(18, -0.6), Vector2(22, 1.6), Vector2(17, 0.8), Vector2(9, 1.4), Vector2(0, 1.2)])
+		Render3D.mesh_node(Geo.extrude(poly, 0.9), blade, d).position = Vector3(3, 0, 0)
+		Render3D.mesh_node(Geo.cylinder(0.25, 0.25, 18.0, 4), edge, d).transform = Transform3D(Basis(Vector3(0, 0, 1), -PI / 2 + 0.04), Vector3(12, -1.2, 0.5))
+		Render3D.mesh_node(Geo.cylinder(0.9, 1.0, 5.0, 6), blade, d).transform = Transform3D(Basis(Vector3(0, 0, 1), -PI / 2), Vector3(0.5, 0, 0))
+	return root
+
+## KEMİK: süzülen kurukafa, göz çukurlarında yeşil alev, altında omur zinciri
+func _build_skull() -> Node3D:
+	var root := Node3D.new()
+	var bone := _pmat("#e8dcc0", "#3a5a2a", 0.2, 0.7, 0.0, Color(0.1, 0.08, 0.05))
+	var fire := Shd.basic({"color": Color("#7dff8a"), "add": true, "zwrite": false})
+	var dark := Shd.basic({"color": Color("#0a0a06")})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	var sk := Render3D.mesh_node(Geo.sphere(6.5, 16, 12), bone, orb)
+	sk.position = Vector3(0, 10, 0); sk.scale = Vector3(1, 0.95, 1.1)
+	Render3D.mesh_node(Geo.box(8.0, 3.6, 7.0), bone, orb).position = Vector3(0, 4.6, 1.2)
+	for sx in [-2.4, 2.4]:
+		Render3D.mesh_node(Geo.sphere(1.7, 8, 6), dark, orb).position = Vector3(sx, 10.5, 5.6)
+		Render3D.mesh_node(Geo.sphere(1.3, 8, 6), fire, orb).position = Vector3(sx, 10.5, 6.2)
+	for i in 4:
+		Render3D.mesh_node(Geo.cylinder(1.4 - i * 0.15, 1.6 - i * 0.15, 2.0, 7), bone, orb).position = Vector3(0, 1.0 - i * 3.0, -1.0)
+	return root
+
+## AYAZ: buz kristalinden taç halkası + ortada süzülen buz kalbi
+func _build_ice_crown() -> Node3D:
+	var root := Node3D.new()
+	var ice := Shd.lit({"color": Color("#dff6ff"), "emissive": Color("#5ac8ff"), "emissive_k": 1.6, "roughness": 0.05, "metalness": 0.1, "rim": true})
+	var heart := Shd.lit({"color": Color("#ffffff"), "emissive": Color("#8fe0ff"), "emissive_k": 3.0, "roughness": 0.0, "rim": false})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	Render3D.mesh_node(Geo.torus(8.0, 0.8, 6, 30), ice, orb).position = Vector3(0, 6, 0)
+	for i in 8:
+		var an := i * TAU / 8.0
+		var h := 7.0 if i % 2 == 0 else 4.5
+		Render3D.mesh_node(Geo.cone(1.4, h, 5), ice, orb).position = Vector3(cos(an) * 8.0, 6.0 + h * 0.5, sin(an) * 8.0)
+	var hc := Render3D.mesh_node(Geo.icosahedron(3.4), heart, orb)
+	hc.position = Vector3(0, 10, 0); hc.scale = Vector3(0.8, 1.3, 0.8)
+	return root
+
+## TOTEM: küçük oyma totem direği (üç yüz katmanı + kanatlar), turkuaz gözler
+func _build_mini_totem() -> Node3D:
+	var root := Node3D.new()
+	var wood := _pmat("#6a4a2a", "#1a2a24", 0.2, 0.85, 0.0, Color(0.08, 0.05, 0.02))
+	var paint := _pmat("#2a8a7a", "#0a4a40", 0.6, 0.6, 0.0, Color(0.02, 0.06, 0.05), 1.0)
+	var eye := Shd.basic({"color": Color("#4affd8"), "add": true, "zwrite": false})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	for i in 3:
+		Render3D.mesh_node(Geo.cylinder(3.6 - i * 0.3, 4.0 - i * 0.3, 6.0, 8), wood if i % 2 == 0 else paint, orb).position = Vector3(0, i * 6.2, 0)
+		for sx in [-1.4, 1.4]:
+			Render3D.mesh_node(Geo.sphere(0.8, 6, 5), eye, orb).position = Vector3(sx, i * 6.2 + 1.0, 3.6 - i * 0.3)
+	var w := PackedVector2Array([Vector2(0, 0), Vector2(9, 3), Vector2(11, 7), Vector2(4, 4), Vector2(0, 3)])
+	for sx in [-1.0, 1.0]:
+		Render3D.mesh_node(Geo.extrude(w, 1.0), paint, orb).transform = Transform3D(Basis(Vector3(0, 1, 0), 0.0 if sx > 0 else PI), Vector3(sx * 3.0, 12.5, 0))
+	Render3D.mesh_node(Geo.cone(2.6, 5.0, 6), paint, orb).position = Vector3(0, 19.5, 0)
+	return root
+
+## YILDIZ: altın gök küresi (armiller halkalar) ve ortasında beş köşeli parlayan yıldız
+func _build_star_orb() -> Node3D:
+	var root := Node3D.new()
+	var gold := _pmat("#e8b84a", "#8a5a10", 0.8, 0.25, 0.85, Color(0.1, 0.06, 0.02), 1.0)
+	var star := Shd.lit({"color": Color("#fff2b0"), "emissive": Color("#ffc83a"), "emissive_k": 3.2, "roughness": 0.1, "rim": false})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	Render3D.mesh_node(Geo.torus(9.0, 0.6, 5, 32), gold, orb).transform = Transform3D(Basis(Vector3(1, 0, 0), 0.4), Vector3(0, 8, 0))
+	Render3D.mesh_node(Geo.torus(9.0, 0.6, 5, 32), gold, orb).transform = Transform3D(Basis(Vector3(0, 0, 1), 1.1), Vector3(0, 8, 0))
+	Render3D.mesh_node(Geo.torus(11.0, 0.35, 5, 32), gold, orb).position = Vector3(0, 8, 0)
+	var sp := PackedVector2Array()
+	for i in 10:
+		var r := 6.0 if i % 2 == 0 else 2.6
+		var a := -PI / 2 + i * PI / 5.0
+		sp.append(Vector2(cos(a) * r, sin(a) * r))
+	Render3D.mesh_node(Geo.extrude(sp, 2.2), star, root).position = Vector3(0, 8, 0)
+	return root
+
+## SİREN: sarmal deniz kabuğu (lathe) + inci, turkuaz parıltılı
+func _build_conch() -> Node3D:
+	var root := Node3D.new()
+	var shell := _pmat("#ffe0d0", "#ff8ac0", 0.5, 0.35, 0.2, Color(0.12, 0.06, 0.06))
+	var inner := Shd.lit({"color": Color("#ff9ad0"), "emissive": Color("#ff5aa0"), "emissive_k": 1.6, "roughness": 0.2, "rim": false})
+	var pearl := Shd.lit({"color": Color("#ffffff"), "emissive": Color("#5affe0"), "emissive_k": 1.4, "roughness": 0.05, "metalness": 0.3, "rim": true})
+	var orb := Node3D.new(); orb.name = "orbit"; root.add_child(orb)
+	var prof := PackedVector2Array([Vector2(0, -8), Vector2(4.5, -6), Vector2(7.0, -1), Vector2(6.0, 4), Vector2(3.0, 8), Vector2(0.5, 12)])
+	var c := Render3D.mesh_node(Geo.lathe(prof, 14), shell, orb)
+	c.transform = Transform3D(Basis(Vector3(0, 0, 1), 0.9), Vector3(0, 8, 0))
+	for i in 5:
+		Render3D.mesh_node(Geo.cone(1.0, 3.0, 5), shell, orb).position = Vector3(cos(i * 1.3) * 5.0, 10.0 + i * 1.6, sin(i * 1.3) * 5.0)
+	Render3D.mesh_node(Geo.sphere(3.4, 10, 8), inner, orb).position = Vector3(-4.0, 3.0, 0)
+	Render3D.mesh_node(Geo.sphere(2.2, 12, 10), pearl, orb).position = Vector3(-5.5, 4.0, 2.0)
+	return root
 
 ## silüet parçası: 2B profil → kalın parça; edge>0 ise biraz büyütülmüş ince bir kenar plakası (parlak
 ## çelik ağız) arkasına eklenir — çizgi roman konturuyla birlikte "dövme metal" okunur
