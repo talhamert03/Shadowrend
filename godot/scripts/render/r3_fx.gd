@@ -81,6 +81,9 @@ var _fg := 0
 var bulletMesh: IMesh
 var bulletMetal: IMesh
 var arrowMesh: IMesh
+# Ayaz Suru (Buz Muhafızı süperi): yerden fışkıran 3B buz kristali kümeleri
+var iceMesh: IMesh
+const ICE_MAX := 40
 # cevher / kalp
 var gemMesh: IMesh
 var gemCore: IMesh
@@ -139,6 +142,20 @@ func _init(r) -> void:
 	var arrowGeo := Geo.merge([shaft, tip, fletch, fletch2], [Transform3D(rx, Vector3(0, 0, -1.0)), Transform3D(rx, Vector3(0, 0, 12.5)), Transform3D(Basis(), Vector3(0, 0, -9.5)), Transform3D(Basis(), Vector3(0, 0, -9.5))])
 	arrowMesh = IMesh.new(arrowGeo, Shd.basic({}), 140)
 	S.add_child(arrowMesh)
+	# buz kristali kümesi: uzun altıgen ana sivri + iki eğik yan sivri (taban y=0, birim yükseklik ~1)
+	var c1 := Geo.cone(0.20, 1.0, 6)
+	var c2 := Geo.cone(0.13, 0.62, 6)
+	var c3 := Geo.cone(0.11, 0.48, 6)
+	var tl := Basis(Vector3(0, 0, 1), 0.42)
+	var tr := Basis(Vector3(0, 0, 1), -0.5) * Basis(Vector3(0, 1, 0), 1.9)
+	var iceGeo := Geo.merge([c1, c2, c3], [Transform3D(Basis(), Vector3(0, 0.5, 0)),
+		Transform3D(tl, Vector3(0.16, 0.26, 0.05)), Transform3D(tr, Vector3(-0.15, 0.2, -0.06))])
+	var iceMat := Shd.lit({"color": Color("#b8e6ff"), "emissive": Color("#1f7aff"), "emissive_k": 1.25, "roughness": 0.06, "metalness": 0.2, "rim": true})
+	iceMat.set_shader_parameter("rim_c", Vector3(0.75, 0.95, 1.0))
+	iceMat.set_shader_parameter("rim_s", 1.2)
+	if Quality.tier != "low": iceMat.next_pass = Shd.outline(null, Color(0.08, 0.2, 0.42), 1.3)
+	iceMesh = IMesh.new(iceGeo, iceMat, ICE_MAX)
+	S.add_child(iceMesh)
 	# ── ruh kristali (XP) ──
 	var soul := _crystal_geo(6, 1.35, 0.95, 0.66, 0.12)
 	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.96}), 380)
@@ -245,7 +262,59 @@ func update(g, dt: float) -> void:
 	_update_bolts(g)
 	_update_bombs(g)
 	_update_orbit_blades(g)
+	_update_ice(g)
 	_update_hp_bars(g)
+
+# ═══════════ AYAZ SURU (3B buz kristalleri) ═══════════
+## süperin sivri yuvalarını (Ultimate.S) okur: kristal yerden geri yaylanarak fırlar (aşma),
+## pırıl pırıl durur, sonra çatlayıp çöker ve buz kırıntıları saçar
+func _update_ice(g) -> void:
+	var U = g.ult
+	var n := 0
+	if U and U.fx > 0 and String(U.id.k) == "spike":
+		var K: Dictionary = Ultimate.KIND.spike
+		var fall: float = K.fall
+		var linger: float = K.linger
+		for sl in U.S:
+			if n >= ICE_MAX: break
+			if not sl.on or sl.t < 0.0: continue
+			var post: float = sl.t - fall
+			var sd: float = sl.seed
+			var sc := 0.0
+			if post < 0.0:
+				sc = 0.0
+			else:
+				var r := minf(1.0, post / 0.16)
+				# geri yaylanma (easeOutBack): kristal fırlar, biraz aşar, oturur
+				var c1 := 1.9
+				var e := 1.0 + (c1 + 1.0) * pow(r - 1.0, 3.0) + c1 * pow(r - 1.0, 2.0)
+				sc = e
+				var outT := linger - 0.22
+				if post > outT:
+					var k := clampf((post - outT) / 0.22, 0.0, 1.0)
+					sc *= 1.0 - k * k
+					if not sl.get("shat", false) and k > 0.05:
+						sl["shat"] = true
+						_ice_shards(g, sl.x, sl.y, sd)
+			if sc <= 0.01: continue
+			var hgt := (66.0 + fmod(sd * 7.31, 1.0) * 38.0) * sc
+			var wid := 64.0 * (0.85 + fmod(sd * 3.17, 1.0) * 0.4) * minf(1.0, sc * 1.2)
+			var yaw := sd * 2.3
+			var tilt := (fmod(sd * 5.7, 1.0) - 0.5) * 0.3
+			iceMesh.set_trs(n, sl.x, 0, sl.y, tilt, yaw, tilt * 0.6, wid, hgt, wid)
+			iceMesh.set_col(n, 1, 1, 1)
+			n += 1
+	iceMesh.commit(n)
+
+func _ice_shards(g, x: float, y: float, sd: float) -> void:
+	if not g.in_view(x, y, 60): return
+	var P = g.pools.particles
+	if P.count > Quality.budget("particles") * 0.8: return
+	for i in 6:
+		var a := sd + i * 1.047
+		var sp := 120.0 + fmod(sd * 13.0 + i, 1.0) * 140.0
+		P.take().setup(x, y, cos(a) * sp, sin(a) * sp * 0.6 - 60.0, 0.38 + 0.12 * fmod(sd + i * 0.3, 1.0), 3.0 if i % 2 else 2.2,
+			"#e8faff" if i % 3 else "#8fd6ff", 0.9, 240, true)
 
 # ═══════════ İSABET KATMANI ═══════════
 

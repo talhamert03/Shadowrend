@@ -940,23 +940,21 @@ func _draw_slash(s, u: float, post: float, K) -> void:
 
 # ══ AYAZ SURU (şövalye): kristal buz dikenleri + kırağı halkası (dondurur) ══
 func _draw_spike(s, u: float, post: float, K) -> void:
+	# kristalin kendisi 3B (r3_fx._update_ice); burada yalnız zemindeki ayaz izi, soğuk ışıma ve
+	# uçtaki pırıltı — 3B kristalin yüksekliğiyle hizalı
 	var rise: float = u if post < 0 else (maxf(0.0, (K.linger - post) / 0.2) if post > K.linger - 0.2 else 1.0)
 	if rise <= 0: return
 	var b := Vector2(s.x, s.y)
-	var h := (48 + _uhash(s.seed, 1) * 26) * rise
-	var w := 12.0
-	var lean := (_uhash(s.seed, 2) - 0.5) * 10.0
-	_ell(_U, b, 36, 36 * SQ, _ca(_lc, 0.3 * rise))
-	_gring(b, 32, 8.0, _dc, 0.7 * rise, SQ, 24, 1.0)
-	_glow(b - Vector2(0, h * 0.45), h * 0.9, _dc, 0.45 * rise, 1.2)
-	var h2 := h * 0.55
-	_ink_poly(PackedVector2Array([b + Vector2(w * 0.4, 2), b + Vector2(w * 1.9 + lean, -h2), b + Vector2(w * 2.2, 2)]), _dc, 1.0, 3.0)
-	var tip := b + Vector2(lean - w * 0.2, -h)
-	_ink_poly(PackedVector2Array([b + Vector2(-w, 0), tip, b + Vector2(w, 0)]), _dc, 1.0, 3.0)
-	_M.poly(PackedVector2Array([tip, b + Vector2(w, 0), b + Vector2(w * 0.15, 0)]), _ca(_lc, 1.0))
-	_M.poly(PackedVector2Array([tip, b + Vector2(w * 0.15, 0), b + Vector2(w * 0.05, -h * 0.25)]), WHITE)
-	_sparkle(_T, tip, 9.0 + 3.0 * sin(t * 9.0 + s.seed), Color(1, 1, 1, 0.9 * rise), t * 2.0)
-	if post >= 0: _burst(b, post, 0.35, 46.0, _lc, s.seed, 5)
+	var tn := tan(Render3D.TILT)
+	var h := (66.0 + fmod(float(s.seed) * 7.31, 1.0) * 38.0) * rise
+	# zeminde donmuş leke: yumuşak buz mavisi + ince ayaz halkası
+	_ell(_U, b, 30, 30 * SQ, _ca(_dc, 0.10 * rise))
+	_gring(b, 26, 3.0, _dc, 0.28 * rise, SQ, 20, 0.0)
+	_glow(b - Vector2(0, h * tn * 0.5), h * 0.6, _dc, 0.22 * rise, 1.2)
+	var tip := b - Vector2(0, h * tn)
+	_sparkle(_T, tip, 8.0 + 3.0 * sin(t * 9.0 + s.seed), Color(1, 1, 1, 0.85 * rise), t * 2.0)
+	if post >= 0 and post < 0.15: _glow(b, 40.0 * (1.0 - post / 0.15), _lc, 0.35 * (1.0 - post / 0.15), SQ, _T)
+	if post >= K.linger - 0.2: _burst(b, post - (K.linger - 0.2), 0.22, 26.0, _dc, s.seed, 5)
 
 # ══ SEHER GİRDABI: dönen güneş kılıcı izleri + yerde altın büyü çemberi ══
 func _draw_vortex(x: float, y: float, r: float, tt: float) -> void:

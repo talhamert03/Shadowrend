@@ -670,8 +670,33 @@ func set_frozen(on: bool) -> void:
 
 # ═══════════ ANA RENDER ═══════════
 
+# geliştirici: probefirst — uzun karede, hemen önce İLK KEZ görünen 3B düğümleri yazar (derleme teşhisi)
+static var _probe := OS.get_cmdline_user_args().has("probefirst")
+var _seen := {}
+var _fresh: Array = []
+var _probeT := 0
+func _probe_scan(n: Node) -> void:
+	for c in n.get_children():
+		if c is GeometryInstance3D and (c as Node3D).is_visible_in_tree():
+			var on := true
+			if c is MultiMeshInstance3D:
+				var mm := (c as MultiMeshInstance3D).multimesh
+				on = mm != null and mm.visible_instance_count != 0
+			if on and not _seen.has(c.get_instance_id()):
+				_seen[c.get_instance_id()] = true
+				var mat = (c as GeometryInstance3D).material_override
+				_fresh.append(str(c.get_path()).right(70) + " mat=" + (str(mat.shader.resource_path) if mat is ShaderMaterial and mat.shader else str(mat)))
+		_probe_scan(c)
+
 func render(g) -> void:
 	if not built: return
+	if _probe:
+		var nowp := Time.get_ticks_msec()
+		if _probeT > 0 and nowp - _probeT > 700 and not _fresh.is_empty():
+			print("PROBE stall ", nowp - _probeT, "ms after first-visible: ", _fresh)
+		_probeT = nowp
+		_fresh.clear()
+		_probe_scan(scene)
 	var now := Time.get_ticks_msec() * 1.0
 	var dt := minf(0.1, (now - _clock) / 1000.0) if _clock > 0 else 0.016
 	if _fixdt > 0.0: dt = _fixdt          # geliştirici: --write-movie kaydında kare başına sabit adım

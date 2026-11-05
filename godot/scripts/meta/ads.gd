@@ -45,7 +45,10 @@ func _unit(pl: String) -> String:
 
 func _on_sdk_ready() -> void:
 	_sdk_ok = true
-	for pl in AdIds.placements(): _p.load(_unit(pl))
+	# SDK savaş sırasında hazır olursa ilk yükleme de menüye kalsın
+	for pl in AdIds.placements():
+		if _battle(): _retry[pl] = 0.5
+		else: _p.load(_unit(pl))
 
 func show(placement: String, on_reward: Callable, on_fail := Callable()) -> void:
 	if _p == null:
@@ -71,12 +74,18 @@ func _open(placement: String) -> void:
 	FreezeWatch.set_paused(true)
 	_p.show(_unit(placement))
 
+## savaşta reklam YÜKLENMEZ: AdMob yüklemesi Android arayüz iş parçacığında (WebView) çalışır ve
+## saniyelerce kilitleyebilir → dokunmatik donar. Yeniden denemeler menüye/sonuç ekranına ertelenir.
+func _battle() -> bool:
+	return g != null and String(g.state) in ["playing", "levelup", "paused"]
+
 func _process(dt: float) -> void:
-	for k in _retry.keys():
-		_retry[k] = float(_retry[k]) - dt
-		if float(_retry[k]) <= 0.0:
-			_retry.erase(k)
-			if _sdk_ok: _p.load(_unit(k))
+	if not _battle():
+		for k in _retry.keys():
+			_retry[k] = float(_retry[k]) - dt
+			if float(_retry[k]) <= 0.0:
+				_retry.erase(k)
+				if _sdk_ok: _p.load(_unit(k))
 	if _wait == "": return
 	_wait_t += dt
 	if _sdk_ok and _p.is_loaded(_unit(_wait)):
@@ -113,7 +122,9 @@ func _on_closed(_unit_id: String) -> void:
 	else:
 		g.ui.toast("ÖDÜL İÇİN REKLAMI SONUNA DEK İZLE")
 		if cb.is_valid(): cb.call()
-	if pl != "" and _sdk_ok: _p.load(_unit(pl))
+	if pl != "" and _sdk_ok:
+		if _battle(): _retry[pl] = 0.5
+		else: _p.load(_unit(pl))
 
 func _on_show_failed(unit_id: String, err: String) -> void:
 	push_warning("ShadowAds show_failed " + unit_id + " " + err)
@@ -123,7 +134,9 @@ func _on_show_failed(unit_id: String, err: String) -> void:
 	_cur = ""
 	g.ui.toast("REKLAM AÇILAMADI · BİRAZ SONRA DENE")
 	_fail()
-	if pl != "" and _sdk_ok: _p.load(_unit(pl))
+	if pl != "" and _sdk_ok:
+		if _battle(): _retry[pl] = 0.5
+		else: _p.load(_unit(pl))
 
 func _fail() -> void:
 	var cb := _on_fail
