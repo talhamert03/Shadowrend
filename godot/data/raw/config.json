@@ -5240,7 +5240,7 @@
    }
   }
  ],
- "UNLOCK_ALL_CHARS": false,
+ "UNLOCK_ALL_CHARS": true,
  "WAVES": {
   "maxEnemies": 420,
   "spawnDist": 60
