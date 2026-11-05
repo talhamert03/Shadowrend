@@ -22,9 +22,9 @@ static var _jv: Object = null              # ShadowAds (Android) — yığın ve
 static func start() -> void:
 	_report_previous()
 	if Engine.has_singleton("ShadowAds"):
+		# not: Android eklenti nesnelerinde has_method() false döner → doğrudan çağrılır
 		_jv = Engine.get_singleton("ShadowAds")
-		if _jv.has_method("mark_godot_thread"): _jv.mark_godot_thread()
-		else: _jv = null
+		if _jv: _jv.call("mark_godot_thread")
 	if _thread != null: return
 	_beat = Time.get_ticks_msec()
 	_run = true
@@ -65,7 +65,7 @@ static func _loop() -> void:
 				since = _beat
 				_mx.lock(); var c := _ctx; _mx.unlock()
 				var jst := ""
-				if _jv: jst = " · java: " + str(_jv.godot_stack())
+				if _jv: jst = " · java: " + str(_jv.call("godot_stack"))
 				head = Time.get_datetime_string_from_system().substr(11) + " · aşama: " + Prof.cur + " · " + (c if c != "" else "açılış/menü") + jst
 			var rec := "DONMA " + str(int((now - since) / 100.0) / 10.0) + " sn · " + head
 			_mx.lock()
@@ -88,13 +88,14 @@ static func session_text() -> String:
 	return s
 
 static func ui_text() -> String:
-	if _jv and _jv.has_method("ui_stalls"): return str(_jv.ui_stalls())
+	if _jv: return str(_jv.call("ui_stalls"))
 	return ""
 
 static func report() -> String:
 	var a := session_text()
 	var u := ui_text()
-	var t := "Bellek: " + str(int(OS.get_static_memory_usage() / 1048576.0)) + " MB · görüntü belleği " + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + " MB\n"
+	var mi := OS.get_memory_info()
+	var t := "Cihaz boş bellek: " + str(int(float(mi.get("available", -1)) / 1048576.0)) + " MB · görüntü belleği " + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + " MB\n"
 	t += "Bu oturumdaki donmalar:\n" + (a if a != "" else "(yok)")
 	t += "\nArayüz (dokunma) donmaları:\n" + (u if u != "" else ("(yok)" if _jv else "(yalnız Android)"))
 	return t

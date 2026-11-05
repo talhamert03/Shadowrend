@@ -1,0 +1,4 @@
+Symbols.ttf is a glyph subset of DejaVu Sans Bold (https://dejavu-fonts.github.io/).
+DejaVu fonts are based on Bitstream Vera; Bitstream Vera Fonts Copyright (c) 2003 by Bitstream, Inc.
+DejaVu changes are in the public domain. Licensed under the Bitstream Vera / DejaVu font license,
+which permits use, embedding and redistribution (the font may not be sold by itself).

@@ -219,6 +219,8 @@ func _boot_step(p: float) -> void:
 	if Prof.on: _boot_us = Time.get_ticks_usec()
 
 func _ready() -> void:
+	# yazı tipleri ilk metin çiziminden ÖNCE: sistem yazı tipi taraması kapalı (Android donması)
+	FontSetup.apply()
 	# açılış ekranı ilk karede: kurulum bitene dek oyun döngüsü kapalı
 	set_process(false)
 	set_physics_process(false)
@@ -411,7 +413,11 @@ func _freeze_ctx() -> String:
 	var s := str(state) + " " + OS.get_model_name()
 	if worldId: s += " D" + str(worldId) + "-" + str(missionId) + " dalga " + str(wave) + " T=" + str(int(time)) + " kalan=" + str(int(waveTimer))
 	if enemies and pools.has("eBullets"): s += " düşman=" + str(enemies.pool.active.size()) + " mermi=" + str(pools.eBullets.active.size()) + "/" + str(pools.pBullets.active.size())
-	s += " bellek=" + str(int(OS.get_static_memory_usage() / 1048576.0)) + "MB görüntü=" + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + "MB"
+	if events:
+		if events.altar.get("on", false): s += " olay=sunak"
+		if events.buff != null: s += " olay=" + str(events.buff)
+		if events.thief: s += " olay=kaçak"
+	s += " görüntü=" + str(int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0)) + "MB"
 	s += " fps=" + str(int(Quality.fps)) + " kademe=" + Quality.tier + " stres=" + str(snappedf(Quality.stress, 0.01)) + " ölçek=" + str(Quality.scale)
 	return s
 
