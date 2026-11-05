@@ -28,7 +28,8 @@ const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukl
 const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ",
 	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM",
 	"prizma": "RUH", "zaman": "CELIK",
-	"baltaci": "CELIK", "avci": "AYAZ", "kanrahip": "KOR", "gecedans": "RUH", "ejder": "KOR"}
+	"baltaci": "CELIK", "avci": "AYAZ", "kanrahip": "KOR", "gecedans": "RUH", "ejder": "KOR",
+	"mizrakci": "CELIK", "bumerang": "YILDIRIM", "tirpanci": "RUH", "gulcadi": "KOR", "kuzgun": "RUH"}
 
 const MUL_MAP_BASE := {"cd": "cooldown", "arc": "arc", "radius": "radius", "spin": "spin", "knock": "knock", "range": "range", "speed": "speed",
 	"duration": "duration", "critBonus": "critBonus", "life": "bulletLife", "spreadMul": "spread", "chainRange": "chainRange",
@@ -451,7 +452,7 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 		g.explode(p.x + cos(dir) * range_ * 0.55, p.y + sin(dir) * range_ * 0.55, dmg * 0.3, 26 + wi(Wd, "shock") * 7, true)
 	if kind != "echo":
 		if spin: g.add_shake(0.14)
-		g.audio.play("sword")
+		g.audio.play(str(Wd.get("sfx", "sword")))
 		if spin:
 			var nP := mini(18, maxi(6, Quality.budget("particles") >> 5))
 			for i in nP:
@@ -759,6 +760,12 @@ func fire_gun(id: String) -> void:
 		b.smoke = 1 if JS.truthy(Wd.get("smokeTrail")) else 0
 		b.metal = JS.truthy(Wd.get("metallic"))
 		b.crescent = JS.truthy(Wd.get("crescent"))
+		b.thorn = JS.truthy(Wd.get("thorn"))
+		b.raven = JS.truthy(Wd.get("raven"))
+		if JS.truthy(Wd.get("boomer")):
+			b.boomer = true
+			b.boomOut = b.life * 0.42
+			b.life += 1.2          # dönüş payı (oyuncuya varınca biter)
 		b.fireball = JS.truthy(Wd.get("fireball"))
 		b.pal = str(Wd.get("firePal", ""))
 		b.ph = randf() * 6.2831
@@ -901,6 +908,30 @@ func fire_judgement(id: String, Wd: Dictionary) -> void:
 func update_arrow(b, dt: float) -> bool:
 	b.life -= dt
 	if b.life <= 0: return true
+	if b.boomer:
+		b.boomT += dt
+		var pl = game.player
+		if not b.boomRet and b.boomT >= b.boomOut:
+			b.boomRet = true
+			b.hitSet.clear()          # dönüş bacağı: aynı düşmanlar yeniden vurulabilir
+			b.lastHit = null
+		if b.boomRet and pl:
+			var bx: float = pl.x - b.x
+			var by: float = pl.y - 14.0 - b.y
+			var bd := sqrt(bx * bx + by * by)
+			if bd < 26.0: return true
+			var sp0 := JS.hypot(b.vx, b.vy)
+			var tsp := minf(720.0, sp0 + 900.0 * dt)
+			var want := atan2(by, bx)
+			var dA := JS.wrap_pi(want - b.angle)
+			var turn := 9.0 * dt
+			b.angle += clampf(dA, -turn, turn)
+			b.vx = cos(b.angle) * tsp
+			b.vy = sin(b.angle) * tsp
+		elif not b.boomRet:
+			# gidişte yavaşlar (dönüş öncesi süzülme)
+			var kd: float = 1.0 - 1.6 * dt * (b.boomT / maxf(0.01, b.boomOut))
+			b.vx *= kd; b.vy *= kd
 	if b.homing > 0:
 		# kilitli hedef (öldüyse mermiye en yakın yeni hedef); yaklaştıkça dönüş keskinleşir,
 		# son adımda doğrudan hedefe oturur — etrafında dönüp ıskalamaz
@@ -948,12 +979,23 @@ func update_arrow(b, dt: float) -> bool:
 		var e = out[k]
 		k += 1
 		if e == b.lastHit: continue
+		if b.boomer and b.hitSet.has(e.get_instance_id()): continue
 		var dx: float = e.x - b.x
 		var dy: float = e.y - b.y
 		var rr: float = b.r + e.radius
 		if dx * dx + dy * dy > rr * rr: continue
 		b.lastHit = e
+		if b.boomer: b.hitSet[e.get_instance_id()] = true
 		Combat.apply_hit(g, e, b.dmg, b.angle, 130, b.critAdd, false)
+		if b.thorn:
+			g.spawn_burst(e.x, e.y - 8, "#ff4a6a", 5, 150, 2.4, 0.34, true)
+			g.spawn_burst(e.x, e.y - 8, "#2f8a3a", 2, 110, 2.0, 0.3, true)
+		elif b.raven:
+			if g.renderer3d: g.renderer3d.spawn_hit(e.x, e.y, b.angle, 1, 0.72, 0.45, 1.0)
+			g.spawn_burst(e.x, e.y - 10, "#1a1024", 4, 160, 2.6, 0.4, false)
+			g.spawn_burst(e.x, e.y - 10, "#c08aff", 4, 130, 2.0, 0.3, true)
+		elif b.boomer:
+			g.spawn_burst(e.x, e.y - 6, "#ffd08a", 4, 160, 2.0, 0.24, true)
 		if b.fireball and b.pal != "":
 			# renkli büyü (ruh ışığı, zehir damlası): kendi renginde isabet
 			if g.renderer3d:
@@ -1015,7 +1057,19 @@ func update_arrow(b, dt: float) -> bool:
 				g.explode(b.x, b.y, b.dmg * (0.55 + b.explode * 0.12), 40 + b.explode * 10, true)
 			return true
 	var ft := JS.i(b.flame)
-	if b.smoke:
+	if b.thorn:
+		if randf() < dt * 30:
+			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 40, -10 - randf() * 30,
+				0.6, 2.6, "#ff4a6a" if randf() < 0.7 else "#ffc0cc", 0.95, 14, true)
+	elif b.raven:
+		if randf() < dt * 22:
+			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 30, 10 + randf() * 20,
+				0.7, 2.8, "#1a1024" if randf() < 0.6 else "#8a5acc", 0.94, 40, false)
+	elif b.boomer:
+		if randf() < dt * 26:
+			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 20, -6 - randf() * 14,
+				0.35, 2.2, "#ffd9a0" if randf() < 0.5 else "#c89a5a", 0.95, -6, true)
+	elif b.smoke:
 		if randf() < dt * 32:
 			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 24, -12 - randf() * 18,
 				0.44, 3.0, "#ffd9a0" if randf() < 0.32 else "#5c5852", 0.95, -10, true)

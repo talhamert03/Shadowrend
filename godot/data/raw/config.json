@@ -1210,6 +1210,162 @@
    },
    "emblem": "bolt",
    "sigDmg": 0.237
+  },
+  "mizrakci": {
+   "id": "mizrakci",
+   "rarity": 1,
+   "name": "MIZRAKÇI",
+   "title": "Sınır Mızrağı",
+   "price": 1500,
+   "stonePrice": 150,
+   "style": "melee",
+   "startWeapon": "mizrak",
+   "lore": "Kızıl Ay'ın ilk gecesi sınır kulesinde nöbetteydi; kule düştü, o düşmedi. Bronz uçlu mızrağı yanında süzülür, sürünün içine bir çizgi gibi dalar ve önüne çıkan her şeyi deler geçer.",
+   "mods": {
+    "maxHp": 8,
+    "speedPct": 0.04,
+    "dmgPct": 0.03
+   },
+   "perks": [
+    "İmza: Sınır Mızrağı — yanında süzülen bronz uçlu uzun mızrak",
+    "İleri saplar: uzun menzilli çizgi boyunca herkesi deler",
+    "Azami can +8, hız +%4, hasar +%3",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#1f5a56",
+    "hood": "#7a4a24",
+    "eye": "#bff8ec",
+    "emblem": "#2fb8a8",
+    "rim": "rgba(47,184,168,0.45)"
+   },
+   "emblem": "shield",
+   "sigDmg": 1.48
+  },
+  "bumerang": {
+   "id": "bumerang",
+   "rarity": 1,
+   "name": "BUMERANGÇI",
+   "title": "Çöl Rüzgârı",
+   "price": 1500,
+   "stonePrice": 150,
+   "style": "ranged",
+   "startWeapon": "bumerang",
+   "lore": "Kum fırtınalarının ortasında büyüdü; kemik ve pirinçten oyduğu bumerang hep eline geri döner. Gidişte keser, dönüşte biçer — çöl ona sabrı ve dönüşü öğretti.",
+   "mods": {
+    "atkPct": 0.05,
+    "speedPct": 0.05,
+    "maxHp": 4
+   },
+   "perks": [
+    "İmza: Çöl Bumerangı — yanında süzülen rünlü bumerang",
+    "Fırlar, sürüyü deler ve geri döner: gidişte de dönüşte de vurur",
+    "Saldırı hızı +%5, hız +%5, azami can +4",
+    "Adi — ilk koşuda alınabilir"
+   ],
+   "colors": {
+    "cloak": "#8a5a2a",
+    "hood": "#c8843a",
+    "eye": "#ffd9a0",
+    "emblem": "#ffb04a",
+    "rim": "rgba(255,176,74,0.45)"
+   },
+   "emblem": "arrow",
+   "sigDmg": 0.49
+  },
+  "tirpanci": {
+   "id": "tirpanci",
+   "rarity": 2,
+   "name": "TIRPANCI",
+   "title": "Ruh Biçen",
+   "price": 5200,
+   "stonePrice": 460,
+   "style": "melee",
+   "startWeapon": "tirpan",
+   "lore": "Mezarların bekçisiydi; ölüler Kızıl Ay'da uyanınca tırpanını onlara çevirdi. Yeşil ruh ateşiyle yanan tırpanı yanında süzülür, her savuruşta geniş bir yay çizip ruhları biçer.",
+   "mods": {
+    "dmgPct": 0.07,
+    "lifeSteal": 0.015,
+    "maxHp": 6
+   },
+   "perks": [
+    "İmza: Ruh Tırpanı — yanında süzülen yeşil alevli dev tırpan",
+    "En geniş savuruş: neredeyse yarım daire, sert geri itme",
+    "Hasar +%7, can çalma +%1,5, azami can +6",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#14201a",
+    "hood": "#22302a",
+    "eye": "#7aff9a",
+    "emblem": "#3aff8a",
+    "rim": "rgba(58,255,138,0.45)"
+   },
+   "emblem": "skull",
+   "sigDmg": 0.53
+  },
+  "gulcadi": {
+   "id": "gulcadi",
+   "rarity": 2,
+   "name": "GÜL CADISI",
+   "title": "Kızıl Diken",
+   "price": 5200,
+   "stonePrice": 460,
+   "style": "ranged",
+   "startWeapon": "gul",
+   "lore": "Lanetli bahçesinin gülleri Kızıl Ay'da kana döndü. Cadı onları silaha çevirdi: dikenli okları düşmandan düşmana seker, geçtiği yerde kızıl yapraklar savrulur.",
+   "mods": {
+    "atkPct": 0.07,
+    "critChance": 0.03,
+    "maxHp": 2
+   },
+   "perks": [
+    "İmza: Kan Gülü — yanında süzülen dikenli kızıl gül",
+    "Diken okları düşmandan düşmana seker",
+    "Saldırı hızı +%7, kritik +%3, azami can +2",
+    "Nadir"
+   ],
+   "colors": {
+    "cloak": "#2a0a14",
+    "hood": "#5a0f22",
+    "eye": "#ff6a8a",
+    "emblem": "#ff4a6a",
+    "rim": "rgba(255,74,106,0.5)"
+   },
+   "emblem": "flame",
+   "sigDmg": 1.33
+  },
+  "kuzgun": {
+   "id": "kuzgun",
+   "rarity": 4,
+   "name": "KUZGUN LORDU",
+   "title": "Kara Kanat",
+   "price": 34000,
+   "stonePrice": 2500,
+   "style": "ranged",
+   "startWeapon": "kuzgun",
+   "lore": "Kara kulenin efendisi, gecenin bütün kuzgunları ona boyun eğer. Kızıl Ay doğduğunda kanatlarını açtı; mor gözlü kuzgunları sürünün üstüne iner, kaçanı kovalar, her birini didikler.",
+   "mods": {
+    "dmgPct": 0.14,
+    "critChance": 0.06,
+    "atkPct": 0.06,
+    "maxHp": 10
+   },
+   "perks": [
+    "İmza: Kuzgun Sürüsü — yanında süzülen kuzgun totemi",
+    "Kuzgunlar hedefi kovalar, sürü hâlinde iner",
+    "Hasar +%14, kritik +%6, saldırı hızı +%6, azami can +10",
+    "Efsane — kadronun en nadir kademesi"
+   ],
+   "colors": {
+    "cloak": "#1a1024",
+    "hood": "#2a1a3a",
+    "eye": "#c08aff",
+    "emblem": "#b46cff",
+    "rim": "rgba(180,108,255,0.55)"
+   },
+   "emblem": "bolt",
+   "sigDmg": 0.98
   }
  },
  "CHAR_CARD_REQ": [
@@ -4982,6 +5138,607 @@
     "myth": true,
     "glyph": "yikici"
    }
+  ],
+  "mizrakci": [
+   {
+    "id": "sig_mz1",
+    "name": "Bronz Uç",
+    "desc": "Mızrak hasarı +%15.",
+    "boost": {
+     "weapon": "mizrak",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_mz2",
+    "name": "Seri Saplama",
+    "desc": "Mızrak %10 daha sık saplar.",
+    "boost": {
+     "weapon": "mizrak",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_mz3",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%12, hasar +%4.",
+    "boost": {
+     "weapon": "mizrak",
+     "range": 1.12,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_mz4",
+    "name": "Kalkan Kıran",
+    "desc": "Geri itme +%25, hasar +%6.",
+    "boost": {
+     "weapon": "mizrak",
+     "knock": 1.25,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_mz5",
+    "name": "Geniş Uç",
+    "desc": "Saplama hattı %20 genişler.",
+    "boost": {
+     "weapon": "mizrak",
+     "arc": 1.2
+    }
+   },
+   {
+    "id": "sig_mz6",
+    "name": "Nöbetçi Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "mizrak",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_mz7",
+    "name": "Mızrak Fırtınası",
+    "desc": "Aralıklı olarak çevresine dönerek saplar.",
+    "boost": {
+     "weapon": "mizrak",
+     "spinAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga"
+   },
+   {
+    "id": "sig_mz8",
+    "name": "Fırlatma",
+    "desc": "Her saplama ileri bir mızrak dalgası salar.",
+    "boost": {
+     "weapon": "mizrak",
+     "waveAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_mz9",
+    "name": "İkiz Mızrak",
+    "desc": "Ters yönden gecikmeli ikinci bir saplama iner.",
+    "boost": {
+     "weapon": "mizrak",
+     "twinAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_mz10",
+    "name": "Yankı Saplama",
+    "desc": "Saplamanın hayalet yankısı bir kez daha vurur.",
+    "boost": {
+     "weapon": "mizrak",
+     "echoAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yanki"
+   },
+   {
+    "id": "sig_mz11",
+    "name": "Sınırın Bekçisi",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "mizrak",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci"
+   }
+  ],
+  "bumerang": [
+   {
+    "id": "sig_bm1",
+    "name": "Keskin Kenar",
+    "desc": "Bumerang hasarı +%15.",
+    "boost": {
+     "weapon": "bumerang",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_bm2",
+    "name": "Hızlı Bilek",
+    "desc": "Bumerang %10 daha sık fırlar.",
+    "boost": {
+     "weapon": "bumerang",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_bm3",
+    "name": "Uzun Uçuş",
+    "desc": "Uçuş süresi +%15, hasar +%5.",
+    "boost": {
+     "weapon": "bumerang",
+     "life": 1.15,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_bm4",
+    "name": "Rüzgâr Kesen",
+    "desc": "Bumerang hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "bumerang",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_bm5",
+    "name": "Geniş Savrulma",
+    "desc": "Yelpaze %25 açılır, hasar +%4.",
+    "boost": {
+     "weapon": "bumerang",
+     "spreadMul": 1.25,
+     "dmg": 1.04
+    }
+   },
+   {
+    "id": "sig_bm6",
+    "name": "Çöl Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "bumerang",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_bm7",
+    "name": "İkiz Bumerang",
+    "desc": "Aynı anda bir bumerang daha fırlar.",
+    "boost": {
+     "weapon": "bumerang",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_bm8",
+    "name": "Kum Patlaması",
+    "desc": "Bumerang değdiği yerde küçük bir patlama yapar.",
+    "boost": {
+     "weapon": "bumerang",
+     "explodeAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlama"
+   },
+   {
+    "id": "sig_bm9",
+    "name": "Kum Yağmuru",
+    "desc": "Düzenli atışlarda hedefin üstüne kum bumerangları yağar.",
+    "boost": {
+     "weapon": "bumerang",
+     "rainAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur"
+   },
+   {
+    "id": "sig_bm10",
+    "name": "Avcı Dönüşü",
+    "desc": "Bumerang hedefi hafifçe kovalar.",
+    "boost": {
+     "weapon": "bumerang",
+     "homingAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci"
+   },
+   {
+    "id": "sig_bm11",
+    "name": "Çöl Fırtınası",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "bumerang",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
+  ],
+  "tirpanci": [
+   {
+    "id": "sig_tp1",
+    "name": "Kara Ağız",
+    "desc": "Tırpan hasarı +%15.",
+    "boost": {
+     "weapon": "tirpan",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_tp2",
+    "name": "Hızlı Hasat",
+    "desc": "Tırpan %10 daha sık savrulur.",
+    "boost": {
+     "weapon": "tirpan",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_tp3",
+    "name": "Ölüm Yayı",
+    "desc": "Savuruş yayı %12 genişler.",
+    "boost": {
+     "weapon": "tirpan",
+     "arc": 1.12
+    }
+   },
+   {
+    "id": "sig_tp4",
+    "name": "Mezar Gücü",
+    "desc": "Geri itme +%25, hasar +%6.",
+    "boost": {
+     "weapon": "tirpan",
+     "knock": 1.25,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_tp5",
+    "name": "Uzun Sap",
+    "desc": "Menzil +%10, hasar +%5.",
+    "boost": {
+     "weapon": "tirpan",
+     "range": 1.1,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_tp6",
+    "name": "Ruh Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "tirpan",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_tp7",
+    "name": "Ruh Kasırgası",
+    "desc": "Aralıklı geniş bir tırpan çevirmesi savurur.",
+    "boost": {
+     "weapon": "tirpan",
+     "spinAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kasirga"
+   },
+   {
+    "id": "sig_tp8",
+    "name": "Ruh Dalgası",
+    "desc": "Her savuruş ileri yeşil bir ruh dalgası salar.",
+    "boost": {
+     "weapon": "tirpan",
+     "waveAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "kesik"
+   },
+   {
+    "id": "sig_tp9",
+    "name": "İkiz Hasat",
+    "desc": "Ters yönden gecikmeli ikinci bir savuruş iner.",
+    "boost": {
+     "weapon": "tirpan",
+     "twinAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "ikiz"
+   },
+   {
+    "id": "sig_tp10",
+    "name": "Ruh Yankısı",
+    "desc": "Savuruşun hayalet yankısı bir kez daha vurur.",
+    "boost": {
+     "weapon": "tirpan",
+     "echoAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "yanki"
+   },
+   {
+    "id": "sig_tp11",
+    "name": "Son Hasat",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "tirpan",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
+  ],
+  "gulcadi": [
+   {
+    "id": "sig_gc1",
+    "name": "Zehirli Diken",
+    "desc": "Diken hasarı +%15.",
+    "boost": {
+     "weapon": "gul",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_gc2",
+    "name": "Hızlı Büyü",
+    "desc": "Gül %10 daha sık atar.",
+    "boost": {
+     "weapon": "gul",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_gc3",
+    "name": "Sivri Uç",
+    "desc": "Diken hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "gul",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_gc4",
+    "name": "Uzun Sarmaşık",
+    "desc": "Diken ömrü +%20, hasar +%5.",
+    "boost": {
+     "weapon": "gul",
+     "life": 1.2,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_gc5",
+    "name": "Kan Damlası",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "gul",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_gc6",
+    "name": "Sarmaşık Zinciri",
+    "desc": "Diken bir düşmana daha seker.",
+    "boost": {
+     "weapon": "gul",
+     "bounceAdd": 1
+    }
+   },
+   {
+    "id": "sig_gc7",
+    "name": "Gül Demeti",
+    "desc": "Gül aynı anda bir diken daha atar.",
+    "boost": {
+     "weapon": "gul",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "uclu"
+   },
+   {
+    "id": "sig_gc8",
+    "name": "Diken Yağmuru",
+    "desc": "Düzenli atışlarda hedefin üstüne diken yağar.",
+    "boost": {
+     "weapon": "gul",
+     "rainAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "yagmur"
+   },
+   {
+    "id": "sig_gc9",
+    "name": "Dikenli Çit",
+    "desc": "Diken iki düşmana daha seker.",
+    "boost": {
+     "weapon": "gul",
+     "bounceAdd": 2
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "zincir"
+   },
+   {
+    "id": "sig_gc10",
+    "name": "Kızıl Takip",
+    "desc": "Diken hedefi hafifçe kovalar.",
+    "boost": {
+     "weapon": "gul",
+     "homingAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "takipci"
+   },
+   {
+    "id": "sig_gc11",
+    "name": "Gülün Laneti",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "gul",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "nisanci"
+   }
+  ],
+  "kuzgun": [
+   {
+    "id": "sig_kz1",
+    "name": "Kara Pençe",
+    "desc": "Kuzgun hasarı +%15.",
+    "boost": {
+     "weapon": "kuzgun",
+     "dmg": 1.15
+    }
+   },
+   {
+    "id": "sig_kz2",
+    "name": "Sürü Çağrısı",
+    "desc": "Kuzgunlar %10 daha sık salınır.",
+    "boost": {
+     "weapon": "kuzgun",
+     "cd": 0.9
+    }
+   },
+   {
+    "id": "sig_kz3",
+    "name": "Keskin Gaga",
+    "desc": "Kuzgunlar bir düşmanı daha deler.",
+    "boost": {
+     "weapon": "kuzgun",
+     "pierce": 1
+    }
+   },
+   {
+    "id": "sig_kz4",
+    "name": "Hızlı Kanat",
+    "desc": "Kuzgun hızı +%15, hasar +%6.",
+    "boost": {
+     "weapon": "kuzgun",
+     "speed": 1.15,
+     "dmg": 1.06
+    }
+   },
+   {
+    "id": "sig_kz5",
+    "name": "Gece Gözü",
+    "desc": "Kritik şansı +%6, kritik hasarı +%20.",
+    "boost": {
+     "weapon": "kuzgun",
+     "critAdd": 0.06,
+     "critMultAdd": 0.2
+    }
+   },
+   {
+    "id": "sig_kz6",
+    "name": "Uzun Av",
+    "desc": "Kuzgun ömrü +%20, hasar +%5.",
+    "boost": {
+     "weapon": "kuzgun",
+     "life": 1.2,
+     "dmg": 1.05
+    }
+   },
+   {
+    "id": "sig_kz7",
+    "name": "Büyük Sürü",
+    "desc": "Her salışta bir kuzgun daha.",
+    "boost": {
+     "weapon": "kuzgun",
+     "volley": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "salvo"
+   },
+   {
+    "id": "sig_kz8",
+    "name": "Mor Patlama",
+    "desc": "Kuzgun değdiği yerde patlar.",
+    "boost": {
+     "weapon": "kuzgun",
+     "explodeAdd": 1
+    },
+    "minLvl": 1,
+    "myth": true,
+    "glyph": "patlama"
+   },
+   {
+    "id": "sig_kz9",
+    "name": "Kara Yağmur",
+    "desc": "Düzenli salışlarda gökten kuzgunlar dalar.",
+    "boost": {
+     "weapon": "kuzgun",
+     "rainAdd": 1
+    },
+    "minLvl": 2,
+    "myth": true,
+    "glyph": "yagmur"
+   },
+   {
+    "id": "sig_kz10",
+    "name": "Sürü Bölünmesi",
+    "desc": "Kuzgun ölünce iki küçük kuzguna bölünür.",
+    "boost": {
+     "weapon": "kuzgun",
+     "splitAdd": 1
+    },
+    "minLvl": 3,
+    "myth": true,
+    "glyph": "sacilan"
+   },
+   {
+    "id": "sig_kz11",
+    "name": "Gecenin Efendisi",
+    "desc": "Kritik şansı +%15, kritik hasarı +%55.",
+    "boost": {
+     "weapon": "kuzgun",
+     "critAdd": 0.15,
+     "critMultAdd": 0.55
+    },
+    "minLvl": 4,
+    "myth": true,
+    "glyph": "yikici"
+   }
   ]
  },
  "SPECIAL_PERKS": [
@@ -6687,6 +7444,291 @@
    "critMultAdd": 0,
    "waveR": 1,
    "waveLife": 1
+  },
+  "mizrak": {
+   "name": "Sınır Mızrağı",
+   "melee": true,
+   "thrust": true,
+   "sfx": "spear",
+   "descNew": "Mızrakçı'nın yanında süzülen bronz uçlu mızrak — ileri saplar, çizgi boyunca herkesi deler.",
+   "descUp": [
+    "Hasar +, menzil uzar",
+    "Daha çabuk saplar",
+    "Hasar +, delme sertleşir",
+    "Ağır saplama, geri itme +"
+   ],
+   "dmg": [
+    20,
+    27,
+    37,
+    49,
+    64
+   ],
+   "cooldown": [
+    0.9,
+    0.83,
+    0.76,
+    0.69,
+    0.62
+   ],
+   "range": [
+    170,
+    176,
+    182,
+    188,
+    196
+   ],
+   "arc": [
+    0.62,
+    0.62,
+    0.62,
+    0.62,
+    0.62
+   ],
+   "knock": [
+    260,
+    280,
+    300,
+    330,
+    370
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "tirpan": {
+   "name": "Ruh Tırpanı",
+   "melee": true,
+   "sfx": "scythe",
+   "descNew": "Tırpancı'nın yanında süzülen yeşil alevli tırpan — en geniş yayı çizer, ruhları biçer.",
+   "descUp": [
+    "Hasar +, yay genişler",
+    "Daha çabuk savurur",
+    "Hasar +, geri itme +",
+    "Ruh hasadı, hasar +"
+   ],
+   "dmg": [
+    26,
+    35,
+    48,
+    64,
+    84
+   ],
+   "cooldown": [
+    1.15,
+    1.06,
+    0.97,
+    0.88,
+    0.8
+   ],
+   "range": [
+    136,
+    140,
+    144,
+    150,
+    156
+   ],
+   "arc": [
+    3.3,
+    3.3,
+    3.3,
+    3.3,
+    3.3
+   ],
+   "knock": [
+    380,
+    410,
+    440,
+    480,
+    530
+   ],
+   "spin": 0,
+   "twin": 0,
+   "shock": 0,
+   "wave": 0,
+   "echo": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "bumerang": {
+   "name": "Çöl Bumerangı",
+   "kind": "gun",
+   "class": "celik",
+   "floatVisual": true,
+   "boomer": true,
+   "sfx": "boomer",
+   "descNew": "Bumerangçı'nın yanında süzülen rünlü bumerang — sürüyü deler, geri döner, dönüşte de vurur.",
+   "descUp": [
+    "Hasar +, daha uzağa gider",
+    "Daha sık fırlatır",
+    "İkinci bumerang",
+    "Hasar +, daha hızlı döner"
+   ],
+   "dmg": [
+    16,
+    22,
+    30,
+    40,
+    53
+   ],
+   "pierce": [
+    99,
+    99,
+    99,
+    99,
+    99
+   ],
+   "cooldown": [
+    1.1,
+    1.02,
+    0.94,
+    0.86,
+    0.78
+   ],
+   "speed": 430,
+   "volley": [
+    1,
+    1,
+    1,
+    2,
+    2
+   ],
+   "spread": 0.55,
+   "bulletLife": 1.7,
+   "color": "#ffb04a",
+   "rainColor": "#ffd9a0",
+   "r": 10,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "gul": {
+   "name": "Kan Gülü",
+   "kind": "gun",
+   "class": "ruh",
+   "floatVisual": true,
+   "arrow": true,
+   "thorn": true,
+   "sfx": "thorn",
+   "descNew": "Gül Cadısı'nın yanında süzülen kızıl gül — diken okları düşmandan düşmana seker.",
+   "descUp": [
+    "Hasar +, +1 sekme",
+    "Daha sık atar",
+    "İkinci diken, hasar +",
+    "+1 sekme, hasar +"
+   ],
+   "dmg": [
+    18,
+    25,
+    34,
+    46,
+    61
+   ],
+   "pierce": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "bounceLv": [
+    1,
+    2,
+    2,
+    2,
+    3
+   ],
+   "cooldown": [
+    0.82,
+    0.76,
+    0.7,
+    0.64,
+    0.58
+   ],
+   "speed": 600,
+   "volley": [
+    1,
+    1,
+    2,
+    2,
+    2
+   ],
+   "spread": 0.18,
+   "bulletLife": 1.3,
+   "color": "#ff4a6a",
+   "rainColor": "#ff9ab0",
+   "r": 6,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 0,
+   "critAdd": 0,
+   "critMultAdd": 0
+  },
+  "kuzgun": {
+   "name": "Kuzgun Sürüsü",
+   "kind": "gun",
+   "class": "ruh",
+   "floatVisual": true,
+   "raven": true,
+   "sfx": "raven",
+   "descNew": "Kuzgun Lordu'nun yanında süzülen kuzgun totemi — mor gözlü kuzgunlar hedefi kovalar, sürü hâlinde iner.",
+   "descUp": [
+    "Hasar +, +1 kuzgun",
+    "Daha sık salar",
+    "+1 delme, hasar +",
+    "+1 kuzgun, hasar +"
+   ],
+   "dmg": [
+    24,
+    33,
+    45,
+    60,
+    80
+   ],
+   "pierce": [
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "cooldown": [
+    0.92,
+    0.86,
+    0.8,
+    0.74,
+    0.68
+   ],
+   "speed": 400,
+   "volley": [
+    2,
+    3,
+    3,
+    3,
+    4
+   ],
+   "spread": 0.7,
+   "bulletLife": 2.4,
+   "color": "#b46cff",
+   "rainColor": "#e0c8ff",
+   "r": 9,
+   "flame": 0,
+   "explode": 0,
+   "bounce": 0,
+   "rain": 0,
+   "homing": 2,
+   "critAdd": 0,
+   "critMultAdd": 0
   }
  },
  "WEAPON_CLASSES": {

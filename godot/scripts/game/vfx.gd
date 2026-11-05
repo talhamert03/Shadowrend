@@ -17,7 +17,10 @@ enum { SLASH, HIT, RING, CAST, BOLT, HURT, DEATH, BEAM }
 const SWORD_COL := {
 	"kilic": "#ffd88a", "pala": "#ff8a4a", "yemin": "#7fe8ff", "tackilic": "#c08aff",
 	"kurek": "#8dffb8", "cekic": "#ffd23a",
+	"mizrak": "#5fe0c8", "tirpan": "#5aff9a", "balta": "#ff8a7a", "ejderkilic": "#ff9a4a",
 }
+## saplayan silahlar: yay yerine ileri çizgi izi
+const THRUST := {"mizrak": true}
 
 class Fx:
 	var on := false
@@ -66,6 +69,14 @@ func slash(x: float, y: float, dir: float, arc: float, rng: float, wid: String, 
 	if Settings.data.get("rm", false) and echo: return
 	var f := _take(SLASH, 0.3 if spin else 0.24)
 	f.x = x; f.y = y
+	if THRUST.has(wid) and not spin:
+		f.sw = -1.0            # işaret: saplama
+		f.a0 = dir
+		f.r = rng
+		f.w = 26.0 if not echo else 16.0
+		f.c = Color(String(SWORD_COL.get(wid, "#e6f2ff")))
+		f.x2 = 0.55 if echo else 1.0
+		return
 	f.sw = TAU if spin else maxf(1.2, arc * 1.1)
 	f.a0 = dir - f.sw * 0.5
 	f.r = rng * 0.92
@@ -148,6 +159,9 @@ func _draw_slash(U: Ultimate, f: Fx, u: float) -> void:
 	var p = game.player
 	# yay kahramanla birlikte kayar (koşarken iz geride kopmasın)
 	var c := Vector2(p.x, p.y) if p else Vector2(f.x, f.y)
+	if f.sw < 0.0:
+		_draw_thrust(U, f, u, c)
+		return
 	var grow := minf(1.0, u / 0.45)
 	var e := 1.0 - pow(1.0 - grow, 2.0)
 	var fade := 1.0 if u < 0.45 else 1.0 - (u - 0.45) / 0.55
@@ -158,6 +172,28 @@ func _draw_slash(U: Ultimate, f: Fx, u: float) -> void:
 	if u < 0.5:
 		var ha := f.a0 + sw
 		U._glow(c + Vector2(cos(ha) * f.r, sin(ha) * f.r * SQ), 26.0, f.c, (1.0 - u * 2.0) * f.x2, SQ, U._T)
+
+## MIZRAK SAPLAMASI: kahramandan hedefe uzanan parlak çizgi + ucunda kıvılcım yıldızı + şok halkası
+func _draw_thrust(U: Ultimate, f: Fx, u: float, c: Vector2) -> void:
+	var dir := Vector2(cos(f.a0), sin(f.a0) * SQ).normalized()
+	var reach := minf(1.0, u / 0.32)
+	var ext := 1.0 - pow(1.0 - reach, 3.0)
+	var a := (1.0 if u < 0.35 else maxf(0.0, 1.0 - (u - 0.35) / 0.65)) * f.x2
+	var L := f.r * (0.25 + 0.75 * ext)
+	var c0 := c + dir * 18.0 - Vector2(0, 16)
+	var tip := c0 + dir * L
+	# geniş yumuşak hale + parlak çekirdek çizgi + beyaz öz
+	U._streak(c0 + dir * L * 0.5, dir, L * 0.5, f.w * 0.9, f.c, a * 0.35)
+	U._streak(c0 + dir * L * 0.55, dir, L * 0.45, f.w * 0.36, f.c, a)
+	U._streak(c0 + dir * L * 0.62, dir, L * 0.38, f.w * 0.12, Color(1, 1, 1), a)
+	# uçta kıvılcım: çapraz yıldız + halka
+	U._glow(tip, 34.0 * (0.6 + 0.4 * ext), f.c, a * 0.9, SQ, U._T)
+	var perp := Vector2(-dir.y, dir.x)
+	U._streak(tip, perp, 14.0 * a + 2.0, 3.0, Color(1, 1, 1), a * 0.8)
+	U._streak(tip, dir, 22.0 * a + 2.0, 3.0, Color(1, 1, 1), a * 0.8)
+	if u > 0.18:
+		var k := (u - 0.18) / 0.82
+		U._gring(tip, 10.0 + 34.0 * k, 5.0 * (1.0 - k) + 1.5, f.c, (1.0 - k) * f.x2, SQ, 18)
 
 func _draw_hit(U: Ultimate, f: Fx, u: float) -> void:
 	var c := Vector2(f.x, f.y - 10.0)

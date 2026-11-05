@@ -86,6 +86,16 @@ var iceMesh: IMesh
 const ICE_MAX := 40
 # hilal bıçağı mermisi (Gece Dansçısı): yere yatık, kendi ekseninde hızla dönen gümüş-mor hilal
 var crescentMesh: IMesh
+var boomerMesh: IMesh        # bumerang (Bumerangçı): dönen V bıçak
+var thornMesh: IMesh         # diken oku (Gül Cadısı)
+var ravenMesh: IMesh         # kuzgun mermisi (Kuzgun Lordu): kanat çırpan kuzgun
+var ravenEye: IMesh          # kuzgunların mor gözleri
+var flockMesh: IMesh         # Kuzgun Fırtınası: gökte dönen sürü
+var flockEye: IMesh
+const BOOM_MAX := 40
+const THORN_MAX := 80
+const RAVEN_MAX := 90
+const FLOCK_N := 18
 const CRES_MAX := 120
 # Ejder Nefesi süperi: gökte süzülen boyalı kızıl ejder (kameraya bakan tabela, kanat "nefesi")
 var dragonMesh: IMesh
@@ -168,6 +178,7 @@ func _init(r) -> void:
 	S.add_child(dragonMesh)
 	crescentMesh = IMesh.new(Geo.merge([cg], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2).scaled(Vector3(1, 1, 0.45)), Vector3.ZERO)]), cresMat, CRES_MAX)
 	S.add_child(crescentMesh)
+	_build_hero_projectiles(S)
 	# ── ruh kristali (XP) ──
 	var soul := _crystal_geo(6, 1.35, 0.95, 0.66, 0.12)
 	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.96}), 380)
@@ -276,6 +287,7 @@ func update(g, dt: float) -> void:
 	_update_orbit_blades(g)
 	_update_ice(g)
 	_update_dragon(g)
+	_update_flock(g)
 	_update_hp_bars(g)
 
 # ═══════════ AYAZ SURU (3B buz kristalleri) ═══════════
@@ -318,6 +330,88 @@ func _update_ice(g) -> void:
 			iceMesh.set_col(n, 1, 1, 1)
 			n += 1
 	iceMesh.commit(n)
+
+# ── yeni kahraman mermileri: silüetten ekstrüzyon (düz, okunur, toon ışıklı) ──
+static func _mirror_poly(half: Array) -> PackedVector2Array:
+	var P := PackedVector2Array()
+	for v in half: P.append(v)
+	for i in range(half.size() - 1, -1, -1):
+		var v: Vector2 = half[i]
+		if absf(v.x) > 0.001: P.append(Vector2(-v.x, v.y))
+	return P
+
+func _build_hero_projectiles(S: Node3D) -> void:
+	var flat := Basis(Vector3(1, 0, 0), PI / 2)     # XY silüet (ileri +Y) → XZ düzlemi, ileri +Z
+	# KUZGUN: gaga, boyun, uzun parmaklı kanat uçları, yelpaze kuyruk
+	var raven := _mirror_poly([Vector2(0, 13.5), Vector2(1.6, 10.5), Vector2(2.6, 8.0), Vector2(3.4, 5.6), Vector2(7.0, 4.6),
+		Vector2(12.0, 4.2), Vector2(16.5, 3.0), Vector2(20.0, 1.0), Vector2(17.6, -0.4), Vector2(18.4, -1.6), Vector2(15.0, -1.4),
+		Vector2(15.4, -2.8), Vector2(11.8, -2.2), Vector2(11.6, -3.6), Vector2(8.0, -2.6), Vector2(5.0, -3.4), Vector2(3.2, -5.0),
+		Vector2(3.0, -8.5), Vector2(5.4, -13.0), Vector2(2.4, -12.0), Vector2(0, -13.2)])
+	var rg := Geo.merge([Geo.extrude(raven, 2.0)], [Transform3D(flat, Vector3.ZERO)])
+	var rmat := Shd.lit({"color": Color("#241a30"), "emissive": Color("#5a2a9a"), "emissive_k": 0.55, "roughness": 0.45, "metalness": 0.2, "rim": true})
+	rmat.set_shader_parameter("rim_c", Vector3(0.78, 0.55, 1.0))
+	rmat.set_shader_parameter("rim_s", 1.4)
+	if Quality.tier != "low": rmat.next_pass = Shd.outline(null, Color(0.04, 0.02, 0.06), 1.2)
+	var emat := Shd.basic({"color": Color("#e0a8ff"), "add": true, "zwrite": false})
+	ravenMesh = IMesh.new(rg, rmat, RAVEN_MAX)
+	S.add_child(ravenMesh)
+	ravenEye = IMesh.new(Geo.sphere(1.0, 8, 6), emat, RAVEN_MAX)
+	S.add_child(ravenEye)
+	flockMesh = IMesh.new(rg, rmat, FLOCK_N)
+	S.add_child(flockMesh)
+	flockEye = IMesh.new(Geo.sphere(1.0, 8, 6), emat, FLOCK_N)
+	S.add_child(flockEye)
+	# BUMERANG: kalın V, uçları yuvarlak; ahşap gövde + akkor rün kenarı
+	var bm := PackedVector2Array([Vector2(-14, -6), Vector2(-11, -9), Vector2(0, -2.5), Vector2(11, -9), Vector2(14, -6),
+		Vector2(13, -3), Vector2(3, 5.5), Vector2(0, 6.5), Vector2(-3, 5.5), Vector2(-13, -3)])
+	var bg := Geo.merge([Geo.extrude(bm, 2.6)], [Transform3D(flat, Vector3.ZERO)])
+	var bmat := Shd.lit({"color": Color("#c88a4a"), "emissive": Color("#ff7a1a"), "emissive_k": 0.7, "roughness": 0.55, "metalness": 0.15, "rim": true})
+	bmat.set_shader_parameter("rim_c", Vector3(1.0, 0.82, 0.5))
+	if Quality.tier != "low": bmat.next_pass = Shd.outline(null, Color(0.18, 0.08, 0.02), 1.3)
+	boomerMesh = IMesh.new(bg, bmat, BOOM_MAX)
+	S.add_child(boomerMesh)
+	# DİKEN: ince sap + sivri uç + iki yan diken (ileri +Z)
+	var rx := Basis(Vector3(1, 0, 0), PI / 2)
+	var tg := Geo.merge([Geo.cylinder(0.7, 1.0, 16.0, 6), Geo.cone(1.4, 7.0, 6), Geo.cone(0.7, 3.4, 5), Geo.cone(0.7, 3.4, 5)],
+		[Transform3D(rx, Vector3(0, 0, -2.0)), Transform3D(rx, Vector3(0, 0, 9.5)),
+		Transform3D(Basis(Vector3(0, 1, 0), 0.0) * Basis(Vector3(0, 0, 1), -1.0) * rx, Vector3(0.9, 0, -1.0)),
+		Transform3D(Basis(Vector3(0, 0, 1), 1.0) * rx, Vector3(-0.9, 0, -5.0))])
+	var tmat := Shd.lit({"color": Color("#8a1028"), "emissive": Color("#ff2a5a"), "emissive_k": 1.1, "roughness": 0.3, "metalness": 0.1, "rim": true})
+	tmat.set_shader_parameter("rim_c", Vector3(1.0, 0.6, 0.7))
+	thornMesh = IMesh.new(tg, tmat, THORN_MAX)
+	S.add_child(thornMesh)
+
+## KUZGUN FIRTINASI: süper boyunca kahramanın tepesinde dönen, dalıp çıkan kuzgun sürüsü
+func _update_flock(g) -> void:
+	var U = g.ult
+	if not (U and U.fx > 0 and U.id.get("ravens", false)):
+		flockMesh.commit(0); flockEye.commit(0)
+		return
+	var t: float = U.t
+	var a: float = minf(1.0, t / 0.4) * float(U._fade_out())
+	if a <= 0.02:
+		flockMesh.commit(0); flockEye.commit(0)
+		return
+	var p = g.player
+	var grow := minf(1.0, t / 0.6)
+	for i in FLOCK_N:
+		var ph := float(i) / FLOCK_N * TAU
+		var ring := 0 if i % 3 else 1
+		var R := (150.0 + ring * 90.0 + sin(t * 1.3 + i) * 24.0) * (0.35 + 0.65 * grow)
+		var sp := (1.4 if ring == 0 else -1.0) * (1.0 + 0.15 * sin(i * 1.7))
+		var an := ph + t * sp
+		var x: float = p.x + cos(an) * R
+		var z: float = p.y + sin(an) * R * 0.8
+		var y := 150.0 + ring * 60.0 + sin(t * 3.0 + i * 0.9) * 18.0 + (1.0 - a) * 120.0
+		var yaw := atan2(-sin(an) * sp, cos(an) * sp * 0.8)
+		var flap := 0.45 + 0.55 * absf(sin(t * 13.0 + i * 1.3))
+		var sc := 1.9 + ring * 0.4
+		flockMesh.set_ys(i, x, y, z, yaw, sc * flap, sc, sc)
+		flockMesh.set_col(i, 1, 1, 1, 1)
+		flockEye.set_ys(i, x + sin(yaw) * 9.0 * sc, y + 1.0, z + cos(yaw) * 9.0 * sc, 0.0, 1.2 * sc, 1.2 * sc, 1.2 * sc)
+		flockEye.set_col(i, 0.85, 0.6, 1.0, a)
+	flockMesh.commit(FLOCK_N)
+	flockEye.commit(FLOCK_N)
 
 func _update_dragon(g) -> void:
 	var U = g.ult
@@ -510,7 +604,37 @@ func _update_projectiles(g) -> void:
 	_fb = 0; _fg = 0
 	var lite := Quality.stress > 0.55
 	var T: float = g.time
+	var bi := 0
+	var ti := 0
+	var ri := 0
 	for b in g.pools.pBullets.active:
+		if b.boomer:
+			if bi >= BOOM_MAX: continue
+			var bs := maxf(1.0, b.r * 0.12)
+			boomerMesh.set_ys(bi, b.x, 24, b.y, T * 22.0 + b.ph, bs, bs, bs)
+			boomerMesh.set_col(bi, 1, 1, 1, 1)
+			bi += 1
+			continue
+		if b.thorn:
+			if ti >= THORN_MAX: continue
+			thornMesh.set_ys(ti, b.x, 20, b.y, atan2(b.vx, b.vy), 1.15, 1.15, 1.15)
+			thornMesh.set_col(ti, 1, 1, 1, 1)
+			ti += 1
+			_arrow_trail(b.x, b.y, b.vx, b.vy, 0.9, Color("#ff4a6a"))
+			continue
+		if b.raven:
+			if ri >= RAVEN_MAX: continue
+			var yaw := atan2(b.vx, b.vy)
+			var flap := 0.45 + 0.55 * absf(sin(T * 16.0 + b.ph))
+			var rs := 1.35
+			var ry := 26.0 + sin(T * 8.0 + b.ph) * 4.0
+			ravenMesh.set_ys(ri, b.x, ry, b.y, yaw, rs * flap, rs, rs)
+			ravenEye.set_ys(ri, b.x + sin(yaw) * 9.5 * rs, ry + 1.2, b.y + cos(yaw) * 9.5 * rs, 0.0, 0.9, 0.9, 0.9)
+			ravenEye.set_col(ri, 1, 1, 1, 1)
+			ravenMesh.set_col(ri, 1, 1, 1, 1)
+			ri += 1
+			_arrow_trail(b.x, b.y, b.vx, b.vy, 0.7, Color("#9a5aff"))
+			continue
 		if b.fireball:
 			_add_fire(b, FIRE_PAL.get(b.pal, FIRE_PAL.blue) if b.pal != "" else FIRE_PAL.blue, 1.0, T, lite)
 		elif b.isArrow:
@@ -562,6 +686,10 @@ func _update_projectiles(g) -> void:
 	bulletMetal.commit(mi)
 	arrowMesh.commit(ai)
 	crescentMesh.commit(ci)
+	boomerMesh.commit(bi)
+	thornMesh.commit(ti)
+	ravenMesh.commit(ri)
+	ravenEye.commit(ri)
 
 func _update_fire_hits(g, dt: float) -> void:
 	var fr := 0

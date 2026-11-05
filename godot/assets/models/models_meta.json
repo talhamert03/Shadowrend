@@ -674,6 +674,276 @@
      0.78
     ]
    }
+  },
+  "mizrakci": {
+   "file": "heroes/mizrakci.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    0.0016,
+    0.0,
+    -0.0869
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "mizrak",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "bumerang": {
+   "file": "heroes/bumerang.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    0.0005,
+    0.0,
+    -0.1577
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "bumerang",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "tirpanci": {
+   "file": "heroes/tirpanci.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    -0.0103,
+    0.0,
+    -0.1084
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "tirpan",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "gulcadi": {
+   "file": "heroes/gulcadi.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    -0.0043,
+    0.0,
+    -0.0965
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "gul",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
+  },
+  "kuzgun": {
+   "file": "heroes/kuzgun.glb",
+   "height": 91.2,
+   "baseScale": 50.666666666666664,
+   "rigPos": [
+    0.0037,
+    0.0,
+    -0.1711
+   ],
+   "topY": 91.0,
+   "walkClip": "Armature|walking_man|baselayer",
+   "walkRate": 1,
+   "floatingWeapon": "kuzgun",
+   "lift": 0.35,
+   "clips": [
+    "Armature|walking_man|baselayer"
+   ],
+   "hasBones": true,
+   "src": "meshy",
+   "armFix": {
+    "LeftArm": [
+     0,
+     0,
+     -14
+    ],
+    "RightArm": [
+     0,
+     0,
+     14
+    ],
+    "LeftForeArm": [
+     12,
+     0,
+     0
+    ],
+    "RightForeArm": [
+     12,
+     0,
+     0
+    ],
+    "LeftHand": [
+     0,
+     70,
+     0,
+     0.78
+    ],
+    "RightHand": [
+     0,
+     -70,
+     0,
+     0.78
+    ]
+   }
   }
  },
  "enemies": {
@@ -1883,11 +2153,28 @@
   },
   "balta": {
    "proc": true,
-   "bladeLen": 72
+   "bladeLen": 58
   },
   "ejderkilic": {
    "proc": true,
    "bladeLen": 80
+  },
+  "mizrak": {
+   "proc": true,
+   "bladeLen": 86
+  },
+  "tirpan": {
+   "proc": true,
+   "bladeLen": 70
+  },
+  "bumerang": {
+   "proc": true
+  },
+  "gul": {
+   "proc": true
+  },
+  "kuzgun": {
+   "proc": true
   }
  }
 }

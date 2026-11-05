@@ -96,6 +96,13 @@ class PBullet:
 	var fireball := false; var ph := 0.0; var nova := 0; var burned := false; var critAdd := 0.0
 	var stone := false; var shatter := 0
 	var crescent := false  # hilal bıçağı (Gece Dansçısı): dönen hilal ağı
+	var boomer := false    # bumerang (Bumerangçı): gider, döner, dönüşte de vurur
+	var boomRet := false
+	var boomT := 0.0
+	var boomOut := 0.7
+	var hitSet := {}       # bumerang: bu bacakta vurulanlar (aynı bacakta ikinci kez vurmaz)
+	var thorn := false     # diken (Gül Cadısı): kızıl diken + yaprak izi
+	var raven := false     # kuzgun (Kuzgun Lordu): kanat çırpan kuzgun + tüy izi
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
 	var tgt = null; var tgtTok := -1   # güdümlü merminin kilitli hedefi
@@ -108,6 +115,8 @@ class PBullet:
 		split = 0; frag = false; smoke = 0; metal = false
 		fireball = false; ph = 0.0; burned = false; nova = 0; pal = ""
 		crescent = false
+		boomer = false; boomRet = false; boomT = 0.0; boomOut = 0.7; hitSet.clear()
+		thorn = false; raven = false
 		return self
 
 class EBullet:

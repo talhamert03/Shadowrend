@@ -273,6 +273,61 @@
     "cd": 0.9,
     "waveR": 1.2
    }
+  },
+  "mizrakci": {
+   "weapon": "mizrak",
+   "pas": "keskinlik",
+   "name": "Sınır Yıkan",
+   "desc": "Sınır Mızrağı evrimleşir: daha sık, daha uzağa saplar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "range": 1.1
+   }
+  },
+  "bumerang": {
+   "weapon": "bumerang",
+   "pas": "cabukluk",
+   "name": "Kum Kasırgası",
+   "desc": "Çöl Bumerangı evrimleşir: bir bumerang daha, daha sık.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
+  },
+  "tirpanci": {
+   "weapon": "tirpan",
+   "pas": "hasatrun",
+   "name": "Ölüm Hasadı",
+   "desc": "Ruh Tırpanı evrimleşir: daha sık, daha geniş biçer.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "arc": 1.08
+   }
+  },
+  "gulcadi": {
+   "weapon": "gul",
+   "pas": "gazap",
+   "name": "Kan Bahçesi",
+   "desc": "Kan Gülü evrimleşir: diken bir kez daha seker, daha sık atar.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "bounceAdd": 1
+   }
+  },
+  "kuzgun": {
+   "weapon": "kuzgun",
+   "pas": "kulkani",
+   "name": "Kara Gök",
+   "desc": "Kuzgun Sürüsü evrimleşir: bir kuzgun daha, daha sık.",
+   "boost": {
+    "dmg": 1.18,
+    "cd": 0.9,
+    "volley": 1
+   }
   }
  },
  "TAGS": {

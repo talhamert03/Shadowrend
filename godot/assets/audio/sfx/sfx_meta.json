@@ -98,7 +98,12 @@
   "slashhit": 0.09,
   "crossbow": 0.06,
   "bloodcast": 0.06,
-  "crescent": 0.06
+  "crescent": 0.06,
+  "spear": 0.06,
+  "boomer": 0.06,
+  "scythe": 0.06,
+  "thorn": 0.06,
+  "raven": 0.06
  },
  "variants": {
   "hit": 3,
@@ -197,7 +202,12 @@
   "slashhit": 3,
   "crossbow": 3,
   "bloodcast": 3,
-  "crescent": 3
+  "crescent": 3,
+  "spear": 3,
+  "boomer": 3,
+  "scythe": 3,
+  "thorn": 3,
+  "raven": 3
  },
  "files": [
   "hit_0",

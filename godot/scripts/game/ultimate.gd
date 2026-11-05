@@ -36,6 +36,13 @@ const ULT_ID := {
 	"kanrahip": {"name": "KAN GİRDABI",   "col": "#ffd0d4", "c2": "#e01e3a", "k": "vortex", "snd": "vortex", "base": 0,  "hr": 0.0,   "desc": "Üç kan orağı rahibin çevresinde dönerek genişler; değdiği her şeyi biçer."},
 	"gecedans": {"name": "HİLAL FIRTINASI", "col": "#f0e2ff", "c2": "#a66aff", "k": "slash", "snd": "slash",  "base": 14, "hr": 80.0,  "desc": "Gece yarılır; çapraz hilal kesikleri sürünün üstünde açılır."},
 	"ejder":    {"name": "EJDER NEFESİ",  "col": "#ffe0b0", "c2": "#ff5a1e", "k": "meteor", "snd": "meteor", "base": 9,  "hr": 120.0, "dragon": true, "desc": "Gökte kızıl ejder belirir; ağzından düşen ateş topları sürüyü kavurur."},
+	"mizrakci": {"name": "DÖNEN MIZRAKLAR", "col": "#e0fff8", "c2": "#2fb8a8", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0,  "desc": "Üç bronz mızrak Mızrakçı'nın çevresinde dönerek genişler; değdiği her şeyi deler."},
+	"bumerang": {"name": "KUM KASIRGASI", "col": "#fff0d0", "c2": "#ff9a2a", "k": "slash",  "snd": "slash",  "base": 14, "hr": 80.0,  "desc": "Çöl rüzgârı yarılır; çapraz bumerang kesikleri sürünün üstünde açılır."},
+	"tirpanci": {"name": "RUH HASADI",    "col": "#e0ffe8", "c2": "#2fbf6a", "k": "grave",  "snd": "slam",   "base": 14, "hr": 80.0,  "desc": "Toprak yarılır; yeşil ruh elleri mezarlardan fışkırır, düşmanı yerine çiviler."},
+	"gulcadi":  {"name": "DİKEN BAHÇESİ", "col": "#ffd8e0", "c2": "#ff3a5a", "k": "poison", "snd": "meteor", "base": 7,  "hr": 96.0,
+		"pal": {"tox": "#ff6a8a", "deep": "#4a0a18", "glass": "#5a0f22", "rot": "#140206", "pool": "#3a0a14", "pool2": "#5a1020", "wet": "#ff4a6a", "wet2": "#a01a3a", "bub": "#6a1428", "bub2": "#ff7a9a"},
+		"desc": "Kızıl gül tohumları fırlar; yerde dikenli bir gül bahçesi açar, içindekileri yavaşlatıp eritir."},
+	"kuzgun":   {"name": "KUZGUN FIRTINASI", "col": "#f0e0ff", "c2": "#a64aff", "k": "bolt", "snd": "bolt",  "base": 10, "hr": 90.0, "ravens": true, "desc": "Gök kararır; kuzgun sürüsü tepede döner, sürünün üstüne mor yıldırımlar iner."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi
@@ -471,6 +478,7 @@ func render(_ctx: Ctx2D = null) -> void:
 	var K = KIND.get(k)
 	_lc = Color(String(C.col))
 	_dc = Color(String(C.c2))
+	_pal = C.get("pal", {})
 	if k == "moon": _draw_sky_moon(p.x, p.y - 300, t)
 	if k == "cannon": _draw_ghost_ship(ox - 260, oy - 250, t)
 	if C.get("dragon", false): _draw_dragon(p.x, p.y - 330, t)
@@ -1144,17 +1152,22 @@ func _draw_ward(x: float, y: float, r: float, tt: float) -> void:
 	_M.poly(PackedVector2Array([lp + Vector2(-6, -5), lp + Vector2(6, -5), lp + Vector2(7, 7), lp + Vector2(-7, 7)]), _ca(spirit, fo))
 	_glow(lp + Vector2(0, 1), 10, WHITE, fo, 1.0, _T)
 
+## süper paleti (ULT_ID "pal"): yoksa türün özgün renkleri
+var _pal: Dictionary = {}
+func _pc(k: String, def: Color) -> Color:
+	return Color(String(_pal[k])) if _pal.has(k) else def
+
 # ══ ZEHİR BATAĞI (cadı): parlayan şişe, kaynayan zehir batağı, kabarcık ve buhar ══
 func _draw_poison(s, u: float, post: float, K) -> void:
 	var tg := Vector2(s.x, s.y)
-	var tox := Color("#b6ff5a")
-	var deep := Color("#1f4a12")
+	var tox := _pc("tox", Color("#b6ff5a"))
+	var deep := _pc("deep", Color("#1f4a12"))
 	if post < 0:
 		var pos := Vector2(s.sx + (s.x - s.sx) * u, s.sy + (s.y - s.sy) * u - sin(u * PI) * 170.0)
 		var rot: float = s.a + u * 9.0
 		_ell(_U, tg, 26 * u + 4, (26 * u + 4) * SQ, _ca(INK, 0.3 * u))
 		_glow(pos, 46, _dc, 0.8, 1.0, _T)
-		_disc(_M, pos, 10, Color(0.2, 0.42, 0.1), 1.0, 0.0)
+		_disc(_M, pos, 10, _pc("glass", Color(0.2, 0.42, 0.1)), 1.0, 0.0)
 		_disc(_M, pos, 7.5, tox, 1.0, 0.0)
 		var nk := pos + Vector2(cos(rot), sin(rot)) * 11.0
 		_thick(_M, PackedVector2Array([pos, nk]), 4.0, Color("#c8b48a"))
@@ -1175,9 +1188,9 @@ func _draw_poison(s, u: float, post: float, K) -> void:
 		var wob := 1.0 + 0.12 * sin(an * 3.0 + s.seed) + 0.07 * sin(an * 5.0 + s.seed * 2.0 + t * 1.5)
 		var d := Vector2(cos(an), sin(an)) * R * wob
 		P[i] = tg + d * 0.86; P2[i] = tg + d * 0.55; Pk[i] = tg + d * 1.25
-	_blob(_GM, tg, Pk, Color(0.04, 0.07, 0.02, 0.62 * a), Color(0.04, 0.07, 0.02, 0.0))
-	_blob(_GM, tg, P, Color(0.10, 0.22, 0.05, 0.85 * a), Color(0.13, 0.30, 0.06, 0.55 * a))
-	_blob(_GM, tg + Vector2(-R * 0.1, -R * 0.08), P2, Color(0.40, 0.75, 0.14, 0.32 * a), Color(0.25, 0.5, 0.1, 0.0))
+	_blob(_GM, tg, Pk, _ca(_pc("rot", Color(0.04, 0.07, 0.02)), 0.62 * a), _ca(_pc("rot", Color(0.04, 0.07, 0.02)), 0.0))
+	_blob(_GM, tg, P, _ca(_pc("pool", Color(0.10, 0.22, 0.05)), 0.85 * a), _ca(_pc("pool2", Color(0.13, 0.30, 0.06)), 0.55 * a))
+	_blob(_GM, tg + Vector2(-R * 0.1, -R * 0.08), P2, _ca(_pc("wet", Color(0.40, 0.75, 0.14)), 0.32 * a), _ca(_pc("wet2", Color(0.25, 0.5, 0.1)), 0.0))
 	_glow(tg, R * 0.9, _dc, 0.14 * a)
 	for i in 4:
 		var ph := fmod(t * 1.6 + _uhash(s.seed, i) * 3.0, 1.0)
@@ -1187,8 +1200,8 @@ func _draw_poison(s, u: float, post: float, K) -> void:
 		if ph < 0.8:
 			# zeminde kabaran ıslak kabarcık (konturs uz, parlak tepe noktası)
 			var br := 3.0 + 7.0 * (ph / 0.8)
-			_disc(_GM, q, br, Color(0.16, 0.36, 0.07), a, 0.0, SQ)
-			_disc(_GM, q - Vector2(br * 0.1, br * 0.1), br * 0.78, Color(0.45, 0.82, 0.18), a * 0.9, 0.0, SQ)
+			_disc(_GM, q, br, _pc("bub", Color(0.16, 0.36, 0.07)), a, 0.0, SQ)
+			_disc(_GM, q - Vector2(br * 0.1, br * 0.1), br * 0.78, _pc("bub2", Color(0.45, 0.82, 0.18)), a * 0.9, 0.0, SQ)
 			_glow(q - Vector2(br * 0.3, br * 0.35), br * 0.5, WHITE, 0.7 * a)
 		else:
 			var pp := (ph - 0.8) / 0.2
