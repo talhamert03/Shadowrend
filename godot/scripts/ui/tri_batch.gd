@@ -31,10 +31,11 @@ func circle(c: Vector2, r: float, col: Color, seg := 0) -> void:
 
 ## yumuşak hale/gölge: merkez rengi kenara doğru sönen elips (sy: dikey basıklık)
 func radial(c: Vector2, r: float, cin: Color, cout: Color, sy := 1.0, seg := 36) -> void:
+	var U := Ultimate._unit(seg)
 	var p0 := c + Vector2(r, 0)
 	for i in seg:
-		var a := (i + 1) * TAU / seg
-		var p1 := c + Vector2(cos(a) * r, sin(a) * r * sy)
+		var u: Vector2 = U[i + 1]
+		var p1 := c + Vector2(u.x * r, u.y * r * sy)
 		V.append(c); V.append(p0); V.append(p1)
 		C.append(cin); C.append(cout); C.append(cout)
 		p0 = p1

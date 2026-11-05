@@ -15,6 +15,10 @@ var g
 var shell: Lyr
 var grid: Lyr.N
 var _cards: Array = []
+## sıralama: 0 varsayılan · 1 nadirlik (Efsanevi → Sıradan) · 2 nadirlik (Sıradan → Efsanevi)
+var _sort := -1
+var _sortBtn: Lyr = null
+const SORT_LBL := ["SIRALA: VARSAYILAN", "SIRALA: NADİRLİK ▼", "SIRALA: NADİRLİK ▲"]
 
 func _init(m) -> void:
 	menu = m
@@ -43,13 +47,40 @@ func render() -> void:
 	var host: Node2D = grid.host if grid else shell.nodes[0].host
 	var colw := (grid.size.x - 8.0 - GAP_X * (COLS - 1)) / COLS if grid else 111.3
 	var x0 := 4.0
-	var y := 10.0
+	if _sort < 0:
+		var sv = Store.get_item("kh_hsort", "0")
+		_sort = clampi(int(str(sv)), 0, 2)
+	# sıralama düğmesi (ızgaranın üstünde, sağda)
+	if _sortBtn:
+		menu.unbtn(_sortBtn)
+		_sortBtn.queue_free()
+	var bw := 168.0
+	var gw: float = grid.size.x if grid else 360.0
+	_sortBtn = _sort_pill(bw, 28.0)
+	host.add_child(_sortBtn)
+	_sortBtn.position = Vector2(gw - bw - 4.0, 4.0)
+	menu.btn(_sortBtn, _sortBtn.nodes[0], func():
+		g.audio.play("click")
+		_sort = (_sort + 1) % 3
+		Store.set_item("kh_hsort", str(_sort))
+		render(), 0.95)
+	var y := 44.0
 	var row_h := 0.0
 	var i := 0
 	# kartlar yerel çizim: Tripo modelinin toon pişirimi (assets/ui/art/hero3d/<id>.png) — kilitli
 	# kahramanlar da kendi modeliyle (karartılmış + kilit) görünür; eski web silüetleri kullanılmaz
 	var ch := 196.0
-	for id in D.CHARACTERS:
+	var ids: Array = D.CHARACTERS.keys()
+	if _sort > 0:
+		var base := {}
+		for k in ids.size(): base[ids[k]] = k
+		var dsc := _sort == 1
+		ids.sort_custom(func(a, b):
+			var ra := int(D.CHARACTERS[a].get("rarity", 1))
+			var rb := int(D.CHARACTERS[b].get("rarity", 1))
+			if ra != rb: return ra > rb if dsc else ra < rb
+			return base[a] < base[b])
+	for id in ids:
 		var C := _card(String(id), colw, ch)
 		host.add_child(C)
 		_cards.append(C)
@@ -66,6 +97,25 @@ func render() -> void:
 	var S = shell.nodes[0].d.get("scroll")
 	if S is Dictionary and grid:
 		S.h = maxf(float(S.h), grid.pos.y + y + row_h + 120.0)
+
+func _sort_pill(w: float, h: float) -> Lyr:
+	var L := Lyr.new()
+	L.build({"nodes": [{"id": "0", "key": ".hsort", "box": [0, 0, w, h], "origin": [w * 0.5, h * 0.5]}]})
+	var hn: Node2D = L.nodes[0].node
+	var on := _sort > 0
+	var bg := Node2D.new()
+	hn.add_child(bg)
+	bg.draw.connect(func():
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color("#2a2034") if on else Color("#1a1420")
+		sb.set_corner_radius_all(int(h * 0.5))
+		sb.border_color = Color("#f0c77a") if on else Color(1, 1, 1, 0.25)
+		sb.set_border_width_all(2)
+		bg.draw_style_box(sb, Rect2(0, 0, w, h)))
+	var t := HeroesPage._lbl(false, 800, 9.5, 1.2, "#f0c77a" if on else "#d8d2dc", SORT_LBL[_sort], w)
+	t.position = Vector2(0, h * 0.5 - 7.0)
+	hn.add_child(t)
+	return L
 
 static func _rar(id: String) -> Dictionary:
 	var r := int(D.CHARACTERS.get(id, {}).get("rarity", 1))

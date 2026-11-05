@@ -10,6 +10,8 @@ const GEAR_EACH := [0, 160, 300, 600, 1150, 2200]     # sıra → altın / kart
 const HERO_EACH := [0, 220, 450, 950, 1900]          # kahraman nadirliği → altın / kart
 const GEAR_OFFERS := 4                            # günlük eşya teklifi
 const HERO_OFFERS := 2                            # günlük kahraman kartı teklifi
+## altın kolay kazanılır: altınla alım elmasın ~30 katı (elmas fiyatı değişmez; eskiden 10 kat)
+const GOLD_MUL := 3.0
 
 ## new Date() yerel: yıl*1000 + (ay+1)*40 + gün
 static func _day() -> int:
@@ -54,8 +56,8 @@ static func offers(g) -> Array:
 		var req: float = D.CHAR_CARD_REQ[mini(L + 1, D.CHAR_CARD_REQ.size() - 1)]
 		var n := maxf(1.0, JS.round_js(req * 0.25))
 		var each := JS.round_js(HERO_EACH[r] * (1.0 + 0.2 * L))
-		var price := n * each
-		return {"slot": slot, "kind": "char", "id": id, "rar": r, "name": C.name, "n": n, "price": price, "gem": _to_gem(price), "got": B.got.has(slot)}
+		var base := n * each
+		return {"slot": slot, "kind": "char", "id": id, "rar": r, "name": C.name, "n": n, "price": JS.round_js(base * GOLD_MUL), "gem": _to_gem(base), "got": B.got.has(slot)}
 	var ids: Array = D.CHARACTERS.keys().filter(func(x): return g.char_level(x) < D.CHAR_MAX_LEVEL or not g.owns_char(x))
 	var picks := [cid] if ids.has(cid) else []
 	for x in _pick(ids.filter(func(x): return x != cid), HERO_OFFERS, day * 7 + 1): picks.append(x)
@@ -90,10 +92,10 @@ static func offers(g) -> Array:
 		var req: float = D.GEAR_CARD_REQ[mini(L + 1, D.GEAR_CARD_REQ.size() - 1)] if L > 0 else 1.0
 		var n := maxf(1.0, JS.round_js(req * 0.25))
 		var each := JS.round_js(GEAR_EACH[rk] * (1.0 + 0.25 * L))
-		var price := n * each
+		var base := n * each
 		gi += 1
 		out.append({"slot": "g" + str(gi), "kind": "gear", "id": id, "rar": JS.num(it, "rarity", 1.0), "name": it.name, "icon": it.get("icon"),
-			"n": n, "price": price, "gem": _to_gem(price), "got": B.got.has("g" + str(gi))})
+			"n": n, "price": JS.round_js(base * GOLD_MUL), "gem": _to_gem(base), "got": B.got.has("g" + str(gi))})
 		if gi >= GEAR_OFFERS: break
 	return out
 

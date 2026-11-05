@@ -639,9 +639,10 @@ func end_wave() -> void:
 		mission_complete()
 		return
 	enemies.clear_all()
+	# dalga sonunda yalnız dalga ödülü kartı; biriken seviyeler sonraki dalgada aralıklı gelir
+	# (eskiden hasat XP'siyle 2–3 seviye + ödül = art arda 3–4 kart ekranı)
 	pendingWaveBonus = true
-	if player.pendingLevels > 0: enter_level_up()
-	else: open_wave_bonus()
+	open_wave_bonus()
 
 func next_wave() -> void:
 	begin_wave(wave + 1)
@@ -671,10 +672,9 @@ func pick_upgrade(choice: Dictionary) -> void:
 		next_wave()
 		_play_evo_cine()
 		return
-	player.pendingLevels -= 1
-	if player.pendingLevels > 0:
-		ui.show_level_up(weapons.roll_choices(3))
-	elif pendingWaveBonus:
+	player.pendingLevels = maxi(0, player.pendingLevels - 1)
+	# kalan seviyeler hemen art arda açılmaz: oyuna dönülür, "SEVİYE" bandıyla 2 sn sonra sıradaki gelir
+	if pendingWaveBonus:
 		ui.hide_level_up()
 		open_wave_bonus()
 	else:
@@ -1838,6 +1838,7 @@ var _dieat := 0.0
 var _vfxtest := false
 var _stallTest := 0
 var _musEnd := 0.0
+var _winAt := 0.0
 var _pauseat := 0.0
 var _vfxT := 0.0
 func update(dt: float) -> void:
@@ -1848,6 +1849,15 @@ func update(dt: float) -> void:
 			if u.begins_with("dieat="): _dieat = float(u.substr(6))
 			if u == "vfxtest": _vfxtest = true
 			if u.begins_with("pauseat="): _pauseat = float(u.substr(8))
+	# geliştirici: winat=<sn> — görevi o saniyede kazanmış say (zafer ekranı testi)
+	if _winAt == 0.0:
+		_winAt = -1.0
+		for u in OS.get_cmdline_user_args():
+			if u.begins_with("winat="): _winAt = float(u.substr(6))
+	if _winAt > 0.0 and time > _winAt:
+		_winAt = -2.0
+		mission_complete()
+		return
 	# geliştirici: musend=<sn> — 3. sn'de savaş müziğini parça sonuna <sn> kala sar (döngü testi)
 	if _musEnd == 0.0:
 		_musEnd = -1.0

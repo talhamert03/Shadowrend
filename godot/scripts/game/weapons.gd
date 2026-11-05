@@ -333,7 +333,8 @@ func update_sword(dt: float, id: String) -> void:
 	var dir := atan2(nearest.y - p.y, nearest.x - p.x)
 	swingCount += 1
 	var spinLvl := wi(Wd, "spin")
-	var every := 1 if spinLvl >= 2 else (2 if spinLvl == 1 else 0)
+	# dönme vuruşu: 1. kart her 4. savuruş, 2. kart her 3., 3. kart her 2. (en sık; kart 3'te kilitlenir)
+	var every := 0 if spinLvl <= 0 else (4 if spinLvl == 1 else (3 if spinLvl == 2 else 2))
 	var kind := "spin" if (every > 0 and swingCount % every == 0) else "normal"
 	sword_strike(dir, 1.0, kind, id)
 	var twin := wi(Wd, "twin")
@@ -763,9 +764,17 @@ func fire_gun(id: String) -> void:
 		b.thorn = JS.truthy(Wd.get("thorn"))
 		b.raven = JS.truthy(Wd.get("raven"))
 		if JS.truthy(Wd.get("boomer")):
+			# parametrik yol: hedefin biraz ötesine hızlı ve hafif kıvrımlı gidiş, sonra kahramana düz dönüş
 			b.boomer = true
-			b.boomOut = b.life * 0.42
-			b.life += 1.2          # dönüş payı (oyuncuya varınca biter)
+			var dT := sqrt(nearestD2) if nearest else 200.0
+			var rng: float = float(Wd.range[L]) if Wd.get("range") is Array else 260.0
+			b.bD = clampf(dT + 70.0, 150.0, rng + 60.0)
+			b.bx0 = ox; b.by0 = oy
+			b.bdir = sh
+			var side := 1.0 if (v % 2 == 0) else -1.0
+			b.bCurve = side * b.bD * (0.10 + 0.05 * float(v / 2))
+			b.boomOut = b.bD / maxf(200.0, float(Wd.speed))
+			b.life = b.boomOut + 2.5
 		b.fireball = JS.truthy(Wd.get("fireball"))
 		b.pal = str(Wd.get("firePal", ""))
 		b.ph = randf() * 6.2831
@@ -911,27 +920,33 @@ func update_arrow(b, dt: float) -> bool:
 	if b.boomer:
 		b.boomT += dt
 		var pl = game.player
-		if not b.boomRet and b.boomT >= b.boomOut:
-			b.boomRet = true
-			b.hitSet.clear()          # dönüş bacağı: aynı düşmanlar yeniden vurulabilir
-			b.lastHit = null
-		if b.boomRet and pl:
+		if not b.boomRet:
+			var u: float = minf(1.0, b.boomT / maxf(0.01, b.boomOut))
+			var e := 1.0 - (1.0 - u) * (1.0 - u)          # hızlı çıkış, tepede yumuşak dönüş
+			var fx := cos(b.bdir); var fy := sin(b.bdir)
+			var k: float = sin(u * PI) * b.bCurve
+			var nx: float = b.bx0 + fx * b.bD * e - fy * k
+			var ny: float = b.by0 + fy * b.bD * e + fx * k
+			b.vx = (nx - b.x) / maxf(dt, 0.001); b.vy = (ny - b.y) / maxf(dt, 0.001)
+			b.x = nx; b.y = ny
+			if u >= 1.0:
+				b.boomRet = true
+				b.hitSet.clear()          # dönüş bacağı: aynı düşmanlar yeniden vurulabilir
+				b.lastHit = null
+				if b.explode > 0: game.explode(b.x, b.y, b.dmg * (0.55 + b.explode * 0.12), 48 + b.explode * 10, true)
+				if b.split > 0 and not b.frag:
+					spawn_split(b)
+					b.split = 0
+			b.vx = clampf(b.vx, -2000.0, 2000.0); b.vy = clampf(b.vy, -2000.0, 2000.0)
+		elif pl:
 			var bx: float = pl.x - b.x
 			var by: float = pl.y - 14.0 - b.y
 			var bd := sqrt(bx * bx + by * by)
-			if bd < 26.0: return true
-			var sp0 := JS.hypot(b.vx, b.vy)
-			var tsp := minf(720.0, sp0 + 900.0 * dt)
-			var want := atan2(by, bx)
-			var dA := JS.wrap_pi(want - b.angle)
-			var turn := 9.0 * dt
-			b.angle += clampf(dA, -turn, turn)
-			b.vx = cos(b.angle) * tsp
-			b.vy = sin(b.angle) * tsp
-		elif not b.boomRet:
-			# gidişte yavaşlar (dönüş öncesi süzülme)
-			var kd: float = 1.0 - 1.6 * dt * (b.boomT / maxf(0.01, b.boomOut))
-			b.vx *= kd; b.vy *= kd
+			if bd < 28.0: return true
+			var sp := minf(900.0, 520.0 + (b.boomT - b.boomOut) * 900.0)
+			b.vx = bx / bd * sp; b.vy = by / bd * sp
+			b.x += b.vx * dt; b.y += b.vy * dt
+		b.angle = atan2(b.vy, b.vx)
 	if b.homing > 0:
 		# kilitli hedef (öldüyse mermiye en yakın yeni hedef); yaklaştıkça dönüş keskinleşir,
 		# son adımda doğrudan hedefe oturur — etrafında dönüp ıskalamaz
@@ -958,8 +973,9 @@ func update_arrow(b, dt: float) -> bool:
 				b.angle += d
 				b.vx = cos(b.angle) * sp
 				b.vy = sin(b.angle) * sp
-	b.x += b.vx * dt
-	b.y += b.vy * dt
+	if not b.boomer:
+		b.x += b.vx * dt
+		b.y += b.vy * dt
 	var g = game
 	b.trT -= dt
 	if b.trT <= 0:
@@ -1529,14 +1545,14 @@ func roll_choices(n: int) -> Array:
 		for sp in sigs:
 			if JS.truthy(sp.get("minLvl")) and clvl < sp.minLvl: continue
 			var tier: int = sigLvl.get(sp.id, 0)
-			if tier >= 5: continue
+			if tier >= int(sp.get("max", 5)): continue
 			actives.append({"kind": "special", "sig": true, "myth": JS.truthy(sp.get("myth")),
 				"seher": JS.truthy(sp.get("seher")), "simsek": JS.truthy(sp.get("simsek")),
 				"korsan": JS.truthy(sp.get("korsan")), "kralice": JS.truthy(sp.get("kralice")), "sovalye": JS.truthy(sp.get("sovalye")),
 				"sapanci": JS.truthy(sp.get("sapanci")),
 				"id": sp.id, "icon": sp.get("glyph") if sp.get("glyph") else cdef.startWeapon,
 				"tag": "KADEME " + roman[tier], "tier": tier + 1,
-				"name": sp.name, "desc": sp.desc, "level": tier, "max": 5, "stats": [], "boost": sp.boost})
+				"name": sp.name, "desc": sp.desc, "level": tier, "max": int(sp.get("max", 5)), "stats": [], "boost": sp.boost})
 	var evoCard = null
 	if cdef and not evolved:
 		var E = EVOLUTIONS.get(cdef.id)

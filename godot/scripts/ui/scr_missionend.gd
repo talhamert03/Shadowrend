@@ -23,12 +23,25 @@ var _bar: Lyr.N
 var _barA := 0.0
 var _barB := 0.0
 var _seqNodes: Array = []
+## kazanılan sandık uçuşu: ekranın altından zıplayarak gelir, ganimet yuvasına oturur
+var _fly: Lyr = null
+var _flyN: Lyr.N = null
+var _flyFrom := Vector2.ZERO
+var _flyLanded := false
+var _flash: Node2D = null
+var _flashT := -1.0
+const FLY_AT := 0.8
+const FLY_DUR := 1.1
 
 func _init(game) -> void:
 	super(game)
 	name = "MissionEnd"
 
 func _clear() -> void:
+	_fly = null; _flyN = null; _flyFrom = Vector2.ZERO; _flyLanded = false
+	if _flySpr: _flySpr.queue_free()
+	_flySpr = null
+	_flash = null; _flashT = -1.0
 	for e in extra: (e as Node).queue_free()
 	extra.clear()
 	if L: L.queue_free(); L = null
@@ -54,8 +67,8 @@ func show_end(w: bool, payload: Dictionary) -> void:
 	# başlık
 	var fc := bool(s.get("firstClear", false))
 	if won:
-		_txt("#me-eyebrow", "DÜNYA " + str(g.worldId) + " · GÖREV " + str(g.missionId) + (" · İLK GEÇİŞ" if fc else " · TEKRAR"))
-		_txt("#me-title", "BOSS DÜŞTÜ" if s.get("bossDrop", false) else "GÖREV TAMAMLANDI")
+		_txt("#me-eyebrow", "DÜNYA " + str(g.worldId) + " · GÖREV " + str(g.missionId) + (" · BOSS DÜŞTÜ" if s.get("bossDrop", false) else (" · İLK GEÇİŞ" if fc else " · TEKRAR")))
+		_txt("#me-title", "ZAFER")
 	else:
 		_txt("#me-eyebrow", "DÜNYA " + str(g.worldId) + " · GÖREV " + str(g.missionId))
 		_txt("#me-title", "DÜŞTÜN")
@@ -79,6 +92,15 @@ func show_end(w: bool, payload: Dictionary) -> void:
 	_relayout()
 	_sequence()
 	visible = true
+	# geliştirici: meshots=<yol.png> — törenin karelerini kaydet
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("meshots="):
+			var path := a.substr(8)
+			var i := 0
+			for tt in [0.9, 1.1, 1.3, 1.5, 1.7, 1.95, 2.4]:
+				var idx := i
+				get_tree().create_timer(tt).timeout.connect(func(): get_viewport().get_texture().get_image().save_png(path.replace(".png", "_%d.png" % idx)))
+				i += 1
 
 func _txt(key: String, v: String) -> void:
 	var n := L.find(key)
@@ -238,6 +260,11 @@ func _loot() -> void:
 		var C := Lyr.make(key)
 		lt.node.add_child(C)
 		extra.append(C)
+		var art := C.find(".me-chest-art")
+		if art and won:
+			_fly = C; _flyN = art; _flyLanded = false
+			C.set_dyn(art)          # durağan düğüm: ek dönüşüm her kare uygulansın
+			art.extra = Transform2D(0, Vector2.ONE * 0.001, 0, Vector2.ZERO)
 		var nt := C.find(".me-chest-note")
 		if nt: C.set_text(nt, "BOSS GANİMETİ · ANA EKRANDA BEKLİYOR" if s.get("bossDrop", false) else "ANA EKRANDA SENİ BEKLİYOR")
 		var h: float = C.nodes[0].size.y
@@ -347,13 +374,95 @@ func _sequence() -> void:
 func _finish() -> void:
 	if _seqDone: return
 	_seqDone = true
+	# dokununca tören oturur: sandık uçuşu da anında yerine iner
+	if _flyN and not _flyLanded:
+		_t = maxf(_t, FLY_AT + FLY_DUR)
+		_fly_tick()
 	for n in _seqNodes: L.finish_anims(n)
 	if _tallyB: L.set_text(_tallyB, "+" + str(_tallyN))
 	_set_bar(_barB)
 
+static func _find_sprite(n: Node) -> Sprite2D:
+	for c in n.get_children():
+		if c is Sprite2D and (c as Sprite2D).texture: return c
+		var r := _find_sprite(c)
+		if r: return r
+	return null
+
+var _flySpr: Sprite2D = null
+var _flyTgt := Vector2.ZERO
+var _flyScale := 1.0
+func _fly_tick() -> void:
+	if _flyN == null or _flyLanded: return
+	if _t < FLY_AT:
+		_flyN.extra = Transform2D(0, Vector2.ONE * 0.001, 0, Vector2.ZERO)
+		return
+	var vp := get_viewport().get_visible_rect().size
+	if _flySpr == null:
+		# kırpılan sahnenin dışında, en üst katmanda uçan kopya (asıl sandık inişte belirir)
+		var src := _find_sprite(_flyN.node)
+		var r := _fly.rect_of(_flyN)
+		var gx := _fly.get_global_transform()
+		_flyTgt = gx * r.get_center()
+		_flySpr = Sprite2D.new()
+		_flySpr.z_index = 50
+		if src:
+			_flySpr.texture = src.texture
+			var tw: float = maxf(1.0, src.texture.get_width())
+			_flyScale = (r.size.x * gx.get_scale().x) / tw * 1.2
+		add_child(_flySpr)
+		g.audio.play("throw")
+	var from := Vector2(vp.x * 0.5, vp.y + 90.0)
+	var u := clampf((_t - FLY_AT) / FLY_DUR, 0.0, 1.0)
+	# üç sekişli yaklaşma: ileri hareket yumuşak, sekme yüksekliği her seferinde azalır
+	var e := 1.0 - pow(1.0 - u, 2.2)
+	var pos := from.lerp(_flyTgt, e)
+	var ph := u * 3.0
+	pos.y -= absf(sin(ph * PI)) * 150.0 * pow(1.0 - u, 1.2)
+	var land := fmod(ph, 1.0)
+	var sq := 1.0
+	if land < 0.14 and u > 0.05: sq = 1.0 - 0.2 * (1.0 - land / 0.14)
+	var sc := lerpf(0.7, 1.0, e) * _flyScale
+	_flySpr.global_position = pos
+	_flySpr.rotation = sin(u * PI * 3.0) * 0.25 * (1.0 - u)
+	_flySpr.scale = Vector2(sc / sqrt(sq), sc * sq)
+	if u >= 1.0:
+		_flyLanded = true
+		_flySpr.queue_free()
+		_flySpr = null
+		_flyN.extra = Transform2D.IDENTITY
+		_flashT = _t
+		g.audio.play("chestthud")
+		g.audio.play("fieldchest")
+		if _flash == null:
+			var art: Node2D = _flyN.node
+			_flash = Node2D.new()
+			art.add_child(_flash)
+			var c0 := _flyN.size * 0.5
+			_flash.draw.connect(func():
+				var k := clampf((_t - _flashT) / 0.5, 0.0, 1.0)
+				if k >= 1.0: return
+				var a := 1.0 - k
+				_flash.draw_circle(c0, 40.0 + 70.0 * k, Color(1, 0.9, 0.6, 0.35 * a))
+				_flash.draw_arc(c0, 50.0 + 90.0 * k, 0, TAU, 40, Color(1, 0.85, 0.4, a), 4.0 * a + 1.0)
+				for i in 10:
+					var an := i * TAU / 10.0 + 0.3
+					var d0 := 40.0 + 80.0 * k
+					_flash.draw_line(c0 + Vector2(cos(an), sin(an)) * d0, c0 + Vector2(cos(an), sin(an)) * (d0 + 18.0 * a), Color(1, 0.95, 0.7, a), 3.0))
+
 func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
+	_fly_tick()
+	if _flash and _flashT >= 0.0:
+		_flash.queue_redraw()
+		# iniş anında sandık kısa bir "pop" büyümesi
+		var kk := clampf((_t - _flashT) / 0.28, 0.0, 1.0)
+		if _flyN and kk < 1.0:
+			var ps := 1.0 + 0.22 * sin(kk * PI)
+			_flyN.extra = Transform2D(0, Vector2.ONE * ps, 0, Vector2.ZERO)
+		elif _flyN and kk >= 1.0 and _flyN.extra != Transform2D.IDENTITY:
+			_flyN.extra = Transform2D.IDENTITY
 	if not _seqDone:
 		# altın sayacı: 0,82 sn sonra 520 ms kübik
 		if _tallyB and _tallyN > 0 and _t >= 0.82:

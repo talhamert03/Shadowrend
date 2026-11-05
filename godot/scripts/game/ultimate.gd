@@ -110,6 +110,7 @@ func _init(g) -> void:
 	reset(1, "")
 
 func reset(rarity, cid) -> void:
+	_hitQ.clear(); _hitsF = 0; _rcFrame = -9
 	var r := JS.i(rarity)
 	rar = maxi(1, mini(4, r if r else 1))
 	id = ULT_ID.get(cid, ULT_ID.okcu) if cid else ULT_ID.okcu
@@ -138,9 +139,21 @@ func on_kill(e) -> void:
 			_told = true
 			g.ui.toast(id.name + " HAZIR — sağ alttaki mühre dokun")
 
+## kare başı vuruş bütçesi: süperin aynı karede 40–60 düşmanı birden öldürmesi (ölüm efekti,
+## ruh, metin) kareyi uzatıyordu; fazlası sonraki karelere sıralanır (~70 ms — göz fark etmez)
+const HIT_BUDGET := 14
+var _hitsF := 0
+var _hitQ: Array = []
 func _hit(e, ang: float, knock := 380.0) -> void:
 	if e.hp <= 0 or e._ultN == _tok: return
 	e._ultN = _tok
+	if _hitsF >= HIT_BUDGET:
+		_hitQ.append([e, ang, knock, e.aliveTok])
+		return
+	_hitsF += 1
+	_apply_hit(e, ang, knock)
+
+func _apply_hit(e, ang: float, knock: float) -> void:
 	var T := tier
 	var dmg: float
 	if e.isBoss: dmg = e.maxHp * T.boss
@@ -312,6 +325,16 @@ func _impact(s: Dictionary) -> void:
 		g.audio.play("ulthit")
 
 func update(dt: float) -> void:
+	_hitsF = 0
+	if not _hitQ.is_empty():
+		var n := 0
+		while n < HIT_BUDGET and not _hitQ.is_empty():
+			var q: Array = _hitQ.pop_front()
+			var e = q[0]
+			if e.hp > 0 and e.aliveTok == q[3]:
+				_apply_hit(e, q[1], q[2])
+				n += 1
+		_hitsF = n
 	if fx <= 0: return
 	fx = maxf(0.0, fx - dt)
 	t += dt
@@ -469,8 +492,37 @@ var _lc := WHITE
 var _dc := WHITE
 
 ## sahneyi tamponlara ekler (çizmez); flush_all ile Vfx katmanıyla birlikte tek seferde çizilir
+## yoğun süper (10+ etkin yuva): üçgenler iki karede bir üretilir, aradaki karede aynı dünya-uzayı
+## geometrisi yeniden kullanılır (kamera dönüşümü ayrı uygulandığı için konumlar kayar, doğru kalır)
+var _rcV: Array = []
+var _rcC: Array = []
+var _rcFrame := -9
 func render(_ctx: Ctx2D = null) -> void:
 	if fx <= 0: return
+	var BS := [_U, _G, _M, _T, _GM, _GA]
+	var fr := Engine.get_process_frames()
+	var act := 0
+	for s0 in S:
+		if s0.on: act += 1
+	if act >= 10 and (fr & 1) == 1 and _rcFrame == fr - 1:
+		for i in 6:
+			(BS[i] as TriBatch).V.append_array(_rcV[i])
+			(BS[i] as TriBatch).C.append_array(_rcC[i])
+		return
+	var n0 := []
+	for B in BS: n0.append((B as TriBatch).V.size())
+	_render_now()
+	if act >= 10:
+		_rcV.resize(6); _rcC.resize(6)
+		for i in 6:
+			var B: TriBatch = BS[i]
+			_rcV[i] = B.V.slice(n0[i])
+			_rcC[i] = B.C.slice(n0[i])
+		_rcFrame = fr
+	else:
+		_rcFrame = -9
+
+func _render_now() -> void:
 	var g = game
 	var p = g.player
 	var C := id
@@ -569,10 +621,11 @@ func _disc(B: TriBatch, c: Vector2, r: float, col: Color, a := 1.0, ink := 3.5, 
 
 func _ell(B: TriBatch, c: Vector2, rx: float, ry: float, col: Color, seg := 24) -> void:
 	B = _gnd(B, 1.0)
+	var U := _unit(seg)
 	var p0 := c + Vector2(rx, 0)
 	for i in seg:
-		var an := (i + 1) * TAU / seg
-		var p1 := c + Vector2(cos(an) * rx, sin(an) * ry)
+		var u: Vector2 = U[i + 1]
+		var p1 := c + Vector2(u.x * rx, u.y * ry)
 		B._tri(c, p0, p1, col)
 		p0 = p1
 
@@ -580,14 +633,16 @@ func _ell(B: TriBatch, c: Vector2, rx: float, ry: float, col: Color, seg := 24) 
 func _ring(B: TriBatch, c: Vector2, r: float, w: float, col: Color, sq := SQ, seg := 36) -> void:
 	if col.a <= 0.01 or r <= 1.0: return
 	B = _gnd(B, sq)
+	seg = _lod(r + w * 0.5, seg)
+	var U := _unit(seg)
 	var r0 := maxf(0.0, r - w * 0.5)
 	var r1 := r + w * 0.5
 	var a0 := Vector2(r0, 0)
 	var b0 := Vector2(r1, 0)
 	for i in seg:
-		var an := (i + 1) * TAU / seg
-		var cs := cos(an)
-		var sn := sin(an) * sq
+		var u: Vector2 = U[i + 1]
+		var cs := u.x
+		var sn := u.y * sq
 		var a1 := Vector2(cs * r0, sn * r0)
 		var b1 := Vector2(cs * r1, sn * r1)
 		B._tri(c + a0, c + b0, c + b1, col)
@@ -744,16 +799,40 @@ func _arc_glow(c: Vector2, r: float, a0: float, sweep: float, w: float, col: Col
 	_strip(T, Mid, Out, Cm, Co)
 
 ## yumuşak enerji halkası (iki kenarı saydam, ortası parlak) + ince beyaz çekirdek
+## birim çember tablosu (segment sayısı başına bir kez): kare başı yüzlerce sin/cos yerine tablo
+static var _UC := {}
+static func _unit(seg: int) -> PackedVector2Array:
+	var U = _UC.get(seg)
+	if U == null:
+		U = PackedVector2Array()
+		U.resize(seg + 1)
+		for i in seg + 1:
+			var an := i * TAU / seg
+			U[i] = Vector2(cos(an), sin(an))
+		_UC[seg] = U
+	return U
+
+## ekrandaki boya göre segment: küçük/uzak halkada fazlası görünmez (görüntü aynı, hesap az)
+static func _lod(r: float, seg: int) -> int:
+	return mini(seg, clampi(int(r * 0.3) + 12, 14, seg))
+
 func _gring(c: Vector2, r: float, w: float, col: Color, a := 1.0, sq := SQ, seg := 40, core := 0.0) -> void:
 	if a <= 0.01 or r <= 1.0: return
+	seg = _lod(r + w * 0.5, seg)
+	var U := _unit(seg)
+	var n := seg + 1
 	var I := PackedVector2Array(); var M := PackedVector2Array(); var O := PackedVector2Array()
+	I.resize(n); M.resize(n); O.resize(n)
 	var Ct := PackedColorArray(); var Cc := PackedColorArray()
+	Ct.resize(n); Cc.resize(n)
+	Ct.fill(Color(col.r, col.g, col.b, 0.0)); Cc.fill(_ca(col, a))
 	var h := w * 0.5
-	for i in seg + 1:
-		var an := i * TAU / seg
-		var d := Vector2(cos(an), sin(an) * sq)
-		I.append(c + d * maxf(0.0, r - h)); M.append(c + d * r); O.append(c + d * (r + h))
-		Ct.append(Color(col.r, col.g, col.b, 0.0)); Cc.append(_ca(col, a))
+	var ri := maxf(0.0, r - h)
+	var ro := r + h
+	for i in n:
+		var u: Vector2 = U[i]
+		var d := Vector2(u.x, u.y * sq)
+		I[i] = c + d * ri; M[i] = c + d * r; O[i] = c + d * ro
 	var T := _gnd(_T, sq)
 	_strip(T, I, M, Ct, Cc)
 	_strip(T, M, O, Cc, Ct)

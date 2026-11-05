@@ -289,11 +289,12 @@
    "weapon": "bumerang",
    "pas": "cabukluk",
    "name": "Kum Kasırgası",
-   "desc": "Çöl Bumerangı evrimleşir: bir bumerang daha, daha sık.",
+   "desc": "Çöl Bumerangı evrimleşir: bir bumerang daha, daha uzağa ve daha sık.",
    "boost": {
     "dmg": 1.18,
     "cd": 0.9,
-    "volley": 1
+    "volley": 1,
+    "range": 1.1
    }
   },
   "tirpanci": {

@@ -101,6 +101,7 @@ class PBullet:
 	var boomT := 0.0
 	var boomOut := 0.7
 	var hitSet := {}       # bumerang: bu bacakta vurulanlar (aynı bacakta ikinci kez vurmaz)
+	var bx0 := 0.0; var by0 := 0.0; var bdir := 0.0; var bD := 0.0; var bCurve := 0.0   # bumerang gidiş yolu
 	var thorn := false     # diken (Gül Cadısı): kızıl diken + yaprak izi
 	var raven := false     # kuzgun (Kuzgun Lordu): kanat çırpan kuzgun + tüy izi
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)

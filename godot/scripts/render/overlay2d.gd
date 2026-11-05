@@ -54,13 +54,13 @@ func draw_frame() -> void:
 	if g.state == "playing":
 		g.mode.render(ctx)
 		g.events.render(ctx)
-		g.ult.render(ctx)
-		g.vfx.render(g.ult)
+		Prof.b("ov.ult"); g.ult.render(ctx); Prof.e("ov.ult")
+		Prof.b("ov.vfx"); g.vfx.render(g.ult); Prof.e("ov.vfx")
 		g.mode.arrow(ctx)
 		g.events.arrow(ctx)
 		_render_objective_arrow()
 	# tamponlar her karede boşaltılır (duraklatılmışken de birikmesin)
-	g.ult.flush_all(ctx)
+	Prof.b("ov.flush"); g.ult.flush_all(ctx); Prof.e("ov.flush")
 	ctx.restore()
 	g.input.render(ctx)
 
