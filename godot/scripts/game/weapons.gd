@@ -733,6 +733,9 @@ func fire_gun(id: String) -> void:
 		ang = atan2(nearest.y - p.y, nearest.x - p.x)
 		var reach := minf(30.0, sqrt(nearestD2) * 0.4)
 		ox = p.x + cos(ang) * reach; oy = p.y - 16 + sin(ang) * reach * 0.46
+		# nişan ÇIKIŞ noktasından: kahraman merkezinden alınan açı, 16 birim yukarıdan çıkan oku
+		# hedefin yanından paralel geçiriyordu (yakın/yatay düşmanda ıskalama)
+		ang = atan2(nearest.y - oy, nearest.x - ox)
 	var flame := wi(Wd, "flame")
 	var homing := wi(Wd, "homing")
 	var explode := wi(Wd, "explode")

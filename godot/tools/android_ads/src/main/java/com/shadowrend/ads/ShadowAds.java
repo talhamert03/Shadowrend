@@ -1,6 +1,9 @@
 package com.shadowrend.ads;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -23,6 +26,7 @@ import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.SignalInfo;
 import org.godotengine.godot.plugin.UsedByGodot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +51,92 @@ public class ShadowAds extends GodotPlugin {
     private ConsentInformation consent;
     private boolean ready = false;
 
+    // ── Donma tanısı: Android arayüz (UI) iş parçacığı bekçisi ──
+    // Godot ana döngüsü ayrı iş parçacığında koşar; dokunmalar ise UI iş parçacığından gelir.
+    // UI iş parçacığı kilitlenirse oyun çizilmeye devam eder ama hiçbir dokunuş işlenmez.
+    // Bekçi her 250 ms UI'ya nabız yollar; 2 sn'den uzun gecikmede UI'nın o anki yığınını kaydeder.
+    private static final long UI_STALL_MS = 2000;
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private volatile long uiBeat = SystemClock.uptimeMillis();
+    private final ArrayList<String> stalls = new ArrayList<>();
+    private volatile String lastOp = "-";
+    private volatile long lastOpAt = 0;
+    private volatile Thread godotThread = null;
+
     public ShadowAds(Godot godot) {
         super(godot);
+        startUiWatch();
+    }
+
+    private void op(String name) {
+        lastOp = name;
+        lastOpAt = SystemClock.uptimeMillis();
+    }
+
+    private static String stack(Thread t, int n) {
+        if (t == null) return "?";
+        StackTraceElement[] st = t.getStackTrace();
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < st.length && i < n; i++) {
+            StackTraceElement e = st[i];
+            String c = e.getClassName();
+            int dot = c.lastIndexOf('.');
+            b.append(i == 0 ? "" : " < ").append(dot >= 0 ? c.substring(dot + 1) : c).append('.').append(e.getMethodName());
+        }
+        return b.toString();
+    }
+
+    private void startUiWatch() {
+        final Runnable pulse = () -> uiBeat = SystemClock.uptimeMillis();
+        Thread w = new Thread(() -> {
+            long stallStart = 0;
+            String trace = "";
+            while (true) {
+                try { Thread.sleep(250); } catch (InterruptedException e) { return; }
+                long now = SystemClock.uptimeMillis();
+                long gap = now - uiBeat;
+                if (gap >= UI_STALL_MS) {
+                    if (stallStart == 0) {
+                        stallStart = uiBeat;
+                        trace = stack(Looper.getMainLooper().getThread(), 9);
+                    }
+                } else if (stallStart != 0) {
+                    long dur = uiBeat - stallStart;
+                    long ago = (now - lastOpAt) / 1000;
+                    String rec = "UI-DONMA " + (dur / 100) / 10.0 + " sn · son işlem: " + lastOp + " (" + ago + " sn önce) · yığın: " + trace;
+                    Log.w(TAG, rec);
+                    synchronized (stalls) {
+                        stalls.add(rec);
+                        while (stalls.size() > 8) stalls.remove(0);
+                    }
+                    stallStart = 0;
+                }
+                uiHandler.post(pulse);
+            }
+        }, "ShadowUiWatch");
+        w.setDaemon(true);
+        w.setPriority(Thread.MIN_PRIORITY);
+        w.start();
+    }
+
+    /** bu oturumdaki UI iş parçacığı donmaları (tanı raporu için) */
+    @UsedByGodot
+    public String ui_stalls() {
+        synchronized (stalls) {
+            return String.join("\n", stalls);
+        }
+    }
+
+    /** Godot ana döngüsünün iş parçacığını işaretle (Godot iş parçacığından bir kez çağrılır) */
+    @UsedByGodot
+    public void mark_godot_thread() {
+        godotThread = Thread.currentThread();
+    }
+
+    /** Godot döngüsü takıldığında o iş parçacığının Java yığını (yerel kısım görünmez) */
+    @UsedByGodot
+    public String godot_stack() {
+        return stack(godotThread, 9) + " · UI nabız " + (SystemClock.uptimeMillis() - uiBeat) + " ms önce · son işlem: " + lastOp;
     }
 
     @NonNull
@@ -79,7 +167,9 @@ public class ShadowAds extends GodotPlugin {
     public void init(final boolean test, final String testDevice) {
         final Activity act = getActivity();
         if (act == null) return;
+        op("init");
         act.runOnUiThread(() -> {
+            op("consent");
             ConsentRequestParameters.Builder pb = new ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false);
             if (test && testDevice != null && !testDevice.isEmpty()) {
                 pb.setConsentDebugSettings(new ConsentDebugSettings.Builder(act).addTestDeviceHashedId(testDevice).build());
@@ -106,6 +196,7 @@ public class ShadowAds extends GodotPlugin {
             MobileAds.setRequestConfiguration(new RequestConfiguration.Builder()
                     .setTestDeviceIds(Arrays.asList(testDevice)).build());
         }
+        op("mobileads-init");
         new Thread(() -> MobileAds.initialize(act, status -> {
             ready = true;
             emit("ready");
@@ -124,6 +215,7 @@ public class ShadowAds extends GodotPlugin {
         act.runOnUiThread(() -> {
             if (ads.containsKey(unit) || loading.contains(unit)) return;
             loading.add(unit);
+            op("ad-load");
             RewardedAd.load(act, unit, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
                 @Override
                 public void onAdLoaded(@NonNull RewardedAd ad) {
@@ -151,6 +243,7 @@ public class ShadowAds extends GodotPlugin {
         final Activity act = getActivity();
         if (act == null) return;
         act.runOnUiThread(() -> {
+            op("ad-show");
             RewardedAd ad = ads.remove(unit);
             if (ad == null) {
                 emit("show_failed", unit, "not loaded");

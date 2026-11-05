@@ -120,7 +120,7 @@ func _build() -> void:
 	# tanı raporu: performans raporu + hata/donma kaydı + cihaz panoya kopyalanır (destek için)
 	_small_btn("TANI RAPORU", x0, y, bw, Color("#2a3a4a"), func():
 		g.audio.play("click")
-		DisplayServer.clipboard_set(PerfLog.text() + "\n\n" + PerfLog.err_text())
+		DisplayServer.clipboard_set(PerfLog.text() + "\n\n" + FreezeWatch.report() + "\n\n" + PerfLog.err_text())
 		g.ui.toast("RAPOR KOPYALANDI"))
 	_small_btn("VERİLERİ SİL", x0 + bw + 10.0, y, bw, Color("#5a1a20"), func(): g.audio.play("click"); g.ui.confirm_wipe())
 	y += 46.0
