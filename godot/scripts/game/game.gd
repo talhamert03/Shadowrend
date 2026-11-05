@@ -1837,6 +1837,7 @@ var _ultauto := -1.0
 var _dieat := 0.0
 var _vfxtest := false
 var _stallTest := 0
+var _musEnd := 0.0
 var _pauseat := 0.0
 var _vfxT := 0.0
 func update(dt: float) -> void:
@@ -1847,6 +1848,17 @@ func update(dt: float) -> void:
 			if u.begins_with("dieat="): _dieat = float(u.substr(6))
 			if u == "vfxtest": _vfxtest = true
 			if u.begins_with("pauseat="): _pauseat = float(u.substr(8))
+	# geliştirici: musend=<sn> — 3. sn'de savaş müziğini parça sonuna <sn> kala sar (döngü testi)
+	if _musEnd == 0.0:
+		_musEnd = -1.0
+		for u in OS.get_cmdline_user_args():
+			if u.begins_with("musend="): _musEnd = float(u.substr(7))
+	if _musEnd > 0.0 and time > 3.0 and music and not music._cur.is_empty():
+		var mp: AudioStreamPlayer = music._cur.p
+		if mp.stream: mp.seek(maxf(0.0, mp.stream.get_length() - _musEnd))
+		_musEnd = -2.0
+	if _musEnd == -2.0 and music and Engine.get_process_frames() % 30 == 0:
+		print("MUS old=", music._old.size(), " pos=", snappedf((music._cur.p as AudioStreamPlayer).get_playback_position(), 0.1) if not music._cur.is_empty() else -1.0, " t=", snappedf(time, 0.1))
 	# geliştirici: stalltest — 6. sn'de 3,5 sn yapay donma (donma bekçisi testi)
 	if _stallTest == 0 and time > 6.0:
 		_stallTest = 1 if OS.get_cmdline_user_args().has("stalltest") else 2

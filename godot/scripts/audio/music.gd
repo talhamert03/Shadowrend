@@ -105,10 +105,13 @@ func set_state(nm: String, immediate := false) -> void:
 	var fast := immediate or nm == "boss" or was == "boss" or ONESHOT.has(nm)
 	_play(file, nm, 0.15 if fast else 0.5, fast and ONESHOT.has(nm))
 
-func _play(file: String, st: String, tc: float, instant := false) -> void:
+func _play(file: String, st: String, tc: float, instant := false, loop_restart := false) -> void:
 	if not _cur.is_empty():
 		var op: AudioStreamPlayer = _cur.p
-		if _state_of(String(_cur.file)) == "battle" and op.playing: _resume[_cur.file] = op.get_playback_position()
+		# kaldığı yer YALNIZ savaş ↔ boss geçişi için saklanır; döngü başa sarımında saklanırsa
+		# yeni çalar yine parça sonundan başlar → her karede yeni çalar + OGG arama → ses
+		# iş parçacığı kilitlenir, oyun donar (savaşın ~80–100. sn'sindeki uzun donma buydu)
+		if not loop_restart and _state_of(String(_cur.file)) == "battle" and op.playing: _resume[_cur.file] = op.get_playback_position()
 		_cur.tg = 0.0
 		_cur.tc = tc
 		_old.append(_cur)
@@ -118,8 +121,11 @@ func _play(file: String, st: String, tc: float, instant := false) -> void:
 	p.stream = _stream(file)
 	p.volume_db = -80
 	add_child(p)
-	var from: float = _resume.get(file, 0.0) if st == "battle" else 0.0
+	var from: float = _resume.get(file, 0.0) if (st == "battle" and not loop_restart) else 0.0
 	_resume.erase(file)
+	# sona çok yakın kaldıysa (≤ XF + 1 sn) baştan: döngü koşulu hemen yeniden tetiklenmesin
+	var sl: float = p.stream.get_length() if p.stream else 0.0
+	if sl > 0.0 and from >= sl - XF - 1.0: from = 0.0
 	p.play(from)
 	_cur = {"p": p, "file": file, "st": st, "g": 1.0 if instant else 0.0, "tg": 1.0, "tc": tc, "xf": false}
 
@@ -167,7 +173,7 @@ func _process(dt: float) -> void:
 		if not ONESHOT.has(st) and not SEAMLESS.has(st) and p.playing and p.stream:
 			var L := p.stream.get_length()
 			if L > XF * 3.0 and p.get_playback_position() >= L - XF:
-				_play(String(_cur.file), st, XF * 0.3)
+				_play(String(_cur.file), st, XF * 0.3, false, true)
 		elif ONESHOT.has(st) and not p.playing:
 			p.queue_free()
 			_cur = {}
@@ -175,6 +181,10 @@ func _process(dt: float) -> void:
 	if not _cur.is_empty():
 		_cur.g += (_cur.tg - _cur.g) * (1 - exp(-dt / maxf(0.001, _cur.tc)))
 		(_cur.p as AudioStreamPlayer).volume_db = linear_to_db(maxf(1e-5, base * _cur.g * float(GAIN.get(_cur.st, 1.0))))
+	# güvenlik: sönen çalar sayısı sınırlı (hiçbir durumda yüzlerce akış birikmesin)
+	while _old.size() > 3:
+		var od: Dictionary = _old.pop_front()
+		(od.p as AudioStreamPlayer).queue_free()
 	for i in range(_old.size() - 1, -1, -1):
 		var o: Dictionary = _old[i]
 		o.g += (o.tg - o.g) * (1 - exp(-dt / maxf(0.001, o.tc)))
