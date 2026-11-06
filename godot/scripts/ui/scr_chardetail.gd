@@ -102,7 +102,12 @@ func _build() -> void:
 	_content = Node2D.new()
 	_cdclip.add_child(_content)
 	var h := _build_panel(c, rar)
-	_scroll_max = maxf(0.0, h + 16.0 - _cdclip.size.y)
+	# tek ekrana sığdır: panel ekrandan uzunsa orantılı küçülür (kaydırma gerekmez);
+	# çok uzun durumda (küçük ekran) en fazla %72'ye iner, kalan kısım yine kaydırılabilir
+	var fit := clampf((_cdclip.size.y - 6.0) / (h + 16.0), 0.72, 1.0)
+	_content.scale = Vector2.ONE * fit
+	_content.position.x = _W.x * (1.0 - fit) * 0.5
+	_scroll_max = maxf(0.0, (h + 16.0) * fit - _cdclip.size.y)
 	_fx = Node2D.new()
 	_fx.draw.connect(_draw_fx)
 	add_child(_fx)
@@ -239,7 +244,9 @@ func _build_panel(c: Dictionary, rar: Dictionary) -> float:
 	# ── ⑤ süper ──
 	var U: Dictionary = Ultimate.ULT_ID.get(id, {})
 	var ut: Dictionary = Ultimate.ULT_TIER[clampi(int(c.get("rarity", 1)), 1, 4)]
-	y = _info_box(panel, y, "SÜPER · " + str(ut.get("label", "")), str(U.get("name", "")), str(U.get("desc", "")), null, Color(str(U.get("c2", "#9a6aff"))))
+	var up := "res://assets/ui/art/ult/" + id + ".png"
+	var utex: Texture2D = load(up) if ResourceLoader.exists(up) else null
+	y = _info_box(panel, y, "SÜPER · " + str(ut.get("label", "")), str(U.get("name", "")), str(U.get("desc", "")), utex, Color(str(U.get("c2", "#9a6aff"))))
 	# ── ⑤b nadir kahraman ek yetenekleri (epik: orta · efsanevi: zayıf + orta) ──
 	for sk in D.HERO_SKILLS.get(id, []):
 		var sd: Dictionary = sk
@@ -302,7 +309,9 @@ func _info_box(panel: Node2D, y: float, k: String, title: String, desc: String, 
 	if ic:
 		var s := Sprite2D.new()
 		s.texture = ic
-		s.scale = Vector2.ONE * (46.0 / maxf(ic.get_width(), ic.get_height()))
+		# süper güç görseli tam kare boyalı resim: kutuyu doldurur; diğerleri ortada ikon
+		var isz := 54.0 if ic.resource_path.contains("/ult/") else 46.0
+		s.scale = Vector2.ONE * (isz / maxf(ic.get_width(), ic.get_height()))
 		s.position = Vector2(35, 35)
 		bx.add_child(s)
 	_txt(bx, k, 11, acc.lightened(0.3), "", Vector2(74, 6), bw - 82)
