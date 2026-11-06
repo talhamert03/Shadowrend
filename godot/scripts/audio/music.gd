@@ -10,7 +10,7 @@ extends Node
 
 const DIR := "res://assets/audio/music/"
 const TRACKS := {"menu": ["menu"], "battle": ["battle_a", "battle_b"], "boss": ["boss"], "victory": ["victory"], "defeat": ["defeat"]}
-const GAIN := {"menu": 0.9, "battle": 0.72, "boss": 0.85, "victory": 1.0, "defeat": 1.0}
+const GAIN := {"menu": 0.57, "battle": 0.46, "boss": 0.6, "victory": 1.0, "defeat": 1.0}
 const SEAMLESS := ["boss"]
 const ONESHOT := ["victory", "defeat"]
 const XF := 3.0
@@ -117,7 +117,7 @@ func _play(file: String, st: String, tc: float, instant := false, loop_restart :
 		_old.append(_cur)
 		_cur = {}
 	var p := AudioStreamPlayer.new()
-	p.bus = AudioFX.BUS
+	p.bus = AudioFX.MUSIC_BUS
 	p.stream = _stream(file)
 	p.volume_db = -80
 	add_child(p)

@@ -10,6 +10,7 @@ extends Node
 ## sık seslerde ±%1,2 perde (bank davranışı), gem perde merdiveni.
 
 const BUS := "Oyun"
+const MUSIC_BUS := "Muzik"
 const VOICES := 28
 
 var g
@@ -67,6 +68,20 @@ static func _setup_bus() -> void:
 	c.attack_us = 3000
 	c.release_ms = 160
 	AudioServer.add_bus_effect(i, c)
+	# müzik ayrı veriyolunda: efektlerin sert sıkıştırıcısı müziği her vuruşta kısıp açınca
+	# baslarda cızırtı/bozulma yapıyordu. Müzik yalnız ana çıkışın yumuşak sınırlayıcısından geçer.
+	if AudioServer.get_bus_index(MUSIC_BUS) < 0:
+		AudioServer.add_bus()
+		var mi := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(mi, MUSIC_BUS)
+		AudioServer.set_bus_send(mi, "Master")
+	# ana çıkış: toplam (müzik + efekt) taşıp kırpılmasın — tepe sınırlayıcı (yumuşak, −0,5 dB tavan)
+	if AudioServer.get_bus_effect_count(0) == 0:
+		var lim := AudioEffectHardLimiter.new()
+		lim.ceiling_db = -0.5
+		lim.pre_gain_db = 0.0
+		lim.release = 0.12
+		AudioServer.add_bus_effect(0, lim)
 
 func _now() -> float: return Time.get_ticks_usec() / 1e6
 

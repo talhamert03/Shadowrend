@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Shadowrend"
-config/version="1.0.70"
+config/version="1.0.71"
 config/build=44
 config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"
@@ -13,6 +13,11 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 boot_splash/bg_color=Color(0.027, 0.02, 0.043, 1)
 boot_splash/show_image=false
 config/icon="res://icon.png"
+
+[audio]
+
+driver/output_latency=40
+driver/output_latency.android=40
 
 [autoload]
 
