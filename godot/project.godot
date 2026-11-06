@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Shadowrend"
-config/version="1.0.71"
+config/version="1.0.72"
 config/build=44
 config/description="Mobil aksiyon RPG"
 run/main_scene="res://scenes/main.tscn"
@@ -17,7 +17,8 @@ config/icon="res://icon.png"
 [audio]
 
 driver/output_latency=40
-driver/output_latency.android=40
+driver/output_latency.android=60
+driver/mix_rate.android=48000
 
 [autoload]
 

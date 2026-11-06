@@ -58,10 +58,6 @@ static func _setup_bus() -> void:
 	var i := AudioServer.bus_count - 1
 	AudioServer.set_bus_name(i, BUS)
 	AudioServer.set_bus_send(i, "Master")
-	var hp := AudioEffectHighPassFilter.new()
-	hp.cutoff_hz = 20
-	hp.resonance = 0.5
-	AudioServer.add_bus_effect(i, hp)
 	var c := AudioEffectCompressor.new()
 	c.threshold = -9
 	c.ratio = 11
@@ -75,13 +71,8 @@ static func _setup_bus() -> void:
 		var mi := AudioServer.bus_count - 1
 		AudioServer.set_bus_name(mi, MUSIC_BUS)
 		AudioServer.set_bus_send(mi, "Master")
-	# ana çıkış: toplam (müzik + efekt) taşıp kırpılmasın — tepe sınırlayıcı (yumuşak, −0,5 dB tavan)
-	if AudioServer.get_bus_effect_count(0) == 0:
-		var lim := AudioEffectHardLimiter.new()
-		lim.ceiling_db = -0.5
-		lim.pre_gain_db = 0.0
-		lim.release = 0.12
-		AudioServer.add_bus_effect(0, lim)
+	# (ana çıkışa ayrıca efekt eklenmez: Android'in küçük ses tamponunda her ek işlem
+	#  ses iş parçacığını yetiştirememe → cızırtı riskini artırır)
 
 func _now() -> float: return Time.get_ticks_usec() / 1e6
 
