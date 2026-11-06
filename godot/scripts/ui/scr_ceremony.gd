@@ -462,9 +462,13 @@ func _draw_face(n: Node2D, w: float, h: float, k: float, col: Color, ic: Vector2
 		var mr := w * 0.36
 		n.draw_circle(ic + Vector2(4, 5) * k, mr, INK)
 		n.draw_circle(ic, mr, INK)
-		n.draw_circle(ic, mr - 5 * k, Color("#fffaf0"))
-		n.draw_arc(ic, mr - 5 * k, PI * 0.1, PI * 0.9, 20, Color(col, 0.45), 8.0 * k, true)
-		n.draw_circle(ic + Vector2(-mr * 0.4, -mr * 0.45), mr * 0.18, Color(1, 1, 1, 0.9))
+		# koyu, nadirlik renginde madalyon (boyalı ekipman görseli net görünsün)
+		var mbase := Color("#120d18")
+		n.draw_circle(ic, mr - 5 * k, mbase.lerp(col, 0.14))
+		n.draw_circle(ic + Vector2(0, -3) * k, mr - 13 * k, mbase.lerp(col, 0.22))
+		n.draw_circle(ic + Vector2(0, -4) * k, mr - 22 * k, mbase.lerp(col, 0.3))
+		n.draw_circle(ic + Vector2(0, -5) * k, mr - 31 * k, Color(mbase.lerp(col, 0.4), 0.7))
+		n.draw_arc(ic, mr - 5 * k, PI * 1.12, PI * 1.88, 24, Color(col.lightened(0.3), 0.55), 3.0 * k, true)
 	# dış mürekkep kontur
 	var o := StyleBoxFlat.new()
 	o.bg_color = Color(0, 0, 0, 0)

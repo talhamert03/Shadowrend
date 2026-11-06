@@ -11,6 +11,8 @@ const INK := Color(0.05, 0.03, 0.07)
 const YEL := Color("#ffd23a")
 const GREEN := Color("#4cbf5e")
 
+const _GLOW_SHD := preload("res://shaders/ui/gear_glow.gdshader")
+
 static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D) -> void:
 	var w := sz.x
 	var h := sz.y
@@ -27,10 +29,15 @@ static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D)
 	if tex:
 		var sp := Sprite2D.new()
 		sp.texture = tex
-		sp.scale = Vector2.ONE * (60.0 / maxf(tex.get_width(), tex.get_height()))
+		sp.scale = Vector2.ONE * (66.0 / maxf(tex.get_width(), tex.get_height()))
 		sp.position = ic
+		if not locked:
+			var gm := ShaderMaterial.new()
+			gm.shader = _GLOW_SHD
+			gm.set_shader_parameter("glow", Color(col.lightened(0.55), 0.95))
+			sp.material = gm
 		if locked: sp.modulate = Color(0.08, 0.06, 0.1, 0.55)
-		elif not info.wear: sp.modulate = Color(0.8, 0.8, 0.8)
+		elif not info.wear: sp.modulate = Color(0.94, 0.94, 0.94)
 		parent.add_child(sp)
 	if locked:
 		var q := _txt(parent, "?", 30, Color("#d8d0e0"), 1.5, Vector2(0, ic.y - 20), w)
@@ -171,10 +178,17 @@ static func _draw_body(n: Node2D, w: float, h: float, col: Color, ic: Vector2, i
 	var mr := 36.0
 	disc(B, ic + Vector2(3, 4), mr, INK)
 	disc(B, ic, mr, INK)
-	disc(B, ic, mr - 4, Color("#3c3646") if locked else Color("#fffaf0"))
-	if not locked:
-		arc(B, ic, mr - 4, PI * 0.1, PI * 0.9, 6.0, Color(col, 0.4))
-		disc(B, ic + Vector2(-13, -15), 5.5, Color(1, 1, 1, 0.9))
+	# koyu, nadirlik renginde madalyon: boyalı ekipman görseli beyaz zemin üstünde solmasın
+	if locked:
+		disc(B, ic, mr - 4, Color("#3c3646"))
+	else:
+		# kenardan merkeze aydınlanan koyu zemin: görsel öne çıkar, renkleri net okunur
+		var mbase := Color("#120d18")
+		disc(B, ic, mr - 4, mbase.lerp(col, 0.14))
+		disc(B, ic + Vector2(0, -2), mr - 10, mbase.lerp(col, 0.22))
+		disc(B, ic + Vector2(0, -3), mr - 17, mbase.lerp(col, 0.3))
+		disc(B, ic + Vector2(0, -4), mr - 24, Color(mbase.lerp(col, 0.4), 0.7))
+		arc(B, ic, mr - 4, PI * 1.12, PI * 1.88, 2.5, Color(col.lightened(0.3), 0.55))
 	# ad şeridi
 	B.poly(PackedVector2Array([Vector2(2, 99), Vector2(w - 2, 96), Vector2(w - 2, 118), Vector2(2, 120)]), Color(INK, 0.85))
 	# nadirlik elmasları
