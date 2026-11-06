@@ -1,0 +1,19 @@
+SHADOWREND — BİLGİSAYAR (WINDOWS) SÜRÜMÜ {V}
+==============================================
+
+ÇALIŞTIRMA
+  1) Zip'i bir klasöre çıkar (Shadowrend.exe ve Shadowrend.pck AYNI klasörde olmalı).
+  2) Shadowrend.exe'ye çift tıkla.
+  Windows "Windows kişisel bilgisayarınızı korudu" uyarısı verirse:
+  "Ek bilgi" → "Yine de çalıştır" (imzasız test sürümü olduğu için bu uyarı normal).
+
+KONTROLLER
+  Hareket : WASD veya ok tuşları (ya da fareyle sürükleyerek sanal joystick)
+  Dokunma : Farenin sol tuşu (telefondaki dokunmanın yerini tutar)
+  Süper   : Ekrandaki SÜPER düğmesine tıkla
+  Duraklat: ESC
+
+NOTLAR
+  - Pencere telefon ekranı oranında (dikey) açılır; kenarından tutup büyütebilirsin.
+  - Satın alma ve reklamlar bilgisayarda çalışmaz (yalnız telefonda).
+  - Kayıt dosyası: %APPDATA%\Godot\app_userdata\Shadowrend
