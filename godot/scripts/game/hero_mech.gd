@@ -124,10 +124,12 @@ func _fire_hook(id: String, dt: float) -> void:
 	var s := _src()
 	var base := atan2(n.y - s.y, n.x - s.x)
 	var cnt := int(_v(Wd, "volley", L, 1.0))
+	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng + 40.0)
 	for k in cnt:
-		var a := base + (k - (cnt - 1) * 0.5) * 0.32
+		var a := atan2(tl[k].y - s.y, tl[k].x - s.x) if k < tl.size() else base + (k - (cnt - 1) * 0.5) * 0.12
 		hooks.append({"x": s.x, "y": s.y, "dir": a, "d": 0.0, "maxD": rng, "ret": false, "dmg": _v(Wd, "dmg", L, 20.0),
-			"hit": {}, "pulled": [], "spd": _v(Wd, "speed", L, 900.0), "pull": _v(Wd, "knock", L, 1.0), "slam": _v(Wd, "pin", L, 0.0), "t": 0.0})
+			"hit": {}, "pulled": [], "spd": _v(Wd, "speed", L, 900.0), "pull": _v(Wd, "knock", L, 1.0), "slam": _v(Wd, "pin", L, 0.0), "t": 0.0,
+			"fl": wm.wi(Wd, "flame") + int(_v(Wd, "burn", L, 0.0)), "flT": 0.0, "flHit": {}})
 	game.player.trigger_ranged_attack(base)
 	_sfx(Wd)
 
@@ -138,6 +140,7 @@ func _tick_hooks(dt: float) -> void:
 		var h: Dictionary = hooks[i]
 		h.t += dt
 		var s := _src()
+		if int(h.fl) > 0: _burn_chain(h, s, dt)
 		if not h.ret:
 			h.d = minf(h.maxD, h.d + h.spd * dt)
 			h.x = s.x + cos(h.dir) * h.d
@@ -189,6 +192,42 @@ func _tick_hooks(dt: float) -> void:
 				e.y += (ty - e.y) * minf(1.0, dt * 14.0)
 				e.stopT = maxf(e.stopT, 0.05)
 
+# Alevli Zincir: kanca ve zincir hattı yanar; hat boyunca (kancanın etrafı daha geniş)
+# düşmanları belirli aralıklarla toplu yakar. Her düşman tik başına bir kez yanar.
+func _burn_chain(h: Dictionary, s: Vector2, dt: float) -> void:
+	h.flT -= dt
+	if h.flT > 0.0: return
+	h.flT = 0.18
+	var g = game
+	var fl: int = int(h.fl)
+	var dmg: float = h.dmg * (0.16 + 0.07 * fl)
+	var rHook: float = 46.0 + 12.0 * fl
+	var rLine: float = 24.0 + 6.0 * fl
+	var ax: float = s.x
+	var ay: float = s.y
+	var bx: float = h.x
+	var by: float = h.y
+	var lx: float = bx - ax
+	var ly: float = by - ay
+	var len2: float = maxf(1.0, lx * lx + ly * ly)
+	var cx: float = (ax + bx) * 0.5
+	var cy: float = (ay + by) * 0.5
+	var qr: float = sqrt(len2) * 0.5 + rHook + 30.0
+	var n := 0
+	for e in g.enemies.query_circle(cx, cy, qr, scratch):
+		if e.hp <= 0 or e.entryT > 0: continue
+		var t: float = clampf(((e.x - ax) * lx + (e.y - ay) * ly) / len2, 0.0, 1.0)
+		var px: float = ax + lx * t - e.x
+		var py: float = ay + ly * t - e.y
+		var dh: float = (e.x - bx) * (e.x - bx) + (e.y - by) * (e.y - by)
+		var rh: float = rHook + e.radius
+		var rl: float = rLine + e.radius
+		if dh > rh * rh and px * px + py * py > rl * rl: continue
+		_hit(e, dmg, atan2(e.y - by, e.x - bx))
+		n += 1
+		if n <= 4: g.spawn_burst(e.x, e.y - 8, "#ff8a2a", 3, 120, 2.0, 0.3, true)
+	if g.renderer3d and randf() < 0.6: g.renderer3d.spawn_flame_impact(bx, by, h.dir, 0.55 + 0.12 * fl)
+
 # ═══════════ İKSİR (Simyacı) ═══════════
 
 func _fire_flask(id: String, dt: float) -> void:
@@ -203,10 +242,13 @@ func _fire_flask(id: String, dt: float) -> void:
 	_arm(id, Wd, L)
 	var s := _src()
 	var cnt := int(_v(Wd, "volley", L, 1.0))
+	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng + 40.0)
 	for k in cnt:
 		var tx: float = n.x
 		var ty: float = n.y
-		if k > 0:
+		if k > 0 and k < tl.size():
+			tx = tl[k].x; ty = tl[k].y
+		elif k > 0:
 			var oa := randf() * TAU
 			tx += cos(oa) * (50.0 + randf() * 40.0); ty += sin(oa) * (50.0 + randf() * 40.0)
 		var dd := Vector2(tx - s.x, ty - s.y).length()
@@ -255,8 +297,9 @@ func _fire_tarot(id: String, dt: float) -> void:
 	var ang := atan2(n.y - s.y, n.x - s.x)
 	var cnt := int(_v(Wd, "volley", L, 1.0))
 	var spd := _v(Wd, "speed", L, 560.0)
+	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng)
 	for k in cnt:
-		var a := ang + (k - (cnt - 1) * 0.5) * _v(Wd, "spread", L, 0.2)
+		var a := atan2(tl[k].y - s.y, tl[k].x - s.x) if k < tl.size() else ang + (k - (cnt - 1) * 0.5) * 0.06
 		cards.append({"x": s.x, "y": s.y, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": _v(Wd, "bulletLife", L, 1.3), "dmg": _v(Wd, "dmg", L, 18.0),
 			"suit": randi() % 3, "spin": randf() * TAU, "pierce": int(_v(Wd, "pierce", L, 0.0)), "hit": {},
 			"chain": 2 + wm.wi(Wd, "chain"), "slow": 1.6 + 0.6 * wm.wi(Wd, "slowAdd"), "ex": wm.wi(Wd, "explode"), "ph": randf() * 6.0})
@@ -346,7 +389,7 @@ func _fire_lash(id: String, dt: float) -> void:
 		var a := ang + (k - (cnt - 1) * 0.5) * 0.5
 		var side := 1.0 if (lashes.size() + k) % 2 == 0 else -1.0
 		lashes.append({"ang": a, "len": rng, "t": -0.06 * k, "side": side, "done": false, "dmg": _v(Wd, "dmg", L, 24.0),
-			"crit": JS.num(Wd, "critAdd"), "tip": 0.3})
+			"crit": JS.num(Wd, "critAdd"), "tip": 0.3, "ex": wm.wi(Wd, "explode")})
 	p.trigger_ranged_attack(ang)
 	p.faceLeft = cos(ang) < 0
 
@@ -379,6 +422,18 @@ func _tick_lashes(dt: float) -> void:
 				var atTip: bool = along > Lr * (1.0 - l.tip)
 				_hit(e, l.dmg * (1.25 if atTip else 1.0), a, 40.0, (1.0 if atTip else 0.0) + l.crit)
 				g.spawn_burst(e.x, e.y - 8, "#ff3a5a" if atTip else "#c8203a", 5 if atTip else 3, 180, 2.4, 0.3, true)
+			if l.ex > 0:
+				# DİKEN PATLAMASI: uçta dikenler saçılır, çevredekiler hasar alır
+				var tr: float = 46.0 + 10.0 * l.ex
+				for e2 in g.enemies.query_circle(tipX, tipY, tr + 30.0, scratch):
+					if e2.hp <= 0 or e2.entryT > 0: continue
+					var qx: float = e2.x - tipX
+					var qy: float = e2.y - tipY
+					if qx * qx + qy * qy > (tr + e2.radius) * (tr + e2.radius): continue
+					_hit(e2, l.dmg * (0.35 + 0.15 * l.ex), atan2(qy, qx), 60.0)
+				g.spawn_burst(tipX, tipY - 8, "#ff2a4a", 14, 260, 2.8, 0.45, true)
+				g.spawn_burst(tipX, tipY - 8, "#3a8a3a", 8, 200, 2.4, 0.4, false)
+				g.pools.rings.take().setup(tipX, tipY, tr, 0.3, "#ff6a8a")
 			g.spawn_burst(tipX, tipY - 10, "#ffffff", 6, 260, 2.0, 0.18, true)
 			g.spawn_burst(tipX, tipY - 10, "#ff4a6a", 8, 200, 2.6, 0.3, true)
 			if g.renderer3d: g.renderer3d.spawn_hit(tipX, tipY, a, 2, 1.0, 0.35, 0.45)
@@ -473,8 +528,9 @@ func _fire_bone(id: String, dt: float) -> void:
 	var ang := atan2(n.y - s.y, n.x - s.x)
 	var cnt := int(_v(Wd, "volley", L, 1.0))
 	var spd := _v(Wd, "speed", L, 620.0)
+	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng)
 	for k in cnt:
-		var a := ang + (k - (cnt - 1) * 0.5) * 0.16
+		var a := atan2(tl[k].y - s.y, tl[k].x - s.x) if k < tl.size() else ang + (k - (cnt - 1) * 0.5) * 0.06
 		bones.append({"x": s.x, "y": s.y, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": 1.2, "dmg": _v(Wd, "dmg", L, 16.0),
 			"pierce": int(_v(Wd, "pierce", L, 1.0)), "hit": {}, "maxM": int(_v(Wd, "count", L, 2.0)),
 			"mLife": 7.0 * (1.0 + 0.25 * wm.wi(Wd, "lifeAdd")), "mDmg": _v(Wd, "dmg", L, 16.0) * 0.7})
@@ -643,23 +699,40 @@ func _tick_frost(dt: float) -> void:
 # ═══════════ TOTEM (Totem Şamanı) ═══════════
 
 func _fire_totem(id: String, dt: float) -> void:
+	# normal saldırı: süzülen küçük totemden güdümlü ruh ateşi (dev totem SÜPER GÜÇ'tür)
 	if not _ready(id, dt): return
 	var Wd := _W(id)
 	var L := _L(id)
 	var n = wm.nearest
-	if n == null or wm.nearestD2 > 520.0 * 520.0:
-		cd[id] = 0.2
+	var rng := _v(Wd, "range", L, 360.0)
+	if n == null or wm.nearestD2 > rng * rng:
+		cd[id] = 0.12
 		return
 	_arm(id, Wd, L)
-	var p = game.player
-	var a := atan2(n.y - p.y, n.x - p.x) + randf_range(-0.6, 0.6)
-	var maxN := int(_v(Wd, "count", L, 2.0))
-	if totems.size() >= maxN: totems.pop_front()
-	var life: float = _v(Wd, "duration", L, 7.0) * (1.0 + 0.2 * wm.wi(Wd, "lifeAdd"))
-	totems.append({"x": p.x + cos(a) * 70.0, "y": p.y + sin(a) * 70.0, "life": life, "max": life, "fireT": 0.5, "rise": 0.0,
-		"dmg": _v(Wd, "dmg", L, 14.0), "rate": _v(Wd, "rate", L, 0.8), "vol": int(_v(Wd, "volley", L, 1.0)), "rng": _v(Wd, "range", L, 340.0), "glow": 0.0})
-	game.spawn_burst(p.x + cos(a) * 70.0, p.y + sin(a) * 70.0, "#4affd8", 10, 160, 2.6, 0.5, true)
-	_sfx(Wd)
+	var s := _src()
+	var cnt := int(_v(Wd, "volley", L, 1.0))
+	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng)
+	for k in cnt:
+		var e = tl[k] if k < tl.size() else n
+		var a: float = atan2(e.y - s.y, e.x - s.x)
+		sbolts.append({"x": s.x, "y": s.y, "z": 60.0, "vx": cos(a) * 460.0, "vy": sin(a) * 460.0, "tgt": e, "tok": e.aliveTok, "life": 1.4, "dmg": _v(Wd, "dmg", L, 12.0)})
+	game.player.trigger_ranged_attack(atan2(n.y - s.y, n.x - s.x))
+	game.audio.play("bless")
+
+## SÜPER GÜÇ (Totem Şamanı): yere dev ruh totemi diker — 30 sn kalır, yakındakilere ruh ateşi yağdırır
+func place_totem_ult(x: float, y: float, rar: int) -> void:
+	var Wd: Dictionary = wm.W.get("totem", {})
+	var L: int = maxi(0, wm.lvl("totem") - 1)
+	var dmg: float = _v(Wd, "dmg", L, 12.0) * (1.8 + 0.25 * rar)
+	totems.clear()
+	totems.append({"x": x, "y": y, "life": 30.0, "max": 30.0, "fireT": 0.6, "rise": 0.0, "dmg": dmg,
+		"rate": 0.55 * (1.0 - 0.12 * wm.wi(Wd, "lifeAdd")), "vol": 2 + int(_v(Wd, "count", L, 0.0)), "rng": 380.0, "glow": 0.0})
+	var g = game
+	g.spawn_burst(x, y, "#4affd8", 24, 260, 3.0, 0.7, true)
+	g.spawn_burst(x, y, "#e0fff8", 10, 200, 2.4, 0.5, true)
+	g.pools.rings.take().setup(x, y, 120.0, 0.5, "#4affd8")
+	g.add_shake(0.25)
+	g.audio.play("totemplant")
 
 func _tick_totems(dt: float) -> void:
 	var g = game
@@ -754,7 +827,9 @@ func _tick_stars(dt: float) -> void:
 				var dx: float = e.x - s.x
 				var dy: float = e.y - s.y
 				if dx * dx + dy * dy > (R + e.radius) * (R + e.radius): continue
-				_hit(e, s.dmg, atan2(dy, dx), 160.0)
+				# yıldızın tam altındaki (merkez) düşman tam darbe yer
+				var core: bool = dx * dx + dy * dy < (R * 0.4 + e.radius) * (R * 0.4 + e.radius)
+				_hit(e, s.dmg * (2.5 if core else 1.0), atan2(dy, dx), 160.0)
 			g.spawn_burst(s.x, s.y, "#ffffff", 12, 320, 2.4, 0.3, true)
 			g.spawn_burst(s.x, s.y, "#ffd86a", 18, 280, 3.2, 0.6, true)
 			g.spawn_burst(s.x, s.y, "#7aa8ff", 10, 200, 2.6, 0.5, true)

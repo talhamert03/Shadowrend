@@ -727,6 +727,15 @@ func _home_pick(x: float, y: float):
 			best = e
 	return best
 
+## en yakın n canlı düşman (yakından uzağa) — çoklu atış nişanı
+func aim_targets(x: float, y: float, n: int, R: float) -> Array:
+	var c: Array = []
+	for e in game.enemies.query_circle(x, y, R, scratch):
+		if e.hp <= 0 or e.entryT > 0: continue
+		c.append(e)
+	c.sort_custom(func(a, b): return (a.x - x) * (a.x - x) + (a.y - y) * (a.y - y) < (b.x - x) * (b.x - x) + (b.y - y) * (b.y - y))
+	return c.slice(0, n)
+
 func fire_gun(id: String) -> void:
 	if nearest == null or not slots.get(id): return
 	var g = game
@@ -759,10 +768,22 @@ func fire_gun(id: String) -> void:
 	var homing := wi(Wd, "homing")
 	var explode := wi(Wd, "explode")
 	var split := wi(Wd, "split")
+	# çoklu atış: yelpaze silahı değilse her mermi ayrı bir yakın düşmana nişan alır (yan mermiler
+	# hedefin yanından geçip ıskalamasın); yeterli düşman yoksa hedefe yakınsayan dar açı
+	var aimL: Array = []
+	var fanW: bool = JS.truthy(Wd.get("fan")) or id in ["sacma", "barut", "hilal"]
+	if volley > 1 and not fanW and not JS.truthy(Wd.get("mine")) and not JS.truthy(Wd.get("well")) and not JS.truthy(Wd.get("boomer")):
+		var rngA: float = float(Wd.range[L]) if Wd.get("range") is Array else 520.0
+		aimL = aim_targets(ox, oy, volley, rngA + 40.0)
 	for v in volley:
 		var off := (v - (volley - 1) / 2.0) * spread if volley > 1 else 0.0
 		var jitter := (randf() - 0.5) * spread * 0.3
 		var sh := ang + off + jitter
+		if not aimL.is_empty():
+			if v < aimL.size():
+				sh = atan2(aimL[v].y - oy, aimL[v].x - ox) + (randf() - 0.5) * 0.03
+			else:
+				sh = ang + (v - (volley - 1) / 2.0) * minf(spread, 0.06)
 		var b = _bullet(ox, oy, cos(sh) * Wd.speed, sin(sh) * Wd.speed, Wd.dmg[L], Wd.pierce[L], JS.num(Wd, "bulletLife", 1.4), br, Wd.get("color"))
 		b.isArrow = JS.truthy(Wd.get("arrow"))
 		b.bounce = wi(Wd, "bounce") + (JS.i(Wd.bounceLv[L]) if Wd.get("bounceLv") is Array else 0)

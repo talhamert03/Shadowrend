@@ -59,9 +59,10 @@ const ULT_ID := {
 	"golge":    {"name": "GÖLGE DANSI",   "col": "#d8f8ff", "c2": "#2ad8ff", "k": "slash",  "snd": "slash",  "base": 14, "hr": 80.0, "desc": "Karanlık yarılır; gölge klonların kesikleri sürünün üstünde çaprazlanır."},
 	"kemik":    {"name": "ÖLÜ ORDUSU",    "col": "#e8ffe8", "c2": "#4adf6a", "k": "grave",  "snd": "slam",   "base": 14, "hr": 80.0, "desc": "Toprak yarılır; kemik eller mezarlardan fışkırır, düşmanı yerine çiviler."},
 	"ayaz":     {"name": "MUTLAK SIFIR",  "col": "#eef8ff", "c2": "#7fd0ff", "k": "spike",  "snd": "spike",  "base": 0, "hr": 70.0, "desc": "Buz mızrakları halka halka fışkırır; değdiği düşmanı dondurur."},
-	"totem":    {"name": "ATA RUHLARI",   "col": "#d8fff4", "c2": "#2affc8", "k": "bolt",   "snd": "bolt",   "base": 10, "hr": 90.0, "desc": "Ataların ruhları göğü yarar; sürünün üstüne turkuaz ruh yıldırımları iner."},
 	"yildiz":   {"name": "YILDIZ YAĞMURU", "col": "#fff6d0", "c2": "#ffc83a", "k": "meteor", "snd": "meteor", "base": 9, "hr": 120.0, "desc": "Gök açılır; altın yıldızlar çapraz düşer, çarptığı yeri paramparça eder."},
 	"siren":    {"name": "DEV DALGA",     "col": "#d8fff8", "c2": "#2ae0d0", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Sirenin çevresinde dev bir dalga döner; sürüyü süpürüp ezer."},
+	"totem":    {"name": "DEV RUH TOTEMİ", "col": "#d8fff4", "c2": "#2affc8", "k": "totem", "snd": "bolt", "base": 0, "hr": 0.0, "timed": 60.0,
+		"desc": "Yere dev bir ruh totemi diker; 30 saniye boyunca yakındaki düşmanlara ruh ateşi yağdırır. 60 saniyede bir dolar."},
 	"demirhan": {"name": "ÖRS DÜŞÜŞÜ",    "col": "#fff4c8", "c2": "#ffb43a", "k": "anvil",  "snd": "cannon", "base": 7,  "hr": 100.0, "desc": "Gökten dev örsler iner; çarpınca yer çatlar, yıldız kıvılcımları saçılır."},
 }
 ## yuva türleri: fall = havada/hazırlık süresi · spread = yuvaların yayılma süresi · linger = iz süresi
@@ -146,9 +147,18 @@ var tier: Dictionary:
 	get: return ULT_TIER[rar]
 
 func on_kill(e) -> void:
-	if ready or fx > 0: return
+	if ready or fx > 0 or id.has("timed"): return
 	charge += 4 if (e and e.elite) else 1
-	if charge >= ULT_NEED:
+	if charge >= ULT_NEED: _set_ready()
+
+## süre dolumlu süper (Totem Şamanı: 60 sn) — öldürmeyle değil zamanla dolar
+func _tick_timed(dt: float) -> void:
+	if ready or fx > 0 or game.state != "playing": return
+	charge += dt * ULT_NEED / float(id.timed)
+	if charge >= ULT_NEED: _set_ready()
+
+func _set_ready() -> void:
+	if true:
 		charge = ULT_NEED
 		ready = true
 		var g = game
@@ -255,6 +265,9 @@ func fire() -> bool:
 		wave.merge({"on": true, "t": 0.0, "dur": TS_DUR, "r": R * 1.7}, true)
 		fx = TS_DUR + 0.75
 		# havadaki düşman mermileri de olduğu yerde asılı kalır (time_stopped → enemy_manager)
+	elif k == "totem":
+		g.weapons.mech.place_totem_ult(p.x, p.y, rar)
+		fx = 0.6
 	elif k == "spike":
 		var rings := [[0.36, 8], [0.68, 12], [1.0, 16]]
 		for ri in 3:
@@ -345,6 +358,7 @@ func _impact(s: Dictionary) -> void:
 
 func update(dt: float) -> void:
 	_hitsF = 0
+	if id.has("timed"): _tick_timed(dt)
 	if not _hitQ.is_empty():
 		var n := 0
 		while n < HIT_BUDGET and not _hitQ.is_empty():

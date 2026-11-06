@@ -1551,7 +1551,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "shield",
-   "sigDmg": 0.54
+   "sigDmg": 0.8
   },
   "simyaci": {
    "id": "simyaci",
@@ -1612,7 +1612,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.5
+   "sigDmg": 0.86
   },
   "kamci": {
    "id": "kamci",
@@ -1755,7 +1755,7 @@
    },
    "perks": [
     "İmza: Ruh Totemi — yanında süzülen ruh totemi",
-    "Yere ruh totemleri diker; totemler en yakın düşmana ruh ateşi atar",
+    "Güdümlü ruh ateşi atar; SÜPER GÜÇ: 60 sn'de bir dev ruh totemi (30 sn kalır)",
     "Azami can +12, zırh +1, Hasar +%5",
     "Epik"
    ],
@@ -1767,7 +1767,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "shield",
-   "sigDmg": 1.8
+   "sigDmg": 4.2
   },
   "yildiz": {
    "id": "yildiz",
@@ -1799,7 +1799,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.4
+   "sigDmg": 0.13
   },
   "siren": {
    "id": "siren",
@@ -6917,15 +6917,15 @@
    },
    {
     "id": "sig_zc7",
-    "name": "Çifte Kanca",
-    "desc": "Her atışta bir kanca daha.",
+    "name": "Alevli Zincir",
+    "desc": "Zinciri alev sarar: kanca ve zincir hattı boyunca yanan alev çevresindeki düşmanları toplu yakar.",
     "boost": {
      "weapon": "zincir",
-     "volley": 1
+     "flame": 1
     },
     "minLvl": 1,
     "myth": true,
-    "glyph": "ikiz",
+    "glyph": "cehennem",
     "max": 2
    },
    {
@@ -7169,8 +7169,8 @@
    },
    {
     "id": "sig_fc7",
-    "name": "Fazladan Kart",
-    "desc": "Her savuruşta bir kart daha.",
+    "name": "Çifte Kart",
+    "desc": "Her savuruşta bir kart daha (her kart ayrı düşmana).",
     "boost": {
      "weapon": "tarot",
      "volley": 1
@@ -7293,15 +7293,15 @@
    },
    {
     "id": "sig_km7",
-    "name": "Çift Şaklama",
-    "desc": "Her atakta bir kamçı daha.",
+    "name": "Diken Patlaması",
+    "desc": "Kamçının ucu dikenli bir patlamayla çevresindekileri de keser.",
     "boost": {
      "weapon": "kamci",
-     "volley": 1
+     "explodeAdd": 1
     },
     "minLvl": 1,
     "myth": true,
-    "glyph": "ciftkayis",
+    "glyph": "patlama",
     "max": 2
    },
    {
@@ -7751,8 +7751,8 @@
    },
    {
     "id": "sig_tt2",
-    "name": "Hızlı Dikim",
-    "desc": "Totem %10 daha sık dikilir.",
+    "name": "Hızlı Dua",
+    "desc": "Ruh ateşi %10 daha sık.",
     "boost": {
      "weapon": "totem",
      "cd": 0.9
@@ -7761,7 +7761,7 @@
    {
     "id": "sig_tt3",
     "name": "Uzun Bakış",
-    "desc": "Totem menzili +%15.",
+    "desc": "Menzil +%15.",
     "boost": {
      "weapon": "totem",
      "range": 1.15
@@ -7770,7 +7770,7 @@
    {
     "id": "sig_tt4",
     "name": "Kadim Ağaç",
-    "desc": "Totemler %20 daha uzun kalır.",
+    "desc": "Dev totem %12 daha hızlı ateşler.",
     "boost": {
      "weapon": "totem",
      "lifeAdd": 1
@@ -7798,7 +7798,7 @@
    {
     "id": "sig_tt7",
     "name": "Ruh Ormanı",
-    "desc": "+1 totem.",
+    "desc": "Dev totem her seferinde bir ruh ateşi daha atar.",
     "boost": {
      "weapon": "totem",
      "count": 1
@@ -7811,7 +7811,7 @@
    {
     "id": "sig_tt8",
     "name": "İkiz Alev",
-    "desc": "Her totem bir ruh ateşi daha atar.",
+    "desc": "Her saldırıda bir ruh ateşi daha (ayrı düşmana).",
     "boost": {
      "weapon": "totem",
      "volley": 1
@@ -7824,7 +7824,7 @@
    {
     "id": "sig_tt9",
     "name": "Ataların Öfkesi",
-    "desc": "Hasar +%15, totem daha sık.",
+    "desc": "Hasar +%15, daha sık.",
     "boost": {
      "weapon": "totem",
      "dmg": 1.15,
@@ -7838,7 +7838,7 @@
    {
     "id": "sig_tt10",
     "name": "Büyük Totem",
-    "desc": "Hasar +%25, totem uzun kalır.",
+    "desc": "Hasar +%25, dev totem daha hızlı ateşler.",
     "boost": {
      "weapon": "totem",
      "dmg": 1.25,
@@ -10436,7 +10436,7 @@
     "Hasar +, menzil +",
     "Daha sık fırlatır",
     "Hasar +",
-    "İkinci kanca"
+    "Zincir alev alır: hat boyunca yakar"
    ],
    "critAdd": 0,
    "critMultAdd": 0,
@@ -10465,9 +10465,17 @@
     1,
     1,
     1,
-    2,
-    2
+    1,
+    1
    ],
+   "burn": [
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "flame": 0,
    "speed": 900,
    "knock": 1.0,
    "pin": 0,
@@ -10535,11 +10543,11 @@
    "kind": "tarot",
    "class": "ruh",
    "floatVisual": true,
-   "descNew": "Falcının yanında süzülen kart destesi — yelpaze gibi kart savurur; her kart ateş, buz ya da yıldırım çıkar.",
+   "descNew": "Falcının yanında süzülen kart destesi — en yakın düşmana kart savurur; her kart ateş, buz ya da yıldırım çıkar.",
    "descUp": [
-    "Hasar +, +1 kart",
+    "Hasar +",
     "Daha sık savurur",
-    "Kartlar delip geçer",
+    "+1 kart, kartlar delip geçer",
     "+1 kart, hasar +"
    ],
    "critAdd": 0,
@@ -10559,13 +10567,13 @@
     0.7
    ],
    "volley": [
+    1,
+    1,
     2,
     2,
-    3,
-    3,
-    4
+    3
    ],
-   "spread": 0.2,
+   "spread": 0.06,
    "speed": 560,
    "pierce": [
     0,
@@ -10592,7 +10600,7 @@
     "Hasar +, menzil +",
     "Daha sık şaklar",
     "Hasar +",
-    "Çift şaklama"
+    "Hasar +, menzil +"
    ],
    "critAdd": 0,
    "critMultAdd": 0,
@@ -10600,8 +10608,8 @@
     26,
     35,
     46,
-    60,
-    76
+    62,
+    80
    ],
    "cooldown": [
     0.9,
@@ -10621,10 +10629,11 @@
     1,
     1,
     1,
-    2,
-    2
+    1,
+    1
    ],
-   "color": "#ff3a5a"
+   "color": "#ff3a5a",
+   "explode": 0
   },
   "golge": {
    "name": "Gölge Klonu",
@@ -10783,49 +10792,35 @@
    "kind": "totem",
    "class": "ruh",
    "floatVisual": true,
-   "descNew": "Şamanın diktiği ruh totemi — birkaç saniye yerde kalır, menzile gireni ruh ateşiyle vurur.",
+   "descNew": "Şamanın yanında süzülen küçük totem — en yakın düşmana güdümlü ruh ateşi atar. Dev ruh totemi SÜPER GÜÇ'tür (60 sn'de bir, 30 sn kalır).",
    "descUp": [
-    "Hasar +, +1 totem",
-    "Daha sık diker",
-    "Totemler daha hızlı ateşler",
-    "Çift ruh ateşi, +1 totem"
+    "Hasar +, menzil +",
+    "Daha sık ateşler",
+    "Hasar +, süper totem +1 ateş",
+    "Çift ruh ateşi"
    ],
    "critAdd": 0,
    "critMultAdd": 0,
    "dmg": [
-    12,
-    16,
-    21,
-    28,
-    36
+    11,
+    15,
+    20,
+    26,
+    33
    ],
    "cooldown": [
-    3.2,
-    3.0,
-    2.8,
-    2.6,
-    2.4
-   ],
-   "count": [
-    2,
-    2,
-    3,
-    3,
-    4
-   ],
-   "duration": [
-    7,
-    7,
-    7.5,
-    8,
-    8.5
-   ],
-   "rate": [
+    0.85,
     0.8,
     0.75,
     0.7,
-    0.65,
-    0.6
+    0.65
+   ],
+   "count": [
+    0,
+    0,
+    1,
+    1,
+    1
    ],
    "volley": [
     1,
@@ -10835,11 +10830,11 @@
     2
    ],
    "range": [
-    340,
-    350,
     360,
+    370,
     380,
-    400
+    395,
+    410
    ],
    "lifeAdd": 0,
    "color": "#4affd8",
@@ -10850,7 +10845,7 @@
    "kind": "star",
    "class": "ruh",
    "floatVisual": true,
-   "descNew": "Yıldız Çağıran'ın yanında süzülen gök küresi — düşmanların altına işaret koyar; işaretli yere gökten yıldız düşer.",
+   "descNew": "Yıldız Çağıran'ın yanında süzülen gök küresi — düşmanların altına işaret koyar; işaretli yere gökten yıldız düşer, tam altındaki düşman ağır darbe yer.",
    "descUp": [
     "Hasar +, +1 yıldız",
     "Daha sık çağırır",
@@ -10867,11 +10862,11 @@
     115
    ],
    "cooldown": [
-    3.0,
-    2.8,
-    2.6,
-    2.4,
-    2.2
+    1.3,
+    1.2,
+    1.12,
+    1.05,
+    0.98
    ],
    "volley": [
     1,
@@ -10881,13 +10876,13 @@
     3
    ],
    "areaR": [
-    46,
-    50,
-    54,
-    58,
-    64
+    36,
+    39,
+    42,
+    45,
+    50
    ],
-   "delay": 0.75,
+   "delay": 0.55,
    "range": 420,
    "areaAdd": 0,
    "color": "#ffd86a"

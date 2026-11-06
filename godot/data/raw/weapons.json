@@ -390,11 +390,11 @@
    "weapon": "zincir",
    "pas": "demir",
    "name": "Zindan Efendisi",
-   "desc": "Kancalı Zincir evrimleşir: bir kanca daha, daha sert çeker.",
+   "desc": "Kancalı Zincir evrimleşir: zincir cehennem aleviyle yanar, daha sert çeker.",
    "boost": {
     "dmg": 1.18,
     "cd": 0.9,
-    "volley": 1
+    "flame": 1
    }
   },
   "simyaci": {
@@ -412,7 +412,7 @@
    "weapon": "tarot",
    "pas": "keskinlik",
    "name": "Kader Çarkı",
-   "desc": "Kader Kartları evrimleşir: bir kart daha, daha sert kesik.",
+   "desc": "Kader Kartları evrimleşir: bir kart daha (ayrı düşmana), daha sert kesik.",
    "boost": {
     "dmg": 1.18,
     "cd": 0.92,
@@ -466,7 +466,7 @@
    "weapon": "totem",
    "pas": "kalp",
    "name": "Ata Ormanı",
-   "desc": "Ruh Totemi evrimleşir: bir totem daha, daha sık ateş.",
+   "desc": "Ruh Totemi evrimleşir: ruh ateşi daha sık, dev totem bir ateş daha atar.",
    "boost": {
     "dmg": 1.15,
     "count": 1,

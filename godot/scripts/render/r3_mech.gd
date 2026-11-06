@@ -8,7 +8,7 @@ extends Node3D
 const LINK_MAX := 260
 const LASH_SEG := 18
 
-var link: IMesh; var hook: IMesh
+var link: IMesh; var hook: IMesh; var chainFire: IMesh; var chainFireCore: IMesh; var chainHeat: IMesh
 var flask: IMesh; var flaskGlow: IMesh
 var card: IMesh; var cardGlow: IMesh
 var lash: IMesh; var lashGlow: IMesh; var lashTip: IMesh
@@ -54,6 +54,11 @@ func _init() -> void:
 	var hg := Geo.merge([Geo.cylinder(1.6, 1.9, 9.0, 8), Geo.torus(5.0, 1.5, 7, 16, PI * 1.2), Geo.cone(1.7, 5.0, 6)],
 		[Transform3D(rx, Vector3(0, 0, -3)), Transform3D(Basis(Vector3(0, 0, 1), PI * 0.6), Vector3(0, 0, 5.5)), Transform3D(Basis(Vector3(1, 0, 0), -0.6), Vector3(-4.2, 0, 8.5))])
 	hook = _im(hg, _lit("#7a7470", "#3a2010", 0.5, 0.3, 0.9), 8)
+	# Alevli Zincir: halkalara sarılan alev dilleri (dış turuncu + iç sarı çekirdek)
+	var tongue := Geo.merge([Geo.sphere(1.0, 8, 6), Geo.cone(1.0, 2.8, 8)], [Transform3D(), Transform3D(Basis(), Vector3(0, 1.4, 0))])
+	chainFire = _im(tongue, _add("#ff4a12"), LINK_MAX + 16)
+	chainFireCore = _im(tongue, _add("#ffb048"), LINK_MAX + 16)
+	chainHeat = _im(Geo.merge([Geo.box(1.0, 1.0, 1.0)], [Transform3D(Basis(), Vector3(0, 0, 0.5))]), _add("#ff3a0a"), 8)
 	# İKSİR: cam küre + boyun; dış hale
 	var fg := Geo.merge([Geo.sphere(6.0, 12, 9), Geo.cylinder(2.0, 2.4, 6.0, 8), Geo.cylinder(2.2, 2.0, 2.6, 8)],
 		[Transform3D(Basis(), Vector3.ZERO), Transform3D(Basis(), Vector3(0, 7, 0)), Transform3D(Basis(), Vector3(0, 11, 0))])
@@ -143,9 +148,12 @@ func update(g) -> void:
 	_waves(M, T)
 
 func _hooks(M: HeroMech, T: float) -> void:
-	var n := 0; var hn := 0
+	var n := 0; var hn := 0; var fn := 0
+	var FMAX: int = LINK_MAX + 16
+	var cn := 0
 	var s := M._src() if not M.hooks.is_empty() else Vector2.ZERO
 	for h in M.hooks:
+		var fl: int = int(h.get("fl", 0))
 		var ax: float = s.x; var az: float = s.y
 		var bx: float = h.x; var bz: float = h.y
 		var dx := bx - ax; var dz := bz - az
@@ -160,13 +168,49 @@ func _hooks(M: HeroMech, T: float) -> void:
 			# halkalar dönüşümlü: biri dik, biri yatık düzlemde (ikisi de zincir yönünü içerir)
 			var lb := Basis(Vector3.UP, yaw) * (Basis(Vector3.UP, PI / 2) if k % 2 == 0 else Basis(Vector3.RIGHT, PI / 2) * Basis(Vector3.FORWARD, PI / 2))
 			link.set_mat(n, lb, Vector3(ax + dx * u, y, az + dz * u))
-			link.set_col(n, 1, 1, 1, 1)
+			if fl > 0:
+				# akkor demir: ısınmış halka rengi
+				link.set_col(n, 1.6, 0.75, 0.35, 1)
+				if fn < FMAX - 8:
+					# her halkada titreşen, yukarı kıvrılan alev dili (rastgele faz, eğik)
+					var ph: float = T * 11.0 + float(k) * 2.3
+					var fs: float = (2.2 + 0.6 * fl) * (0.8 + 0.3 * sin(ph))
+					var hgt: float = 1.0 + 0.45 * sin(ph * 1.7 + 1.1)
+					var lean: float = 0.35 * sin(ph * 0.8)
+					var fx: float = ax + dx * u
+					var fz: float = az + dz * u
+					chainFire.set_trs(fn, fx, y + 1.0, fz, lean, yaw, 0.0, fs, fs * hgt * 1.5, fs)
+					chainFire.set_col(fn, 1, 1, 1, 0.7)
+					chainFireCore.set_trs(fn, fx, y + 0.6, fz, lean, yaw, 0.0, fs * 0.5, fs * hgt * 0.9, fs * 0.5)
+					chainFireCore.set_col(fn, 1, 1, 1, 0.85)
+					fn += 1
+			else:
+				link.set_col(n, 1, 1, 1, 1)
 			n += 1
 		if hn < 8:
 			hook.set_trs(hn, bx, 40.0, bz, 0.0, yaw + (PI if h.ret else 0.0), sin(T * 20.0) * 0.3, 1.3, 1.3, 1.3)
 			hook.set_col(hn, 1, 1, 1, 1)
 			hn += 1
-	link.commit(n); hook.commit(hn)
+		if fl > 0 and cn < 8 and L > 4.0:
+			# zincir boyunca kızgın ısı şeridi
+			var hw: float = 3.5 + 1.0 * fl
+			chainHeat.set_mat(cn, Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(hw, hw * 0.7, L)), Vector3(ax, 36.0, az))
+			chainHeat.set_col(cn, 1, 1, 1, 0.26 + 0.08 * sin(T * 17.0))
+			cn += 1
+		if fl > 0 and fn < FMAX:
+			# kancanın etrafında alev çiçeği (toplu yakma alanı): birkaç büyük dil
+			for j in 6:
+				if fn >= FMAX: break
+				var aj: float = float(j) * TAU / 6.0 + T * 2.0
+				var ph2: float = T * 12.0 + float(j) * 1.9
+				var rr: float = 5.0 + 2.0 * fl
+				var hs: float = (5.0 + 1.4 * fl) * (0.8 + 0.3 * sin(ph2))
+				chainFire.set_trs(fn, bx + cos(aj) * rr, 36.0, bz + sin(aj) * rr, 0.3 * sin(ph2), aj, 0.0, hs, hs * 1.8, hs)
+				chainFire.set_col(fn, 1, 1, 1, 0.75)
+				chainFireCore.set_trs(fn, bx + cos(aj) * rr * 0.5, 36.0, bz + sin(aj) * rr * 0.5, 0.0, aj, 0.0, hs * 0.5, hs * 1.1, hs * 0.5)
+				chainFireCore.set_col(fn, 1, 1, 1, 0.9)
+				fn += 1
+	link.commit(n); hook.commit(hn); chainFire.commit(fn); chainFireCore.commit(fn); chainHeat.commit(cn)
 
 func _flasks(M: HeroMech, T: float) -> void:
 	var n := 0
@@ -306,13 +350,14 @@ func _totems(M: HeroMech, T: float) -> void:
 		var r: float = t.rise
 		var e2 := 1.0 - pow(1.0 - r, 3.0)
 		var fade := minf(1.0, t.life / 0.5)
-		totem.set_trs(n, t.x, -60.0 * (1.0 - e2), t.y, 0.0, 0.0, 0.0, 1.0, e2 * fade + 0.01, 1.0)
+		var TS := 1.6
+		totem.set_trs(n, t.x, -90.0 * (1.0 - e2), t.y, 0.0, 0.0, 0.0, TS, (e2 * fade + 0.01) * TS, TS)
 		totem.set_col(n, 1, 1, 1, 1)
 		var gk: float = (0.5 + 0.5 * t.glow + 0.15 * sin(T * 6.0)) * fade
 		for i in 3:
 			for sx in [-2.6, 2.6]:
 				if en >= 48: break
-				totemEye.set_ys(en, t.x + sx, (9.0 + i * 14.5) * e2, t.y + 7.6 - i * 0.6, 0.0, 1.5 + t.glow, 1.5 + t.glow, 1.5)
+				totemEye.set_ys(en, t.x + sx * TS, (9.0 + i * 14.5) * e2 * TS, t.y + (7.6 - i * 0.6) * TS, 0.0, 2.2 + t.glow, 2.2 + t.glow, 2.2)
 				totemEye.set_col(en, 0.3 * gk, 1.0 * gk, 0.85 * gk, 1)
 				en += 1
 		n += 1
