@@ -881,7 +881,8 @@ func _tick_songs(dt: float) -> void:
 			if absf(JS.wrap_pi(atan2(dy, dx) - s.ang)) > half: continue
 			s.hit[iid] = true
 			_hit(e, s.dmg, atan2(dy, dx), 50.0)
-			if not e.isBoss and s.cmax > 0:
+			# iri düşmanlar (dev/muhafız/kral) ve elitler büyülenmez: kahramana yürümeye devam eder
+			if not e.isBoss and not e.elite and e.knockRes > 0.5 and s.cmax > 0:
 				s.cmax -= 1
 				e.charmT = maxf(e.charmT, s.charm)
 				e.charmCd = 0.2

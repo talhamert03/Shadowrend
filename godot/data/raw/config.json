@@ -9960,11 +9960,11 @@
     99
    ],
    "cooldown": [
-    1.1,
-    1.02,
-    0.94,
-    0.86,
-    0.78
+    1.45,
+    1.33,
+    1.21,
+    1.09,
+    0.97
    ],
    "speed": 640,
    "volley": [
@@ -11339,5 +11339,568 @@
  },
  "xpToNext": {
   "__fn": "xpToNext"
+ },
+ "HERO_SKILLS":{
+  "seher": [
+   {
+    "id": "seher_m",
+    "tier": "orta",
+    "name": "Işık Halkası",
+    "desc": "Etrafına kutsal bir ışık halkası yayar, yakındaki düşmanlara hasar verir.",
+    "kind": "nova",
+    "cd": 9,
+    "dmg": 34,
+    "r": 115,
+    "c": "#ffe08a",
+    "en": [
+     "Halo of Light",
+     "Releases a ring of holy light that damages nearby enemies."
+    ],
+    "icon": "skill_seher_m"
+   }
+  ],
+  "kralice": [
+   {
+    "id": "kralice_m",
+    "tier": "orta",
+    "name": "Gece Dalgası",
+    "desc": "Karanlık bir dalga yayar; yakındaki düşmanlara hasar verip yavaşlatır.",
+    "kind": "nova",
+    "cd": 10,
+    "dmg": 30,
+    "r": 125,
+    "slow": 2.0,
+    "c": "#b07aff",
+    "en": [
+     "Night Wave",
+     "Unleashes a dark wave that damages and slows nearby enemies."
+    ],
+    "icon": "skill_kralice_m"
+   }
+  ],
+  "zehra": [
+   {
+    "id": "zehra_m",
+    "tier": "orta",
+    "name": "Bataklık Gazı",
+    "desc": "Zehirli bir gaz bulutu patlatır; çevredeki düşmanları yakar ve yavaşlatır.",
+    "kind": "nova",
+    "cd": 10,
+    "dmg": 28,
+    "r": 130,
+    "slow": 2.5,
+    "c": "#7dff6a",
+    "en": [
+     "Bog Gas",
+     "Bursts a toxic cloud that burns and slows enemies around you."
+    ],
+    "icon": "skill_zehra_m"
+   }
+  ],
+  "prizma": [
+   {
+    "id": "prizma_m",
+    "tier": "orta",
+    "name": "Prizma Kırılması",
+    "desc": "Beş renkli ışın, en yakın beş düşmana aynı anda saplanır.",
+    "kind": "bolts",
+    "cd": 8,
+    "dmg": 22,
+    "n": 5,
+    "c": "#9af5ff",
+    "en": [
+     "Prism Shatter",
+     "Five rainbow rays strike the five nearest enemies at once."
+    ],
+    "icon": "skill_prizma_m"
+   }
+  ],
+  "kanrahip": [
+   {
+    "id": "kanrahip_m",
+    "tier": "orta",
+    "name": "Kan Bağı",
+    "desc": "Dört düşmandan kan çeker; her vuruş seni biraz iyileştirir.",
+    "kind": "bolts",
+    "cd": 9,
+    "dmg": 20,
+    "n": 4,
+    "heal": 0.015,
+    "c": "#ff3a5a",
+    "en": [
+     "Blood Bond",
+     "Drains blood from four enemies; every hit heals you a little."
+    ],
+    "icon": "skill_kanrahip_m"
+   }
+  ],
+  "gecedans": [
+   {
+    "id": "gecedans_m",
+    "tier": "orta",
+    "name": "Hilal Fırtınası",
+    "desc": "Altı hilal bıçağı en yakın düşmanlara fırlatılır.",
+    "kind": "bolts",
+    "cd": 8,
+    "dmg": 18,
+    "n": 6,
+    "c": "#c9b6ff",
+    "en": [
+     "Crescent Storm",
+     "Hurls six crescent blades at the nearest enemies."
+    ],
+    "icon": "skill_gecedans_m"
+   }
+  ],
+  "kukla": [
+   {
+    "id": "kukla_m",
+    "tier": "orta",
+    "name": "İp Ağı",
+    "desc": "Çevrendeki düşmanları iplerle sarar; hasar verir ve uzun süre yavaşlatır.",
+    "kind": "nova",
+    "cd": 10,
+    "dmg": 24,
+    "r": 135,
+    "slow": 3.0,
+    "c": "#ff8ad8",
+    "en": [
+     "String Web",
+     "Wraps nearby enemies in strings, damaging and slowing them for a long time."
+    ],
+    "icon": "skill_kukla_m"
+   }
+  ],
+  "cellat": [
+   {
+    "id": "cellat_m",
+    "tier": "orta",
+    "name": "İnfaz Darbesi",
+    "desc": "Yakındaki en güçlü düşmana gökten ağır bir balta indirir.",
+    "kind": "strike",
+    "cd": 9,
+    "dmg": 95,
+    "r": 60,
+    "pick": "strong",
+    "fx": "judge",
+    "c": "#ff5a3a",
+    "en": [
+     "Execution Blow",
+     "Drops a heavy axe from above onto the strongest nearby enemy."
+    ],
+    "icon": "skill_cellat_m"
+   }
+  ],
+  "kemik": [
+   {
+    "id": "kemik_m",
+    "tier": "orta",
+    "name": "Kemik Çemberi",
+    "desc": "Etrafında kemik kırıkları patlatır, yakındaki düşmanlara hasar verir.",
+    "kind": "nova",
+    "cd": 9,
+    "dmg": 32,
+    "r": 120,
+    "c": "#e8e2c8",
+    "en": [
+     "Bone Ring",
+     "Bursts bone shards around you, damaging nearby enemies."
+    ],
+    "icon": "skill_kemik_m"
+   }
+  ],
+  "ayaz": [
+   {
+    "id": "ayaz_m",
+    "tier": "orta",
+    "name": "Buz Nefesi",
+    "desc": "Çevresindeki düşmanları kısa süre dondurur ve hasar verir.",
+    "kind": "frost",
+    "cd": 11,
+    "dmg": 22,
+    "r": 125,
+    "freeze": 1.4,
+    "c": "#9fe6ff",
+    "en": [
+     "Frost Breath",
+     "Briefly freezes and damages enemies around you."
+    ],
+    "icon": "skill_ayaz_m"
+   }
+  ],
+  "totem": [
+   {
+    "id": "totem_m",
+    "tier": "orta",
+    "name": "Ruh Zinciri",
+    "desc": "Ruh şimşeği beş düşman arasında sıçrar.",
+    "kind": "chain",
+    "cd": 9,
+    "dmg": 24,
+    "n": 5,
+    "c": "#7dffb0",
+    "en": [
+     "Spirit Chain",
+     "Spirit lightning jumps between five enemies."
+    ],
+    "icon": "skill_totem_m"
+   }
+  ],
+  "simsek": [
+   {
+    "id": "simsek_z",
+    "tier": "zayıf",
+    "name": "Statik Kıvılcım",
+    "desc": "İki küçük şimşek en yakın düşmanlara çarpar.",
+    "kind": "bolts",
+    "cd": 5,
+    "dmg": 16,
+    "n": 2,
+    "c": "#9fdcff",
+    "en": [
+     "Static Spark",
+     "Two small sparks strike the nearest enemies."
+    ],
+    "icon": "skill_simsek_z"
+   },
+   {
+    "id": "simsek_m",
+    "tier": "orta",
+    "name": "Gök Gürültüsü",
+    "desc": "En kalabalık düşman grubunun üstüne yıldırım düşürür.",
+    "kind": "strike",
+    "cd": 10,
+    "dmg": 48,
+    "r": 105,
+    "pick": "crowd",
+    "fx": "storm",
+    "c": "#9fdcff",
+    "en": [
+     "Thunderclap",
+     "Calls lightning down on the densest group of enemies."
+    ],
+    "icon": "skill_simsek_m"
+   }
+  ],
+  "gokalev": [
+   {
+    "id": "gokalev_z",
+    "tier": "zayıf",
+    "name": "Kor Saçma",
+    "desc": "İki düşmanın üstünde küçük alev patlamaları oluşur.",
+    "kind": "flame",
+    "cd": 5,
+    "dmg": 16,
+    "n": 2,
+    "r": 45,
+    "c": "#ff8a2a",
+    "en": [
+     "Ember Burst",
+     "Small flame bursts erupt on two enemies."
+    ],
+    "icon": "skill_gokalev_z"
+   },
+   {
+    "id": "gokalev_m",
+   "fx": "flame",
+    "tier": "orta",
+    "name": "Alev Halkası",
+    "desc": "Etrafında yanan bir alev halkası patlar.",
+    "kind": "nova",
+    "cd": 10,
+    "dmg": 40,
+    "r": 130,
+    "c": "#ff7a1a",
+    "en": [
+     "Ring of Fire",
+     "A blazing ring of fire explodes around you."
+    ],
+    "icon": "skill_gokalev_m"
+   }
+  ],
+  "korsan": [
+   {
+    "id": "korsan_z",
+    "tier": "zayıf",
+    "name": "Tüfek Atışı",
+    "desc": "En yakın düşmana sert bir tüfek mermisi atar.",
+    "kind": "bolts",
+    "cd": 5,
+    "dmg": 30,
+    "n": 1,
+    "c": "#ffd27a",
+    "en": [
+     "Musket Shot",
+     "Fires a heavy musket ball at the nearest enemy."
+    ],
+    "icon": "skill_korsan_z"
+   },
+   {
+    "id": "korsan_m",
+    "tier": "orta",
+    "name": "Top Yağmuru",
+    "desc": "Üç gülle düşman kalabalığının üstüne düşer.",
+    "kind": "strike",
+    "cd": 11,
+    "dmg": 34,
+    "r": 80,
+    "n": 3,
+    "pick": "crowd",
+    "fx": "flame",
+    "c": "#ff9a3a",
+    "en": [
+     "Cannon Rain",
+     "Three cannonballs rain down on enemy crowds."
+    ],
+    "icon": "skill_korsan_m"
+   }
+  ],
+  "demirhan": [
+   {
+    "id": "demirhan_z",
+   "fx": "flame",
+    "tier": "zayıf",
+    "name": "Kıvılcım Saçağı",
+    "desc": "Çevrene küçük bir kıvılcım dalgası yayar.",
+    "kind": "nova",
+    "cd": 5,
+    "dmg": 18,
+    "r": 85,
+    "c": "#ffc04a",
+    "en": [
+     "Spark Fringe",
+     "Sends a small wave of sparks around you."
+    ],
+    "icon": "skill_demirhan_z"
+   },
+   {
+    "id": "demirhan_m",
+    "tier": "orta",
+    "name": "Örs Düşüşü",
+    "desc": "En yakın düşmanın üstüne dev bir örs düşer.",
+    "kind": "strike",
+    "cd": 10,
+    "dmg": 60,
+    "r": 100,
+    "pick": "near",
+    "fx": "judge",
+    "c": "#ffb03a",
+    "en": [
+     "Anvil Drop",
+     "A giant anvil falls on the nearest enemy."
+    ],
+    "icon": "skill_demirhan_m"
+   }
+  ],
+  "zaman": [
+   {
+    "id": "zaman_z",
+    "tier": "zayıf",
+    "name": "Zaman Kayması",
+    "desc": "Üç saniye boyunca daha hızlı saldırırsın.",
+    "kind": "haste",
+    "cd": 9,
+    "t": 3.0,
+    "amt": 0.25,
+    "c": "#ffd27a",
+    "en": [
+     "Time Slip",
+     "You attack faster for three seconds."
+    ],
+    "icon": "skill_zaman_z"
+   },
+   {
+    "id": "zaman_m",
+    "tier": "orta",
+    "name": "Durgun An",
+    "desc": "Çevrendeki düşmanları yavaşlatır ve hasar verir.",
+    "kind": "nova",
+    "cd": 11,
+    "dmg": 30,
+    "r": 170,
+    "slow": 3.0,
+    "c": "#ffe9a0",
+    "en": [
+     "Still Moment",
+     "Slows and damages enemies around you."
+    ],
+    "icon": "skill_zaman_m"
+   }
+  ],
+  "ejder": [
+   {
+    "id": "ejder_z",
+    "tier": "zayıf",
+    "name": "Ejder Nefesi",
+    "desc": "Üç düşmanın üstünde ejder alevi patlar.",
+    "kind": "flame",
+    "cd": 6,
+    "dmg": 17,
+    "n": 3,
+    "r": 45,
+    "c": "#ff5a2a",
+    "en": [
+     "Dragon Breath",
+     "Dragon fire bursts on three enemies."
+    ],
+    "icon": "skill_ejder_z"
+   },
+   {
+    "id": "ejder_m",
+   "fx": "flame",
+    "tier": "orta",
+    "name": "Pul Kalkanı",
+    "desc": "Canının bir kısmını yeniler ve etrafına ateş yayar.",
+    "kind": "nova",
+    "cd": 12,
+    "dmg": 28,
+    "r": 115,
+    "heal": 0.08,
+    "c": "#ff8a4a",
+    "en": [
+     "Scale Shield",
+     "Restores some health and spreads fire around you."
+    ],
+    "icon": "skill_ejder_m"
+   }
+  ],
+  "kuzgun": [
+   {
+    "id": "kuzgun_z",
+    "tier": "zayıf",
+    "name": "Kuzgun Gagası",
+    "desc": "Üç kuzgun en yakın düşmanlara dalar.",
+    "kind": "bolts",
+    "cd": 6,
+    "dmg": 14,
+    "n": 3,
+    "c": "#b9a8ff",
+    "en": [
+     "Raven Peck",
+     "Three ravens dive at the nearest enemies."
+    ],
+    "icon": "skill_kuzgun_z"
+   },
+   {
+    "id": "kuzgun_m",
+    "tier": "orta",
+    "name": "Kara Kanatlar",
+    "desc": "Karanlık enerji altı düşman arasında sıçrar.",
+    "kind": "chain",
+    "cd": 10,
+    "dmg": 26,
+    "n": 6,
+    "c": "#a07aff",
+    "en": [
+     "Black Wings",
+     "Dark energy jumps between six enemies."
+    ],
+    "icon": "skill_kuzgun_m"
+   }
+  ],
+  "karadelik": [
+   {
+    "id": "karadelik_z",
+    "tier": "zayıf",
+    "name": "Boşluk Kıvılcımı",
+    "desc": "İki boşluk küresi en yakın düşmanlara çarpar.",
+    "kind": "bolts",
+    "cd": 5,
+    "dmg": 16,
+    "n": 2,
+    "c": "#c07aff",
+    "en": [
+     "Void Spark",
+     "Two void orbs strike the nearest enemies."
+    ],
+    "icon": "skill_karadelik_z"
+   },
+   {
+    "id": "karadelik_m",
+    "tier": "orta",
+    "name": "Olay Ufku",
+    "desc": "Düşmanları bir noktaya çeker ve hasar verir.",
+    "kind": "pull",
+    "cd": 11,
+    "dmg": 34,
+    "r": 170,
+    "c": "#9a4aff",
+    "en": [
+     "Event Horizon",
+     "Pulls enemies to one point and damages them."
+    ],
+    "icon": "skill_karadelik_m"
+   }
+  ],
+  "yildiz": [
+   {
+    "id": "yildiz_z",
+    "tier": "zayıf",
+    "name": "Yıldız Tozu",
+    "desc": "Üç parlak yıldız kıvılcımı en yakın düşmanlara uçar.",
+    "kind": "bolts",
+    "cd": 5,
+    "dmg": 15,
+    "n": 3,
+    "c": "#ffe9a0",
+    "en": [
+     "Stardust",
+     "Three bright star sparks fly at the nearest enemies."
+    ],
+    "icon": "skill_yildiz_z"
+   },
+   {
+    "id": "yildiz_m",
+    "tier": "orta",
+    "name": "Takımyıldız",
+    "desc": "Üç yıldız, düşman kalabalıklarının üstüne düşer.",
+    "kind": "strike",
+    "cd": 11,
+    "dmg": 36,
+    "r": 85,
+    "n": 3,
+    "pick": "crowd",
+    "fx": "storm",
+    "c": "#ffe08a",
+    "en": [
+     "Constellation",
+     "Three stars fall onto enemy crowds."
+    ],
+    "icon": "skill_yildiz_m"
+   }
+  ],
+  "siren": [
+   {
+    "id": "siren_z",
+    "tier": "zayıf",
+    "name": "Dalga Şifası",
+    "desc": "Canının bir kısmını yeniler.",
+    "kind": "heal",
+    "cd": 12,
+    "heal": 0.06,
+    "c": "#5affe0",
+    "en": [
+     "Healing Tide",
+     "Restores some of your health."
+    ],
+    "icon": "skill_siren_z"
+   },
+   {
+    "id": "siren_m",
+    "tier": "orta",
+    "name": "Girdap",
+    "desc": "Düşmanları bir girdaba çeker ve hasar verir.",
+    "kind": "pull",
+    "cd": 11,
+    "dmg": 30,
+    "r": 160,
+    "c": "#3adcff",
+    "en": [
+     "Whirlpool",
+     "Drags enemies into a whirlpool and damages them."
+    ],
+    "icon": "skill_siren_m"
+   }
+  ]
  }
 }

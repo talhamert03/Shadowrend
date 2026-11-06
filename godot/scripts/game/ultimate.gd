@@ -221,6 +221,7 @@ func _ward_push(x: float, y: float, r: float) -> void:
 			e.x = x + ux * rr
 			e.y = y + uy * rr
 		e.kx += ux * 240.0
+		e.pushT = 0.5
 		e.ky += uy * 240.0
 		_hit(e, atan2(uy, ux), 520.0)
 

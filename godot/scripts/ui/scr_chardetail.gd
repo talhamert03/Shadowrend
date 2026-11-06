@@ -240,6 +240,14 @@ func _build_panel(c: Dictionary, rar: Dictionary) -> float:
 	var U: Dictionary = Ultimate.ULT_ID.get(id, {})
 	var ut: Dictionary = Ultimate.ULT_TIER[clampi(int(c.get("rarity", 1)), 1, 4)]
 	y = _info_box(panel, y, "SÜPER · " + str(ut.get("label", "")), str(U.get("name", "")), str(U.get("desc", "")), null, Color(str(U.get("c2", "#9a6aff"))))
+	# ── ⑤b nadir kahraman ek yetenekleri (epik: orta · efsanevi: zayıf + orta) ──
+	for sk in D.HERO_SKILLS.get(id, []):
+		var sd: Dictionary = sk
+		var ip := "res://assets/ui/art/skill/" + str(sd.get("icon", "")) + ".png"
+		var stex: Texture2D = load(ip) if ResourceLoader.exists(ip) else null
+		var lab := "EK YETENEK · ORTA" if str(sd.get("tier", "")) == "orta" else "EK YETENEK · ZAYIF"
+		var dsc := str(sd.get("desc", ""))
+		y = _info_box(panel, y, lab, str(sd.get("name", "")), dsc, stex, Color(str(sd.get("c", "#ffffff"))))
 	# ── ⑥ yetenekler ──
 	var un: Array = D.signatureUnlocks(id, lvl if owned else 0)
 	_txt(panel, "SEVİYEYLE AÇILAN YETENEKLER", 14, YEL, UIK.ink_stroke(1.2, 1.6), Vector2(14, y), PW - 28)

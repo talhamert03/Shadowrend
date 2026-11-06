@@ -112,6 +112,8 @@ var ultRing: ColorRect
 var ultCore: ColorRect
 var ultIcon: Draw
 var ultLab: UIText
+var skBar: Draw
+var _skTex := {}
 var ringMat: ShaderMaterial
 var coreMat: ShaderMaterial
 var _ultPc := -1
@@ -302,6 +304,7 @@ func _build_row() -> void:
 	vMoney = _txt(root).style(false, 1000, 24, 1.0, "#ffffff", UIK.ink_stroke(2.0, 2.0), 24)
 	vMoney.anchor_x = 1.0
 	vMoney.text = "0"
+	vMoney.visible = false   # savaş içi materyal sayacı kaldırıldı (kafa karıştırıyordu)
 	tWave = _txt(root).style(false, 1000, 13, 1.4, INK, "", 13)
 	tWave.anchor_x = 0.5
 	ghost = Draw.new(_draw_ghost)
@@ -368,6 +371,10 @@ func _build_ult() -> void:
 	ultLab.anchor_x = 0.5
 	ultLab.position = Vector2(37, 76)
 	ultLab.text = "SÜPER"
+	# nadir kahraman yetenekleri: süper düğmesinin solunda küçük yuvarlak ikonlar (bekleme dilimiyle)
+	skBar = Draw.new(_draw_skills)
+	skBar.size = Vector2(150, 74)
+	root.add_child(skBar)
 
 func _build_banner() -> void:
 	banner = Control.new()
@@ -468,6 +475,7 @@ func _layout() -> void:
 	pauseImg.position = Vector2(W - sar - 10 - 42 + pm.get("ox", -12), sat + 66 + pm.get("oy", -12))
 	# süper: sağ 16, üst H − sab − 122
 	ult.position = Vector2(W - sar - 16 - 74, H - sab - 122)
+	skBar.position = Vector2(ult.position.x - 150 - 8, ult.position.y)
 	# katliam rozeti: sol sal+10, üst %36 (#hud)
 	cb.position = Vector2(sal + 10 + _cbX, _hudH * 0.36)
 	# pankart: top max(%32, sat+150)
@@ -559,20 +567,6 @@ func _draw_comic(c: Control) -> void:
 	c.draw_circle(bc + Vector2(-6, -7), 5, Color(1, 1, 1, 0.55))
 	# SV etiketi (rozetin altında küçük bant)
 	c.draw_rect(Rect2(bc.x - 13, bc.y + 18, 26, 11), INK)
-	# MATERYAL: eğik koyu hap + boyanmış gem
-	var mw := 92.0
-	var mr := Rect2(R - mw, cellY - 1, mw, 32)
-	var pts := PackedVector2Array([mr.position + Vector2(10, 0), mr.position + Vector2(mw, 0), mr.position + Vector2(mw - 10, 32), mr.position + Vector2(0, 32)])
-	var sh := PackedVector2Array()
-	for q in pts: sh.append(q + Vector2(2, 4))
-	c.draw_colored_polygon(sh, INK)
-	c.draw_colored_polygon(pts, INK)
-	var inner := PackedVector2Array([pts[0] + Vector2(2, 3), pts[1] + Vector2(-3, 3), pts[2] + Vector2(-2, -3), pts[3] + Vector2(3, -3)])
-	c.draw_colored_polygon(inner, Color("#3b2a5c"))
-	c.draw_line(pts[0] + Vector2(6, 6), pts[1] + Vector2(-8, 6), Color(1, 1, 1, 0.18), 2.0)
-	if _gem_tex == null: _gem_tex = load("res://assets/fx/currency/gem.png")
-	var gs := 30.0
-	c.draw_texture_rect(_gem_tex, Rect2(Vector2(mr.position.x - 10, mr.position.y + 1), Vector2(gs, gs)), false)
 	# orta: dalga şeridi + süre plakası
 	var cx := L + cw * 0.5
 	var pw := 132.0
@@ -1059,6 +1053,7 @@ func set_nm_run(on: bool) -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	if skBar and g and g.skills and not g.skills.list.is_empty(): skBar.queue_redraw()
 	var r := get_viewport().get_visible_rect().size
 	if r.x != W or r.y != H: _layout()
 	var rm: bool = Settings.data.get("rm", false)
@@ -1213,3 +1208,44 @@ func _tick_toast() -> void:
 			return
 	toastBox.modulate.a = k
 	toastBox.position = Vector2((W - toastBox.size.x) * 0.5, H - sa[2] - 110 - 36 + 8 * (1 - k))
+
+func _draw_skills(c: Control) -> void:
+	if g == null or g.skills == null: return
+	var L: Array = g.skills.list
+	var n := L.size()
+	for i in n:
+		var s: Dictionary = L[i]
+		var d: Dictionary = s.def
+		var R := 23.0
+		var ctr := Vector2(150 - R - 4 - i * (2 * R + 12), 37 + 10)
+		var col := Color(str(d.get("c", "#ffffff")))
+		var ready: bool = s.cd <= 0.45
+		c.draw_circle(ctr + Vector2(0, 3), R + 3, INK)
+		c.draw_circle(ctr, R + 3, INK)
+		c.draw_circle(ctr, R, col.darkened(0.72))
+		var id := str(d.get("icon", ""))
+		if not _skTex.has(id):
+			var pth := "res://assets/ui/art/skill/" + id + ".png"
+			_skTex[id] = load(pth) if ResourceLoader.exists(pth) else null
+		var tx: Texture2D = _skTex[id]
+		if tx: c.draw_texture_rect(tx, Rect2(ctr - Vector2(R, R) * 0.92, Vector2(R, R) * 1.84), false)
+		# bekleme dilimi: kalan süre kadar koyu pasta
+		var f: float = clampf(s.cd / maxf(0.1, s.max), 0.0, 1.0)
+		if f > 0.02:
+			var pts := PackedVector2Array([ctr])
+			var seg := 24
+			for k in seg + 1:
+				var a := -PI * 0.5 + TAU * f * float(k) / seg
+				pts.append(ctr + Vector2(cos(a), sin(a)) * R)
+			c.draw_colored_polygon(pts, Color(0.02, 0.01, 0.04, 0.62))
+		# kenar: hazırken nadirlik renginde parlar, kullanılınca kısa parlama
+		var fl: float = clampf(s.flash / 0.6, 0.0, 1.0)
+		c.draw_arc(ctr, R + 1.0, 0, TAU, 32, col.lerp(Color.WHITE, fl) if (ready or fl > 0) else Color(0.35, 0.3, 0.42), 2.6 + fl * 2.0, true)
+		if fl > 0.0: c.draw_arc(ctr, R + 4 + (1.0 - fl) * 10.0, 0, TAU, 32, Color(col.r, col.g, col.b, fl), 2.0, true)
+		# kademe rozeti (Z/O)
+		var tier := str(d.get("tier", ""))
+		var tg := "O" if tier == "orta" else "Z"
+		var bp := ctr + Vector2(R * 0.72, R * 0.72)
+		c.draw_circle(bp, 8.5, INK)
+		c.draw_circle(bp, 6.8, Color("#ffb03a") if tg == "O" else Color("#9fdcff"))
+		c.draw_string(UIK.font(false, 900), bp + Vector2(-3.6, 3.8), tg, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, INK)

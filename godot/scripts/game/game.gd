@@ -95,6 +95,7 @@ var objectives: ObjectiveManager
 var powerups: PowerupManager
 var fieldChests: FieldChests
 var ult: Ultimate
+var skills: HeroSkills
 var vfx: Vfx
 var events: WorldEvents
 var mode: MissionMode
@@ -309,6 +310,7 @@ func _ready() -> void:
 	powerups = PowerupManager.new(self)
 	fieldChests = FieldChests.new(self)
 	ult = Ultimate.new(self)
+	skills = HeroSkills.new(self)
 	vfx = Vfx.new(self)
 	events = WorldEvents.new(self)
 	mode = MissionMode.new(self)
@@ -560,6 +562,7 @@ func _start_run_now(wi: int, mi: int) -> void:
 	var cdef := char_def()
 	player.charId = meta.selectedChar
 	ult.reset(cdef.get("rarity"), meta.selectedChar)
+	skills.reset(str(meta.selectedChar))
 	vfx.reset()
 	events.reset()
 	mode.begin("survive" if (towerRun or sealRun) else String(msn.get("type", "survive")))
@@ -855,6 +858,7 @@ func game_over() -> void:
 			var d := maxf(1.0, sqrt(dx * dx + dy * dy))
 			var k: float = (1.0 - d / 300.0) * 900.0 * e.knockRes
 			e.kx += dx / d * k
+			e.pushT = 0.8
 			e.ky += dy / d * k
 			e.stopT = maxf(e.stopT, 0.8)
 			e.stopMv = true
@@ -1909,7 +1913,7 @@ func update(dt: float) -> void:
 	# geliştirici: ultauto=sn — süper yetenek her sn'de bir dolu ve ateşlenir (efekt testi)
 	if _ultauto > 0.0 and fmod(time, _ultauto) < dt and time > 2.0:
 		ult.charge = Ultimate.ULT_NEED; ult.ready = true; ult.fire()
-	Prof.b("ult.update"); ult.update(dt); vfx.update(dt); Prof.e("ult.update")
+	Prof.b("ult.update"); ult.update(dt); skills.update(dt); vfx.update(dt); Prof.e("ult.update")
 	Prof.b("events.update"); events.update(dt); Prof.e("events.update")
 	Prof.b("mode.update"); mode.update(dt); Prof.e("mode.update")
 	Ftue.poll(self)

@@ -772,15 +772,28 @@ func fire_gun(id: String) -> void:
 	# hedefin yanından geçip ıskalamasın); yeterli düşman yoksa hedefe yakınsayan dar açı
 	var aimL: Array = []
 	var fanW: bool = JS.truthy(Wd.get("fan")) or id in ["sacma", "barut", "hilal"]
-	if volley > 1 and not fanW and not JS.truthy(Wd.get("mine")) and not JS.truthy(Wd.get("well")) and not JS.truthy(Wd.get("boomer")):
+	var fanSp := spread
+	if volley > 1 and not JS.truthy(Wd.get("mine")) and not JS.truthy(Wd.get("well")) and not JS.truthy(Wd.get("boomer")):
 		var rngA: float = float(Wd.range[L]) if Wd.get("range") is Array else 520.0
 		aimL = aim_targets(ox, oy, volley, rngA + 40.0)
+		if fanW and nearest:
+			# yelpaze (saçma/barut/hilal): yan saçmalar hedefin genişliğinin dışına taşmasın —
+			# açı, hedef mesafesinde gövdeyi saracak kadar daralır (uzaktaki düşmanda ıskalama yok)
+			var dT := maxf(40.0, sqrt(nearestD2))
+			var half := (volley - 1) / 2.0
+			var fit := atan2(float(nearest.radius) * 1.25 + 6.0, dT) / half
+			fanSp = minf(spread, maxf(0.03, fit))
 	for v in volley:
-		var off := (v - (volley - 1) / 2.0) * spread if volley > 1 else 0.0
-		var jitter := (randf() - 0.5) * spread * 0.3
+		var off := (v - (volley - 1) / 2.0) * fanSp if volley > 1 else 0.0
+		var jitter := (randf() - 0.5) * fanSp * 0.3
 		var sh := ang + off + jitter
 		if not aimL.is_empty():
-			if v < aimL.size():
+			if fanW:
+				# yelpaze içinde kalan farklı bir düşman varsa o saçma ona yönelir
+				if v > 0 and v < aimL.size():
+					var ta := atan2(aimL[v].y - oy, aimL[v].x - ox)
+					if absf(JS.wrap_pi(ta - ang)) <= spread * (volley - 1) / 2.0 + 0.05: sh = ta
+			elif v < aimL.size():
 				sh = atan2(aimL[v].y - oy, aimL[v].x - ox) + (randf() - 0.5) * 0.03
 			else:
 				sh = ang + (v - (volley - 1) / 2.0) * minf(spread, 0.06)

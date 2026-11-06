@@ -189,7 +189,7 @@ class Enemy:
 	var pi := -1
 	var x := 0.0; var y := 0.0; var hp := 0.0; var maxHp := 0.0; var speed := 0.0; var radius := 0.0
 	var dmg := 0.0; var xp := 0.0
-	var type := ""; var color := ""; var knockRes := 1.0; var flash := 0.0; var kx := 0.0; var ky := 0.0
+	var type := ""; var color := ""; var knockRes := 1.0; var flash := 0.0; var kx := 0.0; var ky := 0.0; var pushT := 0.0
 	var atkAnim := 0.0; var mvAmt := 0.0
 	var seed := 0.0; var bob := 0.0; var obCd := 0.0; var swordId := 0; var isBoss := false
 	var hitT := 0.0; var hitD := 0.15; var stopT := 0.0; var stopCd := 0.0; var stopMv := false

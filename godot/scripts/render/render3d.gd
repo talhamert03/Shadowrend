@@ -510,6 +510,9 @@ func load_character(char_id: String) -> void:
 	var inst: Node3D = ps.instantiate()
 	playerRoot.add_child(inst)
 	_heroInst = inst
+	# HD: kahraman küçük görünse de otomatik LOD ağı sadeleştirmesin (her zaman tam detay)
+	for gi in inst.find_children("*", "GeometryInstance3D", true, false):
+		(gi as GeometryInstance3D).lod_bias = 128.0
 	# GLB kökü → hero_<id> grubu → ölçekli/konumlu model düğümü (bake'te uygulandı)
 	var grp := inst.find_child("hero_" + char_id, true, false) as Node3D
 	heroMesh = (grp.get_child(0) as Node3D) if grp and grp.get_child_count() > 0 else inst

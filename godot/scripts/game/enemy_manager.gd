@@ -105,7 +105,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0
-	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.frost = 0; e.frozenT = 0.0; e.charmT = 0.0; e.charmCd = 0.0; e.thief = false; e.duelTok = 0
+	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.frost = 0; e.frozenT = 0.0; e.charmT = 0.0; e.charmCd = 0.0; e.pushT = 0.0; e.thief = false; e.duelTok = 0
 	e.thiefStep = 0
 	e.txt = null; e.txtT = -9
 	e.seed = randf() * 6.283
@@ -605,8 +605,8 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 				Combat.apply_hit(g, vic, maxf(2.0, e.dmg * 0.45), atan2(vic.y - e.y, vic.x - e.x), 40.0, 0.0, false)
 				if g.in_view(e.x, e.y, 40): g.spawn_burst(vic.x, vic.y - 8, "#ff8ad8", 4, 120, 2.0, 0.3, true)
 		else:
-			mvx = -dx / maxf(sqrt(d2), 1.0) * e.speed * 0.5
-			mvy = -dy / maxf(sqrt(d2), 1.0) * e.speed * 0.5
+			# yakında saldıracak düşman yok: büyü çözülür, kahramana yürümeye devam eder
+			e.charmT = 0.0
 		if g.in_view(e.x, e.y, 40) and randf() < dt * 3.0:
 			g.spawn_burst(e.x, e.y - e.radius - 18, "#ff8ad8", 1, 30, 2.6, 0.6, true)
 	# donmuş (Ayaz Gelini): kıpırdamaz
@@ -614,15 +614,27 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		mvx = 0.0; mvy = 0.0
 		e.stopT = maxf(e.stopT, 0.05)
 	if e.stopMv:
+		# vuruş düşmanı yavaşlatmaz (yalnız itme yeteneklerinde: pushT)
 		if e.stopT > 0:
-			# vuruşta kısa yavaşlama (eskiden 0,2: yakın dövüşte düşman yerinde duruyor gibiydi)
-			mvx *= 0.55; mvy *= 0.55
+			if e.pushT > 0.0: mvx *= 0.55; mvy *= 0.55
 		else: e.stopMv = false
 	if e.slowT > 0.0:
 		e.slowT -= dt
 		mvx *= 0.5; mvy *= 0.5
 	e.mvAmt = absf(mvx) + absf(mvy)
 	e.kx *= 0.86; e.ky *= 0.86
+	if e.pushT > 0.0: e.pushT -= dt
+	elif (e.kx != 0.0 or e.ky != 0.0) and e.charmT <= 0.0 and e.frozenT <= 0.0 and (mvx != 0.0 or mvy != 0.0):
+		# sıradan vuruş geri itmesi düşmanı durdurmaz/geri yürütmez: kahramana doğru
+		# ilerleme hızı en az %60 kalır (yalnız yan sarsıntı serbest)
+		var ml := sqrt(mvx * mvx + mvy * mvy)
+		var ux := mvx / ml
+		var uy := mvy / ml
+		var fwd := (mvx + e.kx) * ux + (mvy + e.ky) * uy
+		var minF := ml * 0.6
+		if fwd < minF:
+			e.kx += ux * (minF - fwd)
+			e.ky += uy * (minF - fwd)
 	e.x += (mvx + e.kx) * dt
 	e.y += (mvy + e.ky) * dt
 	if _arOn:
@@ -843,6 +855,7 @@ func chain_blast(e: Ent.Enemy) -> void:
 		o.flash = D.FX.hitFlashTime; o.hurtAng = a; o.hitT = 0.2; o.hitD = 0.2; o.regenT = 0
 		var k: float = 280.0 * o.knockRes
 		o.kx += cos(a) * k; o.ky += sin(a) * k
+		o.pushT = 0.4
 		n += 1
 	if not g.in_view(e.x, e.y, 80): return
 	g.pools.rings.take().setup(e.x, e.y, R, 0.34, "#ffb45a")

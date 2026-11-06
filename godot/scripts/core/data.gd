@@ -32,6 +32,7 @@ var BATTLE_PASS_TIERS: Array
 var DEFAULT_CHAR: String = "sapanci"
 var STARTER_CHARS: Array = ["sapanci", "savasci"]   # yeni oyunda açık gelen sıradan (gri) kahramanlar
 var SIGNATURES: Dictionary
+var HERO_SKILLS: Dictionary
 var UNLOCK_ALL_CHARS := false
 var STONE_PACKS: Array
 var RUBY_EXCHANGE: Array
@@ -98,6 +99,7 @@ func _init() -> void:
 	DEFAULT_CHAR = c.get("DEFAULT_CHAR", "sapanci")
 	STARTER_CHARS = c.get("STARTER_CHARS", [DEFAULT_CHAR])
 	SIGNATURES = c.get("SIGNATURES", {})
+	HERO_SKILLS = c.get("HERO_SKILLS", {})
 	STONE_PACKS = c.get("STONE_PACKS", [])
 	RUBY_EXCHANGE = c.get("RUBY_EXCHANGE", [])
 	CHAR_RARITIES = c.get("CHAR_RARITIES", [])
