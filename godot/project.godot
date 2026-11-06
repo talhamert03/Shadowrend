@@ -32,6 +32,8 @@ Settings="*res://scripts/core/settings.gd"
 
 window/size/viewport_width=390
 window/size/viewport_height=844
+window/size/window_width_override.windows=440
+window/size/window_height_override.windows=952
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1
