@@ -314,6 +314,8 @@ func boot() -> void:
 				var need: int = int(_arg("horde")) - E.pool.active.size()
 				for i in clampi(need, 0, 25): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "3")), E.dmgMul * 0.05))
 			ht.start()
+		if _arg("pausenow") != "":
+			get_tree().create_timer(float(_arg("pausenow"))).timeout.connect(func(): g.pause_game())
 		if _arg("endnow") != "":
 			# geliştirici: endnow=win|lose@sn — savaşı zorla bitir (görev sonu ekranı testi)
 			var en := _arg("endnow").split("@")

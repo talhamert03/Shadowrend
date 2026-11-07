@@ -68,7 +68,7 @@ func _build() -> void:
 	for id in w.passives: items.append([str(id), int(w.passives[id])])
 	var per := maxi(1, int((pw - 28.0) / 50.0))
 	var rows := int(ceil(float(items.size()) / per)) if items.size() else 0
-	var ph := 74.0 + rows * 56.0 + (10.0 if rows else 0.0) + 3 * 58.0 + 18.0
+	var ph := 74.0 + 34.0 + rows * 56.0 + (10.0 if rows else 0.0) + 3 * 58.0 + 18.0
 	_panel = Node2D.new()
 	_panel.position = Vector2(_W * 0.5, _H * 0.5)
 	add_child(_panel)
@@ -84,8 +84,16 @@ func _build() -> void:
 	tt.position = Vector2(-pw * 0.5, R.position.y + 17)
 	tt.text = "DURAKLATILDI"
 	_panel.add_child(tt)
+	# koşu özeti: süre · kıyım · seviye
+	var st := UIText.new()
+	st.style(false, 800, 13, 1.2, Color("#f1e3c8"), "0 1px 2px rgba(0,0,0,0.8)")
+	st.align = 0.5; st.nowrap = true; st.wrap_w = pw; st.size = Vector2(pw, 18)
+	st.position = Vector2(-pw * 0.5, R.position.y + 72)
+	var tsec := int(g.time)
+	st.text = "%02d:%02d" % [tsec / 60, tsec % 60] + "  ·  KIYIM " + str(int(g.kills)) + "  ·  SEVİYE " + str(int(g.player.level))
+	_panel.add_child(st)
 	# donanım ikonları (yazısız; seviye = altın noktalar)
-	var y := R.position.y + 76.0
+	var y := R.position.y + 76.0 + 34.0
 	for r in rows:
 		var rowIt := items.slice(r * per, mini(items.size(), (r + 1) * per))
 		var rw := rowIt.size() * 50.0 - 6.0
@@ -107,7 +115,7 @@ func _build() -> void:
 					ic.draw_circle(Vector2(px, 27), 1.8, YEL))
 			var sp := Sprite2D.new()
 			sp.texture = ScrPause.icon_tex(it[0])
-			sp.scale = Vector2.ONE * (22.0 / 120.0)
+			if sp.texture: sp.scale = Vector2.ONE * (28.0 / maxf(sp.texture.get_width(), sp.texture.get_height()))
 			var I: Dictionary = ScrPause.art().get("icon", {}).get(it[0], {})
 			sp.modulate = col if I.get("mono", true) else Color.WHITE
 			ic.add_child(sp)
