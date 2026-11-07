@@ -32,7 +32,12 @@ func _init(m) -> void:
 	g = m.g
 	name = "Armory"
 
+var _lastR := -99999
 func render() -> void:
+	# kart zıplatma yalnız sayfaya girişte (kuşan/çıkar sonrası yeniden çizimde değil)
+	var nowR := Time.get_ticks_msec()
+	_popN = 0 if nowR - _lastR > 4000 else 99
+	_lastR = nowR
 	Prof.s("armory.render")
 	_render_now()
 	Prof.t("armory.render")
@@ -138,7 +143,10 @@ func _decks() -> void:
 		var on: bool = int(d.a) == i
 		var C := _add("kzd_on" if on else "kzd_off", row, Vector2(x, 0))
 		if C == null: continue
-		x += C.nodes[0].size.x + 7.0
+		# 3 dizilim + SET REHBERİ aynı satıra sığsın
+		C.scale = Vector2(0.77, 0.77)
+		C.position.y = C.nodes[0].size.y * 0.115
+		x += C.nodes[0].size.x * 0.77 + 5.0
 		var map: Dictionary = g.deck_gear(i)
 		var n := 0
 		var pw := 0
@@ -152,7 +160,7 @@ func _decks() -> void:
 		var nm := C.find_exact(".kzd-n")
 		var lst: Array = d.get("l", [])
 		var dn := str(lst[i].get("n", "")) if i < lst.size() and lst[i] is Dictionary else ""
-		if nm: C.set_text(nm, dn if dn != "" else "DİZİ " + str(i + 1))
+		if nm: C.set_text(nm, dn if dn != "" else "DİZİLİM " + str(i + 1))
 		var mm := C.find_exact(".kzd-m")
 		if mm: C.set_text(mm, (str(n) + "/" + str(D.EQUIP_SLOTS.size()) + " · " + str(pw)) if n else "BOŞ")
 		var ii := i
@@ -161,6 +169,20 @@ func _decks() -> void:
 			if ii != int(g.decks().a):
 				g.switch_deck(ii)
 				render(), 0.96)
+	# SET REHBERİ: dizilimlerin yanında kitap düğmesi
+	var SG := _add("kzd_off", row, Vector2(x, 0))
+	if SG:
+		SG.scale = Vector2(0.77, 0.77)
+		SG.position.y = SG.nodes[0].size.y * 0.115
+		SG.modulate = Color(1.0, 0.92, 0.7)
+		SG.set_text(SG.find(".kzd-no"), "?")
+		var sn := SG.find_exact(".kzd-n")
+		if sn: SG.set_text(sn, "SET REHBERİ")
+		var sm := SG.find_exact(".kzd-m")
+		if sm: SG.set_text(sm, "5 SET")
+		menu.btn(SG, SG.nodes[0], func():
+			g.audio.play("click")
+			g.ui.show_set_guide(), 0.96)
 
 # ═════════════ kahraman sahnesi + statlar ═════════════
 
@@ -181,6 +203,8 @@ func _slots_and_stats() -> float:
 			var pr := UIK.round_image(UITex.get_tex(pp), av.size.x, av.size.y, av.size.x * 0.5, Vector2(0.5, 0.12))
 			av.node.add_child(pr)
 			_items.append(pr)
+			pr.pivot_offset = pr.size * 0.5
+			_por = pr
 	var ln := shell.find_id("#loadout-name")
 	if ln: shell.set_text(ln, str(g.char_def().get("name", "")))
 	# yuvalar: sol silah·eldiven, sağ zırh·çizme
@@ -249,6 +273,7 @@ func _slots_and_stats() -> float:
 		if sets.is_empty():
 			var H := _add("ks_hint", setn, Vector2.ZERO)
 			set_h = H.nodes[0].size.y if H else 12.0
+			if H: menu.btn(H, H.nodes[0], func(): g.audio.play("click"); g.ui.show_set_guide(), 0.98)
 		else:
 			var y := 0.0
 			for A in sets:
@@ -256,6 +281,7 @@ func _slots_and_stats() -> float:
 				if S:
 					var em := S.find_exact("em")
 					if em: S.set_text(em, str(mini(4, int(A.n))) + " / 4")
+					menu.btn(S, S.nodes[0], func(): g.audio.play("click"); g.ui.show_set_guide(), 0.98)
 					y += S.nodes[0].size.y + 6.0
 			set_h = maxf(0.0, y - 6.0)
 	# stat karoları: 4 sütun
@@ -427,7 +453,16 @@ func _build_lazy(n: int) -> void:
 			(c.f as Callable).call()
 			built += 1
 
+var _por: Control = null
+var _animT := 0.0
+var _popN := 0
 func _process(_dt: float) -> void:
+	# kahraman portresi nefes alır (hafif ölçek + ışık nabzı)
+	if _por and is_instance_valid(_por) and is_visible_in_tree():
+		_animT += _dt
+		var k := 1.0 + 0.022 * sin(_animT * 2.2)
+		_por.scale = Vector2(k, k)
+		_por.modulate = Color(1, 1, 1).lerp(Color(1.12, 1.06, 0.95), 0.5 + 0.5 * sin(_animT * 2.2))
 	if _lazy.is_empty(): return
 	if is_visible_in_tree():
 		_build_lazy(6)
@@ -452,6 +487,19 @@ func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 	# yakalanan kart yalnız düzen + dokunma alanları için; görüntü yerel çizgi roman kartı
 	var C := _add(key, grid, pos)
 	if C == null: return null
+	# kart açılış: sırayla küçükten zıplayarak gelir
+	if _popN < 18 and is_visible_in_tree():
+		var sz: Vector2 = C.nodes[0].size
+		var p0 := C.position
+		C.scale = Vector2(0.6, 0.6)
+		C.position = p0 + sz * 0.2
+		C.modulate.a = 0.0
+		var tw := C.create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		var dl := 0.03 * _popN
+		tw.tween_property(C, "scale", Vector2.ONE, 0.32).set_delay(dl)
+		tw.tween_property(C, "position", p0, 0.32).set_delay(dl)
+		tw.tween_property(C, "modulate:a", 1.0, 0.18).set_delay(dl)
+		_popN += 1
 	var root_n: Lyr.N = C.nodes[0]
 	if root_n.img: root_n.img.visible = false
 	for k in root_n.kids: C.set_hidden(k, true)
