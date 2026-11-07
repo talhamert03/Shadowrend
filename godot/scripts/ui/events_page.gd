@@ -426,5 +426,5 @@ func _gold_emblem(pos: Vector2, wc: Color) -> Node2D:
 			n.draw_line(sp - Vector2(r, 0), sp + Vector2(r, 0), Color(1, 1, 0.8, 0.9), 1.6)
 			n.draw_line(sp - Vector2(0, r), sp + Vector2(0, r), Color(1, 1, 0.8, 0.9), 1.6))
 	var tw := n.create_tween().set_loops()
-	tw.tween_callback(n.queue_redraw).set_delay(0.033)
+	tw.tween_callback(func(): if n.is_visible_in_tree(): n.queue_redraw()).set_delay(0.033)
 	return n

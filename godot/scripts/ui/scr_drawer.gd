@@ -115,4 +115,4 @@ func _bp_badge() -> void:
 		bd.draw_circle(Vector2(0, 6), 2.4, Color.WHITE))
 	(bn as Control).add_child(bd)
 	var tw := bd.create_tween().set_loops()
-	tw.tween_callback(bd.queue_redraw).set_delay(0.033)
+	tw.tween_callback(func(): if bd.is_visible_in_tree(): bd.queue_redraw()).set_delay(0.033)
