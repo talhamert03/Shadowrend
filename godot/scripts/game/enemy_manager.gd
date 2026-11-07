@@ -100,8 +100,11 @@ func _init(g) -> void:
 	reset()
 
 ## Havuzdan düşman al ve kur (web'deki pool reset fonksiyonu).
+var _lifeSeq := 0
 func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -> Ent.Enemy:
 	var e: Ent.Enemy = pool.take()
+	_lifeSeq += 1
+	e.lifeTok = _lifeSeq
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0

@@ -67,7 +67,7 @@ func _arm(id: String, Wd: Dictionary, L: int) -> void:
 func _hit(e, dmg: float, ang: float, knock := 0.0, crit := 0.0):
 	return Combat.apply_hit(game, e, dmg, ang, knock, crit, false)
 func _alive(e, tok: int) -> bool:
-	return e != null and e.hp > 0 and e.aliveTok == tok
+	return e != null and e.hp > 0 and e.lifeTok == tok
 func _nearest_to(x: float, y: float, R: float, skip: Dictionary = {}):
 	var best = null
 	var bd := R * R
@@ -159,7 +159,7 @@ func _tick_hooks(dt: float) -> void:
 				if dx * dx + dy * dy > rr * rr: continue
 				h.hit[iid] = true
 				_hit(e, h.dmg, h.dir)
-				if e.hp > 0 and not e.isBoss and h.pulled.size() < 6: h.pulled.append([e, e.aliveTok])
+				if e.hp > 0 and not e.isBoss and h.pulled.size() < 6: h.pulled.append([e, e.lifeTok])
 				g.spawn_burst(e.x, e.y - 8, "#c8c0b0", 4, 150, 2.2, 0.25, true)
 				if g.renderer3d: g.renderer3d.spawn_hit(e.x, e.y, h.dir, 1, 0.85, 0.8, 0.7)
 			if h.d >= h.maxD:
@@ -463,7 +463,7 @@ func _fire_shade(id: String, dt: float) -> void:
 		if k > 0:
 			tgt = _nearest_to(p.x + randf_range(-80, 80), p.y + randf_range(-80, 80), rng)
 			if tgt == null: tgt = n
-		shades.append({"x": p.x, "y": p.y, "tgt": tgt, "tok": tgt.aliveTok, "jumps": int(_v(Wd, "targets", L, 3.0)) + wm.wi(Wd, "targetsAdd"),
+		shades.append({"x": p.x, "y": p.y, "tgt": tgt, "tok": tgt.lifeTok, "jumps": int(_v(Wd, "targets", L, 3.0)) + wm.wi(Wd, "targetsAdd"),
 			"dmg": _v(Wd, "dmg", L, 20.0), "hit": {}, "trail": [], "fade": -1.0, "crit": JS.num(Wd, "critAdd"), "ang": 0.0, "pause": 0.0, "n": 0})
 	game.audio.play("dodge")
 
@@ -487,7 +487,7 @@ func _tick_shades(dt: float) -> void:
 			if t == null:
 				s.fade = 0.0
 				continue
-			s.tgt = t; s.tok = t.aliveTok
+			s.tgt = t; s.tok = t.lifeTok
 		var dx: float = t.x - s.x
 		var dy: float = t.y - s.y
 		var d := sqrt(dx * dx + dy * dy)
@@ -514,7 +514,7 @@ func _tick_shades(dt: float) -> void:
 			if nx == null:
 				s.fade = 0.0
 				continue
-			s.tgt = nx; s.tok = nx.aliveTok
+			s.tgt = nx; s.tok = nx.lifeTok
 		else:
 			s.x += dx / d * sp * dt
 			s.y += dy / d * sp * dt
@@ -536,9 +536,12 @@ func _fire_bone(id: String, dt: float) -> void:
 	var cnt := int(_v(Wd, "volley", L, 1.0))
 	var spd := _v(Wd, "speed", L, 620.0)
 	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng)
+	# çoklu atış: hepsi aynı hedefe doğru, yan yana paralel dizilip düz ilerler (dağılmaz)
+	var nx := -sin(ang); var ny := cos(ang)
 	for k in cnt:
-		var a := atan2(tl[k].y - s.y, tl[k].x - s.x) if k < tl.size() else ang + (k - (cnt - 1) * 0.5) * 0.06
-		bones.append({"x": s.x, "y": s.y, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": 1.2, "dmg": _v(Wd, "dmg", L, 16.0),
+		var a := ang
+		var off := (k - (cnt - 1) * 0.5) * 16.0
+		bones.append({"x": s.x + nx * off - cos(ang) * 10.0 * absf(off) / 16.0, "y": s.y + ny * off - sin(ang) * 10.0 * absf(off) / 16.0, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": 1.2, "dmg": _v(Wd, "dmg", L, 16.0),
 			"pierce": int(_v(Wd, "pierce", L, 1.0)), "hit": {}, "maxM": int(_v(Wd, "count", L, 2.0)),
 			"mLife": 7.0 * (1.0 + 0.25 * wm.wi(Wd, "lifeAdd")), "mDmg": _v(Wd, "dmg", L, 16.0) * 0.7})
 	game.player.trigger_ranged_attack(ang)
@@ -573,7 +576,10 @@ func _tick_bones(dt: float) -> void:
 
 ## ölen düşmanın yerinden iskelet hizmetkâr kalkar (en fazla maxM)
 func _raise(x: float, y: float, b: Dictionary) -> void:
-	if minions.size() >= int(b.maxM): return
+	var own := 0
+	for m in minions:
+		if not m.get("army", false): own += 1
+	if own >= int(b.maxM): return
 	minions.append({"x": x, "y": y, "life": b.mLife, "max": b.mLife, "cd": 0.4, "tgt": null, "tok": -1, "yaw": 0.0, "hop": 0.0, "dmg": b.mDmg, "rise": 0.0})
 	var g = game
 	g.spawn_burst(x, y, "#7dff8a", 10, 140, 2.6, 0.6, true)
@@ -595,7 +601,7 @@ func _tick_minions(dt: float) -> void:
 		if not _alive(t, m.tok):
 			t = _nearest_to(m.x, m.y, 420.0)
 			m.tgt = t
-			m.tok = t.aliveTok if t else -1
+			m.tok = t.lifeTok if t else -1
 		if t == null:
 			# hedef yoksa kahramanın yanına
 			var p = g.player
@@ -722,7 +728,7 @@ func _fire_totem(id: String, dt: float) -> void:
 	for k in cnt:
 		var e = tl[k] if k < tl.size() else n
 		var a: float = atan2(e.y - s.y, e.x - s.x)
-		sbolts.append({"x": s.x, "y": s.y, "z": 60.0, "vx": cos(a) * 460.0, "vy": sin(a) * 460.0, "tgt": e, "tok": e.aliveTok, "life": 1.4, "dmg": _v(Wd, "dmg", L, 12.0)})
+		sbolts.append({"x": s.x, "y": s.y, "z": 60.0, "vx": cos(a) * 460.0, "vy": sin(a) * 460.0, "tgt": e, "tok": e.lifeTok, "life": 1.4, "dmg": _v(Wd, "dmg", L, 12.0)})
 	game.player.trigger_ranged_attack(atan2(n.y - s.y, n.x - s.x))
 	game.audio.play("bless")
 
@@ -762,7 +768,7 @@ func _tick_totems(dt: float) -> void:
 			t.glow = 1.0
 			for k in int(t.vol):
 				var a: float = atan2(e.y - t.y, e.x - t.x) + (k - (t.vol - 1) * 0.5) * 0.35
-				sbolts.append({"x": t.x, "y": t.y, "z": 54.0, "vx": cos(a) * 460.0, "vy": sin(a) * 460.0, "tgt": e, "tok": e.aliveTok, "life": 1.4, "dmg": t.dmg})
+				sbolts.append({"x": t.x, "y": t.y, "z": 54.0, "vx": cos(a) * 460.0, "vy": sin(a) * 460.0, "tgt": e, "tok": e.lifeTok, "life": 1.4, "dmg": t.dmg})
 			g.audio.play("bless")
 	for i in range(sbolts.size() - 1, -1, -1):
 		var b: Dictionary = sbolts[i]
@@ -773,7 +779,7 @@ func _tick_totems(dt: float) -> void:
 		var t2 = b.tgt
 		if not _alive(t2, b.tok):
 			t2 = _nearest_to(b.x, b.y, 300.0)
-			b.tgt = t2; b.tok = t2.aliveTok if t2 else -1
+			b.tgt = t2; b.tok = t2.lifeTok if t2 else -1
 		if t2:
 			var dx: float = t2.x - b.x
 			var dy: float = t2.y - b.y
@@ -924,7 +930,7 @@ func _fire_drain(id: String, dt: float) -> void:
 	var dmg := _v(Wd, "dmg", L, 26.0)
 	for k in mini(want, cand.size()):
 		var e = cand[k][1]
-		drains.append({"e": e, "tok": e.aliveTok, "t": 0.0, "dur": DRAIN_DUR, "dmg": dmg, "hit": false, "sp": 0.0,
+		drains.append({"e": e, "tok": e.lifeTok, "t": 0.0, "dur": DRAIN_DUR, "dmg": dmg, "hit": false, "sp": 0.0,
 			"crit": JS.num(Wd, "critAdd"), "nova": JS.num(Wd, "explode"), "split": JS.num(Wd, "split"), "x": e.x, "y": e.y})
 	_sfx(Wd)
 
@@ -959,7 +965,7 @@ func _tick_drains(dt: float) -> void:
 				if d.split > 0:
 					# Bölünen Kan: bağ yakındaki bir düşmana daha atlar (%50 hasar)
 					var nx = _nearest_to(d.x, d.y, 140.0, {d.e.get_instance_id(): true})
-					if nx: drains.append({"e": nx, "tok": nx.aliveTok, "t": 0.0, "dur": DRAIN_DUR * 0.8, "dmg": d.dmg * 0.5, "hit": false, "sp": 0.0,
+					if nx: drains.append({"e": nx, "tok": nx.lifeTok, "t": 0.0, "dur": DRAIN_DUR * 0.8, "dmg": d.dmg * 0.5, "hit": false, "sp": 0.0,
 						"crit": d.crit, "nova": 0.0, "split": 0.0, "x": nx.x, "y": nx.y})
 				if g.audio: g.audio.play("hit")
 		if d.t >= d.dur: drains.remove_at(i)
@@ -982,3 +988,20 @@ func drop_pos(q: Dictionary, kk := -1.0) -> Vector3:
 	var y: float = q.sy + dy * e + ny * bend
 	var h: float = 14.0 + sin(k * PI) * q.h + sin(q.ph + k * 9.0) * 3.0 + k * 10.0
 	return Vector3(x, h, y)
+
+
+## ÖLÜ ORDUSU (Kemik Efendisi süper gücü): kahramanın çevresinde bir halka hâlinde iskelet ordusu
+## yerden kalkar; süre boyunca efendileri için savaşırlar.
+func summon_army(n: int, life: float, dmg: float) -> void:
+	var p = game.player
+	var g = game
+	for i in n:
+		var a := TAU * i / n + randf_range(-0.2, 0.2)
+		var r := randf_range(60.0, 130.0)
+		var x: float = p.x + cos(a) * r
+		var y: float = p.y + sin(a) * r * 0.9
+		minions.append({"x": x, "y": y, "life": life + randf_range(-0.6, 0.6), "max": life, "cd": 0.3 + randf() * 0.4, "tgt": null, "tok": -1,
+			"yaw": a, "hop": 0.0, "dmg": dmg, "rise": -0.06 * i, "army": true})
+		if i % 2 == 0:
+			g.spawn_burst(x, y, "#7dff8a", 8, 140, 2.6, 0.6, true)
+			g.spawn_burst(x, y, "#3a2e22", 5, 120, 3.0, 0.5, false)

@@ -47,7 +47,7 @@ const ULT_ID := {
 		"pal": {"ball": "#6a6a74", "ball2": "#ff7a1a"}, "desc": "Gökten dikenli mayınlar yağar; yere çarpınca patlayıp sürüyü dağıtır."},
 	"barutcu":  {"name": "BARUT YAĞMURU", "col": "#ffe6c0", "c2": "#ff5a1a", "k": "meteor", "snd": "meteor", "base": 9,  "hr": 110.0, "desc": "Barut fıçıları gökten düşer; her biri alevli bir patlamayla yeri sarsar."},
 	"kukla":    {"name": "KUKLA AĞI",     "col": "#ffe0f6", "c2": "#ff5ad0", "k": "mirror", "snd": "vortex", "base": 0,  "hr": 0.0,
-		"pal": {"noprism": true}, "desc": "Altı makara yükselir; aralarında parlayan ipler gerilir, ağın içindekileri biçer."},
+		"pal": {"noprism": true}, "puppet": true, "desc": "Altı makara yükselir; ağın içindeki tüm düşmanlar ipe bağlanıp kuklaya döner, sonra ipler kopar ve kuklalar yere yığılır."},
 	"cellat":   {"name": "İNFAZ GÜNÜ",    "col": "#ffd0d0", "c2": "#d81a2a", "k": "slam",   "snd": "slam",   "base": 0,  "hr": 0.0,   "desc": "Satır yere iner; kızıl şok dalgası yayılır, sürüyü savurur."},
 	"karadelik": {"name": "OLAY UFKU",    "col": "#f0e0ff", "c2": "#7a2aff", "k": "vortex", "snd": "vortex", "base": 0,  "hr": 0.0, "pull": true, "desc": "Cadının çevresinde dev bir kara delik döner; sürüyü içine çekip ezer."},
 	"zincirci": {"name": "ZİNDAN ZİNCİRLERİ", "col": "#f0e8d8", "c2": "#a8784a", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0, "pull": true, "desc": "Zincirler kahramanın çevresinde döner; sürüyü içine çekip ezer."},
@@ -57,7 +57,7 @@ const ULT_ID := {
 	"falci":    {"name": "KADER ÇARKI",   "col": "#f6e8ff", "c2": "#c070ff", "k": "mirror", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Altı dev tarot kartı yükselir; aralarında kader ışınları örülür, ağın içindekileri yakar."},
 	"kamci":    {"name": "DİKEN FIRTINASI", "col": "#ffd8e0", "c2": "#ff2a4a", "k": "slash", "snd": "slash", "base": 14, "hr": 80.0, "desc": "Kızıl dikenli kamçı izleri sürünün üstünde çapraz açılır, her şeyi biçer."},
 	"golge":    {"name": "GÖLGE DANSI",   "col": "#d8f8ff", "c2": "#2ad8ff", "k": "slash",  "snd": "slash",  "base": 14, "hr": 80.0, "desc": "Karanlık yarılır; gölge klonların kesikleri sürünün üstünde çaprazlanır."},
-	"kemik":    {"name": "ÖLÜ ORDUSU",    "col": "#e8ffe8", "c2": "#4adf6a", "k": "grave",  "snd": "slam",   "base": 14, "hr": 80.0, "desc": "Toprak yarılır; kemik eller mezarlardan fışkırır, düşmanı yerine çiviler."},
+	"kemik":    {"name": "ÖLÜ ORDUSU",    "col": "#e8ffe8", "c2": "#4adf6a", "k": "grave",  "snd": "slam",   "base": 8, "hr": 70.0, "army": true, "desc": "Toprak yarılır; mezarlardan bir iskelet ordusu kalkar ve 12 saniye boyunca Kemik Efendisi için savaşır."},
 	"ayaz":     {"name": "MUTLAK SIFIR",  "col": "#eef8ff", "c2": "#7fd0ff", "k": "spike",  "snd": "spike",  "base": 0, "hr": 70.0, "desc": "Buz mızrakları halka halka fışkırır; değdiği düşmanı dondurur."},
 	"yildiz":   {"name": "YILDIZ YAĞMURU", "col": "#fff6d0", "c2": "#ffc83a", "k": "meteor", "snd": "meteor", "base": 9, "hr": 120.0, "desc": "Gök açılır; altın yıldızlar çapraz düşer, çarptığı yeri paramparça eder."},
 	"siren":    {"name": "DEV DALGA",     "col": "#d8fff8", "c2": "#2ae0d0", "k": "vortex", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Sirenin çevresinde dev bir dalga döner; sürüyü süpürüp ezer."},
@@ -177,7 +177,7 @@ func _hit(e, ang: float, knock := 380.0) -> void:
 	if e.hp <= 0 or e._ultN == _tok: return
 	e._ultN = _tok
 	if _hitsF >= HIT_BUDGET:
-		_hitQ.append([e, ang, knock, e.aliveTok])
+		_hitQ.append([e, ang, knock, e.lifeTok])
 		return
 	_hitsF += 1
 	_apply_hit(e, ang, knock)
@@ -255,6 +255,11 @@ func fire() -> bool:
 			var a := -PI * 0.5 + i * TAU / 6.0
 			_mir[i] = Vector2(p.x + cos(a) * mr, p.y + sin(a) * mr)
 		_mirLit = 0; _mirTick = 0.0
+		_pup.clear()
+		if C.get("puppet"):
+			# KUKLA AĞI: halkadaki herkes ipe bağlanır (asılı kalır), kopuşta infaz edilir
+			for e in g.enemies.query_circle(p.x, p.y, mr * 1.05, _sc):
+				if e.hp > 0 and _pup.size() < 60: _pup.append([e, e.lifeTok])
 		wave.merge({"on": true, "t": 0.0, "dur": MIR_DUR, "r": mr}, true)
 		fx = MIR_DUR + 0.45
 	elif k == "timestop":
@@ -320,6 +325,12 @@ func fire() -> bool:
 					st = -(JS.hypot(x - p.x, y - p.y) / R) * K.spread - randf() * 0.05
 			s.merge({"on": true, "x": x, "y": y, "sx": sx, "sy": sy, "t": st, "hit": false, "seed": randf() * 100, "a": randf() * TAU, "sc": sc, "d": 0.0}, true)
 		fx = K.spread + K.fall + K.linger + 0.35
+	if C.get("army") and g.weapons:
+		# ÖLÜ ORDUSU: nadirlik arttıkça ordu büyür; hasar kemik mızrağına göre ölçeklenir
+		var Wb = g.weapons.W.get("kemik", {})
+		var lv: int = maxi(1, g.weapons.lvl("kemik"))
+		var bd: float = float(Wb.dmg[lv - 1]) if Wb.get("dmg") is Array else 16.0
+		g.weapons.mech.summon_army(9 + rar * 2, 12.0, bd * 0.8)
 	g.add_shake(0.12 + rar * 0.03)
 	g.punch(0.03)
 	g.audio.ultTier = rar
@@ -365,7 +376,7 @@ func update(dt: float) -> void:
 		while n < HIT_BUDGET and not _hitQ.is_empty():
 			var q: Array = _hitQ.pop_front()
 			var e = q[0]
-			if e.hp > 0 and e.aliveTok == q[3]:
+			if e.hp > 0 and e.lifeTok == q[3]:
 				_apply_hit(e, q[1], q[2])
 				n += 1
 		_hitsF = n
@@ -452,9 +463,34 @@ func _line(a: Vector2, b: Vector2, w: float, hold := 0.0) -> void:
 			e.stopMv = true
 		_hit(e, atan2(ab.y, ab.x) + PI * 0.5, 260.0)
 
+var _pup: Array = []
 func _update_mirror(dt: float) -> void:
 	var W := wave
 	var g = game
+	if not _pup.is_empty():
+		# kuklalar: ipler makaradan her birine gerilir, kopuşa dek havada asılı kalırlar
+		var wm = g.weapons
+		var src: Vector2 = wm.floatPos if wm.floatPos != Vector2.ZERO else Vector2(g.player.x, g.player.y)
+		for q in _pup:
+			var e = q[0]
+			if e.hp <= 0 or e.lifeTok != q[1]: continue
+			if W.t < MIR_FLASH:
+				e.stopT = maxf(e.stopT, 0.12)
+				wm.tetherPts.append(src); wm.tetherPts.append(Vector2(e.x, e.y))
+		if W.t >= MIR_FLASH and W.t - dt < MIR_FLASH:
+			# ipler kopar: sıradan düşmanlar anında yığılır; elit/boss ağır hasar alır
+			var n := 0
+			for q in _pup:
+				var e = q[0]
+				if e.hp <= 0 or e.lifeTok != q[1]: continue
+				if e.isBoss or e.elite:
+					Combat.apply_hit(g, e, maxf(e.maxHp * 0.12, 200.0), randf() * TAU, 0, 0.0, false)
+				else:
+					Combat.apply_hit(g, e, e.hp + 1.0, randf() * TAU, 0, 0.0, false)
+				if n < 20 and g.in_view(e.x, e.y, 40):
+					n += 1
+					g.spawn_burst(e.x, e.y - 18, "#ff7ad8", 6, 180, 2.4, 0.35, true)
+			_pup.clear()
 	var lit := 0
 	for i in MIR_SEG.size():
 		if W.t >= MIR_T0 + i * MIR_STEP: lit = i + 1

@@ -91,8 +91,8 @@ func _init() -> void:
 	var sk_x: Array = [Transform3D(Basis(), Vector3(0, 33, 0.5)), Transform3D(Basis(), Vector3(0, 22, 0)), Transform3D(Basis(), Vector3(0, 14, 0)),
 		Transform3D(Basis(), Vector3(-2.4, 6.5, 0)), Transform3D(Basis(), Vector3(2.4, 6.5, 0)),
 		Transform3D(Basis(Vector3(1, 0, 0), -0.9), Vector3(-6.0, 22, 3.5)), Transform3D(Basis(Vector3(1, 0, 0), -0.9), Vector3(6.0, 22, 3.5)), Transform3D(Basis(), Vector3(0, 28, 0))]
-	skel = _im(Geo.merge(sk_parts, sk_x), _lit("#e8dcc0", "#2a4a1a", 0.35, 0.7, 0.0, Color(0.1, 0.08, 0.05)), 12)
-	skelEye = _im(Geo.sphere(1.0, 6, 5), _add("#7dff8a"), 24)
+	skel = _im(Geo.merge(sk_parts, sk_x), _lit("#e8dcc0", "#2a4a1a", 0.35, 0.7, 0.0, Color(0.1, 0.08, 0.05)), 28)
+	skelEye = _im(Geo.sphere(1.0, 6, 5), _add("#7dff8a"), 56)
 	# AYAZ: uzun buz kırığı + donma kristal kümesi
 	var shg := Geo.merge([Geo.cone(2.2, 14.0, 5), Geo.cone(2.2, 5.0, 5)], [Transform3D(rx, Vector3(0, 0, 3)), Transform3D(Basis(Vector3(1, 0, 0), -PI / 2), Vector3(0, 0, -1))])
 	shard = _im(shg, Shd.lit({"color": Color("#e8f8ff"), "emissive": Color("#5ac8ff"), "emissive_k": 2.2, "roughness": 0.05, "metalness": 0.1, "rim": true}), 80)
@@ -312,7 +312,7 @@ func _bones(M: HeroMech, T: float) -> void:
 func _skels(M: HeroMech, T: float) -> void:
 	var n := 0; var en := 0
 	for m in M.minions:
-		if n >= 12: break
+		if n >= 28: break
 		var rise: float = m.rise
 		var fade := minf(1.0, m.life / 0.6)
 		var hop := absf(sin(m.hop)) * 5.0
@@ -321,7 +321,7 @@ func _skels(M: HeroMech, T: float) -> void:
 		skel.set_trs(n, m.x, y, m.y, sin(m.hop * 2.0) * 0.08, m.yaw, 0.0, sc, sc, sc)
 		skel.set_col(n, 1, 1, 1, 1)
 		for sx in [-2.0, 2.0]:
-			if en >= 24: break
+			if en >= 56: break
 			var ex: float = m.x + cos(m.yaw) * sx + sin(m.yaw) * 5.2 * sc
 			var ez: float = m.y - sin(m.yaw) * sx + cos(m.yaw) * 5.2 * sc
 			skelEye.set_ys(en, ex, y + 34.0 * sc, ez, 0.0, 1.4, 1.4, 1.4)

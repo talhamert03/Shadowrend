@@ -805,7 +805,7 @@ func fire_gun(id: String) -> void:
 		b.flame = flame
 		b.homing = homing
 		b.tgt = nearest if homing > 0 else null
-		b.tgtTok = nearest.aliveTok if homing > 0 else -1
+		b.tgtTok = nearest.lifeTok if homing > 0 else -1
 		b.explode = explode
 		b.split = split
 		b.frag = false
@@ -1025,10 +1025,10 @@ func update_arrow(b, dt: float) -> bool:
 		# kilitli hedef (öldüyse mermiye en yakın yeni hedef); yaklaştıkça dönüş keskinleşir,
 		# son adımda doğrudan hedefe oturur — etrafında dönüp ıskalamaz
 		var tgt = b.tgt
-		if tgt == null or tgt.hp <= 0 or tgt.aliveTok != b.tgtTok:
+		if tgt == null or tgt.hp <= 0 or tgt.lifeTok != b.tgtTok:
 			tgt = _home_pick(b.x, b.y)
 			b.tgt = tgt
-			b.tgtTok = tgt.aliveTok if tgt else -1
+			b.tgtTok = tgt.lifeTok if tgt else -1
 		if tgt:
 			var dx: float = tgt.x - b.x
 			var dy: float = tgt.y - b.y
@@ -1282,7 +1282,8 @@ func update_tether(id: String, dt: float) -> void:
 	var keep: Array = []
 	for t in tethers:
 		var e = t[0]
-		if e.hp <= 0 or e.aliveTok != t[1]: continue
+		if e.hp <= 0 or e.lifeTok != t[1]: continue
+		t[2] += dt  # bağ süresi: uzadıkça hasar katlanır
 		var dx: float = e.x - p.x
 		var dy: float = e.y - p.y
 		if dx * dx + dy * dy > rng * rng * 1.69: continue
@@ -1294,7 +1295,7 @@ func update_tether(id: String, dt: float) -> void:
 		cand.sort_custom(func(a, c): return (a.x - p.x) * (a.x - p.x) + (a.y - p.y) * (a.y - p.y) < (c.x - p.x) * (c.x - p.x) + (c.y - p.y) * (c.y - p.y))
 		for e in cand:
 			if tethers.size() >= maxN: break
-			tethers.append([e, e.aliveTok])
+			tethers.append([e, e.lifeTok, 0.0])
 			g.spawn_burst(e.x, e.y - 12, "#ff7ad8", 4, 120, 2.0, 0.25, true)
 	tetherPts.resize(0)
 	for t in tethers:
@@ -1309,7 +1310,9 @@ func update_tether(id: String, dt: float) -> void:
 	for t in tethers:
 		var e = t[0]
 		e.slowT = maxf(e.slowT, slow)
-		Combat.apply_hit(g, e, dmg, atan2(e.y - src.y, e.x - src.x), 0, JS.num(Wd, "critAdd"), false)
+		# bağ ne kadar uzun sürerse hasar o kadar katlanır: 1 sn sonra başlar, saniyede +%22, en çok ×3
+		var ramp := 1.0 + clampf((float(t[2]) - 1.0) * 0.22, 0.0, 2.0)
+		Combat.apply_hit(g, e, dmg * ramp, atan2(e.y - src.y, e.x - src.x), 0, JS.num(Wd, "critAdd"), false)
 		if wi(Wd, "shock") > 0 and e.hp > 0 and randf() < 0.5:
 			g.explode(e.x, e.y, dmg * (0.35 + 0.1 * wi(Wd, "shock")), 26.0 + wi(Wd, "shock") * 6.0, true)
 		if randf() < 0.5: g.spawn_burst(e.x, e.y - 14, "#ffb0ec", 2, 90, 1.8, 0.22, true)
@@ -1486,7 +1489,7 @@ func update_blades(id: String, dt: float) -> void:
 			F.merge(S, true)
 			F.st = BL_SLIDE; F.t = 0.0
 			F.tgt = _blade_target(F)
-			F.tok = F.tgt.aliveTok if F.tgt else -1
+			F.tok = F.tgt.lifeTok if F.tgt else -1
 			F.pierce = int(Wd.pierce[L])
 			F.dmg = float(Wd.dmg[L])
 			F.crit = JS.num(Wd, "critAdd")
@@ -1528,9 +1531,9 @@ func update_blades(id: String, dt: float) -> void:
 			# kayma: hançer hedefe döner, hafif geri çekilip alçalır, sonra fırlar
 			F.t += dt
 			var tg = F.tgt
-			if tg == null or tg.hp <= 0 or tg.aliveTok != F.tok:
+			if tg == null or tg.hp <= 0 or tg.lifeTok != F.tok:
 				tg = _blade_target(F)
-				F.tgt = tg; F.tok = tg.aliveTok if tg else -1
+				F.tgt = tg; F.tok = tg.lifeTok if tg else -1
 			var a2: float = atan2(tg.y - F.y, tg.x - F.x) if tg else F.ang
 			F.ang = lerp_angle(F.ang, a2, minf(1.0, dt * 22.0))
 			var u := minf(1.0, F.t / 0.12)
@@ -1559,10 +1562,10 @@ func _blade_fly(B: Dictionary, dt: float, Wd: Dictionary) -> bool:
 	if B.t > 1.4: return true
 	var sp := Vector2(B.vx, B.vy).length()
 	var tg = B.tgt
-	if B.pierce >= 0 and (tg == null or tg.hp <= 0 or tg.aliveTok != B.tok):
+	if B.pierce >= 0 and (tg == null or tg.hp <= 0 or tg.lifeTok != B.tok):
 		tg = _home_pick(B.x, B.y) if B.t < 1.0 else null
 		if tg == B.last: tg = null
-		B.tgt = tg; B.tok = tg.aliveTok if tg else -1
+		B.tgt = tg; B.tok = tg.lifeTok if tg else -1
 	if tg:
 		var dx: float = tg.x - B.x
 		var dy: float = tg.y - B.y
@@ -1595,7 +1598,7 @@ func _blade_fly(B: Dictionary, dt: float, Wd: Dictionary) -> bool:
 			e.stopT = maxf(e.stopT, 0.6)
 			e.stopMv = true
 		if wi(Wd, "delay") > 0 and r and e.hp > 0:
-			_delayed.append({"e": e, "tok": e.aliveTok, "d": float(r.dmg) * 0.4 / maxf(0.1, g.player.dmgMult), "t": 1.5})
+			_delayed.append({"e": e, "tok": e.lifeTok, "d": float(r.dmg) * 0.4 / maxf(0.1, g.player.dmgMult), "t": 1.5})
 		B.pierce -= 1
 		if B.pierce < 0: return true
 		B.tgt = null
@@ -1610,7 +1613,7 @@ func _update_delayed(dt: float) -> void:
 		q.t -= dt
 		if q.t <= 0.0:
 			var e = q.e
-			if e and e.hp > 0 and e.aliveTok == q.tok:
+			if e and e.hp > 0 and e.lifeTok == q.tok:
 				Combat.apply_hit(g, e, ceil(q.d), 0.0, 0, -1.0, false)
 				if g.vfx: g.vfx.ring(e.x, e.y, 34.0, Color("#ffcf6a"), 0.3)
 			_delayed[i] = _delayed[_delayed.size() - 1]

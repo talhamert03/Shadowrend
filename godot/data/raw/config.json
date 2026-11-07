@@ -6492,11 +6492,12 @@
    },
    {
     "id": "sig_kk2",
-    "name": "Hızlı Parmaklar",
-    "desc": "İpler %10 daha sık çeker.",
+    "name": "Çifte Düğüm",
+    "desc": "Bir düşman daha bağlanır, ipler %5 daha sık çeker.",
     "boost": {
      "weapon": "ip",
-     "cd": 0.9
+     "targetsAdd": 1,
+     "cd": 0.95
     }
    },
    {
@@ -6532,11 +6533,11 @@
    {
     "id": "sig_kk6",
     "name": "Gergin Sahne",
-    "desc": "Hasar +%10, menzil +%6.",
+    "desc": "Bir düşman daha bağlanır, hasar +%6.",
     "boost": {
      "weapon": "ip",
-     "dmg": 1.1,
-     "range": 1.06
+     "targetsAdd": 1,
+     "dmg": 1.06
     }
    },
    {
@@ -10262,7 +10263,7 @@
    "class": "ruh",
    "floatVisual": true,
    "sfx": "string",
-   "descNew": "Kukla Ustası'nın yanında süzülen makara — parlak iplerle birkaç düşmanı bağlar; bağlılar sürekli hasar alır ve yavaşlar.",
+   "descNew": "Kukla Ustası'nın yanında süzülen makara — parlak iplerle birkaç düşmanı bağlar; bağ uzun sürdükçe hasar katlanır (en çok ×3), bağlılar yavaşlar.",
    "descUp": [
     "Hasar +, +1 ip",
     "Daha sık çeker",
@@ -10280,8 +10281,8 @@
     2,
     3,
     3,
-    3,
-    4
+    4,
+    5
    ],
    "cooldown": [
     0.42,

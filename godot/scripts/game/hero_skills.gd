@@ -121,7 +121,7 @@ func _cast(d: Dictionary) -> bool:
 			for k in n:
 				var e = ts[k % ts.size()]
 				var a := TAU * k / maxf(1.0, n) + randf() * 0.4
-				shots.append({"x": p.x + cos(a) * 18.0, "y": p.y - 30.0 + sin(a) * 10.0, "tgt": e, "tok": e.aliveTok, "dmg": dmg, "c": hx,
+				shots.append({"x": p.x + cos(a) * 18.0, "y": p.y - 30.0 + sin(a) * 10.0, "tgt": e, "tok": e.lifeTok, "dmg": dmg, "c": hx,
 					"sp": 620.0, "heal": float(d.get("heal", 0.0)), "vx": cos(a) * 260.0, "vy": sin(a) * 260.0 - 160.0, "t": 0.0})
 		"chain":
 			var n := int(d.get("n", 4))
@@ -220,11 +220,11 @@ func _tick_shots(dt: float) -> void:
 		var s: Dictionary = shots[i]
 		s.t += dt
 		var e = s.tgt
-		var alive: bool = e != null and is_instance_valid(e) and e.hp > 0 and e.aliveTok == s.tok
+		var alive: bool = e != null and is_instance_valid(e) and e.hp > 0 and e.lifeTok == s.tok
 		if not alive:
 			var ts: Array = g.weapons.aim_targets(s.x, s.y, 1, 300.0)
 			if ts.is_empty() or s.t > 2.0: shots.remove_at(i); continue
-			e = ts[0]; s.tgt = e; s.tok = e.aliveTok
+			e = ts[0]; s.tgt = e; s.tok = e.lifeTok
 		var dx: float = e.x - s.x
 		var dy: float = (e.y - 10.0) - s.y
 		var d := sqrt(dx * dx + dy * dy)
