@@ -8,7 +8,7 @@ const TEST := false
 
 ## Google Play Games Services projesi kimliği (Play Console → Play Games Services → Kurulum ve
 ## yönetim → Yapılandırma: "Proje kimliği", yalnız rakamlar). Boşsa giriş/bulut kaydı kapalı kalır.
-const GAMES_PROJECT_ID := ""
+const GAMES_PROJECT_ID := "263823360353"
 
 ## kendi telefonunda gerçek kimliklerle denerken: logcat'te "Use RequestConfiguration...
 ## setTestDeviceIds(Arrays.asList("…"))" satırındaki kimlik

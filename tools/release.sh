@@ -53,7 +53,7 @@ export_build_type=release
 export_format=aab
 godot_editor_version=4.5.1.stable
 godot_rendering_method=gl_compatibility
-plugins_remote_binaries=com.google.android.gms:play-services-ads:23.6.0|com.google.android.ump:user-messaging-platform:3.1.0|com.android.billingclient:billing:8.0.0
+plugins_remote_binaries=com.google.android.gms:play-services-ads:23.6.0|com.google.android.ump:user-messaging-platform:3.1.0|com.android.billingclient:billing:8.0.0|com.google.android.gms:play-services-games-v2:20.1.2
 plugins_local_binaries=plugins/ShadowAds.aar
 """
 STORE=('.pck','.sparsepck','.ogg','.png','.webp','.jpg','.aar','.jar','.glb','.wav','.scn','.ctex','.res','.sample')
