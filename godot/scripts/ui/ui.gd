@@ -549,7 +549,7 @@ func _process(_dt: float) -> void:
 		if now - _logT > 3.0:
 			_logT = now
 			print("T=", snappedf(g.time, 0.1), " wave=", g.wave, " lvl=", g.player.level, " kills=", g.kills, " hp=", snappedf(g.player.hp, 1), " en=", g.enemies.pool.active.size(), " fps=", Engine.get_frames_per_second(), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " objs=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " w=", g.weapons.slots.keys())
-	if _arg("quit") != "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
+	if _arg("quit") != "" and Engine.get_write_movie_path() == "" and _t0 > 0 and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT + 40: get_tree().quit()
 	var hv := _arg("hudv", "")
 	if hv != "" and not _hudDone and _shot != "" and Time.get_ticks_msec() / 1000.0 - _t0 > _shotT - float(_arg("hudw", "1")):
 		_hudDone = true

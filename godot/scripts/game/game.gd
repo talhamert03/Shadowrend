@@ -839,6 +839,8 @@ func reset_clock() -> void:
 
 func game_over() -> void:
 	if state != "playing": return
+	if OS.is_debug_build() and "god=1" in OS.get_cmdline_user_args():
+		player.hp = player.maxHp; return
 	if not _dying:
 		# ölüm sekansı: anlık donma hissi → yavaş akan zaman, kamera kahramana süzülür, kahraman
 		# devrilir, kızıl şok dalgası sürüyü savurur, ruh yükselir; sonra yenilgi ekranı
@@ -1746,6 +1748,7 @@ func in_view(x: float, y: float, m: float = CULL_MARGIN) -> bool:
 
 # ═══════════ ANA DÖNGÜ ═══════════
 
+var _movie := Engine.get_write_movie_path() != ""
 func _process(_delta: float) -> void:
 	FreezeWatch.beat(_freeze_ctx)
 	Prof.cur = "frame"
@@ -1754,6 +1757,7 @@ func _process(_delta: float) -> void:
 	last = clk
 	var rdt := rdtMs / 1000.0
 	if rdt > 0.1: rdt = 0.1
+	if _movie: rdt = _delta  # film kaydı: sabit kare adımı (duvar saati değil)
 	if not (rdt > 0):
 		last = clk
 		return
