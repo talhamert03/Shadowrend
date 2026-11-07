@@ -329,7 +329,7 @@ static func _reward_label(rw: Dictionary) -> String:
 		"gear": return ["", "SIRADAN", "YAYGIN", "NADİR", "EPİK", "EFSANE"][clampi(int(rw.get("rarityMax", 1)), 1, 5)] + " EŞYA"
 		"char": return "GİZLİ KAHRAMAN"
 		"cards":
-			var nm: String = D.CHARACTERS[rw.char].name if D.CHARACTERS.has(rw.get("char", "")) else "KAHRAMAN"
+			var nm: String = D.CHARACTERS[rw.char].name if D.CHARACTERS.has(rw.get("char", "")) else "KART"
 			return "+" + str(int(rw.get("amount", 1))) + " " + nm
 	return ""
 

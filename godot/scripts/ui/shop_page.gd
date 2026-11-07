@@ -65,6 +65,7 @@ func render() -> void:
 # ═════════════ yardımcılar ═════════════
 
 func _clear(k: String) -> void:
+	if k == "#shop-chests": _bob.clear()
 	for it in _items.get(k, []):
 		if it is Lyr: menu.unbtn(it)
 		(it as Node).queue_free()
@@ -190,6 +191,7 @@ func _chests() -> void:
 		if V:
 			var tt: String = t
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
+			_bobify(V)
 
 func _deal_tap() -> void:
 	var deal := today_deal()
@@ -490,8 +492,29 @@ func _relayout() -> void:
 	if S is Dictionary: S.h = _scroll_h0 + dh
 	shell.set_scroll(root, clampf(root.scroll_y, 0.0, shell.scroll_max(root)))
 
+## vitrindeki sandık görselleri: nefes alır + ara sıra küçük zıplama (mağaza canlı dursun)
+var _bob: Array = []   # [Lyr, Lyr.N, faz]
+var _bobT := 0.0
+func _bobify(V: Lyr) -> void:
+	for nn in V.nodes:
+		if nn is Lyr.N and str(nn.d.get("tag", "")) == "svg" and nn.size.x >= 50.0:
+			_bob.append([V, nn, randf() * TAU])
+			break
+
 func _process(dt: float) -> void:
-	if not is_visible_in_tree() or _cd.is_empty(): return
+	if not is_visible_in_tree(): return
+	if not _bob.is_empty():
+		_bobT += dt
+		for b in _bob:
+			if not is_instance_valid(b[0]): continue
+			var ph: float = _bobT * 2.2 + b[2]
+			var hop := maxf(0.0, sin(_bobT * 1.6 + b[2]))
+			hop = pow(hop, 6.0)
+			var sq := 0.025 * sin(ph * 2.0)
+			var n: Lyr.N = b[1]
+			n.extra = Transform2D(0.04 * sin(ph * 0.5) * hop, Vector2(1.0 + sq, 1.0 - sq), 0, Vector2(0, -sin(ph) * 2.0 - hop * 7.0))
+			b[0].set_dyn(n)
+	if _cd.is_empty(): return
 	_tick += dt
 	if _tick < 1.0: return
 	_tick = 0.0

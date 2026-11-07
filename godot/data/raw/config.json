@@ -18,8 +18,8 @@
     "amount": 16
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 35
+    "kind": "stone",
+    "amount": 8
    }
   },
   {
@@ -29,8 +29,8 @@
     "amount": 18
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 38
+    "kind": "cards",
+    "amount": 4
    }
   },
   {
@@ -51,8 +51,8 @@
     "amount": 22
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 44
+    "kind": "stone",
+    "amount": 15
    }
   },
   {
@@ -63,7 +63,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 8
+    "amount": 17
    }
   },
   {
@@ -74,7 +74,7 @@
    },
    "premium": {
     "kind": "chest",
-    "chest": "yaygin"
+    "chest": "kemik"
    }
   },
   {
@@ -84,8 +84,8 @@
     "amount": 28
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 53
+    "kind": "chest",
+    "chest": "kemik"
    }
   },
   {
@@ -95,8 +95,8 @@
     "amount": 30
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 56
+    "kind": "stone",
+    "amount": 18
    }
   },
   {
@@ -129,8 +129,8 @@
     "amount": 36
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 65
+    "kind": "chest",
+    "chest": "kemik"
    }
   },
   {
@@ -152,7 +152,7 @@
    },
    "premium": {
     "kind": "chest",
-    "chest": "yaygin"
+    "chest": "kemik"
    }
   },
   {
@@ -162,8 +162,8 @@
     "amount": 42
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 74
+    "kind": "cards",
+    "amount": 6
    }
   },
   {
@@ -174,7 +174,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 12
+    "amount": 25
    }
   },
   {
@@ -184,8 +184,8 @@
     "amount": 46
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 80
+    "kind": "stone",
+    "amount": 24
    }
   },
   {
@@ -195,8 +195,8 @@
     "amount": 48
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 83
+    "kind": "stone",
+    "amount": 20
    }
   },
   {
@@ -217,8 +217,8 @@
     "amount": 52
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 89
+    "kind": "chest",
+    "chest": "kan"
    }
   },
   {
@@ -251,8 +251,8 @@
     "amount": 58
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 98
+    "kind": "cards",
+    "amount": 7
    }
   },
   {
@@ -262,8 +262,8 @@
     "amount": 60
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 101
+    "kind": "chest",
+    "chest": "kan"
    }
   },
   {
@@ -284,8 +284,8 @@
     "amount": 145
    },
    "premium": {
-    "kind": "stone",
-    "amount": 16
+    "kind": "chest",
+    "chest": "mistik"
    }
   },
   {
@@ -317,8 +317,8 @@
     "chest": "yaygin"
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 116
+    "kind": "stone",
+    "amount": 32
    }
   },
   {
@@ -328,8 +328,8 @@
     "amount": 72
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 119
+    "kind": "stone",
+    "amount": 28
    }
   },
   {
@@ -350,8 +350,8 @@
     "amount": 76
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 125
+    "kind": "chest",
+    "chest": "kan"
    }
   },
   {
@@ -361,8 +361,8 @@
     "amount": 78
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 128
+    "kind": "stone",
+    "amount": 35
    }
   },
   {
@@ -383,8 +383,8 @@
     "amount": 82
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 134
+    "kind": "cards",
+    "amount": 9
    }
   },
   {
@@ -395,7 +395,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 20
+    "amount": 42
    }
   },
   {
@@ -416,8 +416,8 @@
     "amount": 88
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 143
+    "kind": "stone",
+    "amount": 34
    }
   },
   {
@@ -427,8 +427,8 @@
     "amount": 90
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 146
+    "kind": "cards",
+    "amount": 10
    }
   },
   {
@@ -461,8 +461,8 @@
     "amount": 96
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 155
+    "kind": "stone",
+    "amount": 36
    }
   },
   {
@@ -483,8 +483,8 @@
     "amount": 100
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 161
+    "kind": "chest",
+    "chest": "kadim"
    }
   },
   {
@@ -506,7 +506,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 24
+    "amount": 50
    }
   },
   {
@@ -516,8 +516,8 @@
     "amount": 106
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 170
+    "kind": "cards",
+    "amount": 11
    }
   },
   {
@@ -549,8 +549,8 @@
     "amount": 112
    },
    "premium": {
-    "kind": "rubies",
-    "amount": 179
+    "kind": "stone",
+    "amount": 42
    }
   },
   {
@@ -561,7 +561,7 @@
    },
    "premium": {
     "kind": "chest",
-    "chest": "mistik"
+    "chest": "ejderha"
    }
   }
  ],

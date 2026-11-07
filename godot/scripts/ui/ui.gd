@@ -228,6 +228,9 @@ func boot() -> void:
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
+		if _arg("cbopen") != "":
+			# geliştirici: cbopen=<sandık> — mağaza sandık pop-up'ını aç
+			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): chest_buy(_arg("cbopen"), {}))
 		if _arg("shopbuy") != "":
 			# geliştirici: shopbuy=<paket> — mağazada gem paketi satın al (görsel durum testi)
 			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): menu.pages["magaza"]._buy_pack(_arg("shopbuy")))

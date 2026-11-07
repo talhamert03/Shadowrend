@@ -212,7 +212,29 @@ func _premium_cta(y: float) -> float:
 	cr.add_child(gl)
 	_icon(cr, load("res://assets/ui/art/icon/tac.png"), 60, Vector2.ZERO, YEL)
 	_txt(pn, "PREMİUM GEÇİŞ", 26, YEL, UIK.ink_stroke(2.2, 3.0), Vector2(104, 12), 240)
-	_small(pn, "Tüm altın ödülleri aç · gizli kahramanlar", 12, Color(1, 0.9, 0.8, 0.9), Vector2(106, 46), 240)
+	# kazancın özeti: premium yolda toplam gem / sandık / kart / gizli kahraman
+	var gems := 0; var nch := 0; var ncard := 0; var nchar := 0
+	for td in D.BATTLE_PASS_TIERS:
+		var pr: Dictionary = td.premium
+		match String(pr.kind):
+			"stone": gems += int(pr.amount)
+			"chest": nch += 1
+			"cards": ncard += int(pr.amount)
+			"char": nchar += 1
+	_small(pn, str(gems) + " GEM · " + str(nch) + " SANDIK", 13, Color(1, 0.92, 0.6, 1.0), Vector2(106, 44), 240)
+	_small(pn, str(ncard) + " KAHRAMAN KARTI · " + str(nchar) + " GİZLİ KAHRAMAN", 11, Color(1, 0.9, 0.8, 0.9), Vector2(106, 62), 240)
+	# "×5 DEĞER" rozeti
+	var vb := Node2D.new()
+	vb.position = Vector2(w - 40, 14)
+	vb.rotation = 0.2
+	vb.draw.connect(func():
+		var k2 := 1.0 + 0.06 * sin(_t * 5.0)
+		vb.draw_set_transform(Vector2.ZERO, 0.0, Vector2(k2, k2))
+		vb.draw_style_box(ComicSkin.sb(INK, 8), Rect2(-36, -14, 74, 30))
+		vb.draw_style_box(ComicSkin.sb(Color("#ff2a4a"), 8), Rect2(-38, -16, 74, 28)))
+	pn.add_child(vb)
+	_live.append(vb)
+	_txt(vb, "×5 DEĞER", 15, Color.WHITE, "", Vector2(-38, -15), 74).align = 0.5
 	var price := int(D.BATTLE_PASS.premiumPrice)
 	var can: bool = g.read_stones() >= price
 	var b := _cta(pn, Vector2(w - 92, h - 28), 152, 40, "     " + str(price), Color("#7a2cff") if can else Color("#4a3a50"), Color("#a85cff") if can else Color("#5a4a60"), _buy, true, 22)

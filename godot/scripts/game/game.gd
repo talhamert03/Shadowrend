@@ -1606,6 +1606,14 @@ func bp_claim(tier: int, track: String):
 			else:
 				add_rubies(80)
 				toast = "+80 ALTIN"
+		"cards":
+			# rastgele kahraman kartı: sahip olunan kahramanlardan biri (yoksa herhangi biri)
+			var cid: String = str(r.get("char", ""))
+			if cid == "" or not D.CHARACTERS.has(cid):
+				var pool2: Array = meta.charsOwned.duplicate() if meta.charsOwned.size() else D.CHARACTERS.keys()
+				cid = str(pool2[randi() % pool2.size()])
+			add_char_cards(cid, int(r.amount))
+			toast = "+" + JS.s(r.amount) + " " + D.CHARACTERS[cid].name + " KARTI"
 		"char":
 			var id = bp_pick_hidden_char(r.rarity)
 			if id:
