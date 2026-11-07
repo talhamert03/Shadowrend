@@ -142,7 +142,9 @@ func _hero() -> float:
 	gt.width = 256
 	gt.height = 120
 	R.add_child(UIK.round_image(gt, W, H, 16, Vector2(0.5, 0.5)))
-	R.add_child(isle)
+	# ada görseli yerine el çizimi gibi duran altın ×2 amblemi (diğer afişlerle aynı dil)
+	isle.queue_free()
+	R.add_child(_gold_emblem(Vector2(W - 82.0, H * 0.5 + 16.0), wc))
 	var deco := Node2D.new()
 	R.add_child(deco)
 	var w: int = Journey.season_week()
@@ -383,3 +385,46 @@ func _process(dt: float) -> void:
 		if rays: rays.queue_redraw()
 		var bd = A.badge
 		if bd: (bd as Node2D).scale = Vector2.ONE * (1.0 + 0.14 * maxf(0.0, sin(_t * 6.0)))
+
+
+## BİYOM HAFTASI amblemi: dönen ışınlar + üst üste altın paralar + "×2" rozeti, hafif süzülme
+func _gold_emblem(pos: Vector2, wc: Color) -> Node2D:
+	var n := Node2D.new()
+	n.position = pos
+	var coin: Texture2D = UITex.get_tex("res://assets/fx/currency/coin.png")
+	var t0 := Time.get_ticks_msec()
+	n.draw.connect(func():
+		var t := (Time.get_ticks_msec() - t0) / 1000.0
+		var bob := sin(t * 2.0) * 3.0
+		for i in 10:
+			var a := t * 0.35 + i * TAU / 10.0
+			var pts := PackedVector2Array([Vector2(0, bob), Vector2(cos(a - 0.12), sin(a - 0.12)) * 62.0 + Vector2(0, bob), Vector2(cos(a + 0.12), sin(a + 0.12)) * 62.0 + Vector2(0, bob)])
+			n.draw_colored_polygon(pts, Color(1.0, 0.78, 0.25, 0.10))
+		n.draw_circle(Vector2(0, bob), 40, Color(1.0, 0.7, 0.2, 0.10))
+		if coin:
+			var cs := 54.0
+			var offs := [Vector2(-20, 16), Vector2(18, 14), Vector2(-2, -4), Vector2(-14, -22), Vector2(16, -16)]
+			for k in offs.size():
+				var o: Vector2 = offs[k] + Vector2(0, bob + sin(t * 2.6 + k) * 1.5)
+				var s2 := cs * (1.0 - 0.06 * k)
+				n.draw_texture_rect(coin, Rect2(o - Vector2(s2, s2) * 0.5, Vector2(s2, s2)), false)
+		# ×2 rozeti
+		var bp := Vector2(-44, -26 + bob)
+		var pk := 1.0 + 0.08 * absf(sin(t * 3.2))
+		n.draw_set_transform(bp, 0.18, Vector2(pk, pk))
+		n.draw_circle(Vector2(1, 3), 19, Color(0, 0, 0, 0.55))
+		n.draw_circle(Vector2.ZERO, 19, Color("#e8322c"))
+		n.draw_arc(Vector2.ZERO, 19, 0, TAU, 36, Color("#ffd23a"), 2.5, true)
+		var f := UIK.font(true, 900, 1.0)
+		n.draw_string(f, Vector2(-15, 8), "×2", HORIZONTAL_ALIGNMENT_CENTER, 30, 21, Color.WHITE)
+		n.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# parıltılar
+		for k in 3:
+			var ph := fmod(t * 0.8 + k * 0.33, 1.0)
+			var sp := Vector2(-40 + k * 34, -30 + k * 12) + Vector2(0, bob)
+			var r := 5.0 * sin(ph * PI)
+			n.draw_line(sp - Vector2(r, 0), sp + Vector2(r, 0), Color(1, 1, 0.8, 0.9), 1.6)
+			n.draw_line(sp - Vector2(0, r), sp + Vector2(0, r), Color(1, 1, 0.8, 0.9), 1.6))
+	var tw := n.create_tween().set_loops()
+	tw.tween_callback(n.queue_redraw).set_delay(0.033)
+	return n

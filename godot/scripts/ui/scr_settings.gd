@@ -117,12 +117,7 @@ func _build() -> void:
 	_small_btn("GİZLİLİK", x0, y, bw, Color("#3a2a33"), func(): g.audio.play("click"); g.ui.open_doc("privacy"))
 	_small_btn("KOŞULLAR", x0 + bw + 10.0, y, bw, Color("#3a2a33"), func(): g.audio.play("click"); g.ui.open_doc("terms"))
 	y += 44.0
-	# tanı raporu: performans raporu + hata/donma kaydı + cihaz panoya kopyalanır (destek için)
-	_small_btn("TANI RAPORU", x0, y, bw, Color("#2a3a4a"), func():
-		g.audio.play("click")
-		DisplayServer.clipboard_set(PerfLog.text() + "\n\n" + FreezeWatch.report() + "\n\n" + PerfLog.err_text())
-		g.ui.toast("RAPOR KOPYALANDI"))
-	_small_btn("VERİLERİ SİL", x0 + bw + 10.0, y, bw, Color("#5a1a20"), func(): g.audio.play("click"); g.ui.confirm_wipe())
+	_small_btn("VERİLERİ SİL", x0 + (cw - bw) * 0.5, y, bw, Color("#5a1a20"), func(): g.audio.play("click"); g.ui.confirm_wipe())
 	y += 46.0
 	var ver := _lbl("v" + str(ProjectSettings.get_setting("application/config/version", "1.0.0")), 10, Color(1, 1, 1, 0.3), false, 1.0)
 	ver.align = 0.5; ver.wrap_w = pw
