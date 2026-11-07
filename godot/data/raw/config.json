@@ -19,7 +19,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 8
+    "amount": 5
    }
   },
   {
@@ -51,8 +51,8 @@
     "amount": 22
    },
    "premium": {
-    "kind": "stone",
-    "amount": 15
+    "kind": "cards",
+    "amount": 3
    }
   },
   {
@@ -63,7 +63,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 17
+    "amount": 5
    }
   },
   {
@@ -95,8 +95,8 @@
     "amount": 30
    },
    "premium": {
-    "kind": "stone",
-    "amount": 18
+    "kind": "cards",
+    "amount": 3
    }
   },
   {
@@ -174,7 +174,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 25
+    "amount": 7
    }
   },
   {
@@ -184,8 +184,8 @@
     "amount": 46
    },
    "premium": {
-    "kind": "stone",
-    "amount": 24
+    "kind": "cards",
+    "amount": 4
    }
   },
   {
@@ -196,7 +196,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 20
+    "amount": 7
    }
   },
   {
@@ -317,8 +317,8 @@
     "chest": "yaygin"
    },
    "premium": {
-    "kind": "stone",
-    "amount": 32
+    "kind": "cards",
+    "amount": 5
    }
   },
   {
@@ -329,7 +329,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 28
+    "amount": 9
    }
   },
   {
@@ -361,8 +361,8 @@
     "amount": 78
    },
    "premium": {
-    "kind": "stone",
-    "amount": 35
+    "kind": "cards",
+    "amount": 6
    }
   },
   {
@@ -395,7 +395,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 42
+    "amount": 11
    }
   },
   {
@@ -416,8 +416,8 @@
     "amount": 88
    },
    "premium": {
-    "kind": "stone",
-    "amount": 34
+    "kind": "cards",
+    "amount": 6
    }
   },
   {
@@ -462,7 +462,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 36
+    "amount": 13
    }
   },
   {
@@ -505,8 +505,8 @@
     "amount": 225
    },
    "premium": {
-    "kind": "stone",
-    "amount": 50
+    "kind": "cards",
+    "amount": 7
    }
   },
   {
@@ -550,7 +550,7 @@
    },
    "premium": {
     "kind": "stone",
-    "amount": 42
+    "amount": 13
    }
   },
   {
