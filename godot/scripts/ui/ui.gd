@@ -297,6 +297,16 @@ func boot() -> void:
 				var E = g.enemies
 				E.aliveCap = 9999.0; E.osCap = 9999.0
 				for i in int(_arg("spawnn")): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "20")), E.dmgMul * 0.05))
+		if _arg("horde") != "":
+			# geliştirici: horde=N — video çekimi: sahnede sürekli kalabalık sürü (canlı tanıtım görüntüsü)
+			var ht := Timer.new(); ht.wait_time = 1.5; add_child(ht)
+			ht.timeout.connect(func():
+				var E = g.enemies
+				if g.state != "playing": return
+				E.aliveCap = 9999.0; E.osCap = 9999.0
+				var need: int = int(_arg("horde")) - E.pool.active.size()
+				for i in clampi(need, 0, 25): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "3")), E.dmgMul * 0.05))
+			ht.start()
 		if _arg("pudrop") != "":
 			# geliştirici: pudrop — kahramanın çevresine dört güç + XP kristalleri
 			get_tree().create_timer(1.2).timeout.connect(func():

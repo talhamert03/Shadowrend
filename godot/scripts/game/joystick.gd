@@ -105,6 +105,29 @@ func sample() -> void:
 		if _walk.x > 8.0:
 			var t: float = game.time
 			mx = cos(t * 0.9) * (0.6 + 0.4 * sin(t * 2.3)); my = sin(t * 0.7)
+		# walk=7,7 → video modu: sürüden kaçarak etrafında daire çiz (canlı oynanış görüntüsü)
+		elif _walk.x > 6.0:
+			var t: float = game.time
+			var P = game.player
+			var rx := 0.0; var ry := 0.0
+			for e in game.enemies.pool.active:
+				var dx: float = P.x - e.x; var dy: float = P.y - e.y
+				var d2: float = dx * dx + dy * dy
+				if d2 < 260.0 * 260.0 and d2 > 1.0:
+					var d := sqrt(d2); var w := (260.0 - d) / 260.0
+					rx += dx / d * w; ry += dy / d * w
+			var rl := sqrt(rx * rx + ry * ry)
+			var wx := cos(t * 0.55) * 0.8 + cos(t * 1.7) * 0.25
+			var wy := sin(t * 0.55) * 0.8 + sin(t * 1.3) * 0.25
+			if rl > 0.05:
+				rx /= rl; ry /= rl
+				var k := clampf(rl * 0.6, 0.0, 0.85)
+				# kaçarken yana kay (kite) — sürünün çevresinde tur
+				wx = lerp(wx, rx * 0.6 - ry * 0.8, k); wy = lerp(wy, ry * 0.6 + rx * 0.8, k)
+			# başlangıç noktasından fazla uzaklaşma
+			wx -= P.x * 0.0004; wy -= P.y * 0.0004
+			var wl := sqrt(wx * wx + wy * wy)
+			if wl > 0.001: mx = wx / wl; my = wy / wl
 var _walk = null
 
 ## Ekran-uzayı joystick çizimi (yalnız aktifken) — input.js render(ctx).
