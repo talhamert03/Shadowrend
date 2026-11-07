@@ -178,7 +178,8 @@ func reset() -> void:
 func set_world(wd: Dictionary) -> void:
 	worldColor = wd.color
 	worldBoss = wd.boss
-	speedMul = JS.num(wd, "speedMul", 1.0)
+	# genel zorluk cilası: düşmanlar biraz daha atak (+%5 hız)
+	speedMul = JS.num(wd, "speedMul", 1.0) * 1.05
 	bossKind = "ejder" if wd.floor == "bataklik" else "lord"
 	worldHue = wd.hue
 
@@ -186,8 +187,10 @@ func start_wave(w: int) -> void:
 	var msn: Dictionary = game.msn
 	var eff: float = w + msn.mixOffset
 	wave = w
-	hpMul = D.waveHpMul(w) * msn.hpMul
-	dmgMul = D.waveDmgMul(w) * msn.dmgMul
+	# genel zorluk cilası: +%6 can, +%4 hasar (ilk dalgalar etkilenmesin diye 2. dalgadan sonra)
+	var hard := 1.0 if w <= 1 else 1.06
+	hpMul = D.waveHpMul(w) * msn.hpMul * hard
+	dmgMul = D.waveDmgMul(w) * msn.dmgMul * (1.0 if w <= 1 else 1.04)
 	weights = D.waveWeights(eff, msn.roster)
 	densityMul = JS.num(msn, "density", 1.0) * (0.4 if game.is_boss_wave(w) else 1.0)
 	interval = D.spawnGap(w, 1)

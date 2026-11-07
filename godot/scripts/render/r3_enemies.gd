@@ -210,6 +210,7 @@ func _load_model_group(def: Dictionary, total: int) -> void:
 		var ek: Array = []
 		var nps: Array = []
 		for m in mats:
+			_menace(m)
 			ek.append(float(m.get_shader_parameter("emissive_k")))
 			nps.append((m as ShaderMaterial).next_pass)
 		var ap := inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
@@ -269,6 +270,13 @@ func set_outline(on: bool) -> void:
 	for G in _groups:
 		for pr in G.get("ols", []): (pr[0] as ShaderMaterial).next_pass = pr[1] if on else null
 
+## düşmanlar daha ciddi/tehditkâr: sıcak kahraman kenar ışığı yerine kızıl, biraz daha güçlü kontur
+static func _menace(m: Material) -> void:
+	if m is ShaderMaterial:
+		(m as ShaderMaterial).set_shader_parameter("rim_c", Vector3(1.0, 0.24, 0.26))
+		(m as ShaderMaterial).set_shader_parameter("rim_s", 0.55)
+		(m as ShaderMaterial).set_shader_parameter("rim_p", 2.6)
+
 static var _noVat := OS.get_cmdline_user_args().has("novat")
 
 func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> void:
@@ -281,6 +289,7 @@ func _add_vat_group(def: Dictionary, V: Dictionary, lift: float, emI: float) -> 
 		var src := V.src_mats[si] as BaseMaterial3D
 		var m := Shd.from_gltf(src, o)
 		m.set_shader_parameter("emissive_k", float(m.get_shader_parameter("emissive_k")) * emI)
+		_menace(m)
 		m.set_shader_parameter("dis_col", Color(1, 0.86, 0.7))
 		var ms: Array = [m]
 		if ol > 0.0:
