@@ -9,5 +9,9 @@
         <meta-data
             android:name="org.godotengine.plugin.v2.ShadowPay"
             android:value="com.shadowrend.ads.ShadowPay" />
+        <!-- Google Play Games (giriş + bulut kaydı): Engine.get_singleton("ShadowGames") -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.ShadowGames"
+            android:value="com.shadowrend.ads.ShadowGames" />
     </application>
 </manifest>

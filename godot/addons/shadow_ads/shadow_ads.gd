@@ -24,11 +24,18 @@ class AdsExport extends EditorExportPlugin:
 		return PackedStringArray(["shadow_ads/android/ShadowAds.aar"])
 
 	func _get_android_dependencies(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
-		return PackedStringArray([
+		var d := PackedStringArray([
 			"com.google.android.gms:play-services-ads:23.6.0",
 			"com.google.android.ump:user-messaging-platform:3.1.0",
 			"com.android.billingclient:billing:8.0.0",
 		])
+		# Play Games (giriş + bulut kaydı): yalnız Play Console oyun projesi kimliği girilmişse
+		if AdIds.GAMES_PROJECT_ID != "": d.append("com.google.android.gms:play-services-games-v2:20.1.2")
+		return d
 
 	func _get_android_manifest_application_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:
-		return '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="%s"/>\n' % AdIds.APP_ID
+		var m := '<meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="%s"/>\n' % AdIds.APP_ID
+		if AdIds.GAMES_PROJECT_ID != "":
+			# sayısal kimlik dize olarak okunsun diye başta "\ " kaçışı (Play Games belgesindeki biçim)
+			m += '<meta-data android:name="com.google.android.gms.games.APP_ID" android:value="\\ %s"/>\n' % AdIds.GAMES_PROJECT_ID
+		return m

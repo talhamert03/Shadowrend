@@ -53,6 +53,9 @@ func _build() -> void:
 	add_child(_dim)
 	var pw := minf(340.0, _W - 36.0)
 	var ph := 478.0
+	var CL = g.ui.cloud
+	if CL and CL.available():
+		ph += 44.0 if not CL.signed else (22.0 + (44.0 if CL.cloud_level > g.account_level() else 0.0))
 	_panel = Node2D.new()
 	_panel.position = Vector2(_W * 0.5, _H * 0.5)
 	add_child(_panel)
@@ -114,6 +117,20 @@ func _build() -> void:
 	_panel.add_child(pid)
 	y += 22.0
 	var bw := (cw - 10.0) * 0.5
+	# Google Play Games: hesap bağlama + bulut kaydı
+	var C = g.ui.cloud
+	if C and C.available():
+		if C.signed:
+			var gn := _lbl("Google Play: " + (C.player_name if C.player_name != "" else "bağlı") + " · ilerleme bulutta", 11, Color("#8fe39a"), false, 0.4)
+			gn.position = Vector2(x0, y)
+			_panel.add_child(gn)
+			y += 22.0
+			if C.cloud_level > g.account_level():
+				_small_btn("BULUTTAN YÜKLE (SV " + str(C.cloud_level) + ")", x0, y, cw, Color("#2a4a6a"), func(): g.audio.play("click"); C.restore())
+				y += 44.0
+		else:
+			_small_btn("GOOGLE PLAY İLE BAĞLAN", x0, y, cw, Color("#2a5a3a"), func(): g.audio.play("click"); C.sign_in())
+			y += 44.0
 	_small_btn("GİZLİLİK", x0, y, bw, Color("#3a2a33"), func(): g.audio.play("click"); g.ui.open_doc("privacy"))
 	_small_btn("KOŞULLAR", x0 + bw + 10.0, y, bw, Color("#3a2a33"), func(): g.audio.play("click"); g.ui.open_doc("terms"))
 	y += 44.0
