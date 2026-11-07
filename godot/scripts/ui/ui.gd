@@ -314,6 +314,14 @@ func boot() -> void:
 				var need: int = int(_arg("horde")) - E.pool.active.size()
 				for i in clampi(need, 0, 25): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "3")), E.dmgMul * 0.05))
 			ht.start()
+		if _arg("endnow") != "":
+			# geliştirici: endnow=win|lose@sn — savaşı zorla bitir (görev sonu ekranı testi)
+			var en := _arg("endnow").split("@")
+			get_tree().create_timer(float(en[1]) if en.size() > 1 else 4.0).timeout.connect(func():
+				if en[0] == "win": g.mission_complete()
+				else:
+					g._dying = 0.001
+					g.game_over())
 		if _arg("pudrop") != "":
 			# geliştirici: pudrop — kahramanın çevresine dört güç + XP kristalleri
 			get_tree().create_timer(1.2).timeout.connect(func():

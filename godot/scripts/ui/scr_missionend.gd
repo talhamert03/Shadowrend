@@ -45,6 +45,8 @@ func _clear() -> void:
 	for e in extra: (e as Node).queue_free()
 	extra.clear()
 	if L: L.queue_free(); L = null
+	_hfx = null
+	_hbg = null
 	clear_btns()
 
 static func fmt_time(sec: float) -> String:
@@ -91,6 +93,7 @@ func show_end(w: bool, payload: Dictionary) -> void:
 	_buttons()
 	_relayout()
 	_sequence()
+	_build_hero_fx()
 	visible = true
 	# geliştirici: meshots=<yol.png> — törenin karelerini kaydet
 	for a in OS.get_cmdline_user_args():
@@ -101,6 +104,81 @@ func show_end(w: bool, payload: Dictionary) -> void:
 				var idx := i
 				get_tree().create_timer(tt).timeout.connect(func(): get_viewport().get_texture().get_image().save_png(path.replace(".png", "_%d.png" % idx)))
 				i += 1
+
+## Büyük başlık töreni: kartın başlığı yerine ekranın üstünde dev ZAFER / DÜŞTÜN.
+## Zafer: dönen altın ışınlar, parlayan halka, savrulan konfeti, 3 yıldız sırayla çakılır.
+## Yenilgi: kızıl nabız, aşağı süzülen küller, çatlayan başlık sarsıntısı.
+var _hfx: Node2D = null
+var _hbg: Node2D = null
+var _confetti: Array = []
+func _build_hero_fx() -> void:
+	var tn := L.find_id("#me-title")
+	if tn == null: return
+	var r := L.rect_of(tn)
+	L.set_hidden(tn, true)
+	_hfx = Node2D.new()
+	_hfx.position = Vector2(r.get_center().x, r.position.y + r.size.y * 0.5 + 8.0)
+	add_child(_hfx)
+	extra.append(_hfx)
+	_confetti.clear()
+	var cols := [Color("#ffd23a"), Color("#ff6a3a"), Color("#fff3d6"), Color("#ffb020"), Color("#7ad8ff")] if won else [Color("#5a1418"), Color("#3a0a10"), Color("#ff3a4a")]
+	for i in (60 if won else 30):
+		_confetti.append({"p": Vector2(randf_range(-170, 170), randf_range(-60, 10)), "v": Vector2(randf_range(-90, 90), randf_range(-320, -120)) if won else Vector2(randf_range(-20, 20), randf_range(10, 50)),
+			"c": cols[randi() % cols.size()], "r": randf() * TAU, "w": randf_range(-6, 6), "s": randf_range(3.0, 6.0), "d": randf() * 0.4})
+	# ışınlar/hale kartın ARKASINDA (yazıların üstüne binmesin)
+	var hbg := Node2D.new()
+	hbg.position = _hfx.position
+	add_child(hbg)
+	move_child(hbg, L.get_index())
+	extra.append(hbg)
+	_hbg = hbg
+	hbg.draw.connect(func():
+		var t := _t
+		var pop := clampf(t / 0.35, 0.0, 1.0)
+		if won:
+			# dönen ışın demeti
+			for i in 16:
+				var a := t * 0.4 + i * TAU / 16.0
+				var L2 := 230.0 * pop
+				var pts := PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.07), sin(a - 0.07)) * L2, Vector2(cos(a + 0.07), sin(a + 0.07)) * L2])
+				hbg.draw_colored_polygon(pts, Color(1.0, 0.8, 0.3, 0.13))
+			# genişleyen halka
+			var rk := fmod(t, 1.6) / 1.6
+			hbg.draw_arc(Vector2.ZERO, 40 + rk * 150, 0, TAU, 64, Color(1, 0.85, 0.4, 0.5 * (1.0 - rk)), 3.0, true)
+		else:
+			var pk := 0.5 + 0.5 * sin(t * 2.4)
+			for k in 4: hbg.draw_circle(Vector2.ZERO, 70.0 + k * 26.0, Color(0.6, 0.05, 0.08, (0.07 + 0.05 * pk) * pop))
+	)
+	var title := I18n.t("ZAFER" if won else "DÜŞTÜN")
+	var f := UIK.font(true, 1000, 1.0)
+	_hfx.draw.connect(func():
+		var t := _t
+		var pop := clampf(t / 0.35, 0.0, 1.0)
+		var sc := UIK.bez(0.2, 1.8, 0.4, 1.0, pop) * (1.0 + 0.03 * sin(t * 3.0))
+		# konfeti / kül
+		for c in _confetti:
+			var tt: float = t - c.d
+			if tt <= 0.0: continue
+			var p: Vector2 = c.p + c.v * tt + Vector2(0, 260.0 * tt * tt) if won else c.p + c.v * tt
+			var al := clampf(1.6 - tt * 0.6, 0.0, 1.0) if won else clampf(1.0 - tt * 0.2, 0.0, 0.8)
+			if al <= 0.0: continue
+			var ang: float = c.r + c.w * tt
+			_hfx.draw_set_transform(p, ang, Vector2.ONE)
+			_hfx.draw_rect(Rect2(-c.s * 0.5, -c.s * 0.25, c.s, c.s * 0.5), Color(c.c, al))
+		_hfx.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# başlık: kalın mürekkep gölge + parlak dolgu (yenilgide sarsıntı)
+		var sh := Vector2.ZERO
+		if not won and t < 0.6: sh = Vector2(randf_range(-3, 3), randf_range(-2, 2)) * (1.0 - t / 0.6)
+		var fs := 64
+		var tw := f.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		_hfx.draw_set_transform(sh, -0.04 if won else 0.03, Vector2(sc, sc))
+		var o := Vector2(-tw * 0.5, fs * 0.35)
+		_hfx.draw_string_outline(f, o + Vector2(3, 6), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 14, Color(0, 0, 0, 0.85))
+		_hfx.draw_string_outline(f, o, title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 10, Color("#1a0a06"))
+		var fill := Color("#ffd23a") if won else Color("#e8322c")
+		_hfx.draw_string(f, o, title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, fill)
+		_hfx.draw_string(f, o + Vector2(0, -2), title, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.25 if won else 0.08))
+		_hfx.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE))
 
 func _txt(key: String, v: String) -> void:
 	var n := L.find(key)
@@ -453,6 +531,8 @@ func _fly_tick() -> void:
 func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
+	if _hfx: _hfx.queue_redraw()
+	if _hbg: _hbg.queue_redraw()
 	_fly_tick()
 	if _flash and _flashT >= 0.0:
 		_flash.queue_redraw()
