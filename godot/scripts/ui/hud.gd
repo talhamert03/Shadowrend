@@ -363,9 +363,9 @@ func _build_ult() -> void:
 	ultCore.size = Vector2(94, 94)
 	ultCore.pivot_offset = Vector2(47, 47)
 	ultIcon = Draw.new(_draw_bolt)
-	ultIcon.size = Vector2(26, 26)
-	ultIcon.position = Vector2(24, 24)
-	ultIcon.pivot_offset = Vector2(13, 13)
+	ultIcon.size = Vector2(62, 62)
+	ultIcon.position = Vector2(6, 6)
+	ultIcon.pivot_offset = Vector2(31, 31)
 	ult.add_child(ultIcon)
 	ultLab = _txt(ult).style(false, 800, 9, 1.8, Color(207 / 255.0, 214 / 255.0, 226 / 255.0, 0.6), "", 12)
 	ultLab.anchor_x = 0.5
@@ -655,7 +655,30 @@ func _draw_cb_bar(c: Control) -> void:
 	if _cbFrac > 0:
 		c.draw_rect(Rect2(0, 0, w * _cbFrac, 2), Color(CB_COL[clampi(_cbTierShown, 0, 3)]))
 
+var _ultTex: Texture2D = null
+var _ultTexId := ""
 func _draw_bolt(c: Control) -> void:
+	# kahramanın süper güç resmi: yuvarlak madalyon (dolunca parlak, dolarken soluk)
+	var cid := ""
+	if g and g.player: cid = str(g.player.charId)
+	if cid != _ultTexId:
+		_ultTexId = cid
+		var pth := "res://assets/ui/art/ult/" + cid + ".png"
+		_ultTex = load(pth) if cid != "" and ResourceLoader.exists(pth) else null
+	if _ultTex:
+		var ready2 := _ultSt == 2
+		var ctr := Vector2(31, 31)
+		var r := 27.0
+		var pts2 := PackedVector2Array(); var uvs := PackedVector2Array()
+		for i in 40:
+			var a := TAU * i / 40.0
+			var v := Vector2(cos(a), sin(a))
+			pts2.append(ctr + v * r); uvs.append(Vector2(0.5, 0.5) + v * 0.47)
+		var mc := Color.WHITE if ready2 else Color(0.5, 0.5, 0.56)
+		c.draw_colored_polygon(pts2, mc, uvs, _ultTex)
+		c.draw_arc(ctr, r, 0, TAU, 48, Color(0, 0, 0, 0.55), 2.5, true)
+		if ready2: c.draw_arc(ctr, r + 1.5, 0, TAU, 48, Color(_ultCol, 0.9), 2.0, true)
+		return
 	var k := 26.0 / 24.0
 	var pts := PackedVector2Array()
 	for p in BOLT: pts.append(p * k)
@@ -1109,7 +1132,8 @@ func _tick_hud(rm: bool) -> void:
 	ultCore.scale = Vector2(s, s)
 	ultCore.position = Vector2(-10 + nx, -10)
 	ultIcon.scale = Vector2(s, s)
-	ultIcon.position = Vector2(24 + nx, 24)
+	var io := 6.0 if _ultTex else 24.0
+	ultIcon.position = Vector2(io + nx, io)
 	if ready_ and not rm: ringMat.set_shader_parameter("spin", fmod(_t, 6.0) / 6.0 * TAU)
 	# katliam rozeti: açılış/kapanış (opaklık 220 ms ease · translateX 320 ms POP), sayı vuruşu, kademe
 	if cb.visible:

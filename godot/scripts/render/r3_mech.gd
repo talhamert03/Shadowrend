@@ -19,6 +19,7 @@ var shard: IMesh; var iceBlock: IMesh
 var totem: IMesh; var totemEye: IMesh; var sbolt: IMesh
 var mark: IMesh; var markFill: IMesh; var star: IMesh; var starTrail: IMesh
 var wave: IMesh; var waveGlow: IMesh
+var bloodGlow: IMesh; var bloodLink: IMesh
 
 static func _flat_ring(ri: float, ro: float, n: int, a0 := 0.0, al := TAU) -> ArrayMesh:
 	var pos := PackedVector3Array(); var nrm := PackedVector3Array(); var uv := PackedVector2Array(); var idx := PackedInt32Array()
@@ -72,6 +73,9 @@ func _init() -> void:
 	lash = _im(seg, _lit("#5a0a18", "#ff2a4a", 1.2, 0.5, 0.1), LASH_SEG * 6)
 	lashGlow = _im(seg, _add("#ff3a5a"), LASH_SEG * 6)
 	lashTip = _im(Geo.sphere(1.0, 8, 6), _add("#ffffff"), 6)
+	# KAN ÇEKME: koyu kızıl damla + parlak hale; düşmandan kahramana ince kan bağı
+	bloodLink = _im(seg, Shd.lit({"color": Color("#8a0a16"), "emissive": Color("#ff1828"), "emissive_k": 1.5, "roughness": 0.2, "rim": false}), 220)
+	bloodGlow = _im(seg, _add("#ff2a3a"), 220)
 	# GÖLGE: uzun karanlık bıçak-silüet + camgöbeği hayalet izleri
 	var sp := PackedVector2Array([Vector2(0, 14), Vector2(4, 4), Vector2(5, -4), Vector2(2, -12), Vector2(0, -16), Vector2(-2, -12), Vector2(-5, -4), Vector2(-4, 4)])
 	var sg := Geo.merge([Geo.extrude(sp, 3.0)], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3.ZERO)])
@@ -146,6 +150,7 @@ func update(g) -> void:
 	_totems(M, T)
 	_stars(M, T)
 	_waves(M, T)
+	_blood(M, p, T)
 
 func _hooks(M: HeroMech, T: float) -> void:
 	var n := 0; var hn := 0; var fn := 0
@@ -407,3 +412,34 @@ func _waves(M: HeroMech, T: float) -> void:
 		waveGlow.set_col(n, 0.5 * k, 0.12 * k, 0.4 * k, 1)
 		n += 1
 	wave.commit(n); waveGlow.commit(n)
+
+
+func _blood(M: HeroMech, p, T: float) -> void:
+	# kan çizgileri: baş kahramana doğru kavis çizerek uçar, arkasında incelen kuyruk (LoL Vladimir tarzı)
+	const SEGS := 8
+	var ln := 0; var gn := 0
+	for q in M.drops:
+		if ln > 220 - SEGS: break
+		if q.t <= 0.0: continue
+		var k: float = clampf(q.t / q.dur, 0.0, 1.0)
+		var k0 := maxf(0.0, k - 0.42)
+		var fade: float = clampf((1.0 - k) / 0.12, 0.0, 1.0) if k > 0.88 else 1.0
+		var prev: Vector3 = M.drop_pos(q, k0)
+		for i in range(1, SEGS + 1):
+			var f := float(i) / SEGS
+			var cur: Vector3 = M.drop_pos(q, lerpf(k0, k, f))
+			var dv := cur - prev
+			var len := dv.length()
+			if len > 0.05:
+				var th: float = (0.5 + 3.0 * f) * q.sz * fade
+				var bz2 := Basis.looking_at(-dv / len, Vector3.UP)
+				bloodLink.set_mat(ln, Basis(bz2.x * th, bz2.y * th, bz2.z * len), prev)
+				bloodLink.set_col(ln, 1, 1, 1, 1)
+				ln += 1
+				if f > 0.4 and gn < 220:
+					var gt := th * 2.6
+					bloodGlow.set_mat(gn, Basis(bz2.x * gt, bz2.y * gt, bz2.z * len), prev)
+					bloodGlow.set_col(gn, 0.5 * f * fade, 0.03 * f * fade, 0.07 * f * fade, 1)
+					gn += 1
+			prev = cur
+	bloodLink.commit(ln); bloodGlow.commit(gn)

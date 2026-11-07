@@ -11,7 +11,7 @@ const INK := Color(0.05, 0.03, 0.07)
 const YEL := Color("#ffd23a")
 const GREEN := Color("#4cbf5e")
 
-const _GLOW_SHD := preload("res://shaders/ui/gear_glow.gdshader")
+static var _GLOW_SHD: Shader = null
 
 static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D) -> void:
 	var w := sz.x
@@ -33,6 +33,7 @@ static func build(parent: Node2D, sz: Vector2, info: Dictionary, tex: Texture2D)
 		sp.position = ic
 		if not locked:
 			var gm := ShaderMaterial.new()
+			if _GLOW_SHD == null: _GLOW_SHD = load("res://shaders/ui/gear_glow.gdshader")
 			gm.shader = _GLOW_SHD
 			gm.set_shader_parameter("glow", Color(col.lightened(0.55), 0.95))
 			sp.material = gm

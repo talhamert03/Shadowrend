@@ -180,6 +180,8 @@ func show_choices(choices: Array) -> void:
 	_ensure_shell()
 	_title.text = "SEVİYE ATLADIN!"
 	_sub.text = "BİR GÜÇ SEÇ!"
+	var pl: int = g.player.pendingLevels if g and g.player else 0
+	if pl > 1: _title.text = "SEVİYE ATLADIN! · ×" + str(pl)
 	_show(choices)
 
 func _show(choices: Array) -> void:

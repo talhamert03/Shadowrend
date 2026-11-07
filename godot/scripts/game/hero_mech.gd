@@ -13,7 +13,7 @@ extends RefCounted
 ##   yildiz (Yıldız Çağıran)— yere işaretlenen noktalara gökten yıldız düşer
 ##   siren  (Deniz Sireni) — şarkı dalgası; değdiği düşmanları büyüler, büyülenenler birbirine saldırır
 
-const KINDS := ["hook", "flask", "tarot", "lash", "shade", "bone", "frost", "totem", "star", "song"]
+const KINDS := ["hook", "flask", "tarot", "lash", "shade", "bone", "frost", "totem", "star", "song", "drain"]
 
 var game
 var wm               # WeaponManager
@@ -33,6 +33,8 @@ var frozen: Array = []     # donmuş düşmanlar (çizici buz kristali koyar)
 var totems: Array = []     # {x,y,life,max,fireT,rise,dmg}
 var sbolts: Array = []     # totem ruh ateşi {x,y,vx,vy,tgt,tok,life,dmg}
 var stars: Array = []      # {x,y,t,fall,r,dmg}
+var drains: Array = []     # kan çekme bağı {e,tok,t,dur,dmg,hit,sp}
+var drops: Array = []      # kahramana uçan kavisli kan çizgileri {sx,sy,t,dur,amp,h,ph}
 var songs: Array = []      # {x,y,ang,r,maxR,arc,dmg,hit:{},charm}
 
 func _init(g, w) -> void:
@@ -41,7 +43,7 @@ func _init(g, w) -> void:
 
 func reset() -> void:
 	cd.clear()
-	for L in [hooks, flasks, cards, lashes, shades, bones, minions, shards, frozen, totems, sbolts, stars, songs]: L.clear()
+	for L in [hooks, flasks, cards, lashes, shades, bones, minions, shards, frozen, totems, sbolts, stars, songs, drains, drops]: L.clear()
 
 # ── yardımcılar ──
 func _L(id: String) -> int: return wm.lvl(id) - 1
@@ -94,6 +96,7 @@ func update(id: String, kind: String, dt: float) -> void:
 		"totem": _fire_totem(id, dt)
 		"star": _fire_star(id, dt)
 		"song": _fire_song(id, dt)
+		"drain": _fire_drain(id, dt)
 
 ## her kare bir kez: tüm varlıklar
 func tick(dt: float) -> void:
@@ -108,6 +111,7 @@ func tick(dt: float) -> void:
 	if not totems.is_empty() or not sbolts.is_empty(): _tick_totems(dt)
 	if not stars.is_empty(): _tick_stars(dt)
 	if not songs.is_empty(): _tick_songs(dt)
+	if not drains.is_empty() or not drops.is_empty(): _tick_drains(dt)
 
 # ═══════════ ZİNCİR (Zincirci) ═══════════
 
@@ -460,7 +464,7 @@ func _fire_shade(id: String, dt: float) -> void:
 			tgt = _nearest_to(p.x + randf_range(-80, 80), p.y + randf_range(-80, 80), rng)
 			if tgt == null: tgt = n
 		shades.append({"x": p.x, "y": p.y, "tgt": tgt, "tok": tgt.aliveTok, "jumps": int(_v(Wd, "targets", L, 3.0)) + wm.wi(Wd, "targetsAdd"),
-			"dmg": _v(Wd, "dmg", L, 20.0), "hit": {}, "trail": [], "fade": -1.0, "crit": JS.num(Wd, "critAdd"), "ang": 0.0, "pause": 0.0})
+			"dmg": _v(Wd, "dmg", L, 20.0), "hit": {}, "trail": [], "fade": -1.0, "crit": JS.num(Wd, "critAdd"), "ang": 0.0, "pause": 0.0, "n": 0})
 	game.audio.play("dodge")
 
 func _tick_shades(dt: float) -> void:
@@ -493,7 +497,10 @@ func _tick_shades(dt: float) -> void:
 			s.x = t.x - dx / maxf(d, 1.0) * 8.0
 			s.y = t.y - dy / maxf(d, 1.0) * 8.0
 			s.hit[t.get_instance_id()] = true
-			_hit(t, s.dmg, s.ang, 30.0, s.crit)
+			# her sekmede hasar düşer: 2. hedef %40, 3. %45, 4. %50… eksik (en az %10 kalır)
+			var fall := 1.0 if s.n == 0 else maxf(0.1, 0.6 - 0.05 * (s.n - 1))
+			s.n += 1
+			_hit(t, s.dmg * fall, s.ang, 30.0, s.crit)
 			g.spawn_burst(t.x, t.y - 10, "#5ae8ff", 6, 220, 2.2, 0.3, true)
 			g.spawn_burst(t.x, t.y - 10, "#0a0a14", 5, 160, 2.8, 0.4, false)
 			if g.renderer3d: g.renderer3d.spawn_hit(t.x, t.y, s.ang, 1, 0.35, 0.9, 1.0)
@@ -888,3 +895,90 @@ func _tick_songs(dt: float) -> void:
 				e.charmCd = 0.2
 			g.spawn_burst(e.x, e.y - 14, "#ff8ad8", 4, 110, 2.2, 0.5, true)
 			g.spawn_burst(e.x, e.y - 14, "#5affe0", 3, 90, 1.8, 0.4, true)
+
+
+# ═══════════ KAN ÇEKME (Kan Rahibi) ═══════════
+## Menzile giren düşmanların kanı çekilir: düşmandan kopan kan damlaları havada kavis çizip
+## kahramana süzülür ve içilir (hasar + küçük can). Hedef sayısı = volley + pierce.
+const DRAIN_DUR := 0.6
+func _fire_drain(id: String, dt: float) -> void:
+	if not _ready(id, dt): return
+	var Wd := _W(id)
+	var L := _L(id)
+	var p = game.player
+	var rng := _v(Wd, "range", L, 180.0) * (1.0 + 0.15 * maxf(0.0, JS.num(Wd, "homing", 0.0) - 1.0))
+	var want := int(_v(Wd, "volley", L, 1.0) + _v(Wd, "pierce", L, 1.0))
+	var cand := []
+	for e in game.enemies.query_circle(p.x, p.y, rng, scratch):
+		if e.hp <= 0 or e.entryT > 0: continue
+		var busy := false
+		for d in drains:
+			if d.e == e: busy = true; break
+		if busy: continue
+		cand.append([(e.x - p.x) * (e.x - p.x) + (e.y - p.y) * (e.y - p.y), e])
+	if cand.is_empty():
+		cd[id] = 0.12
+		return
+	cand.sort_custom(func(a, b): return a[0] < b[0])
+	_arm(id, Wd, L)
+	var dmg := _v(Wd, "dmg", L, 26.0)
+	for k in mini(want, cand.size()):
+		var e = cand[k][1]
+		drains.append({"e": e, "tok": e.aliveTok, "t": 0.0, "dur": DRAIN_DUR, "dmg": dmg, "hit": false, "sp": 0.0,
+			"crit": JS.num(Wd, "critAdd"), "nova": JS.num(Wd, "explode"), "split": JS.num(Wd, "split"), "x": e.x, "y": e.y})
+	_sfx(Wd)
+
+func _tick_drains(dt: float) -> void:
+	var g = game
+	var p = g.player
+	for i in range(drains.size() - 1, -1, -1):
+		var d: Dictionary = drains[i]
+		d.t += dt
+		var alive: bool = d.e != null and d.e.hp > 0 and d.e.pi >= 0
+		if alive:
+			d.x = d.e.x; d.y = d.e.y
+		if not d.hit and d.t >= d.dur * 0.3:
+			d.hit = true
+			if alive:
+				var ang := atan2(p.y - d.y, p.x - d.x)
+				var r = _hit(d.e, d.dmg, ang + PI, 0.0, d.crit)
+				# 2-3 kavisli kan çizgisi düşmandan kopup kahramana uçar
+				var ns := 3 if drops.size() < 30 else 2
+				for j in ns:
+					var side := -1.0 if j % 2 == 0 else 1.0
+					drops.append({"sx": d.x + randf_range(-6, 6), "sy": d.y + randf_range(-6, 6), "t": -0.04 * j, "dur": randf_range(0.38, 0.5),
+						"amp": side * randf_range(26.0, 62.0) * (1.0 if j < 2 else 0.4), "h": randf_range(14.0, 28.0), "ph": randf_range(0.0, TAU), "sz": randf_range(0.85, 1.15)})
+				g.spawn_burst(d.x, d.y - 12, "#ff2a3a", 7, 160, 2.4, 0.35, true)
+				p.hp = minf(p.maxHp, p.hp + minf(2.5, d.dmg * 0.03))  # içilen kan: sessiz küçük can
+				if d.e.hp <= 0 and d.nova > 0:
+					# Kan Patlaması: kanı çekilen düşman ölürse kan novası
+					var R: float = 60.0 + 18.0 * d.nova
+					for e2 in g.enemies.query_circle(d.x, d.y, R, scratch):
+						if e2.hp > 0: _hit(e2, d.dmg * (0.35 + 0.1 * d.nova), atan2(e2.y - d.y, e2.x - d.x), 40.0)
+					g.spawn_burst(d.x, d.y - 8, "#ff1a2a", 14, 260, 3.0, 0.45, true)
+				if d.split > 0:
+					# Bölünen Kan: bağ yakındaki bir düşmana daha atlar (%50 hasar)
+					var nx = _nearest_to(d.x, d.y, 140.0, {d.e.get_instance_id(): true})
+					if nx: drains.append({"e": nx, "tok": nx.aliveTok, "t": 0.0, "dur": DRAIN_DUR * 0.8, "dmg": d.dmg * 0.5, "hit": false, "sp": 0.0,
+						"crit": d.crit, "nova": 0.0, "split": 0.0, "x": nx.x, "y": nx.y})
+				if g.audio: g.audio.play("hit")
+		if d.t >= d.dur: drains.remove_at(i)
+	for i in range(drops.size() - 1, -1, -1):
+		var q: Dictionary = drops[i]
+		q.t += dt
+		if q.t >= q.dur: drops.remove_at(i)
+
+## damla konumu (çizici okur): düşmandan kahramana kavisli yol, yükselip kahramanın göğsüne iner
+func drop_pos(q: Dictionary, kk := -1.0) -> Vector3:
+	var p = game.player
+	var k: float = clampf(q.t / q.dur if kk < 0.0 else kk, 0.0, 1.0)
+	var e := k * k * (3.0 - 2.0 * k)
+	var tx: float = p.x; var ty: float = p.y
+	var dx: float = tx - q.sx; var dy: float = ty - q.sy
+	var L := maxf(1.0, sqrt(dx * dx + dy * dy))
+	var nx := -dy / L; var ny := dx / L
+	var bend: float = sin(k * PI) * q.amp
+	var x: float = q.sx + dx * e + nx * bend
+	var y: float = q.sy + dy * e + ny * bend
+	var h: float = 14.0 + sin(k * PI) * q.h + sin(q.ph + k * 9.0) * 3.0 + k * 10.0
+	return Vector3(x, h, y)

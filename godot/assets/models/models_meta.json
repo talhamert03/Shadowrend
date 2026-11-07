@@ -524,7 +524,7 @@
    ],
    "topY": 91.0,
    "walkClip": "Armature|walking_man|baselayer",
-   "walkRate": 1,
+   "walkRate": 1, "walkAmp": 0.6,
    "floatingWeapon": "kadeh",
    "lift": 0.35,
    "clips": [

@@ -557,6 +557,9 @@ func _start_run_now(wi: int, mi: int) -> void:
 	_masK = 0
 	player.reset()
 	enemies.reset()
+	# önceki bölümden kalan XP, kalp, mermi, bölge vb. temizlenir (yeni bölüm temiz başlar)
+	for k in ["gems", "hearts", "powerups", "pBullets", "eBullets", "zones", "bombs", "rings", "hazards", "texts"]:
+		if pools.has(k): pools[k].release_all()
 	enemies.set_world(world_def())
 	weapons.reset()
 	var cdef := char_def()
@@ -676,7 +679,10 @@ func pick_upgrade(choice: Dictionary) -> void:
 		_play_evo_cine()
 		return
 	player.pendingLevels = maxi(0, player.pendingLevels - 1)
-	# kalan seviyeler hemen art arda açılmaz: oyuna dönülür, "SEVİYE" bandıyla 2 sn sonra sıradaki gelir
+	# birden çok seviye birikmişse savaşa dönmeden sıradaki kart seti hemen gelir (gir-çık hissi yok)
+	if player.pendingLevels > 0 and _evoCine == null:
+		ui.show_level_up(weapons.roll_choices(3))
+		return
 	if pendingWaveBonus:
 		ui.hide_level_up()
 		open_wave_bonus()
@@ -831,6 +837,25 @@ func quit_to_menu() -> void:
 	state = "menu"
 	music.set_state("menu")
 	ui.show_menu()
+
+# ═══════════ HEDİYE SANDIK: yuvalar doluysa anında aç ═══════════
+var _openQ: Array = []
+## Menüde kazanılan sandık: boş yuva varsa yuvaya, yoksa açılış töreniyle hemen açılır.
+func give_chest(t: String) -> bool:
+	if chests.grant(t): return true
+	_openQ.append(t)
+	_drain_open_q.call_deferred()
+	return false
+
+func _drain_open_q() -> void:
+	if _openQ.is_empty() or not ui: return
+	if state != "menu" or chests.ceremonyActive:
+		get_tree().create_timer(0.6).timeout.connect(_drain_open_q)
+		return
+	var t: String = _openQ.pop_front()
+	ui.chest_ceremony(t, -1, func():
+		if ui.menu: ui.menu.refresh_wallet(); ui.menu.render_slots()
+		_drain_open_q())
 
 func reset_clock() -> void:
 	last = _now_ms()
@@ -1461,10 +1486,8 @@ func grant_quest_reward(r):
 		return "+" + JS.s(r.amount) + " GEM"
 	if r.kind == "chest":
 		var C = ChestSystem.chests().get(r.chest)
-		if chests.grant(r.chest): return (C.name if C else "SANDIK") + " KAZANILDI"
-		var gold := 120.0 + (JS.i(C.tier) if C else 0) * 60
-		add_rubies(gold)
-		return "YUVA DOLU — +" + JS.s(gold) + " ALTIN"
+		if give_chest(r.chest): return (C.name if C else "SANDIK") + " KAZANILDI"
+		return (C.name if C else "SANDIK") + " AÇILIYOR"
 	return null
 
 func survival_minutes() -> int: return int(floor(JS.i(meta.get("events", {}).get("survTotal")) / 60.0))
@@ -1487,12 +1510,8 @@ func claim_milestone(id) -> bool:
 		var nm: String = D.CHARACTERS[r.char].name if D.CHARACTERS.has(r.char) else "KAHRAMAN"
 		toast = "+" + JS.s(r.amount) + " " + nm + " KARTI"
 	elif r.kind == "chest":
-		if chests.grant(r.chest):
-			var C = ChestSystem.chests().get(r.chest)
-			toast = (C.name if C else "SANDIK") + " KAZANILDI"
-		else:
-			add_rubies(200)
-			toast = "YUVA DOLU — +200 YAKUT"
+		var C = ChestSystem.chests().get(r.chest)
+		toast = (C.name if C else "SANDIK") + (" KAZANILDI" if give_chest(r.chest) else " AÇILIYOR")
 	meta.events.claimed.append(id)
 	save_meta()
 	audio.play("claim")
@@ -1527,7 +1546,7 @@ func add_account_xp(n: float) -> void:
 		a.xpNext = D.accountXpToNext(a.level)
 		var ch = D.accountLevelChest(a.level)
 		if ch:
-			if not chests.grant(ch): add_rubies(150)
+			give_chest(ch)
 			rewards.append({"level": a.level, "chest": ch})
 	save_meta()
 	if a.level > fromLevel:
@@ -1574,12 +1593,8 @@ func bp_claim(tier: int, track: String):
 			add_stones(r.amount)
 			toast = "+" + JS.s(r.amount) + " GEM"
 		"chest":
-			if chests.grant(r.chest):
-				var C = ChestSystem.chests().get(r.chest)
-				toast = (C.name if C else "SANDIK") + " KAZANILDI"
-			else:
-				add_rubies(200)
-				toast = "YUVA DOLU — +200 YAKUT"
+			var C = ChestSystem.chests().get(r.chest)
+			toast = (C.name if C else "SANDIK") + (" KAZANILDI" if give_chest(r.chest) else " AÇILIYOR")
 		"gear":
 			var pool := []
 			for it in D.EQUIPMENT:

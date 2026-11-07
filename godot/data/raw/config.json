@@ -1131,8 +1131,8 @@
     "maxHp": 8
    },
    "perks": [
-    "İmza: Kan Kadehi — yanında süzülen kadeh",
-    "Kan küreleri hedefi kovalar, değdiği yerde patlar",
+    "İmza: Kan Kadehi — menzildeki düşmanların kanını çeker",
+    "Çekilen kan havada süzülüp rahibe akar, içilir",
     "Hasar +%10, can çalma +%2, azami can +8",
     "Epik"
    ],
@@ -5258,7 +5258,7 @@
    {
     "id": "sig_kr1",
     "name": "Koyu Kan",
-    "desc": "Kan küresi hasarı +%15.",
+    "desc": "Kan çekme hasarı +%15.",
     "boost": {
      "weapon": "kadeh",
      "dmg": 1.15
@@ -5267,7 +5267,7 @@
    {
     "id": "sig_kr2",
     "name": "Akan Ayin",
-    "desc": "Kadeh %10 daha sık salar.",
+    "desc": "Kan %10 daha sık çekilir.",
     "boost": {
      "weapon": "kadeh",
      "cd": 0.9
@@ -5276,7 +5276,7 @@
    {
     "id": "sig_kr3",
     "name": "Delen Kan",
-    "desc": "Küre bir düşmanı daha deler geçer.",
+    "desc": "Aynı anda bir düşmanın daha kanı çekilir.",
     "boost": {
      "weapon": "kadeh",
      "pierce": 1
@@ -5285,7 +5285,7 @@
    {
     "id": "sig_kr4",
     "name": "Hızlı Akış",
-    "desc": "Küre hızı +%15, hasar +%6.",
+    "desc": "Kan daha hızlı akar, hasar +%6.",
     "boost": {
      "weapon": "kadeh",
      "speed": 1.15,
@@ -5305,7 +5305,7 @@
    {
     "id": "sig_kr6",
     "name": "Uzun Ömür",
-    "desc": "Küre ömrü +%20, hasar +%5.",
+    "desc": "Kan bağı güçlenir, hasar +%5.",
     "boost": {
      "weapon": "kadeh",
      "life": 1.2,
@@ -5315,7 +5315,7 @@
    {
     "id": "sig_kr7",
     "name": "Kan Patlaması",
-    "desc": "Patlama çapı ve gücü artar.",
+    "desc": "Kanı çekilen düşman ölürse kan novası patlar.",
     "boost": {
      "weapon": "kadeh",
      "explodeAdd": 1
@@ -5327,7 +5327,7 @@
    {
     "id": "sig_kr8",
     "name": "İkiz Kadeh",
-    "desc": "Kadeh aynı anda bir küre daha salar.",
+    "desc": "Aynı anda bir düşmanın daha kanı çekilir.",
     "boost": {
      "weapon": "kadeh",
      "volley": 1
@@ -5339,7 +5339,7 @@
    {
     "id": "sig_kr9",
     "name": "Bölünen Kan",
-    "desc": "Küre çarpınca küçük kan damlalarına bölünür.",
+    "desc": "Kan bağı yakındaki bir düşmana daha sıçrar (%50 hasar).",
     "boost": {
      "weapon": "kadeh",
      "splitAdd": 1
@@ -5351,7 +5351,7 @@
    {
     "id": "sig_kr10",
     "name": "Kan Bağı",
-    "desc": "Küreler hedefi daha sıkı kovalar.",
+    "desc": "Kan çekme menzili +%15.",
     "boost": {
      "weapon": "kadeh",
      "homingAdd": 1
@@ -9655,26 +9655,26 @@
   },
   "kadeh": {
    "name": "Kan Kadehi",
-   "kind": "gun",
+   "kind": "drain",
    "class": "kor",
    "orb": true,
    "floatVisual": true,
    "fireball": true,
    "firePal": "blood",
    "sfx": "bloodcast",
-   "descNew": "Rahibin yanında süzülen kan kadehi — hedefi kovalayan kan küreleri salar, değdiği yerde kan patlar.",
+   "descNew": "Rahip menzile giren düşmanların kanını çeker; kan damlaları havada süzülüp kahramana akar ve içilir (hasar + az can).",
    "descUp": [
-    "Hasar +, patlama büyür",
-    "Daha sık salar",
-    "+1 delme, hasar +",
-    "Çifte kan küresi"
+    "Hasar +, menzil +",
+    "Daha sık çeker",
+    "+1 hedef, hasar +",
+    "Hasar +, +1 hedef"
    ],
    "dmg": [
-    22,
-    30,
-    41,
-    55,
-    74
+    27,
+    36,
+    48,
+    64,
+    86
    ],
    "pierce": [
     1,
@@ -9684,11 +9684,11 @@
     3
    ],
    "cooldown": [
-    1.0,
-    0.92,
-    0.84,
-    0.76,
-    0.68
+    0.95,
+    0.88,
+    0.8,
+    0.72,
+    0.64
    ],
    "speed": 360,
    "volley": [
@@ -9709,7 +9709,14 @@
    "rain": 0,
    "homing": 1,
    "critAdd": 0,
-   "critMultAdd": 0
+   "critMultAdd": 0,
+   "range": [
+    170,
+    178,
+    186,
+    196,
+    210
+   ]
   },
   "hilal": {
    "name": "Hilal Bıçakları",
@@ -11340,7 +11347,7 @@
  "xpToNext": {
   "__fn": "xpToNext"
  },
- "HERO_SKILLS":{
+ "HERO_SKILLS": {
   "seher": [
    {
     "id": "seher_m",
@@ -11602,7 +11609,7 @@
    },
    {
     "id": "gokalev_m",
-   "fx": "flame",
+    "fx": "flame",
     "tier": "orta",
     "name": "Alev Halkası",
     "desc": "Etrafında yanan bir alev halkası patlar.",
@@ -11658,7 +11665,7 @@
   "demirhan": [
    {
     "id": "demirhan_z",
-   "fx": "flame",
+    "fx": "flame",
     "tier": "zayıf",
     "name": "Kıvılcım Saçağı",
     "desc": "Çevrene küçük bir kıvılcım dalgası yayar.",
@@ -11747,7 +11754,7 @@
    },
    {
     "id": "ejder_m",
-   "fx": "flame",
+    "fx": "flame",
     "tier": "orta",
     "name": "Pul Kalkanı",
     "desc": "Canının bir kısmını yeniler ve etrafına ateş yayar.",

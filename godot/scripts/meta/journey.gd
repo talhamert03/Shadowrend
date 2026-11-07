@@ -83,7 +83,7 @@ static func daily_on_run(g, r: Dictionary) -> Dictionary:
 	if not JS.truthy(B.paid) and all_done:
 		B.paid = 1
 		chest = DAILY_CHEST
-		if not g.chests.grant(DAILY_CHEST): g.add_rubies(120)
+		g.give_chest(DAILY_CHEST)
 	return {"fresh": fresh, "chest": chest, "left": daily_left(g.meta)}
 
 const BLESSINGS := [
@@ -117,7 +117,7 @@ static func gift_collect(g):
 	var chest = null
 	if h >= 6:
 		chest = "ahsap"
-		if not g.chests.grant("ahsap"): chest = null
+		g.give_chest("ahsap")
 	return {"h": h, "gold": gold, "chest": chest, "full": h >= GIFT_CAP_H}
 
 static func next_goal(g):
