@@ -560,7 +560,9 @@ func load_character(char_id: String) -> void:
 	walkRate = float(md.get("walkRate", 1.0))
 	# malzeme: MeshStandard + charLook (pürüz ≤ 0,48 · metal 0,08–0,22 · kenar ışığı) + lift
 	_apply_char_look(inst, float(md.get("lift", 0.0)), 0.48)
-	if md.has("rigidPart"): _rigid_part(inst, md.rigidPart)
+	if md.has("rigidPart"):
+		var rp_cfg = md.rigidPart
+		for c in (rp_cfg if rp_cfg is Array else [rp_cfg]): _rigid_part(inst, c)
 	heroAnim = inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if heroAnim:
 		heroAnim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
@@ -580,10 +582,12 @@ func load_character(char_id: String) -> void:
 		# armFix: {"LeftArm": [x°, y°, z°, ölçek?]} — A-pozdan gelen açık kol ve avucu yukarı
 		# bakan elleri gövdeye yaklaştırır (yerel eksende, animasyondan sonra çarpılır)
 		if md.get("armHold", false):
-			for bn in ["LeftShoulder", "RightShoulder", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm", "LeftHand", "RightHand"]:
-				var hb := heroSkel.find_bone(bn)
+			var hbs: Array = md.get("holdBones", ["LeftShoulder", "RightShoulder", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm", "LeftHand", "RightHand"])
+			for bn in hbs:
+				var hb := heroSkel.find_bone(str(bn))
 				if hb >= 0: _hold.append([hb, heroSkel.get_bone_pose_rotation(hb)])
-			_holdArm = [heroSkel.find_bone("LeftArm"), heroSkel.find_bone("RightArm")]
+			var ha: Array = md.get("holdArm", ["LeftArm", "RightArm"])
+			_holdArm = [heroSkel.find_bone(str(ha[0])), heroSkel.find_bone(str(ha[1]))]
 		var af: Dictionary = md.get("armFix", {})
 		for bn in af:
 			var bix := heroSkel.find_bone(bn)

@@ -92,13 +92,17 @@
    ],
    "topY": 91.0218928851506,
    "walkClip": "NlaTrack",
-   "walkRate": 1.35,
+   "walkRate": 1.15,
    "floatingWeapon": "alev",
    "lift": 0,
    "tris": 4682,
    "clips": [
     "NlaTrack"
    ],
+   "rigidPart": [{"bone": "L_Thigh", "child": "L_Calf", "to": "Pelvis", "r": 0.055}, {"bone": "L_ThighTwist01", "child": "L_Calf", "to": "Pelvis", "r": 0.055}, {"bone": "L_ThighTwist02", "child": "L_Calf", "to": "Pelvis", "r": 0.055}, {"bone": "R_Thigh", "child": "R_Calf", "to": "Pelvis", "r": 0.055}, {"bone": "R_ThighTwist01", "child": "R_Calf", "to": "Pelvis", "r": 0.055}, {"bone": "R_ThighTwist02", "child": "R_Calf", "to": "Pelvis", "r": 0.055}],
+   "armHold": true,
+   "holdBones": ["L_Clavicle", "R_Clavicle", "L_Upperarm", "R_Upperarm", "L_UpperarmTwist01", "R_UpperarmTwist01", "L_UpperarmTwist02", "R_UpperarmTwist02", "L_Forearm", "R_Forearm", "L_ForearmTwist01", "R_ForearmTwist01", "L_ForearmTwist02", "R_ForearmTwist02", "L_Hand", "R_Hand"],
+   "holdArm": ["L_Upperarm", "R_Upperarm"],
    "hasBones": true,
    "sink": 2.0
   },
