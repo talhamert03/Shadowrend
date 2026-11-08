@@ -121,6 +121,8 @@ func _build() -> void:
 	btn(shell, gear, func(): g.audio.play("click"); g.ui.show_settings())
 	btn(shell, daily, func(): g.audio.play("click"); g.ui.show_daily_drawer())
 	btn(shell, lv, func(): g.audio.play("click"); g.ui.show_account_journey())
+	_lvN = lv
+	refresh_lv_dot()
 	for c in shell.find_all(".tb-cur"):
 		btn(shell, c, func(): g.audio.play("click"); set_page("magaza"))
 	var tabs := shell.find_all(".dk-tab")
@@ -482,6 +484,34 @@ func _process(dt: float) -> void:
 		if k2 >= 1.0: _tw.erase(key)
 
 # ═══════════ ÜST ÇUBUK ═══════════
+
+## seviye rozetinde bekleyen ödül noktası
+var _lvN = null
+var _lvDot: Node2D
+func refresh_lv_dot() -> void:
+	if _lvN == null: return
+	var on: bool = g.aj_pending().size() > 0
+	if on and _lvDot == null:
+		_lvDot = Node2D.new()
+		_lvDot.position = Vector2(_lvN.size.x - 6, 6)
+		_lvDot.z_index = 6
+		var t0 := Time.get_ticks_msec()
+		_lvDot.draw.connect(func():
+			var tt := (Time.get_ticks_msec() - t0) / 1000.0
+			var k := 1.0 + 0.18 * absf(sin(tt * 4.5))
+			_lvDot.draw_set_transform(Vector2(0, -2.0 * absf(sin(tt * 4.5))), 0.0, Vector2(k, k))
+			_lvDot.draw_circle(Vector2.ZERO, 12, Color(1, 0.82, 0.2, 0.2))
+			_lvDot.draw_circle(Vector2(1, 2), 7.5, Color(0, 0, 0, 0.5))
+			_lvDot.draw_circle(Vector2.ZERO, 7.5, Color("#ffd23a"))
+			_lvDot.draw_arc(Vector2.ZERO, 7.5, 0, TAU, 24, Color("#3a2200"), 1.5, true)
+			_lvDot.draw_circle(Vector2(-2.2, -2.2), 2.0, Color(1, 1, 1, 0.8)))
+		_lvN.node.add_child(_lvDot)
+		shell.set_dyn(_lvN)
+		var tw := _lvDot.create_tween().set_loops()
+		tw.tween_callback(func(): if is_instance_valid(_lvDot) and _lvDot.is_visible_in_tree(): _lvDot.queue_redraw()).set_delay(0.033)
+	elif not on and _lvDot:
+		_lvDot.queue_free()
+		_lvDot = null
 
 func refresh_wallet(instant := false) -> void:
 	if shell == null: return

@@ -11,6 +11,34 @@ func _init(game) -> void:
 	super(game)
 	name = "AccJourney"
 
+## bekleyen ödülün sağ üstünde zıplayan "AL!" etiketi
+func _al_tag(N: Lyr) -> void:
+	var R: Vector2 = N.nodes[0].size
+	var tg := Node2D.new()
+	tg.position = Vector2(R.x - 30, 14)
+	tg.rotation = 0.16
+	var t0 := Time.get_ticks_msec()
+	tg.draw.connect(func():
+		var tt := (Time.get_ticks_msec() - t0) / 1000.0
+		tg.draw_set_transform(Vector2(0, -3.0 * absf(sin(tt * 4.0))), 0.0, Vector2.ONE)
+		tg.draw_style_box(ComicSkin.sb(ComicSkin.INK, 6), Rect2(-24, -12, 50, 26))
+		tg.draw_style_box(ComicSkin.sb(Color("#e8323c"), 6), Rect2(-26, -14, 50, 24))
+		tg.draw_string(UIK.font(true, 900), Vector2(-26, 5), "AL!", HORIZONTAL_ALIGNMENT_CENTER, 50, 16, Color.WHITE))
+	N.add_child(tg)
+	var tw := tg.create_tween().set_loops()
+	tw.tween_callback(func(): if is_instance_valid(tg) and tg.is_visible_in_tree(): tg.queue_redraw()).set_delay(0.033)
+
+func _claim(level: int) -> void:
+	var ch = g.aj_claim(level)
+	if ch == null: return
+	g.audio.play("claim")
+	close()
+	if g.ui.menu: g.ui.menu.refresh_lv_dot()
+	g.ui.chest_ceremony(str(ch), -1, func():
+		g.ui.refresh_wallet()
+		g.ui.show_menu()
+		if g.ui.menu: g.ui.menu.refresh_lv_dot())
+
 func open() -> void:
 	if L:
 		unbtn(L)
@@ -56,6 +84,13 @@ func open() -> void:
 			for k in info.kids:
 				if k.d.get("tag") == "span": EventsPage.txt(N, k, "Seviye " + str(int(m.level)) + " ödülü", 0.0)
 		EventsPage.txt(N, N.find(".aj-pip"), str(int(m.level)), 0.5)
+		if st == "done" and g.aj_pending().has(int(m.level)):
+			var lv_i := int(m.level)
+			_al_tag(N)
+			btn(N, N.nodes[0], func(): _claim(lv_i), 0.96)
+			for k in N.find_all(".aj-info"):
+				for kk in k.kids:
+					if kk.d.get("tag") == "span": EventsPage.txt(N, kk, "Seviye " + str(lv_i) + " ödülü · ALMAK İÇİN DOKUN", 0.0)
 		h = N.position.y + N.nodes[0].size.y
 	# ray çizgisi (::before) ve kaydırma boyu düğüm sayısına göre
 	var new_h := maxf(rail.size.y, h + (rail.size.y - (y0 + 6 * step + _crect("aj_ahsap_done").size.y)))

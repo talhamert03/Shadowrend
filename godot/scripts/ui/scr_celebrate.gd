@@ -72,11 +72,12 @@ func level_up(p: Dictionary) -> void:
 	var bonus := minf(50.0, (to - 1) * 0.6)
 	for v in L.find_all(".alu-stat-v"): EventsPage.txt(L, v, "+%" + ("%.1f" % bonus))
 	if full: g.ui.toast("SANDIK YUVASI DOLU — SEVİYE SANDIĞI VERİLEMEDİ")
+	if g.ui.menu and g.ui.menu.has_method("refresh_lv_dot"): g.ui.menu.refresh_lv_dot()
 	if rw.size() and not full:
 		var t := L.find(".alu-reward-t")
 		if t:
 			for k in t.kids:
-				if k.d.get("tag") == "span": EventsPage.txt(L, k, "Seviye " + str(int(rw[0].level)) + " ödülü — ana ekranda seni bekliyor", 0.0)
+				if k.d.get("tag") == "span": EventsPage.txt(L, k, "Seviye " + str(int(rw[0].level)) + " ödülü hazır — seviye rozetine dokun, al", 0.0)
 	btn(L, L.find_id("#alu-close"), func(): g.audio.play("click"); _close(true))
 	g.audio.play("levelup")
 	g.ui.menu.render_slots()

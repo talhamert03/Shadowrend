@@ -287,6 +287,12 @@ func boot() -> void:
 				var tt: float = float(ChestSystem.chests()[pr[0]].time) * 1000.0
 				g.chests.slots[i] = {"t": pr[0], "st": pr[1], "at": Clock.now() + tt * 0.6 if pr[1] == "unlocking" else 0.0, "ad": false, "cut": 0.0}
 			menu.render_slots()
+		if _arg("ajpend") != "":
+			g.meta["ajPend"] = []
+			for x in _arg("ajpend").split(","):
+				g.meta.ajPend.append(int(x))
+				g.meta.account.level = maxi(int(g.meta.account.level), int(x))
+			menu.refresh_lv_dot()
 		if _arg("ciopen") != "":
 			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): chest_inspect(int(_arg("ciopen"))))
 		return

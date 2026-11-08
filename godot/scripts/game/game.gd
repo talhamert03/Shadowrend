@@ -1538,6 +1538,17 @@ func add_battle_pass_xp(n: float) -> void:
 func bp_has_premium() -> bool: return JS.truthy(meta.battlePass.premium)
 func account_level() -> int: return int(meta.account.level)
 func account_progress() -> Dictionary: return {"cur": meta.account.xp, "need": meta.account.xpNext}
+## bekleyen hesap seviyesi ödülleri (seviye numaraları)
+func aj_pending() -> Array:
+	return meta.get("ajPend") if meta.get("ajPend") is Array else []
+
+func aj_claim(level: int):
+	var P := aj_pending()
+	if not P.has(level): return null
+	P.erase(level)
+	save_meta()
+	return D.accountLevelChest(level)
+
 func add_account_xp(n: float) -> void:
 	if not (n >= 0): return
 	var a: Dictionary = meta.account
@@ -1550,9 +1561,10 @@ func add_account_xp(n: float) -> void:
 		a.xpNext = D.accountXpToNext(a.level)
 		var ch = D.accountLevelChest(a.level)
 		if ch:
-			# savaştan gelen seviye sandığı: yuva doluysa verilmez (yalnız "yuva dolu"), açılmaz
-			if chests.grant(ch): rewards.append({"level": a.level, "chest": ch})
-			else: rewards.append({"level": a.level, "chest": null, "full": true})
+			# seviye ödülü bekleyen listeye: HESAP YOLCULUĞU ekranından alınır (yuva doluluğu sorun değil)
+			if not (meta.get("ajPend") is Array): meta["ajPend"] = []
+			meta.ajPend.append(a.level)
+			rewards.append({"level": a.level, "chest": ch, "pending": true})
 	save_meta()
 	if a.level > fromLevel:
 		if _pendingLevelUp == null: _pendingLevelUp = {"fromLevel": fromLevel, "toLevel": a.level, "rewards": []}
