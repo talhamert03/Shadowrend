@@ -92,7 +92,7 @@
    ],
    "topY": 91.0218928851506,
    "walkClip": "NlaTrack",
-   "walkRate": 1,
+   "walkRate": 1.35,
    "floatingWeapon": "alev",
    "lift": 0,
    "tris": 4682,
@@ -100,7 +100,7 @@
     "NlaTrack"
    ],
    "hasBones": true,
-   "sink": 3.5
+   "sink": 2.0
   },
   "korsan": {
    "file": "heroes/korsan.glb",
