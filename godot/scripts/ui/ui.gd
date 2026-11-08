@@ -586,7 +586,8 @@ func _process(_dt: float) -> void:
 		_hud_test(hv)
 	# geliştirici: gshots=4.3,4.6,… — savaş saatine (g.time) göre çoklu kare (shot yolu + _i)
 	var gs := _arg("gshots", "")
-	if gs != "" and _shot != "" and g.state == "playing":
+	if gs != "" and _shot != "":
+		if g.state != "playing": return
 		var L := gs.split(",")
 		if _gsI < L.size() and g.time >= float(L[_gsI]):
 			get_viewport().get_texture().get_image().save_png(_shot.replace(".png", "_" + str(_gsI) + ".png"))
