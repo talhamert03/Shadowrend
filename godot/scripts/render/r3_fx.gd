@@ -100,6 +100,7 @@ var wellHalo: IMesh          # olay ufku parıltısı (ışık bükülmesi)
 var wellSwirl: IMesh         # yerde dönen sarmal girdap kolları (koyu mor, opak)
 var wellDisc: IMesh          # zemindeki koyu girdap gölgesi
 var wellGlow: IMesh          # kolların ince parlak mor iç kenarı
+var wellHalo2: IMesh         # foton halkasının dışındaki koyu mor ışık saçağı
 var threadMesh: IMesh        # Kukla Ustası ipleri (öz + hale)
 const MINE_MAX := 40
 const WELL_MAX := 8
@@ -418,8 +419,11 @@ func _build_hero_projectiles(S: Node3D) -> void:
 		[Transform3D(Basis(), Vector3.ZERO), Transform3D(Basis(Vector3(1, 0, 0), 0.35), Vector3.ZERO)]),
 		Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), WELL_MAX * 2)
 	S.add_child(wellRing)
-	wellHalo = IMesh.new(Geo.sphere(1.0, 16, 10), Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false}), WELL_MAX)
+	# FOTON HALKASI: kara kürenin çevresinde kameraya dönük ince parlak halka (+ dış saçak)
+	wellHalo = IMesh.new(Geo.ring(1.0, 1.13, 48), Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none", "billboard": "spin"}), WELL_MAX)
 	S.add_child(wellHalo)
+	wellHalo2 = IMesh.new(Geo.ring(1.08, 1.75, 48, 3), Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none", "billboard": "spin"}), WELL_MAX)
+	S.add_child(wellHalo2)
 	# sarmal: yarıçapı küçülen yay parçaları (3 kol), yere yatık
 	var arms := []; var axf := []
 	var swFlat := Basis(Vector3(1, 0, 0), PI / 2)
@@ -706,28 +710,31 @@ func _update_projectiles(g) -> void:
 			if wi2 >= WELL_MAX: continue
 			var op := 0.35 if not b.mArmed else minf(1.0, b.mT / 0.25)
 			var R: float = b.mR * op
-			var core := maxf(6.0, R * 0.28) * (1.0 + 0.06 * sin(T * 9.0))
-			var wy := 30.0 if b.mArmed else 46.0
+			var core := maxf(7.0, R * 0.34) * (1.0 + 0.04 * sin(T * 7.0))
+			var wy := core + 6.0 if b.mArmed else 46.0
 			wellCore.set_ys(wi2, b.x, wy, b.y, 0.0, core, core, core)
 			wellCore.set_col(wi2, 1, 1, 1, 1)
+			# yığılma diski: kürenin çevresinde eğik, dönen koyu mavi-mor halkalar
 			for k in 2:
-				var rr: float = core * (1.6 + k * 0.9)
-				wellRing.set_ys(wi2 * 2 + k, b.x, wy, b.y, T * (3.0 - k * 5.0), rr, rr * 0.6, rr)
-				var a2 := 0.95 - k * 0.35
-				wellRing.set_col(wi2 * 2 + k, 0.42 * a2, 0.1 * a2, 0.78 * a2, 1)
-			var hs := core * (1.32 + 0.05 * sin(T * 13.0))
-			wellHalo.set_ys(wi2, b.x, wy, b.y, 0.0, hs, hs, hs)
-			wellHalo.set_col(wi2, 0.12, 0.02, 0.26, 1)
+				var rr: float = core * (1.75 + k * 0.75)
+				wellRing.set_ys(wi2 * 2 + k, b.x, wy, b.y, T * (2.4 - k * 3.6), rr, rr * 0.55, rr)
+				var a2 := 0.9 - k * 0.35
+				wellRing.set_col(wi2 * 2 + k, (0.3 - 0.12 * k) * a2, 0.06 * a2, (0.72 + 0.1 * k) * a2, 1)
+			var fl := 1.0 + 0.08 * sin(T * 17.0 + b.ph)
+			wellHalo.set_ys(wi2, b.x, wy, b.y, 0.0, core * 1.02, core * 1.02, core * 1.02)
+			wellHalo.set_col(wi2, 0.62 * fl, 0.4 * fl, 0.95 * fl, 1)
+			wellHalo2.set_ys(wi2, b.x, wy, b.y, 0.0, core, core, core)
+			wellHalo2.set_col(wi2, 0.16, 0.03, 0.34, 1)
 			var sw := R * 1.05
 			var fade := 1.0 if b.life > 0.4 else maxf(0.0, b.life / 0.4)
 			var yaw2: float = -T * 4.2 + b.ph
 			wellDisc.set_ys(wi2, b.x, 1.5, b.y, 0.0, sw * 1.05, 1.0, sw * 1.05)
-			wellDisc.set_col(wi2, 0.07, 0.01, 0.14, 0.7 * fade * op)
+			wellDisc.set_col(wi2, 0.03, 0.0, 0.07, 0.8 * fade * op)
 			wellSwirl.set_ys(wi2, b.x, 3.0, b.y, yaw2, sw, 1.6, sw)
-			wellSwirl.set_col(wi2, 0.2, 0.04, 0.42, 1)
+			wellSwirl.set_col(wi2, 0.12, 0.02, 0.27, 1)
 			var gs2 := sw * 0.97
 			wellGlow.set_ys(wi2, b.x, 4.2, b.y, yaw2 + 0.04, gs2, 0.6, gs2)
-			wellGlow.set_col(wi2, 0.16 * fade * op, 0.02 * fade * op, 0.34 * fade * op, 1)
+			wellGlow.set_col(wi2, 0.1 * fade * op, 0.02 * fade * op, 0.28 * fade * op, 1)
 			wi2 += 1
 			continue
 		if b.boomer:
@@ -810,7 +817,7 @@ func _update_projectiles(g) -> void:
 	crescentMesh.commit(ci)
 	boomerMesh.commit(bi)
 	mineMesh.commit(mi2); mineLight.commit(mi2)
-	wellCore.commit(wi2); wellRing.commit(wi2 * 2); wellHalo.commit(wi2); wellSwirl.commit(wi2); wellDisc.commit(wi2); wellGlow.commit(wi2)
+	wellCore.commit(wi2); wellRing.commit(wi2 * 2); wellHalo.commit(wi2); wellSwirl.commit(wi2); wellDisc.commit(wi2); wellGlow.commit(wi2); wellHalo2.commit(wi2)
 	_update_threads(g, T)
 	thornMesh.commit(ti)
 	ravenMesh.commit(ri)
