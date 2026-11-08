@@ -316,6 +316,8 @@ var altarNode: Node3D
 var _altarCrystal: MeshInstance3D
 var _altarBeam: MeshInstance3D
 var _altarHalo: MeshInstance3D
+var _altarShards: Array = []      # kristalin çevresinde dönen küçük kristaller
+var _altarFlames: Array = []      # dikilitaş alevleri
 
 func _build_altar() -> void:
 	altarNode = node(scene)
@@ -324,9 +326,10 @@ func _build_altar() -> void:
 		Vector2(0.0, 0.0), Vector2(40, 0), Vector2(40, 7), Vector2(33, 7), Vector2(33, 14), Vector2(25, 14),
 		Vector2(20, 17), Vector2(16, 20), Vector2(14, 38), Vector2(17, 41), Vector2(24, 44), Vector2(25, 50),
 		Vector2(19, 52), Vector2(12, 47), Vector2(0.0, 46)])
-	var stone := Shd.lit({"color": Color("#a39a8c"), "roughness": 0.95, "rim": true})
-	stone.set_shader_parameter("rim_c", Vector3(1.0, 0.78, 0.42))
-	stone.set_shader_parameter("rim_s", 0.5)
+	# koyu obsidyen taş + altın kenar ışığı
+	var stone := Shd.lit({"color": Color("#4a3f56"), "roughness": 0.55, "metalness": 0.25, "rim": true})
+	stone.set_shader_parameter("rim_c", Vector3(1.0, 0.72, 0.36))
+	stone.set_shader_parameter("rim_s", 0.85)
 	if Quality.tier != "low": stone.next_pass = Shd.outline(null, Color(0.22, 0.18, 0.16), 1.4)
 	var base := mesh_node(Geo.lathe(prof, 8), stone, altarNode)
 	base.rotation.y = PI / 8.0
@@ -338,16 +341,32 @@ func _build_altar() -> void:
 		var o := mesh_node(ob, stone, altarNode)
 		o.position = Vector3(cos(a) * 52, 0, sin(a) * 52)
 		o.rotation.y = a
-		var ember := mesh_node(Geo.icosahedron(2.6), em, altarNode)
-		ember.position = Vector3(cos(a) * 52, 33, sin(a) * 52)
+		var cap := mesh_node(Geo.cone(4.2, 7.0, 6), null, altarNode)
+		cap.position = Vector3(cos(a) * 52, 30, sin(a) * 52)
+		_altarFlames.append(cap)
+		var ember := mesh_node(Geo.merge([Geo.sphere(2.6, 8, 6), Geo.cone(2.4, 7.0, 8)], [Transform3D(), Transform3D(Basis(), Vector3(0, 3.0, 0))]), em, altarNode)
+		ember.position = Vector3(cos(a) * 52, 36, sin(a) * 52)
+		_altarFlames.append(ember)
 	# altın taç bileziği
 	var gold := Shd.lit({"color": Color("#e8b85a"), "metalness": 0.6, "roughness": 0.35, "emissive": Color("#6a3c08"), "emissive_k": 1.0})
+	for k in [0, 2]:
+		(_altarFlames[k] as MeshInstance3D).material_override = gold
+	for k in [4, 6]:
+		(_altarFlames[k] as MeshInstance3D).material_override = gold
+	# kaide basamaklarında altın şeritler
+	for band in [[40.6, 7.2, 1.3], [33.6, 14.2, 1.1], [17.6, 41.0, 1.0]]:
+		var bt := mesh_node(Geo.merge([Geo.torus(band[0], band[2], 5, 32)], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3.ZERO)]), gold, altarNode)
+		bt.position.y = band[1]
 	var tr := mesh_node(Geo.merge([Geo.torus(23, 1.8, 6, 24)], [Transform3D(Basis(Vector3(1, 0, 0), PI / 2), Vector3.ZERO)]), gold, altarNode)
 	tr.position.y = 44.5
 	# kristal: dikine uzatılmış ikosahedron, kendi ışığıyla
 	var cm := Shd.lit({"color": Color("#fff3cc"), "emissive": Color("#ffb53a"), "emissive_k": 2.0, "roughness": 0.25})
 	_altarCrystal = mesh_node(Geo.icosahedron(10), cm, altarNode)
 	_altarCrystal.scale = Vector3(1, 1.8, 1)
+	for i in 3:
+		var sh := mesh_node(Geo.icosahedron(3.2), cm, altarNode)
+		sh.scale = Vector3(1, 1.7, 1)
+		_altarShards.append(sh)
 	# ışık sütunu: tabanda dolu, yukarı doğru sönen (köşe alfası) — sert silindir değil
 	var pos := PackedVector3Array(); var nrm := PackedVector3Array(); var uv := PackedVector2Array()
 	var idx := PackedInt32Array(); var col := PackedColorArray()
@@ -389,6 +408,15 @@ func _update_altar(g) -> void:
 	_altarCrystal.rotation.y = t * (1.2 + hk * 5.0)
 	var hs := 1.0 + hk * 0.6 + sin(t * 3.0) * 0.06
 	_altarHalo.position.y = _altarCrystal.position.y
+	for i in _altarShards.size():
+		var sa := t * (1.6 + hk * 4.0) + i * TAU / 3.0
+		var sh: MeshInstance3D = _altarShards[i]
+		sh.position = Vector3(cos(sa) * 20.0, _altarCrystal.position.y + sin(t * 3.0 + i) * 5.0, sin(sa) * 20.0)
+		sh.rotation.y = -t * 2.0
+	for i in range(1, _altarFlames.size(), 2):
+		var fl: MeshInstance3D = _altarFlames[i]
+		var f := 1.0 + 0.18 * sin(t * 13.0 + i * 1.7) + 0.08 * sin(t * 29.0 + i)
+		fl.scale = Vector3(1.0, f * (1.0 + hk * 0.5), 1.0)
 	_altarHalo.scale = Vector3.ONE * hs
 	_altarBeam.scale = Vector3(1.0 + hk * 0.8, 1.0 + hk * 0.3, 1.0 + hk * 0.8)
 	(_altarBeam.material_override as ShaderMaterial).set_shader_parameter("opacity", (0.16 + 0.22 * hk) * fade)
