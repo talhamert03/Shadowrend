@@ -22,7 +22,8 @@ var done_cb: Callable
 var rewards: Array = []
 var C: Dictionary
 var peak := 0
-var _forced := false          # geliştirici: zorlanmış ödüller uygulanmaz
+var _forced := false
+var _given := false            # mağaza alımı: verilmiş ödül gösterimi          # geliştirici: zorlanmış ödüller uygulanmaz
 var _menu_vis := false
 
 var stage: ChestStage
@@ -130,15 +131,22 @@ func _ensure_stage(t: String) -> void:
 
 # ═════════════ başlat ═════════════
 
-func play(t: String, s: int, cb: Callable) -> void:
+func play(t: String, s: int, cb: Callable, given: Array = []) -> void:
 	if g.chests.ceremonyActive: return
 	g.chests.ceremonyActive = true
+	_forced = false
+	_given = given.size() > 0
 	if Prof.on: print("CER play @", Engine.get_process_frames())
 	type = t
 	slot = s
 	done_cb = cb
 	C = ChestSystem.chests()[t]
-	rewards = g.chests.apply_pity(g.chests.roll_rewards(t), t)
+	# verilmiş ödüller (ör. mağaza kartı): zaten uygulandı → yalnız gösterilir
+	if given.size():
+		rewards = given
+		_forced = true
+	else:
+		rewards = g.chests.apply_pity(g.chests.roll_rewards(t), t)
 	# geliştirici: ödülleri zorla — cerforce=c4,g3,w,s,rubies
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("cerforce="):
@@ -210,7 +218,7 @@ func _build() -> void:
 	add_child(_flash)
 	# sandık adı (çizgi roman başlığı)
 	_title = _txt(1000, 38, 1.5, YEL, UIK.ink_stroke(3.0, 4.0))
-	_title.text = str(C.get("name", "SANDIK"))
+	_title.text = "MAĞAZA ALIMI" if _given else str(C.get("name", "SANDIK"))
 	_title.position = Vector2(0, _W.y * 0.13)
 	_title.rotation = -0.04
 	_title.modulate.a = 0.0

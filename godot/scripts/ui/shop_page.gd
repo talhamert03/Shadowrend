@@ -204,10 +204,6 @@ func _deal_tap() -> void:
 		g.audio.play("click")
 		g.ui.toast("BUGÜNKÜ FIRSAT ALINDI")
 		return
-	if g.read_stones() < float(deal.price):
-		g.audio.play("error")
-		g.ui.toast("YETERİNCE GEM YOK")
-		return
 	g.audio.play("click")
 	var day: int = deal.day
 	g.ui.chest_buy(str(deal.t), {"price": deal.price, "orig": float(deal.C.stonePrice), "off": deal.off,
@@ -231,11 +227,7 @@ func _ad_tap() -> void:
 		g.ui.chest_ceremony(AD_CHEST, -1, func(): _after_ceremony()))
 
 func _vcard_tap(t: String) -> void:
-	var C: Dictionary = ChestSystem.chests()[t]
-	if g.read_stones() < float(C.stonePrice):
-		g.audio.play("error")
-		g.ui.toast("YETERİNCE GEM YOK")
-		return
+	# gem yetmese de pop-up açılır (sandık animasyonu görülür); yetersizlik SATIN AL'da söylenir
 	g.audio.play("click")
 	g.ui.chest_buy(t, {})
 
@@ -382,13 +374,23 @@ func _mk_buy(slot: String, cur: String) -> void:
 		g.ui.toast("Gem yetmiyor" if cur == "gem" else "Altın yetmiyor")
 		return
 	g.audio.play("buy")
-	pass  # titreşim kapalı
-	g.ui.toast("+" + str(int(r.n)) + " " + str(r.name) + " KARTI")
-	menu.refresh_wallet()
-	render()
-	if r.get("first", false):
-		var hid: String = r.id
-		get_tree().create_timer(0.65).timeout.connect(func(): g.ui.celebrate.hero_unlock(hid))
+	# kart sandıktan çıkıyormuş gibi: nadirliğe uygun sandık düşer, açılır, kart çevrilir
+	var rr := int(r.get("rar", 1))
+	var rw := {}
+	if r.kind == "char":
+		var C: Dictionary = D.CHARACTERS[r.id]
+		rw = {"kind": "char", "id": r.id, "name": C.name, "rarity": float(C.get("rarity", 1)), "char": C, "cards": int(r.n), "isNew": bool(r.get("first", false))}
+	else:
+		var it = g.gear_by_id(r.id)
+		rw = {"kind": "gear", "id": r.id, "name": it.name, "icon": it.get("icon"), "rarity": it.rarity, "desc": it.get("desc"), "mods": it.get("mods", {}), "cards": int(r.n), "isNew": false}
+		rr = int(ChestSystem.rk(it.rarity))
+	var ct: String = ["kemik", "kemik", "kemik", "kan", "kadim"][clampi(rr, 0, 4)]
+	var first: bool = r.get("first", false)
+	var hid: String = str(r.id)
+	g.ui.chest_ceremony(ct, -1, func():
+		menu.refresh_wallet()
+		render()
+		if first: get_tree().create_timer(0.3).timeout.connect(func(): g.ui.celebrate.hero_unlock(hid)), [rw])
 
 # ═════════════ gem kesesi + bozdurma ═════════════
 

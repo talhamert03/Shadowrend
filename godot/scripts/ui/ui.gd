@@ -287,6 +287,8 @@ func boot() -> void:
 				var tt: float = float(ChestSystem.chests()[pr[0]].time) * 1000.0
 				g.chests.slots[i] = {"t": pr[0], "st": pr[1], "at": Clock.now() + tt * 0.6 if pr[1] == "unlocking" else 0.0, "ad": false, "cut": 0.0}
 			menu.render_slots()
+		if _arg("mkbuy") != "":
+			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): menu.pages["magaza"]._mk_buy(_arg("mkbuy"), "gold"))
 		if _arg("ajpend") != "":
 			g.meta["ajPend"] = []
 			for x in _arg("ajpend").split(","):
@@ -769,12 +771,12 @@ func chest_inspect(i: int) -> void:
 	_ov("ci", func(): chestinspect.open(i))
 
 ## açılış töreni; slot < 0 → yuva harcamaz (ücretsiz/zafer/mağaza)
-func chest_ceremony(type: String, slot: int, done: Callable) -> void:
+func chest_ceremony(type: String, slot: int, done: Callable, given: Array = []) -> void:
 	if ceremony:
 		Prof.s("ceremony")
 		# tören boyunca kullanılan dokular kaydedilir (ScrCeremony._finish kapatır)
 		UITex.rec_begin("_cer")
-		ceremony.play(type, slot, done)
+		ceremony.play(type, slot, done, given)
 		if not ceremony.visible and UITex.rec == "_cer": UITex.rec = ""
 		Prof.t("ceremony")
 	else:

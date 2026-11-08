@@ -8,14 +8,12 @@ const PITY_N := 40
 ## sandık türüne göre efsane garantisi (kolay bulunan sandıklarda çok daha uzun)
 const PITY_BY := {"ahsap": 150, "yaygin": 125, "kemik": 100, "kan": 75, "kadim": 50, "ejderha": 30, "mistik": 10}
 ## sandık iniş sesi: her türün kendine özgü tınısı (gümle + karakter sesi)
-const LAND_SFX := {"ahsap": ["chestthud"], "yaygin": ["chestthud", "chestlatch"], "kemik": ["chestthud", "coin"],
-	"kan": ["chestthud", "bless"], "kadim": ["chestthud", "iceshard"], "mistik": ["chestrare", "star"], "ejderha": ["bossland", "firebomb"]}
-
+## sandık geliş sesi: her türe özel sentez stinger (assets/audio/sfx/chestland_<tür>_0.wav)
 static func pity_n(t: String) -> int:
 	return int(PITY_BY.get(t, PITY_N))
 
 static func land_sfx(g, t: String) -> void:
-	for s in LAND_SFX.get(t, ["chestthud"]): g.audio.play(s)
+	g.audio.play("chestland_" + (t if t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"] else "ahsap"))
 ## kahraman garantisi: bu kadar sandıkta epik+ / efsanevi kahraman çıkmazsa bir sonraki sandık verir
 const HERO_EPIC_PITY := 24
 const HERO_LEG_PITY := 75

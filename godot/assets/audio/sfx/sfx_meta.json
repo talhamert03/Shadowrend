@@ -119,7 +119,14 @@
   "iceshard": 0.07,
   "totemplant": 0.3,
   "sirensong": 0.3,
-  "starfall": 0.22
+  "starfall": 0.22,
+  "chestland_ahsap": 0.3,
+  "chestland_yaygin": 0.3,
+  "chestland_kemik": 0.3,
+  "chestland_kan": 0.3,
+  "chestland_kadim": 0.3,
+  "chestland_mistik": 0.3,
+  "chestland_ejderha": 0.3
  },
  "variants": {
   "hit": 3,
@@ -239,7 +246,14 @@
   "iceshard": 3,
   "totemplant": 3,
   "sirensong": 3,
-  "starfall": 3
+  "starfall": 3,
+  "chestland_ahsap": 1,
+  "chestland_yaygin": 1,
+  "chestland_kemik": 1,
+  "chestland_kan": 1,
+  "chestland_kadim": 1,
+  "chestland_mistik": 1,
+  "chestland_ejderha": 1
  },
  "files": [
   "hit_0",
@@ -487,7 +501,14 @@
   "bloodcast_2",
   "crescent_0",
   "crescent_1",
-  "crescent_2"
+  "crescent_2",
+  "chestland_ahsap_0",
+  "chestland_yaygin_0",
+  "chestland_kemik_0",
+  "chestland_kan_0",
+  "chestland_kadim_0",
+  "chestland_mistik_0",
+  "chestland_ejderha_0"
  ],
  "uiSounds": [
   "click",
@@ -521,6 +542,13 @@
   "cta",
   "tab",
   "reveal",
-  "evocine"
+  "evocine",
+  "chestland_ahsap",
+  "chestland_yaygin",
+  "chestland_kemik",
+  "chestland_kan",
+  "chestland_kadim",
+  "chestland_mistik",
+  "chestland_ejderha"
  ]
 }
