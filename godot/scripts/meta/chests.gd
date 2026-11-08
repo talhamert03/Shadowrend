@@ -5,6 +5,9 @@ extends RefCounted
 ## UI tarafında (ui/chest_ceremony.gd).
 
 const PITY_N := 40
+## kahraman garantisi: bu kadar sandıkta epik+ / efsanevi kahraman çıkmazsa bir sonraki sandık verir
+const HERO_EPIC_PITY := 24
+const HERO_LEG_PITY := 75
 const SKIP_FULL_RATIO := 0.8
 const SKIP_CURVE := 0.8
 const CHEST_SLOTS := 4
@@ -12,7 +15,7 @@ const KEY := "kh_chests"
 const FREE_KEY := "kh_freechest"
 const FREE_CHEST_CD := 6 * 60 * 60 * 1000.0
 const BOSS_DROP := [["ahsap", 32, 0.0], ["yaygin", 27, 0.3], ["kemik", 24, 0.6], ["kan", 13, 1.2], ["kadim", 4, 2.0]]
-const MISSION_DROP := [["ahsap", 44, 0.0], ["yaygin", 29, 0.3], ["kemik", 16, 0.6], ["kan", 8, 1.0], ["kadim", 3, 1.6]]
+const MISSION_DROP := [["ahsap", 42, 0.0], ["yaygin", 29, 0.3], ["kemik", 17, 0.6], ["kan", 9, 1.0], ["kadim", 3.5, 1.6]]
 const GEAR_W := [0, 100, 46, 15, 2.2, 28]
 
 static var CHESTS: Dictionary = {}
@@ -261,7 +264,7 @@ func roll_rewards(type: String) -> Array:
 		var has_leg := false
 		for o in out:
 			if is_legend(o): has_leg = true
-		var ch = pick_drop_char(type, has_leg)
+		var ch = pick_drop_char(type, has_leg, C.get("charOdds"))
 		if ch:
 			var rr := JS.num(ch, "rarity", 1.0)
 			out.append({"kind": "char", "id": ch.id, "name": ch.name, "rarity": rr, "char": ch,
@@ -313,6 +316,7 @@ func pity_left() -> int:
 
 func apply_pity(rewards: Array) -> Array:
 	var g = game
+	hero_pity(rewards)
 	for r in rewards:
 		if is_legend(r):
 			g.meta["pity"] = 0
@@ -388,8 +392,23 @@ func odds(type: String, N: int = 4000) -> Dictionary:
 func invalidate_odds() -> void:
 	_oddsRev += 1
 
-func pick_drop_char(type: String, damp_legend: bool):
+func pick_drop_char(type: String, damp_legend: bool, odds_arr = null):
 	var g = game
+	# sandığa özgü nadirlik dağılımı: önce nadirlik zarı, sonra o nadirlikten kahraman
+	if odds_arr is Array and odds_arr.size() >= 5:
+		var w: Array = odds_arr.duplicate()
+		if damp_legend: w[4] = float(w[4]) * 0.35
+		var tot := 0.0
+		for x in w: tot += float(x)
+		var r := randf() * tot
+		var want := 1
+		for i in w.size():
+			r -= float(w[i])
+			if r <= 0.0:
+				want = i
+				break
+		var c = _char_of_rarity(maxi(1, want))
+		if c: return c
 	var maxR := JS.num(chests()[type], "charRarityMax", 1.0)
 	var pool := []
 	var total := 0.0
@@ -409,6 +428,47 @@ func pick_drop_char(type: String, damp_legend: bool):
 		rr -= x[1]
 		if rr <= 0: return x[0]
 	return pool[0][0]
+
+## o nadirlikten kahraman (maks seviyedekiler seyrek)
+func _char_of_rarity(r: int):
+	var g = game
+	var pool := []
+	var tot := 0.0
+	for id in D.CHARACTERS:
+		var c: Dictionary = D.CHARACTERS[id]
+		if int(JS.num(c, "rarity", 1.0)) != r: continue
+		var w := 0.12 if (g.owns_char(id) and g.char_level(id) >= D.CHAR_MAX_LEVEL) else 1.0
+		pool.append([c, w]); tot += w
+	if pool.is_empty(): return null
+	var x := randf() * tot
+	for e in pool:
+		x -= e[1]
+		if x <= 0.0: return e[0]
+	return pool[0][0]
+
+## kahraman garantisi sayaçları (meta.hpE / meta.hpL)
+func hero_pity(rewards: Array) -> Array:
+	var g = game
+	var bestHero := 0
+	for r in rewards:
+		if r.get("kind") == "char": bestHero = maxi(bestHero, int(r.rarity))
+	var e := JS.i(g.meta.get("hpE")) + 1
+	var l := JS.i(g.meta.get("hpL")) + 1
+	if bestHero >= 3: e = 0
+	if bestHero >= 4: l = 0
+	var force := 0
+	if l >= HERO_LEG_PITY: force = 4
+	elif e >= HERO_EPIC_PITY: force = 3
+	if force > 0:
+		var ch = _char_of_rarity(force)
+		if ch:
+			rewards.append({"kind": "char", "id": ch.id, "name": ch.name, "rarity": float(force), "char": ch,
+				"cards": D.charCardDrop(force), "isNew": not g.owns_char(ch.id), "pity": true})
+			e = 0
+			if force == 4: l = 0
+	g.meta["hpE"] = e
+	g.meta["hpL"] = l
+	return rewards
 
 func apply_rewards(rewards: Array) -> void:
 	var g = game

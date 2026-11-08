@@ -21,8 +21,8 @@
    "gearChance": 0.5,
    "rarityMax": 1,
    "weaponChance": 0,
-   "charChance": 0.04,
-   "charRarityMax": 1,
+   "charChance": 0.06,
+   "charRarityMax": 2,
    "stoneChance": 0.1,
    "stoneDrop": [
     1,
@@ -30,7 +30,14 @@
    ],
    "price": 0,
    "stonePrice": 9,
-   "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit."
+   "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit.",
+   "charOdds": [
+    0,
+    85,
+    15,
+    0,
+    0
+   ]
   },
   "yaygin": {
    "name": "GÜMÜŞ SANDIK",
@@ -53,8 +60,8 @@
    "gearChance": 0.75,
    "rarityMax": 2,
    "weaponChance": 0.04,
-   "charChance": 0.06,
-   "charRarityMax": 1,
+   "charChance": 0.09,
+   "charRarityMax": 3,
    "stoneChance": 0.18,
    "stoneDrop": [
     1,
@@ -62,7 +69,14 @@
    ],
    "price": 55,
    "stonePrice": 15,
-   "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar."
+   "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar.",
+   "charOdds": [
+    0,
+    70,
+    27,
+    3,
+    0
+   ]
   },
   "kemik": {
    "name": "ALTIN SANDIK",
@@ -85,8 +99,8 @@
    "gearChance": 1,
    "rarityMax": 2,
    "weaponChance": 0.08,
-   "charChance": 0.08,
-   "charRarityMax": 2,
+   "charChance": 0.14,
+   "charRarityMax": 4,
    "stoneChance": 0.3,
    "stoneDrop": [
     1,
@@ -94,7 +108,14 @@
    ],
    "price": 90,
    "stonePrice": 24,
-   "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür."
+   "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür.",
+   "charOdds": [
+    0,
+    52,
+    38,
+    9,
+    1
+   ]
   },
   "kan": {
    "name": "BÜYÜLÜ SANDIK",
@@ -117,8 +138,8 @@
    "gearChance": 1,
    "rarityMax": 3,
    "weaponChance": 0.2,
-   "charChance": 0.13,
-   "charRarityMax": 3,
+   "charChance": 0.2,
+   "charRarityMax": 4,
    "stoneChance": 0.55,
    "stoneDrop": [
     2,
@@ -126,7 +147,14 @@
    ],
    "price": 220,
    "stonePrice": 37,
-   "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner."
+   "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner.",
+   "charOdds": [
+    0,
+    35,
+    40,
+    21,
+    4
+   ]
   },
   "kadim": {
    "name": "BUZUL SANDIK",
@@ -149,7 +177,7 @@
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.45,
-   "charChance": 0.22,
+   "charChance": 0.3,
    "charRarityMax": 4,
    "stoneChance": 0.85,
    "stoneDrop": [
@@ -158,7 +186,14 @@
    ],
    "price": 450,
    "stonePrice": 82,
-   "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar."
+   "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar.",
+   "charOdds": [
+    0,
+    15,
+    40,
+    35,
+    10
+   ]
   },
   "mistik": {
    "name": "MİSTİK SANDIK",
@@ -214,7 +249,7 @@
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.6,
-   "charChance": 0.35,
+   "charChance": 0.45,
    "charRarityMax": 4,
    "stoneChance": 1,
    "stoneDrop": [
@@ -224,7 +259,14 @@
    "minTop": 4,
    "price": 1600,
    "stonePrice": 286,
-   "desc": "Ejder yavrusunun sarıldığı kara demir sandık; pulları sıcak, gözleri hiç kapanmaz. İçinde efsane GARANTİ."
+   "desc": "Ejder yavrusunun sarıldığı kara demir sandık; pulları sıcak, gözleri hiç kapanmaz. İçinde efsane GARANTİ.",
+   "charOdds": [
+    0,
+    0,
+    25,
+    50,
+    25
+   ]
   }
  },
  "CHEST_SLOTS": 4,
