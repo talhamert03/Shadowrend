@@ -43,6 +43,7 @@ func _init(g, w) -> void:
 
 func reset() -> void:
 	cd.clear()
+	_storm.left = 0
 	for L in [hooks, flasks, cards, lashes, shades, bones, minions, shards, frozen, totems, sbolts, stars, songs, drains, drops]: L.clear()
 
 # ── yardımcılar ──
@@ -102,7 +103,7 @@ func update(id: String, kind: String, dt: float) -> void:
 func tick(dt: float) -> void:
 	if not hooks.is_empty(): _tick_hooks(dt)
 	if not flasks.is_empty(): _tick_flasks(dt)
-	if not cards.is_empty(): _tick_cards(dt)
+	if not cards.is_empty() or _storm.left > 0: _tick_cards(dt)
 	if not lashes.is_empty(): _tick_lashes(dt)
 	if not shades.is_empty(): _tick_shades(dt)
 	if not bones.is_empty(): _tick_bones(dt)
@@ -285,7 +286,11 @@ func _tick_flasks(dt: float) -> void:
 
 # ═══════════ TAROT (Kader Falcısı) ═══════════
 
-const SUIT_COL := [Color("#ff7a2a"), Color("#7fd8ff"), Color("#d8a0ff")]
+const SUIT_COL := [Color("#ff3a24"), Color("#5fd0ff"), Color("#ffe14a")]   # 0 alev (kırmızı) · 1 buz (mavi) · 2 şimşek (sarı)
+## Kader Falcısı sırayla atar: BUZ → ŞİMŞEK → ALEV (en az → en çok vuran)
+const SUIT_ORDER := [1, 2, 0]
+const SUIT_DMG := {1: 0.6, 2: 0.9, 0: 1.45}
+var _tarotSeq := 0
 
 func _fire_tarot(id: String, dt: float) -> void:
 	if not _ready(id, dt): return
@@ -301,23 +306,55 @@ func _fire_tarot(id: String, dt: float) -> void:
 	var ang := atan2(n.y - s.y, n.x - s.x)
 	var cnt := int(_v(Wd, "volley", L, 1.0))
 	var spd := _v(Wd, "speed", L, 560.0)
-	var tl: Array = wm.aim_targets(s.x, s.y, cnt, rng)
+	# sıradaki kart türü; çoklu atışta hepsi aynı hedefe yan yana gider (dağılmaz)
+	var suit: int = SUIT_ORDER[_tarotSeq % 3]
+	_tarotSeq += 1
+	var nx := -sin(ang); var ny := cos(ang)
+	var base := _v(Wd, "dmg", L, 18.0)
 	for k in cnt:
-		var a := atan2(tl[k].y - s.y, tl[k].x - s.x) if k < tl.size() else ang + (k - (cnt - 1) * 0.5) * 0.06
-		cards.append({"x": s.x, "y": s.y, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": _v(Wd, "bulletLife", L, 1.3), "dmg": _v(Wd, "dmg", L, 18.0),
-			"suit": randi() % 3, "spin": randf() * TAU, "pierce": int(_v(Wd, "pierce", L, 0.0)), "hit": {},
+		var off := (k - (cnt - 1) * 0.5) * 14.0
+		cards.append({"x": s.x + nx * off, "y": s.y + ny * off, "vx": cos(ang) * spd, "vy": sin(ang) * spd, "life": _v(Wd, "bulletLife", L, 1.3), "dmg": base * float(SUIT_DMG[suit]),
+			"suit": suit, "spin": randf() * TAU, "pierce": int(_v(Wd, "pierce", L, 0.0)), "hit": {}, "trail": 0.0,
 			"chain": 2 + wm.wi(Wd, "chain"), "slow": 1.6 + 0.6 * wm.wi(Wd, "slowAdd"), "ex": wm.wi(Wd, "explode"), "ph": randf() * 6.0})
 	game.player.trigger_ranged_attack(ang)
 	_sfx(Wd)
 
+## Kader Fırtınası (süper): sarmal kart yağmuru
+var _storm := {"left": 0, "t": 0.0, "a": 0.0, "dmg": 0.0}
+func card_storm(n: int) -> void:
+	var Wd: Dictionary = wm.W.get("tarot", {})
+	var L: int = maxi(0, wm.lvl("tarot") - 1)
+	var base: float = _v(Wd, "dmg", L, 18.0)
+	_storm = {"left": n, "t": 0.0, "a": randf() * TAU, "dmg": base * 1.5}
+	game.audio.play("cardthrow")
+
+func _tick_storm(dt: float) -> void:
+	var p = game.player
+	_storm.t -= dt
+	while _storm.t <= 0.0 and _storm.left > 0:
+		_storm.t += 0.035
+		_storm.left -= 1
+		_storm.a += 0.62
+		var suit: int = SUIT_ORDER[_storm.left % 3]
+		var a: float = _storm.a
+		var spd := 520.0
+		cards.append({"x": p.x + cos(a) * 24.0, "y": p.y + sin(a) * 24.0, "vx": cos(a) * spd, "vy": sin(a) * spd, "life": 1.0,
+			"dmg": _storm.dmg * float(SUIT_DMG[suit]), "suit": suit, "spin": a, "pierce": 2, "hit": {}, "trail": 0.0,
+			"chain": 3, "slow": 2.2, "ex": 1, "ph": randf() * 6.0, "sc": 2.0})
+
 func _tick_cards(dt: float) -> void:
 	var g = game
+	if _storm.left > 0: _tick_storm(dt)
 	for i in range(cards.size() - 1, -1, -1):
 		var c: Dictionary = cards[i]
 		c.life -= dt
 		c.spin += dt * 14.0
 		c.x += c.vx * dt
 		c.y += c.vy * dt
+		c.trail -= dt
+		if c.trail <= 0.0:
+			c.trail = 0.05
+			g.pools.particles.take().setup(c.x + randf_range(-4, 4), c.y - 22.0, 0, -20, 0.28, 2.6, "#" + SUIT_COL[c.suit].to_html(false), 0.9, 0, true)
 		var done: bool = c.life <= 0.0
 		if not done:
 			for e in g.enemies.query_circle(c.x, c.y, 40.0, scratch):
@@ -342,23 +379,26 @@ func _card_effect(c: Dictionary, e, ang: float) -> void:
 	var g = game
 	var col: Color = SUIT_COL[c.suit]
 	match int(c.suit):
-		0:   # ATEŞ: küçük patlama
-			g.explode(e.x, e.y, c.dmg * 0.6, 42.0 + 8.0 * c.ex, false)
-			if g.renderer3d: g.renderer3d.spawn_flame_impact(e.x, e.y, ang, 0.8)
-		1:   # BUZ: yavaşlatma + ayaz
+		0:   # ALEV: çarptığı yerde patlar, küçük alana alan hasarı (en çok vuran kart)
+			g.explode(e.x, e.y, c.dmg * 0.7, 56.0 + 10.0 * c.ex, false)
+			g.spawn_burst(e.x, e.y - 8, "#ffb030", 10, 230, 3.0, 0.45, true)
+			if g.renderer3d: g.renderer3d.spawn_flame_impact(e.x, e.y, ang, 1.0)
+		1:   # BUZ: düşman %50 yavaşlar, hafif buzlanır (en az vuran)
 			e.slowT = maxf(e.slowT, c.slow)
 			_add_frost(e, 1)
-			g.spawn_burst(e.x, e.y - 8, "#cfefff", 7, 170, 2.4, 0.4, true)
+			g.spawn_burst(e.x, e.y - 8, "#cfefff", 9, 170, 2.4, 0.45, true)
 			if g.renderer3d: g.renderer3d.spawn_hit(e.x, e.y, ang, 1, 0.6, 0.9, 1.0)
-		2:   # YILDIRIM: yakındakilere zincir
+		2:   # ŞİMŞEK: hasar arkadaki 2-3 düşmana yıldırımla yansır, her sekmede %50 azalır
 			var last = e
 			var seen := {e.get_instance_id(): true}
+			var dm: float = c.dmg * 0.5
 			for k in int(c.chain):
 				var nx = _nearest_to(last.x, last.y, 170.0, seen)
 				if nx == null: break
 				seen[nx.get_instance_id()] = true
-				_hit(nx, c.dmg * 0.6, atan2(nx.y - last.y, nx.x - last.x))
+				_hit(nx, dm, atan2(nx.y - last.y, nx.x - last.x))
 				_zap(last.x, last.y, nx.x, nx.y)
+				dm *= 0.5
 				last = nx
 			g.audio.play("simsekvur")
 	g.spawn_burst(e.x, e.y - 6, "#" + col.to_html(false), 6, 160, 2.2, 0.3, true)
@@ -371,7 +411,7 @@ func _zap(x0: float, y0: float, x1: float, y1: float) -> void:
 		var u := float(k) / n
 		var jx := (randf() - 0.5) * 18.0 if k > 0 and k < n else 0.0
 		var jy := (randf() - 0.5) * 18.0 if k > 0 and k < n else 0.0
-		g.pools.particles.take().setup(lerpf(x0, x1, u) + jx, lerpf(y0, y1, u) + jy - 10.0, 0, 0, 0.18, 3.0, "#e8d0ff" if k % 2 else "#ffffff", 1, 0, true)
+		g.pools.particles.take().setup(lerpf(x0, x1, u) + jx, lerpf(y0, y1, u) + jy - 10.0, 0, 0, 0.18, 3.0, "#ffe680" if k % 2 else "#ffffff", 1, 0, true)
 	if g.renderer3d: g.renderer3d.spawn_hit(x1, y1, atan2(y1 - y0, x1 - x0), 1, 0.85, 0.65, 1.0)
 
 # ═══════════ KAMÇI (Kamçı Ustası) ═══════════

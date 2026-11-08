@@ -44,7 +44,8 @@ func reset() -> void:
 	opened = 0
 	gold = 0
 	var f: Array = FIELD_CHEST.first
-	timers[0] = f[0]; timers[1] = f[0] + 0.4; timers[2] = f[1]
+	timers.resize(list.size())
+	for i in list.size(): timers[i] = lerpf(float(f[0]), float(f[1]), float(i) / maxf(1.0, list.size() - 1.0)) + (0.4 if i == 1 else 0.0)
 	_armed = true
 
 func _spot():

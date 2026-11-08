@@ -1599,8 +1599,8 @@
     "maxHp": 4
    },
    "perks": [
-    "İmza: Kader Kartları — yanında süzülen kader kartları",
-    "Dönen tarot kartları: her kart rastgele ATEŞ, BUZ ya da YILDIRIM etkisi taşır",
+    "İmza: Kader Kartları — yanında süzülen kader destesi",
+    "Sırayla BUZ → ŞİMŞEK → ALEV kartı: yavaşlatma, zincir yıldırım, alan patlaması",
     "Hasar +%5, kritik şansı +%3, azami can +4",
     "Nadir"
    ],
@@ -7162,7 +7162,7 @@
    {
     "id": "sig_fc6",
     "name": "Ateş Asası",
-    "desc": "Ateş kartı daha büyük patlar.",
+    "desc": "Alev kartı daha büyük patlar.",
     "boost": {
      "weapon": "tarot",
      "explodeAdd": 1
@@ -7171,7 +7171,7 @@
    {
     "id": "sig_fc7",
     "name": "Çifte Kart",
-    "desc": "Her savuruşta bir kart daha (her kart ayrı düşmana).",
+    "desc": "Her savuruşta bir kart daha (aynı hedefe yan yana).",
     "boost": {
      "weapon": "tarot",
      "volley": 1
@@ -7184,7 +7184,7 @@
    {
     "id": "sig_fc8",
     "name": "Yıldırım Kulesi",
-    "desc": "Yıldırım kartı bir düşmana daha sıçrar.",
+    "desc": "Şimşek kartı bir düşmana daha sıçrar.",
     "boost": {
      "weapon": "tarot",
      "chainAdd": 1
@@ -10551,7 +10551,7 @@
    "kind": "tarot",
    "class": "ruh",
    "floatVisual": true,
-   "descNew": "Falcının yanında süzülen kart destesi — en yakın düşmana kart savurur; her kart ateş, buz ya da yıldırım çıkar.",
+   "descNew": "Falcının yanında süzülen kart destesi — sırayla üç kart savurur: mavi BUZ (yavaşlatır), sarı ŞİMŞEK (arkadaki düşmanlara sıçrar), kırmızı ALEV (patlar, en çok vurur).",
    "descUp": [
     "Hasar +",
     "Daha sık savurur",

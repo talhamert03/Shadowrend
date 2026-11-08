@@ -54,7 +54,7 @@ const ULT_ID := {
 	"simyaci":  {"name": "İKSİR YAĞMURU", "col": "#f0ffd8", "c2": "#ff8a2a", "k": "poison", "snd": "meteor", "base": 7, "hr": 96.0,
 		"pal": {"tox": "#ffb04a", "deep": "#3a1a04", "glass": "#2a4a1a", "rot": "#140a02", "pool": "#3a1a04", "pool2": "#5a2a08", "wet": "#ff8a2a", "wet2": "#a04a10", "bub": "#6a3a10", "bub2": "#ffd06a"},
 		"desc": "Gökten iksir şişeleri yağar; kırılan şişeler yerde kaynayan alev batağı açar."},
-	"falci":    {"name": "KADER ÇARKI",   "col": "#f6e8ff", "c2": "#c070ff", "k": "mirror", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Altı dev tarot kartı yükselir; aralarında kader ışınları örülür, ağın içindekileri yakar."},
+	"falci":    {"name": "KADER FIRTINASI", "col": "#fff0d8", "c2": "#ffb030", "k": "cards", "snd": "vortex", "base": 0, "hr": 0.0, "desc": "Falcının çevresinde kader destesi patlar: buz, şimşek ve alev kartları sarmal hâlinde dört bir yana savrulur, her biri kendi gücüyle vurur."},
 	"kamci":    {"name": "DİKEN FIRTINASI", "col": "#ffd8e0", "c2": "#ff2a4a", "k": "slash", "snd": "slash", "base": 14, "hr": 80.0, "desc": "Kızıl dikenli kamçı izleri sürünün üstünde çapraz açılır, her şeyi biçer."},
 	"golge":    {"name": "GÖLGE DANSI",   "col": "#d8f8ff", "c2": "#2ad8ff", "k": "slash",  "snd": "slash",  "base": 14, "hr": 80.0, "desc": "Karanlık yarılır; gölge klonların kesikleri sürünün üstünde çaprazlanır."},
 	"kemik":    {"name": "ÖLÜ ORDUSU",    "col": "#e8ffe8", "c2": "#4adf6a", "k": "grave",  "snd": "slam",   "base": 8, "hr": 70.0, "army": true, "desc": "Toprak yarılır; mezarlardan bir iskelet ordusu kalkar ve 12 saniye boyunca Kemik Efendisi için savaşır."},
@@ -262,6 +262,10 @@ func fire() -> bool:
 				if e.hp > 0 and _pup.size() < 60: _pup.append([e, e.lifeTok])
 		wave.merge({"on": true, "t": 0.0, "dur": MIR_DUR, "r": mr}, true)
 		fx = MIR_DUR + 0.45
+	elif k == "cards":
+		# KADER FIRTINASI: kahramandan dışa sarmal kart yağmuru (buz/şimşek/alev sırayla)
+		if g.weapons: g.weapons.mech.card_storm(36 + rar * 6)
+		fx = 1.6
 	elif k == "timestop":
 		_frz.clear()
 		_tsDone = false
@@ -603,6 +607,7 @@ func render(_ctx: Ctx2D = null) -> void:
 		_rcFrame = -9
 
 func _render_now() -> void:
+	if id.get("k") == "cards": return
 	var g = game
 	var p = g.player
 	var C := id

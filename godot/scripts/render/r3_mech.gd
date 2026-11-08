@@ -66,8 +66,8 @@ func _init() -> void:
 	flask = _im(fg, _lit("#ffc070", "#ff6a10", 2.0, 0.1, 0.1), 16)
 	flaskGlow = _im(Geo.sphere(1.0, 10, 8), _add("#ff8a2a"), 16)
 	# TAROT: ince kart + renkli hale
-	card = _im(Geo.merge([Geo.box(8.0, 0.6, 12.0), Geo.box(8.8, 0.4, 12.8)], [Transform3D(), Transform3D(Basis(), Vector3(0, -0.3, 0))]), _lit("#2a1440", "#ffffff", 1.4, 0.5, 0.2), 48)
-	cardGlow = _im(Geo.box(1.0, 0.2, 1.0), _add("#ffffff"), 48)
+	card = _im(Geo.merge([Geo.box(8.0, 0.6, 12.0), Geo.box(8.8, 0.4, 12.8)], [Transform3D(), Transform3D(Basis(), Vector3(0, -0.3, 0))]), _lit("#ffffff", "#000000", 0.0, 0.5, 0.2), 72)
+	cardGlow = _im(Geo.box(1.0, 0.2, 1.0), _add("#ffffff"), 72)
 	# KAMÇI: z ∈ [0,1] parçalar (öz + hale) + uç kıvılcımı
 	var seg := Geo.merge([Geo.box(1.0, 1.0, 1.0)], [Transform3D(Basis(), Vector3(0, 0, 0.5))])
 	lash = _im(seg, _lit("#5a0a18", "#ff2a4a", 1.2, 0.5, 0.1), LASH_SEG * 6)
@@ -233,12 +233,14 @@ func _flasks(M: HeroMech, T: float) -> void:
 func _cards(M: HeroMech, T: float) -> void:
 	var n := 0
 	for c in M.cards:
-		if n >= 48: break
+		if n >= 72: break
 		var col: Color = HeroMech.SUIT_COL[c.suit]
-		card.set_trs(n, c.x, 26.0 + sin(T * 8.0 + c.ph) * 2.0, c.y, 0.25, c.spin, 0.0, 1.2, 1.2, 1.2)
-		card.set_col(n, col.r * 1.2, col.g * 1.2, col.b * 1.2, 1)
-		cardGlow.set_trs(n, c.x, 25.0, c.y, 0.0, c.spin, 0.0, 16.0, 1.0, 20.0)
-		cardGlow.set_col(n, col.r * 0.45, col.g * 0.45, col.b * 0.45, 1)
+		var sc: float = 1.2 * float(c.get("sc", 1.0))
+		card.set_trs(n, c.x, 26.0 + sin(T * 8.0 + c.ph) * 2.0, c.y, 0.25, c.spin, 0.0, sc, sc, sc)
+		# doygun renk: beyaza kaçmasın
+		card.set_col(n, col.r * col.r * 1.5, col.g * col.g * 1.5, col.b * col.b * 1.5, 1)
+		cardGlow.set_trs(n, c.x, 25.0, c.y, 0.0, c.spin, 0.0, 16.0 * sc / 1.2, 1.0, 20.0 * sc / 1.2)
+		cardGlow.set_col(n, col.r * 0.55, col.g * 0.55, col.b * 0.55, 1)
 		n += 1
 	card.commit(n); cardGlow.commit(n)
 
