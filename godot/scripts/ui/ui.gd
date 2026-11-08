@@ -287,6 +287,8 @@ func boot() -> void:
 				var tt: float = float(ChestSystem.chests()[pr[0]].time) * 1000.0
 				g.chests.slots[i] = {"t": pr[0], "st": pr[1], "at": Clock.now() + tt * 0.6 if pr[1] == "unlocking" else 0.0, "ad": false, "cut": 0.0}
 			menu.render_slots()
+		if _arg("ciopen") != "":
+			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): chest_inspect(int(_arg("ciopen"))))
 		return
 	if _arg("autorun") != "":
 		var ch := _arg("char", "")
@@ -770,7 +772,7 @@ func chest_ceremony(type: String, slot: int, done: Callable) -> void:
 		if not ceremony.visible and UITex.rec == "_cer": UITex.rec = ""
 		Prof.t("ceremony")
 	else:
-		var rw: Array = g.chests.apply_pity(g.chests.roll_rewards(type))
+		var rw: Array = g.chests.apply_pity(g.chests.roll_rewards(type), type)
 		g.chests.apply_rewards(rw)
 		if slot >= 0:
 			g.chests.slots[slot] = null

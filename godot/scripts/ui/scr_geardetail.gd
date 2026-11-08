@@ -45,6 +45,10 @@ func _build() -> void:
 	L = Lyr.make(key)
 	add_child(L)
 	L.stretch_h(Scr.dh_of(self))
+	# boşluğa dokunmak kapatır; kart dokunuşu yutar
+	btn(L, L.nodes[0], func(): close(), 1.0, 0.0)
+	var gc := L.find(".gd-card")
+	if gc: btn(L, gc, func(): pass, 1.0, 0.0)
 	var owned: bool = g.owns_gear(id)
 	# çizim
 	var gl := L.find_id("#gd-glyph")

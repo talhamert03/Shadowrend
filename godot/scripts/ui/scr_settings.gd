@@ -28,6 +28,8 @@ func _init(game) -> void:
 	super(game)
 	name = "Settings"
 
+var _prect := Rect2()
+var _outDown := false
 func show_settings(from_pause: bool) -> void:
 	from = "pause" if from_pause else "menu"
 	_closing = false
@@ -60,6 +62,7 @@ func _build() -> void:
 	_panel.position = Vector2(_W * 0.5, _H * 0.5)
 	add_child(_panel)
 	var R := Rect2(-pw * 0.5, -ph * 0.5, pw, ph)
+	_prect = Rect2(_panel.position + R.position, R.size)
 	_panel.draw.connect(func():
 		_panel.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 22), Rect2(R.position + Vector2(0, 9), R.size))
 		_panel.draw_style_box(ComicSkin.sb(PANEL, 20, 3.5, INK), R)
@@ -287,6 +290,7 @@ func _input(ev: InputEvent) -> void:
 				_slide_to(S, st.position)
 				return
 			_pressT = null
+			_outDown = not _prect.grow(6.0).has_point(st.position)
 			for B in _taps:
 				if _hit(st.position, B):
 					_pressT = B
@@ -299,6 +303,12 @@ func _input(ev: InputEvent) -> void:
 				return
 			var P = _pressT
 			_pressT = null
+			# panelin dışına dokunup bırakmak kapatır
+			if P == null and _outDown and not _prect.grow(6.0).has_point(st.position):
+				_outDown = false
+				g.audio.play("click")
+				hide_settings()
+				return
 			if P != null and _hit(st.position, P, 12.0): (P.cb as Callable).call()
 	elif ev is InputEventScreenDrag:
 		get_viewport().set_input_as_handled()

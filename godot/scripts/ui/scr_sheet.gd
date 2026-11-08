@@ -109,7 +109,7 @@ func odds(t: String) -> void:
 	var pity := S.find(".od-pity")
 	if pity:
 		var bs := pity.kids.filter(func(c): return c.d.get("tag") == "b")
-		if bs.size() >= 2: EventsPage.txt(S, bs[1], str(g.chests.pity_count()) + "/" + str(ChestSystem.PITY_N), 0.0)
+		if bs.size() >= 2: EventsPage.txt(S, bs[1], str(g.chests.pity_count(t)) + "/" + str(ChestSystem.pity_n(t)), 0.0)
 
 ## yasal belge: kabuk yakalaması + gövde (assets/ui/legal.json) zengin metinle dizilir —
 ## .lg-doc { 12,5 px · satır 1,6 · #cfc8cf } · p { alt 10 } · h4 { Cinzel 11 · üst 16 alt 6 } · b { --bone }

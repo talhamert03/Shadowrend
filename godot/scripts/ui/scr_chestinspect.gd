@@ -49,6 +49,20 @@ func _build() -> void:
 	add_child(L)
 	L.stretch_h(Scr.dh_of(self))
 	if not restart: L.finish_anims(L.nodes[0])
+	# boşluğa dokunmak kapatır; kartın kendisi dokunuşu yutar
+	btn(L, L.nodes[0], func(): close(), 1.0, 0.0)
+	var cdb := L.find(".ci-card")
+	if cdb: btn(L, cdb, func(): pass, 1.0, 0.0)
+	# "hâle" katmanı ışıma yerine kaydırılmış ikinci koyu panel gibi çiziliyordu (yanlarda çıkıntı)
+	var au := L.find_id("#ci-aura")
+	if au: L.set_hidden(au, true)
+	# kart biraz daha küçük (ekranı kaplamasın)
+	var cd := L.find(".ci-card")
+	if cd:
+		var s := 0.9
+		var cc: Vector2 = cd.size * 0.5
+		cd.extra = Transform2D(0, Vector2(s, s), 0, cc - cc * s)
+		L.set_dyn(cd)
 	# 3B sandık: tuval düğümünün yerinde
 	var cv := L.find_id("#chest-canvas-3d")
 	if stage == null:
@@ -72,11 +86,13 @@ func _build() -> void:
 
 func _texts() -> void:
 	var c = g.chests.slots[slot]
-	var n: int = g.chests.pity_count()
+	var ct := str(c.t)
+	var n: int = g.chests.pity_count(ct)
+	var PN := ChestSystem.pity_n(ct)
 	var pv := L.find(".pity-v")
-	if pv: L.set_text(pv, str(n) + "/" + str(ChestSystem.PITY_N))
+	if pv: L.set_text(pv, str(n) + "/" + str(PN))
 	var pb := L.find(".pity-bar")
-	if pb: UIK.pity_fill(pb, float(n) / ChestSystem.PITY_N)
+	if pb: UIK.pity_fill(pb, float(n) / PN)
 	var now := Clock.now()
 	if c.st == "unlocking":
 		var tm := L.find(".ci-timer")
@@ -104,30 +120,31 @@ func _close_now() -> void:
 func _process(dt: float) -> void:
 	if not visible or slot < 0: return
 	_t += dt
-	# alttan yükseliş (ui._ciStart3d)
-	var D := 0.56
-	var LAND := 0.32
-	var S := 1.14
-	var DEPTH := 130.0
+	# yumuşak iniş: yukarıdan süzülerek gelir (ease-out), hafifçe yaylanıp oturur, nefes alır
+	var D := 0.62
+	var LAND := 0.45
+	var S := 1.08
+	var HIGH := 70.0
 	var u := minf(1.0, _t / D)
-	var vv := u - 1.0
-	var back := 1.0 + 2.9 * vv * vv * vv + 1.9 * vv * vv
-	var posY := -DEPTH * (1.0 - back)
+	var e := 1.0 - pow(1.0 - u, 3.0)
+	var posY := HIGH * (1.0 - e)
 	var sx := S
 	var sy := S
 	if u < 1.0:
-		sy = S * (1.0 + 0.07 * (1.0 - u))
-		sx = S * (1.0 - 0.04 * (1.0 - u))
+		sy = S * (1.0 + 0.03 * (1.0 - u))
+		sx = S * (1.0 - 0.02 * (1.0 - u))
 	else:
 		var l := (_t - D) / LAND
 		if l < 1.0:
-			var q := sin(l * PI) * 0.085 * (1.0 - l)
+			var q := sin(l * PI) * 0.045 * (1.0 - l)
 			sy = S * (1.0 - q)
-			sx = S * (1.0 + q * 0.6)
+			sx = S * (1.0 + q * 0.5)
+			posY -= sin(l * PI) * 5.0 * (1.0 - l)
 		if not _puffed:
 			_puffed = true
-			for k in 7: stage.spawn_spark()
-		posY += sin((_t - D) * 1.7) * 1.4
+			ChestSystem.land_sfx(g, str(g.chests.slots[slot].t) if g.chests.slots[slot] else "")
+			for k in 5: stage.spawn_spark()
+		posY += sin((_t - D) * 1.7) * 1.2
 	var pulse := 0.5 + sin(_t * 3.2) * 0.5
 	var c = g.chests.slots[slot]
 	if c == null:

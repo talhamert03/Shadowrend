@@ -5,6 +5,17 @@ extends RefCounted
 ## UI tarafında (ui/chest_ceremony.gd).
 
 const PITY_N := 40
+## sandık türüne göre efsane garantisi (kolay bulunan sandıklarda çok daha uzun)
+const PITY_BY := {"ahsap": 150, "yaygin": 125, "kemik": 100, "kan": 75, "kadim": 50, "ejderha": 30, "mistik": 10}
+## sandık iniş sesi: her türün kendine özgü tınısı (gümle + karakter sesi)
+const LAND_SFX := {"ahsap": ["chestthud"], "yaygin": ["chestthud", "chestlatch"], "kemik": ["chestthud", "coin"],
+	"kan": ["chestthud", "bless"], "kadim": ["chestthud", "iceshard"], "mistik": ["chestrare", "star"], "ejderha": ["bossland", "firebomb"]}
+
+static func pity_n(t: String) -> int:
+	return int(PITY_BY.get(t, PITY_N))
+
+static func land_sfx(g, t: String) -> void:
+	for s in LAND_SFX.get(t, ["chestthud"]): g.audio.play(s)
 ## kahraman garantisi: bu kadar sandıkta epik+ / efsanevi kahraman çıkmazsa bir sonraki sandık verir
 const HERO_EPIC_PITY := 24
 const HERO_LEG_PITY := 75
@@ -308,23 +319,30 @@ static func _stable_sort(a: Array, cmp: Callable) -> void:
 			j -= 1
 		a[j + 1] = x
 
-func pity_count() -> int:
-	return maxi(0, JS.i(game.meta.get("pity")))
+func _pt() -> Dictionary:
+	var g = game
+	if not (g.meta.get("pityT") is Dictionary): g.meta["pityT"] = {}
+	return g.meta["pityT"]
 
-func pity_left() -> int:
-	return maxi(1, PITY_N - pity_count())
+func pity_count(t: String = "") -> int:
+	if t == "": return maxi(0, JS.i(game.meta.get("pity")))
+	return maxi(0, JS.i(_pt().get(t, 0)))
 
-func apply_pity(rewards: Array) -> Array:
+func pity_left(t: String = "") -> int:
+	return maxi(1, pity_n(t) - pity_count(t))
+
+func apply_pity(rewards: Array, t: String = "") -> Array:
 	var g = game
 	hero_pity(rewards)
+	var P := _pt()
 	for r in rewards:
 		if is_legend(r):
-			g.meta["pity"] = 0
+			P[t] = 0
 			g.save_meta()
 			return rewards
-	var n := pity_count() + 1
-	if n < PITY_N:
-		g.meta["pity"] = n
+	var n := pity_count(t) + 1
+	if n < pity_n(t):
+		P[t] = n
 		g.save_meta()
 		return rewards
 	var leg = null
@@ -343,7 +361,7 @@ func apply_pity(rewards: Array) -> Array:
 			var mb := -1 if (b.kind == "rubies" or b.kind == "stone") else 0
 			var d := ma - mb
 			return d if d != 0 else rk_of(a) - rk_of(b))
-	g.meta["pity"] = 0
+	P[t] = 0
 	g.save_meta()
 	return rewards
 

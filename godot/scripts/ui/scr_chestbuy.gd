@@ -52,11 +52,12 @@ func _texts() -> void:
 	var C0: Dictionary = ChestSystem.chests()[type]
 	L.set_num("b", str(int(float(opts.get("price", C0.stonePrice)))))
 	if opts.has("orig"): L.set_num("s", str(int(float(opts.orig))))
-	var n: int = g.chests.pity_count()
+	var n: int = g.chests.pity_count(type)
+	var PN := ChestSystem.pity_n(type)
 	var pv := L.find(".pity-v")
-	if pv: L.set_text(pv, str(n) + "/" + str(ChestSystem.PITY_N))
+	if pv: L.set_text(pv, str(n) + "/" + str(PN))
 	var pb := L.find(".pity-bar")
-	if pb: UIK.pity_fill(pb, float(n) / ChestSystem.PITY_N)
+	if pb: UIK.pity_fill(pb, float(n) / PN)
 	# CEBİNDE ◆ <b>n</b> — grup ortalı kalır
 	var bal := L.find_id("#cb-bal")
 	if bal:
@@ -201,7 +202,7 @@ func _process(dt: float) -> void:
 			y = -sin(f * PI) * 34.0 * (1.0 - f * 0.4)
 			var sq := sin(clampf(f * 3.0, 0.0, 1.0) * PI) * (1.0 - f)
 			sx = 1.0 + 0.22 * sq; sy = 1.0 - 0.2 * sq
-			if td - dt < 0.32: g.audio.play("chestlatch")
+			if td - dt < 0.32: ChestSystem.land_sfx(g, type)
 		else:
 			# nefes alan bekleme + ara sıra zıplama
 			var f := td - 0.62

@@ -138,7 +138,7 @@ func play(t: String, s: int, cb: Callable) -> void:
 	slot = s
 	done_cb = cb
 	C = ChestSystem.chests()[t]
-	rewards = g.chests.apply_pity(g.chests.roll_rewards(t))
+	rewards = g.chests.apply_pity(g.chests.roll_rewards(t), t)
 	# geliştirici: ödülleri zorla — cerforce=c4,g3,w,s,rubies
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("cerforce="):
