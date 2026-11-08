@@ -12,6 +12,7 @@ var stage: ChestStage
 var _key := ""
 var _t := 0.0
 var _puffed := false
+var _lastHit := -1
 var _tick := 0.0
 
 func _init(game) -> void:
@@ -24,6 +25,7 @@ func open(i: int) -> void:
 	slot = i
 	_t = 0.0
 	_puffed = false
+	_lastHit = -1
 	_key = ""
 	_build()
 	visible = true
@@ -121,30 +123,28 @@ func _process(dt: float) -> void:
 	if not visible or slot < 0: return
 	_t += dt
 	# yumuşak iniş: yukarıdan süzülerek gelir (ease-out), hafifçe yaylanıp oturur, nefes alır
-	var D := 0.62
-	var LAND := 0.45
 	var S := 1.08
-	var HIGH := 70.0
-	var u := minf(1.0, _t / D)
-	var e := 1.0 - pow(1.0 - u, 3.0)
-	var posY := HIGH * (1.0 - e)
-	var sx := S
-	var sy := S
-	if u < 1.0:
-		sy = S * (1.0 + 0.03 * (1.0 - u))
-		sx = S * (1.0 - 0.02 * (1.0 - u))
-	else:
-		var l := (_t - D) / LAND
-		if l < 1.0:
-			var q := sin(l * PI) * 0.045 * (1.0 - l)
-			sy = S * (1.0 - q)
-			sx = S * (1.0 + q * 0.5)
-			posY -= sin(l * PI) * 5.0 * (1.0 - l)
-		if not _puffed:
-			_puffed = true
-			ChestSystem.land_sfx(g, str(g.chests.slots[slot].t) if g.chests.slots[slot] else "")
-			for k in 5: stage.spawn_spark()
-		posY += sin((_t - D) * 1.7) * 1.2
+	var HIGH := 150.0
+	var bo := ChestSystem.bounce(_t)
+	var posY: float = HIGH * float(bo[0])
+	var sq: float = float(bo[1])
+	var sx := S * (1.0 + 0.16 * sq)
+	var sy := S * (1.0 - 0.18 * sq)
+	var ci: int = int(bo[2])
+	if ci > _lastHit and ci >= 0 and ci < 3:
+		_lastHit = ci
+		if ci == 0: ChestSystem.land_sfx(g, str(g.chests.slots[slot].t) if g.chests.slots[slot] else "")
+		for k in (7 - ci * 2): stage.spawn_spark()
+	if ci >= 3:
+		# oturduktan sonra: nefes + ara sıra küçük zıplama + hafif dönüş
+		var f := _t - 1.01
+		var hop := fmod(f, 2.6)
+		if hop > 1.9:
+			var hk := (hop - 1.9) / 0.7
+			posY += sin(hk * PI) * 16.0 * (1.0 - hk * 0.3)
+			sy *= 1.0 + 0.05 * sin(hk * PI)
+		else:
+			posY += sin(f * 1.8) * 1.6
 	var pulse := 0.5 + sin(_t * 3.2) * 0.5
 	var c = g.chests.slots[slot]
 	if c == null:

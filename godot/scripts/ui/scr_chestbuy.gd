@@ -13,6 +13,8 @@ var _card: Lyr.N
 var _fx: Node2D            # büyük zıplayan sandık + dönen ışınlar (kartın üstünde)
 var _chest: Sprite2D
 var _c0 := Vector2.ZERO
+var _lastHit := -1
+var _hitT := -9.0
 var _glow: Node2D          # kart çevresi altın hare + dolaşan ışık + düğme parıltısı (üstte, toplamalı)
 
 func _init(game) -> void:
@@ -34,6 +36,9 @@ func open(t: String, o: Dictionary) -> void:
 	add_child(L)
 	L.stretch_h(Scr.dh_of(self))
 	_card = L.find(".cb-card")
+	# "hâle" katmanı ikinci koyu panel gibi çiziliyordu (sahne altında çıkıntı)
+	var au := L.find_id("#cb-aura")
+	if au: L.set_hidden(au, true)
 	_texts()
 	# perdeye dokunmak kapatır; kartın kendisi dokunuşu yutar
 	btn(L, L.nodes[0], func(): close(), 1.0, 0.0)
@@ -41,6 +46,8 @@ func open(t: String, o: Dictionary) -> void:
 	btn(L, L.find_id("#cb-close"), func(): close())
 	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.show_odds(type))
 	btn(L, L.find(".cb-buy"), func(): _buy())
+	_lastHit = -1
+	_hitT = -9.0
 	_build_fx()
 	_build_glow()
 	visible = true
@@ -117,6 +124,14 @@ func _build_fx() -> void:
 			_fx.draw_colored_polygon(pts, Color(col, 0.10 * minf(1.0, _t * 2.0)))
 		for k in 4:
 			_fx.draw_circle(Vector2.ZERO, 70.0 - k * 14.0, Color(col, 0.05 * minf(1.0, _t * 2.0)))
+		# temas anı: zeminde genişleyen toz/ışık halkası + parlama
+		var hk2 := (_t - _hitT) / 0.4
+		if hk2 >= 0.0 and hk2 < 1.0:
+			var rr2 := 40.0 + 70.0 * hk2
+			_fx.draw_set_transform(Vector2(0, 52), 0.0, Vector2(1.0, 0.32))
+			_fx.draw_arc(Vector2.ZERO, rr2, 0, TAU, 40, Color(col, 0.55 * (1.0 - hk2)), 6.0 * (1.0 - hk2) + 1.0, true)
+			_fx.draw_circle(Vector2.ZERO, rr2 * 0.7, Color(1, 0.95, 0.8, 0.12 * (1.0 - hk2)))
+			_fx.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		# sandığın çevresinde yükselip sönen yıldız parıltıları
 		for k in 9:
 			var ph := fmod(_t * 0.7 + k * 0.137, 1.0)
@@ -192,23 +207,23 @@ func _process(dt: float) -> void:
 		var y := 0.0; var sx := 1.0; var sy := 1.0
 		if td < 0.0:
 			y = -420.0
-		elif td < 0.32:
-			# yukarıdan düşüş
-			var f := td / 0.32
-			y = lerpf(-420.0, 0.0, f * f)
-		elif td < 0.62:
-			# yere çarpma: ezilip sekme
-			var f := (td - 0.32) / 0.3
-			y = -sin(f * PI) * 34.0 * (1.0 - f * 0.4)
-			var sq := sin(clampf(f * 3.0, 0.0, 1.0) * PI) * (1.0 - f)
-			sx = 1.0 + 0.22 * sq; sy = 1.0 - 0.2 * sq
-			if td - dt < 0.32: ChestSystem.land_sfx(g, type)
+		elif td < 1.01:
+			# yukarıdan düşüş + azalan 3 sekme (her temasta ezilme + kıvılcım)
+			var bo := ChestSystem.bounce(td)
+			y = -float(bo[0]) * (420.0 if int(bo[2]) < 0 else 300.0)
+			var sq: float = float(bo[1])
+			sx = 1.0 + 0.2 * sq; sy = 1.0 - 0.2 * sq
+			var ci: int = int(bo[2])
+			if ci >= 0 and ci < 3 and ci > _lastHit:
+				_lastHit = ci
+				if ci == 0: ChestSystem.land_sfx(g, type)
+				_hitT = _t
 		else:
 			# nefes alan bekleme + ara sıra zıplama
-			var f := td - 0.62
+			var f := td - 1.01
 			var hop := fmod(f, 2.2)
-			if hop < 0.35:
-				var hk := hop / 0.35
+			if hop > 1.85:
+				var hk := (hop - 1.85) / 0.35
 				y = -sin(hk * PI) * 18.0
 				sx = 1.0 - 0.05 * sin(hk * PI); sy = 1.0 + 0.07 * sin(hk * PI)
 			else:

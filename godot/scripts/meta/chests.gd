@@ -9,6 +9,26 @@ const PITY_N := 40
 const PITY_BY := {"ahsap": 150, "yaygin": 125, "kemik": 100, "kan": 75, "kadim": 50, "ejderha": 30, "mistik": 10}
 ## sandık iniş sesi: her türün kendine özgü tınısı (gümle + karakter sesi)
 ## sandık geliş sesi: her türe özel sentez stinger (assets/audio/sfx/chestland_<tür>_0.wav)
+## sandık geliş eğrisi: yukarıdan düşüş + azalan 3 sekme → [yükseklik 0..1, ezilme -1..1, temas indeksi]
+## t sn; düşüş 0.34 sn, sekmeler 0.30 / 0.22 / 0.15 sn (toplam ≈1.0 sn)
+static func bounce(t: float) -> Array:
+	var DROP := 0.34
+	if t < DROP:
+		var u := t / DROP
+		return [1.0 - u * u, -0.08 * u, -1]
+	var hs := [0.30, 0.13, 0.045]
+	var ds := [0.30, 0.22, 0.15]
+	var x := t - DROP
+	for i in 3:
+		if x < ds[i]:
+			var u: float = x / ds[i]
+			var h: float = hs[i] * 4.0 * u * (1.0 - u)
+			# temasın hemen ardından ezilme (kısa)
+			var sq: float = maxf(0.0, 1.0 - u * 5.0) * (0.9 - i * 0.28)
+			return [h, sq, i]
+		x -= ds[i]
+	return [0.0, 0.0, 3]
+
 static func pity_n(t: String) -> int:
 	return int(PITY_BY.get(t, PITY_N))
 
