@@ -23,6 +23,8 @@ var _bar: Lyr.N
 var _barA := 0.0
 var _barB := 0.0
 var _seqNodes: Array = []
+var _pops: Array = []            # [düğüm, başlangıç sn, merkez] — sırayla "pop" girişi
+const POP_DUR := 0.34
 ## kazanılan sandık uçuşu: ekranın altından zıplayarak gelir, ganimet yuvasına oturur
 var _fly: Lyr = null
 var _flyN: Lyr.N = null
@@ -440,6 +442,13 @@ func _sequence() -> void:
 		for A in act.anims:
 			if String(A.get("name", "")).contains("meSq"): proto = [A]
 	_seqNodes.clear()
+	_pops.clear()
+	for st in SEQ:
+		var pn := L.find(st[0])
+		if pn == null or pn.hidden: continue
+		_pops.append([pn, float(st[1]) + 0.05, pn.size * 0.5, false])
+		pn.extra = Transform2D(0, Vector2.ONE * 0.001, 0, Vector2.ZERO)
+		L.set_dyn(pn)
 	if proto.is_empty(): return
 	for st in SEQ:
 		var n := L.find(st[0])
@@ -457,6 +466,7 @@ func _finish() -> void:
 		_t = maxf(_t, FLY_AT + FLY_DUR)
 		_fly_tick()
 	for n in _seqNodes: L.finish_anims(n)
+	for pp in _pops: pp[0].extra = Transform2D.IDENTITY
 	if _tallyB: L.set_text(_tallyB, "+" + str(_tallyN))
 	_set_bar(_barB)
 
@@ -544,6 +554,7 @@ func _process(dt: float) -> void:
 		elif _flyN and kk >= 1.0 and _flyN.extra != Transform2D.IDENTITY:
 			_flyN.extra = Transform2D.IDENTITY
 	if not _seqDone:
+		_pop_tick()
 		# altın sayacı: 0,82 sn sonra 520 ms kübik
 		if _tallyB and _tallyN > 0 and _t >= 0.82:
 			var k := minf(1.0, (_t - 0.82) / 0.52)
@@ -553,6 +564,28 @@ func _process(dt: float) -> void:
 				g.audio.play("tally")
 		if _bar and _t >= 1.75: _set_bar(lerpf(_barA, _barB, UIK.ez(UIK.EASE, minf(1.0, (_t - 1.75) / 0.6))))
 		if _t >= 2.8: _finish()
+
+## her blok sırayla küçükten taşarak (geri yaylanma) belirir + kısa ses
+func _pop_tick() -> void:
+	var snd := 0
+	for pp in _pops:
+		var n: Lyr.N = pp[0]
+		var u: float = (_t - float(pp[1])) / POP_DUR
+		if u < 0.0:
+			continue
+		if not pp[3]:
+			pp[3] = true
+			snd += 1
+		if u >= 1.0:
+			if n.extra != Transform2D.IDENTITY: n.extra = Transform2D.IDENTITY
+			continue
+		# easeOutBack: 0.55 → 1.08 → 1.0
+		var c1 := 2.2
+		var e := 1.0 + (c1 + 1.0) * pow(u - 1.0, 3.0) + c1 * pow(u - 1.0, 2.0)
+		var sc := lerpf(0.55, 1.0, e)
+		var c: Vector2 = pp[2]
+		n.extra = Transform2D(0, Vector2.ONE * sc, 0, c - c * sc)
+	if snd > 0: g.audio.play("star")
 
 func _input(ev: InputEvent) -> void:
 	if visible and ev is InputEventScreenTouch and (ev as InputEventScreenTouch).pressed and not _seqDone:
