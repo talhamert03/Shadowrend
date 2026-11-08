@@ -59,8 +59,9 @@ static func offers(g) -> Array:
 		var base := n * each
 		return {"slot": slot, "kind": "char", "id": id, "rar": r, "name": C.name, "n": n, "price": JS.round_js(base * GOLD_MUL), "gem": _to_gem(base), "got": B.got.has(slot)}
 	var ids: Array = D.CHARACTERS.keys().filter(func(x): return g.char_level(x) < D.CHAR_MAX_LEVEL or not g.owns_char(x))
-	var picks := [cid] if ids.has(cid) else []
-	for x in _pick(ids.filter(func(x): return x != cid), HERO_OFFERS, day * 7 + 1): picks.append(x)
+	# kahraman kartları da her gün tamamen rastgele (seçili kahraman sabit değil)
+	var picks := []
+	for x in _pick(ids, HERO_OFFERS, day * 7 + 1): picks.append(x)
 	for i in mini(HERO_OFFERS, picks.size()):
 		var o = heroOffer.call(str(picks[i]), "h" + str(i + 1))
 		if o: out.append(o)
