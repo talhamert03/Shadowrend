@@ -1546,8 +1546,9 @@ func add_account_xp(n: float) -> void:
 		a.xpNext = D.accountXpToNext(a.level)
 		var ch = D.accountLevelChest(a.level)
 		if ch:
-			give_chest(ch)
-			rewards.append({"level": a.level, "chest": ch})
+			# savaştan gelen seviye sandığı: yuva doluysa verilmez (yalnız "yuva dolu"), açılmaz
+			if chests.grant(ch): rewards.append({"level": a.level, "chest": ch})
+			else: rewards.append({"level": a.level, "chest": null, "full": true})
 	save_meta()
 	if a.level > fromLevel:
 		if _pendingLevelUp == null: _pendingLevelUp = {"fromLevel": fromLevel, "toLevel": a.level, "rewards": []}

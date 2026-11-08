@@ -64,13 +64,15 @@ func level_up(p: Dictionary) -> void:
 		_queue.append(["lvl", p])
 		return
 	var rw: Array = p.get("rewards", [])
-	var key := "alu_" + (str(rw[0].chest) if rw.size() else "0")
+	var full: bool = rw.size() > 0 and rw[0].get("chest") == null
+	var key := "alu_" + (str(rw[0].chest) if rw.size() and not full else "0")
 	if not _show(key, "lvl"): return
 	var to := int(p.get("toLevel", 1))
 	EventsPage.txt(L, L.find_id("#alu-level"), str(to))
 	var bonus := minf(50.0, (to - 1) * 0.6)
 	for v in L.find_all(".alu-stat-v"): EventsPage.txt(L, v, "+%" + ("%.1f" % bonus))
-	if rw.size():
+	if full: g.ui.toast("SANDIK YUVASI DOLU — SEVİYE SANDIĞI VERİLEMEDİ")
+	if rw.size() and not full:
 		var t := L.find(".alu-reward-t")
 		if t:
 			for k in t.kids:
