@@ -335,7 +335,7 @@ func boot() -> void:
 				for i in 4: P.take().setup(g.player.x - 105 + i * 70, g.player.y + 150, ks[i])
 				for i in 9: g.pools.gems.take().setup(g.player.x - 120 + (i % 3) * 120, g.player.y - 160 - (i / 3) * 40, [1, 6, 30][i % 3]))
 		if _arg("altarpick") != "":
-			get_tree().create_timer(2.0).timeout.connect(func(): g.events._bless_altar())
+			get_tree().create_timer(maxf(2.0, float(_arg("altarpick")))).timeout.connect(func(): g.events._bless_altar())
 		if _arg("altar") != "":
 			# geliştirici: altar — savaş başında kahramanın yanında sunak
 			get_tree().create_timer(1.5).timeout.connect(func():

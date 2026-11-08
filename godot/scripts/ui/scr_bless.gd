@@ -258,7 +258,25 @@ func _draw_bg() -> void:
 	var c := Vector2(_W * 0.5, _H * 0.5)
 	B.radial(c, _W * 0.95, Color(0.42, 0.06, 0.08, 0.55), Color(0.1, 0.0, 0.02, 0.0), 1.15, 40)
 	B.radial(c + Vector2(0, -_H * 0.28), _W * 0.5, Color(0.9, 0.55, 0.2, 0.18), Color(0.6, 0.2, 0.1, 0.0), 0.6, 30)
+	# üst/alt koyu kenar
+	B.radial(c, _H * 0.75, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.55), _W / _H * 1.0, 40)
 	B.flush(_bg)
+	if _acards.is_empty(): return
+	var top: float = float(_acards[0].y0) - 64.0 - 118.0
+	var gold := Color("#e9c98a")
+	var cx := _W * 0.5
+	# "SUNAK" yanlarında yaldız çizgiler
+	for sgn in [-1.0, 1.0]:
+		var x0: float = cx + sgn * 46.0
+		var x1: float = cx + sgn * 128.0
+		_bg.draw_line(Vector2(x0, top + 9), Vector2(x1, top + 9), Color(gold, 0.7), 1.5, true)
+		var dp := Vector2(x1 + sgn * 6.0, top + 9)
+		_bg.draw_colored_polygon(PackedVector2Array([dp + Vector2(0, -4), dp + Vector2(4, 0), dp + Vector2(0, 4), dp + Vector2(-4, 0)]), gold)
+	# alt başlık altında ayraç
+	var ay := top + 92.0
+	_bg.draw_line(Vector2(cx - 120, ay), Vector2(cx - 12, ay), Color(gold, 0.5), 1.2, true)
+	_bg.draw_line(Vector2(cx + 12, ay), Vector2(cx + 120, ay), Color(gold, 0.5), 1.2, true)
+	_bg.draw_colored_polygon(PackedVector2Array([Vector2(cx, ay - 6), Vector2(cx + 6, ay), Vector2(cx, ay + 6), Vector2(cx - 6, ay)]), gold)
 
 func _draw_fx() -> void:
 	var B := TriBatch.new()
@@ -297,22 +315,73 @@ func _draw_fx() -> void:
 		B.radial(cp, 160.0 + 120.0 * k, Color(C.col, 0.55 * (1.0 - k)), Color(C.col, 0.0), 0.55, 30)
 	B.flush(_fx)
 
+## köşeleri yuvarlatılmış dikdörtgen çokgeni
+static func _rr(R: Rect2, r: float, seg := 6) -> PackedVector2Array:
+	var P := PackedVector2Array()
+	var cs := [[R.end.x - r, R.position.y + r, -PI / 2], [R.end.x - r, R.end.y - r, 0.0], [R.position.x + r, R.end.y - r, PI / 2], [R.position.x + r, R.position.y + r, PI]]
+	for c in cs:
+		for i in seg + 1:
+			var a: float = c[2] + PI / 2 * i / seg
+			P.append(Vector2(c[0] + cos(a) * r, c[1] + sin(a) * r))
+	return P
+
 func _draw_card(nd: Node2D, R: Rect2, col: Color, bid: String) -> void:
-	nd.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 18), Rect2(R.position + Vector2(0, 7), R.size))
-	nd.draw_style_box(ComicSkin.sb(Color("#1a1220"), 16, 3.0, INK), R)
-	nd.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 13, 2.0, Color(col, 0.75)), R.grow(-5))
-	# sol amblem
+	var T := _t
+	var dark := Color("#120a16")
+	# dış hare (renkli, nabız)
+	var B0 := TriBatch.new()
+	B0.radial(R.get_center(), R.size.x * 0.62, Color(col, 0.16 + 0.06 * sin(T * 2.4)), Color(col, 0.0), R.size.y / R.size.x * 1.6, 36)
+	B0.flush(nd)
+	nd.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.55), 18), Rect2(R.position + Vector2(0, 8), R.size))
+	# yaldızlı dış çerçeve
+	nd.draw_style_box(ComicSkin.sb(INK, 17, 0.0, INK), R.grow(2))
+	nd.draw_style_box(ComicSkin.sb(Color("#3a2a14"), 16, 2.0, Color("#e9c98a")), R)
+	# gövde: soldan renkli → sağa koyu degrade
+	var IR := R.grow(-4)
+	var P := _rr(IR, 13)
+	var cols := PackedColorArray()
+	var c0 := dark.lerp(col, 0.38)
+	for v in P:
+		var k := clampf((v.x - IR.position.x) / IR.size.x, 0.0, 1.0)
+		var kv := clampf((v.y - IR.position.y) / IR.size.y, 0.0, 1.0)
+		cols.append(c0.lerp(dark, pow(k, 0.7)).darkened(0.18 * kv))
+	nd.draw_polygon(P, cols)
+	# üst parlaklık
+	var G := _rr(Rect2(IR.position, Vector2(IR.size.x, IR.size.y * 0.42)), 13)
+	var gc := PackedColorArray()
+	for v in G: gc.append(Color(1, 1, 1, 0.07 * (1.0 - clampf((v.y - IR.position.y) / (IR.size.y * 0.42), 0.0, 1.0))))
+	nd.draw_polygon(G, gc)
+	# kayan ışıltı şeridi
+	var sw := fmod(T * 0.45 + float(bid.hash() % 7) * 0.13, 1.6) - 0.3
+	var sx := IR.position.x + sw * IR.size.x
+	if sx > IR.position.x + 10 and sx < IR.end.x - 30:
+		var top := IR.position.y + 3; var bot := IR.end.y - 3
+		nd.draw_colored_polygon(PackedVector2Array([Vector2(sx, top), Vector2(sx + 18, top), Vector2(sx - 12, bot), Vector2(sx - 30, bot)]), Color(1, 1, 1, 0.06))
+	# iç ince renkli çizgi
+	nd.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 11, 1.5, Color(col, 0.55)), R.grow(-8))
+	# madalyon
 	var ec := Vector2(R.position.x + 56, 0)
 	var B := TriBatch.new()
-	B.radial(ec, 46, Color(col, 0.35), Color(col, 0.0), 1.0, 24)
+	B.radial(ec, 50, Color(col, 0.45 + 0.1 * sin(T * 3.0)), Color(col, 0.0), 1.0, 28)
 	B.flush(nd)
-	nd.draw_circle(ec, 34, INK)
-	nd.draw_circle(ec, 31, Color("#2a1c30"))
-	nd.draw_arc(ec, 31, 0, TAU, 40, col, 2.5, true)
+	nd.draw_circle(ec, 36, INK)
+	nd.draw_circle(ec, 34, Color("#e9c98a"))
+	nd.draw_circle(ec, 31, Color("#5a3e1c"))
+	var B2 := TriBatch.new()
+	B2.radial(ec + Vector2(0, -6), 30, dark.lerp(col, 0.55), dark, 1.0, 28)
+	B2.flush(nd)
+	nd.draw_arc(ec, 29, 0, TAU, 40, Color(col, 0.9), 2.0, true)
+	for i in 8:
+		var a := T * 0.5 + i * TAU / 8
+		var pp := ec + Vector2(cos(a), sin(a)) * 34.5
+		nd.draw_circle(pp, 1.6, Color("#fff1c8"))
 	_emblem(nd, ec, bid, col)
-	# artı / eksi rozetleri
+	# artı / eksi rozetleri + ayırıcı
 	var py := R.position.y + 62
 	var my := R.position.y + 98
+	var dx0 := R.position.x + 106
+	var dl := PackedVector2Array([Vector2(dx0, R.position.y + 80), Vector2(R.end.x - 22, R.position.y + 80)])
+	nd.draw_line(dl[0], dl[1], Color("#e9c98a", 0.22), 1.0, true)
 	nd.draw_circle(Vector2(R.position.x + 112, py), 9, INK)
 	nd.draw_circle(Vector2(R.position.x + 112, py), 7.5, Color("#2fae55"))
 	nd.draw_rect(Rect2(R.position.x + 108, py - 1.3, 8, 2.6), Color.WHITE)
@@ -320,11 +389,14 @@ func _draw_card(nd: Node2D, R: Rect2, col: Color, bid: String) -> void:
 	nd.draw_circle(Vector2(R.position.x + 112, my), 9, INK)
 	nd.draw_circle(Vector2(R.position.x + 112, my), 7.5, Color("#c43a3a"))
 	nd.draw_rect(Rect2(R.position.x + 108, my - 1.3, 8, 2.6), Color.WHITE)
-	# köşe süsleri
-	for sx in [-1.0, 1.0]:
+	# yaldızlı köşe kıvrımları
+	for sx2 in [-1.0, 1.0]:
 		for sy in [-1.0, 1.0]:
-			var p := Vector2(R.get_center().x + sx * (R.size.x * 0.5 - 12), sy * (R.size.y * 0.5 - 12))
-			nd.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -5), p + Vector2(5, 0), p + Vector2(0, 5), p + Vector2(-5, 0)]), Color(GOLD, 0.8))
+			var p := Vector2(R.get_center().x + sx2 * (R.size.x * 0.5 - 4), sy * (R.size.y * 0.5 - 4))
+			var hx := Vector2(-sx2 * 18, 0); var hy := Vector2(0, -sy * 18)
+			nd.draw_polyline(PackedVector2Array([p + hx, p, p + hy]), INK, 5.0, true)
+			nd.draw_polyline(PackedVector2Array([p + hx, p, p + hy]), Color("#ffe3a0"), 2.4, true)
+			nd.draw_circle(p + (hx + hy) * 0.3, 2.2, Color("#ffe3a0"))
 
 ## seçenek amblemi: kan damlası · şifa yaprağı · çapraz kılıç (yoksa yıldız)
 func _emblem(nd: Node2D, c: Vector2, bid: String, col: Color) -> void:
@@ -361,6 +433,7 @@ func _tick_altar(dt: float) -> void:
 	_fx.queue_redraw()
 	for C in _acards:
 		var nd: Node2D = C.node
+		nd.queue_redraw()
 		var d: float = 0.25 + C.i * 0.12
 		var k := clampf((_t - d) / 0.35, 0.0, 1.0)
 		var e := 1.0 - pow(1.0 - k, 3.0)
