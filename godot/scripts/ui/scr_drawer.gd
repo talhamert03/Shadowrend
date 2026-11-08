@@ -90,29 +90,32 @@ func _process(dt: float) -> void:
 		L.set_dyn(_sheet)
 
 
-## savaş biletinde alınabilir ödül varsa afişin köşesinde zıplayan kırmızı "!" rozeti
+## nerede alınacak ödül varsa orada zıplayan küçük SARI nokta (savaş bileti · görevler)
 func _bp_badge() -> void:
-	var bn = L.find_id("#bp-banner")
-	if bn == null or not (bn is Control): return
 	var any := false
 	for t in range(1, g.bp_tier() + 1):
 		if g.bp_can_claim(t, "free") or g.bp_can_claim(t, "premium"):
 			any = true
 			break
-	if not any: return
+	if any: _dot(L.find_id("#bp-banner"))
+	var d = g.dailies
+	if d and d.pending(): _dot(L.find_id("#quest-open"))
+
+func _dot(bn) -> void:
+	if bn == null or not (bn is Control): return
 	var bd := Node2D.new()
-	bd.position = Vector2((bn as Control).size.x - 12, 8)
+	bd.position = Vector2((bn as Control).size.x - 10, 10)
 	bd.z_index = 5
 	var t0 := Time.get_ticks_msec()
 	bd.draw.connect(func():
 		var tt := (Time.get_ticks_msec() - t0) / 1000.0
-		var k := 1.0 + 0.12 * absf(sin(tt * 5.0))
-		bd.draw_set_transform(Vector2(0, -3.0 * absf(sin(tt * 5.0))), 0.0, Vector2(k, k))
-		bd.draw_circle(Vector2(1, 2), 13, Color(0, 0, 0, 0.6))
-		bd.draw_circle(Vector2.ZERO, 13, Color("#ff2a3a"))
-		bd.draw_arc(Vector2.ZERO, 13, 0, TAU, 32, Color.WHITE, 2.0, true)
-		bd.draw_rect(Rect2(-2.2, -8, 4.4, 10), Color.WHITE)
-		bd.draw_circle(Vector2(0, 6), 2.4, Color.WHITE))
+		var k := 1.0 + 0.18 * absf(sin(tt * 4.5))
+		bd.draw_set_transform(Vector2(0, -2.5 * absf(sin(tt * 4.5))), 0.0, Vector2(k, k))
+		bd.draw_circle(Vector2(0, 0), 13, Color(1, 0.82, 0.2, 0.18 + 0.12 * sin(tt * 4.5)))
+		bd.draw_circle(Vector2(1, 2), 8, Color(0, 0, 0, 0.5))
+		bd.draw_circle(Vector2.ZERO, 8, Color("#ffd23a"))
+		bd.draw_arc(Vector2.ZERO, 8, 0, TAU, 24, Color("#3a2200"), 1.6, true)
+		bd.draw_circle(Vector2(-2.5, -2.5), 2.2, Color(1, 1, 1, 0.8)))
 	(bn as Control).add_child(bd)
 	var tw := bd.create_tween().set_loops()
 	tw.tween_callback(func(): if bd.is_visible_in_tree(): bd.queue_redraw()).set_delay(0.033)
