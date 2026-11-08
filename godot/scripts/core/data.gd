@@ -266,7 +266,7 @@ func world(w: int) -> Dictionary:
 	if w >= 1 and w <= WORLDS.size(): return WORLDS[w - 1]
 	return WORLDS[0]
 
-const M_ORDER := ["survive", "defend", "survive", "hunt", "survive", "escape", "defend", "hunt", "escape"]
+const M_ORDER := ["survive", "defend", "survive", "hunt", "survive", "survive", "defend", "hunt", "survive"]  # kaçış (kapanan halka) kaldırıldı
 func mType(w: int, m: int) -> String:
 	if m >= 10 or (w == 1 and m <= 2): return "survive"
 	return M_ORDER[m - 1] if m - 1 < M_ORDER.size() else "survive"

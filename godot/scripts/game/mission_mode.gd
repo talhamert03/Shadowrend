@@ -37,6 +37,8 @@ func _init(g) -> void:
 
 func begin(t: String) -> void:
 	type = t if t else "survive"
+	# kapanan halka (KAÇIŞ) kaldırıldı: oyuncu her yere serbestçe gidebilir → hayatta kal
+	if type == "escape": type = "survive"
 	done = type == "survive" or type == "defend"
 	over = false
 	totem = {"on": false, "x": 0.0, "y": 0.0, "hp": TOTEM_HP, "hit": 0.0}
@@ -57,7 +59,7 @@ func on_wave(w: int) -> void:
 	var g = game
 	var p = g.player
 	var M: Dictionary = g.msn
-	if M and M.isBoss and (M.world == 5 or M.world == 10) and not g.towerRun and not g.sealRun and g.is_boss_wave(w) and not siege.on:
+	if false and M and M.isBoss and (M.world == 5 or M.world == 10) and not g.towerRun and not g.sealRun and g.is_boss_wave(w) and not siege.on:  # kuşatma halkası kaldırıldı
 		siege.merge({"on": true, "x": p.x, "y": p.y, "r": SIEGE_R0, "t": 0.0, "burn": 0.0}, true)
 		g.ui.event_banner("KUŞATMA", "Halka kapanıyor — kaçış yok", SIEGE_COL)
 	if type == "defend" and not totem.on:

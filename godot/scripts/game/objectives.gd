@@ -42,6 +42,9 @@ func begin() -> void:
 	reset()
 
 func _arm() -> void:
+	# kurtarma görevi kaldırıldı (yerine sahada daha çok ödül sandığı var: FieldChests)
+	_armed = false
+	return
 	if not _armed: return
 	var g = game
 	if not g.arena or not g.props or not g.props.n: return

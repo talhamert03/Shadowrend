@@ -5,16 +5,17 @@ extends RefCounted
 ## gövdesi web'in kendi çizim kodundan PNG'ye pişirilir (assets/art/fieldchest).
 
 const FIELD_CHEST := {
-	"maxLive": 3, "first": [2.0, 18.0], "respawn": [35.0, 52.0], "openR": 84.0, "wakeR": 250.0,
+	"maxLive": 4, "first": [2.0, 10.0], "respawn": [22.0, 34.0], "openR": 84.0, "wakeR": 250.0,
 	"gap": 1000.0, "fromPlayer": 640.0, "bombR": 420.0, "fuse": 0.8,
 }
-const REWARDS := [["magnet", 22], ["heal", 21], ["shield", 20], ["bomb", 18], ["gold", 19]]
+const REWARDS := [["magnet", 20], ["heal", 19], ["shield", 16], ["bomb", 16], ["gold", 15], ["card", 14]]
 const CHEST_REWARD := {
 	"magnet": {"col": "#7cc8f0", "hi": "#d8f1ff", "mid": "#4f9fd6", "lo": "#1d4f7e", "label": "MIKNATIS"},
 	"heal":   {"col": "#ff5a66", "hi": "#ffc2c6", "mid": "#ff3b4e", "lo": "#7a1020", "label": "CAN"},
 	"shield": {"col": "#f0cf78", "hi": "#fff0c4", "mid": "#d9a642", "lo": "#6e4a14", "label": "KALKAN"},
 	"bomb":   {"col": "#ff8a3c", "hi": "#ffd2a0", "mid": "#e0662a", "lo": "#5a1c10", "label": "PATLANGAÇ"},
 	"gold":   {"col": "#f5c044", "hi": "#fff3c0", "mid": "#e8a930", "lo": "#7a4a0c", "label": "ALTIN"},
+	"card":   {"col": "#b98cff", "hi": "#efe0ff", "mid": "#9a5cff", "lo": "#3a1670", "label": "+1 KART SEÇİMİ"},
 }
 const POPS := 6
 const MED_R := 27.0
@@ -195,6 +196,12 @@ func _apply(kind: String, x: float, y: float, amt: float) -> void:
 		g.spawn_burst(x, y - 20, lab.col, 18, 220, 3.2, 0.6, true)
 		g.spawn_text(x, y - 64, "+" + JS.s(amt) + " ALTIN", lab.col, 20, true)
 		g.ui.refresh_wallet()
+		return
+	if kind == "card":
+		# +1 kart seçimi: bir sonraki karede seviye kartı ekranı açılır
+		g.player.pendingLevels += 1
+		g.audio.play("levelup")
+		g.spawn_text(x, y - 64, lab.label, lab.col, 20, true)
 		return
 	g.powerups.collect(kind)
 	g.spawn_text(x, y - 64, lab.label, lab.col, 20, true)
