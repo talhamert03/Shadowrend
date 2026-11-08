@@ -387,6 +387,10 @@ func _guess_tier() -> String:
 func _build_pools() -> void:
 	pools.particles = Pool.new("particles", func(): return Ent.Particle.new(), 600)
 	pools.texts = Pool.new("texts", func(): return Ent.FloatText.new(), 80)
+	# kalabalıkta parçacık/yazı sınırı (eski olanlar yeniden kullanılır)
+	var tq: String = Quality.tier
+	pools.particles.cap = 900 if tq == "high" else (560 if tq == "mid" else 320)
+	pools.texts.cap = 70 if tq == "high" else (50 if tq == "mid" else 34)
 	pools.gems = Pool.new("gems", func(): return Ent.Gem.new(), 400)
 	pools.hearts = Pool.new("hearts", func(): return Ent.Heart.new(), 40)
 	pools.powerups = Pool.new("powerups", func(): return Ent.PowerupDrop.new(), 10)

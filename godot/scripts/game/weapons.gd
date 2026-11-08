@@ -1205,7 +1205,7 @@ func _update_trap(b, dt: float) -> bool:
 						o.life = minf(o.life + 0.7, 4.5)
 						o.mMass += 2
 						g.spawn_burst(o.x, o.y, "#c08aff", 16, 260, 3.0, 0.45, true)
-						g.pools.rings.take().setup(o.x, o.y, o.mR * 1.1, 0.3, "#e0b0ff")
+						g.pools.rings.take().setup(o.x, o.y, o.mR * 1.1, 0.3, "#8a3ae0")
 						g.audio.play("void")
 						b.life = -99.0
 						return true
@@ -1251,7 +1251,7 @@ func _update_trap(b, dt: float) -> bool:
 		var rr2 := R * (0.8 + randf() * 0.3)
 		var sp := 260.0
 		g.pools.particles.take().setup(b.x + cos(an) * rr2, b.y + sin(an) * rr2 * 0.62, -cos(an) * sp, -sin(an) * sp * 0.62,
-			0.35, 2.4, "#c08aff" if randf() < 0.6 else "#ffffff", 0.97, 0, true)
+			0.35, 2.4, "#9a4aff" if randf() < 0.6 else "#5a1aa0", 0.97, 0, true)
 	if b.life <= 0.0:
 		# kütle büyüdükçe çöküş güçlenir (×3'e kadar) ve genişler
 		var mass := minf(1.0, float(b.mMass) / 16.0)

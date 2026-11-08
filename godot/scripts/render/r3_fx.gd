@@ -97,7 +97,9 @@ var mineLight: IMesh         # mayının yanıp sönen ışığı
 var wellCore: IMesh          # çekim kuyusu çekirdeği (kara küre)
 var wellRing: IMesh          # yığılma halkası (iki eğik halka)
 var wellHalo: IMesh          # olay ufku parıltısı (ışık bükülmesi)
-var wellSwirl: IMesh         # yerde dönen sarmal girdap kolları
+var wellSwirl: IMesh         # yerde dönen sarmal girdap kolları (koyu mor, opak)
+var wellDisc: IMesh          # zemindeki koyu girdap gölgesi
+var wellGlow: IMesh          # kolların ince parlak mor iç kenarı
 var threadMesh: IMesh        # Kukla Ustası ipleri (öz + hale)
 const MINE_MAX := 40
 const WELL_MAX := 8
@@ -424,10 +426,15 @@ func _build_hero_projectiles(S: Node3D) -> void:
 	for arm in 3:
 		for seg in 8:
 			var rr := 1.0 - seg * 0.1
-			arms.append(Geo.torus(rr, 0.022 * (1.0 - seg * 0.08), 3, 8, 0.8))
+			arms.append(Geo.torus(rr, 0.05 * (1.0 - seg * 0.09), 3, 8, 0.8))
 			axf.append(Transform3D(swFlat.rotated(Vector3.UP, arm * TAU / 3.0 + seg * 0.78), Vector3.ZERO))
-	wellSwirl = IMesh.new(Geo.merge(arms, axf), Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), WELL_MAX)
+	var swirlGeo := Geo.merge(arms, axf)
+	wellDisc = IMesh.new(Geo.circle(1.0, 36, 0.0, TAU, -PI / 2), Shd.basic({"color": Color("#ffffff"), "alpha": true, "vcol_alpha": true, "zwrite": false, "cull": "none"}), WELL_MAX)
+	S.add_child(wellDisc)
+	wellSwirl = IMesh.new(swirlGeo, Shd.basic({"color": Color("#ffffff"), "cull": "none"}), WELL_MAX)
 	S.add_child(wellSwirl)
+	wellGlow = IMesh.new(swirlGeo, Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), WELL_MAX)
+	S.add_child(wellGlow)
 	# İP: z ∈ [0,1] uzanan ince kutu (öz) — boyu ölçekle uzar
 	var tb := Geo.merge([Geo.box(1.0, 1.0, 1.0)], [Transform3D(Basis(), Vector3(0, 0, 0.5))])
 	threadMesh = IMesh.new(tb, Shd.basic({"color": Color("#ffffff"), "add": true, "zwrite": false, "cull": "none"}), THREAD_MAX * 2)
@@ -707,14 +714,20 @@ func _update_projectiles(g) -> void:
 				var rr: float = core * (1.6 + k * 0.9)
 				wellRing.set_ys(wi2 * 2 + k, b.x, wy, b.y, T * (3.0 - k * 5.0), rr, rr * 0.6, rr)
 				var a2 := 0.95 - k * 0.35
-				wellRing.set_col(wi2 * 2 + k, (0.75 + 0.25 * k) * a2, (0.42 + 0.2 * k) * a2, (1.0 - 0.5 * k) * a2, 1)
+				wellRing.set_col(wi2 * 2 + k, 0.42 * a2, 0.1 * a2, 0.78 * a2, 1)
 			var hs := core * (1.32 + 0.05 * sin(T * 13.0))
 			wellHalo.set_ys(wi2, b.x, wy, b.y, 0.0, hs, hs, hs)
-			wellHalo.set_col(wi2, 0.22, 0.06, 0.4, 1)
+			wellHalo.set_col(wi2, 0.12, 0.02, 0.26, 1)
 			var sw := R * 1.05
 			var fade := 1.0 if b.life > 0.4 else maxf(0.0, b.life / 0.4)
-			wellSwirl.set_ys(wi2, b.x, 3.0, b.y, -T * 4.2 + b.ph, sw, 1.0, sw)
-			wellSwirl.set_col(wi2, 0.3 * fade * op, 0.05 * fade * op, 0.62 * fade * op, 1)
+			var yaw2: float = -T * 4.2 + b.ph
+			wellDisc.set_ys(wi2, b.x, 1.5, b.y, 0.0, sw * 1.05, 1.0, sw * 1.05)
+			wellDisc.set_col(wi2, 0.07, 0.01, 0.14, 0.7 * fade * op)
+			wellSwirl.set_ys(wi2, b.x, 3.0, b.y, yaw2, sw, 1.6, sw)
+			wellSwirl.set_col(wi2, 0.2, 0.04, 0.42, 1)
+			var gs2 := sw * 0.97
+			wellGlow.set_ys(wi2, b.x, 4.2, b.y, yaw2 + 0.04, gs2, 0.6, gs2)
+			wellGlow.set_col(wi2, 0.16 * fade * op, 0.02 * fade * op, 0.34 * fade * op, 1)
 			wi2 += 1
 			continue
 		if b.boomer:
@@ -797,7 +810,7 @@ func _update_projectiles(g) -> void:
 	crescentMesh.commit(ci)
 	boomerMesh.commit(bi)
 	mineMesh.commit(mi2); mineLight.commit(mi2)
-	wellCore.commit(wi2); wellRing.commit(wi2 * 2); wellHalo.commit(wi2); wellSwirl.commit(wi2)
+	wellCore.commit(wi2); wellRing.commit(wi2 * 2); wellHalo.commit(wi2); wellSwirl.commit(wi2); wellDisc.commit(wi2); wellGlow.commit(wi2)
 	_update_threads(g, T)
 	thornMesh.commit(ti)
 	ravenMesh.commit(ri)

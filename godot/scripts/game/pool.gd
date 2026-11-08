@@ -10,6 +10,8 @@ var factory: Callable
 var idle: Array = []
 var active: Array = []
 var created := 0
+var cap := 0          # >0: aktif sınır — dolunca en eski aktif nesne yeniden kullanılır (kalabalıkta FPS)
+var _rr := 0
 
 func _init(n: String, f: Callable, initial: int = 64) -> void:
 	name = n
@@ -27,6 +29,9 @@ func prewarm(n: int) -> Pool:
 ## Havuzdan al ve aktif listeye ekle. Kurulumu çağıran yapar (o.setup(...)).
 func take() -> Object:
 	var obj: Object
+	if cap > 0 and active.size() >= cap:
+		_rr = (_rr + 1) % active.size()
+		return active[_rr]
 	if idle.size() > 0:
 		obj = idle.pop_back()
 	else:
