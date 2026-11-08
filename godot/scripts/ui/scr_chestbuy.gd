@@ -13,6 +13,7 @@ var _card: Lyr.N
 var _fx: Node2D            # büyük zıplayan sandık + dönen ışınlar (kartın üstünde)
 var _chest: Sprite2D
 var _c0 := Vector2.ZERO
+var _glow: Node2D          # kart çevresi altın hare + dolaşan ışık + düğme parıltısı (üstte, toplamalı)
 
 func _init(game) -> void:
 	super(game)
@@ -41,11 +42,16 @@ func open(t: String, o: Dictionary) -> void:
 	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.show_odds(type))
 	btn(L, L.find(".cb-buy"), func(): _buy())
 	_build_fx()
+	_build_glow()
 	visible = true
 	_t = 0.0
 	g.audio.play("panel")
 
 func _texts() -> void:
+	# fiyat yakalamaya gömülü: güncel fiyatı yaz (fırsatta "s" eski fiyat)
+	var C0: Dictionary = ChestSystem.chests()[type]
+	L.set_num("b", str(int(float(opts.get("price", C0.stonePrice)))))
+	if opts.has("orig"): L.set_num("s", str(int(float(opts.orig))))
 	var n: int = g.chests.pity_count()
 	var pv := L.find(".pity-v")
 	if pv: L.set_text(pv, str(n) + "/" + str(ChestSystem.PITY_N))
@@ -128,6 +134,46 @@ func _build_fx() -> void:
 		_chest.set_meta("sc", sc)
 		_fx.add_child(_chest)
 
+func _build_glow() -> void:
+	if _card == null: return
+	var cr := L.rect_of(_card)
+	var buy := L.find(".cb-buy")
+	var br := L.rect_of(buy) if buy else Rect2()
+	_glow = Node2D.new()
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_glow.material = mat
+	L.add_child(_glow)
+	var gold := Color("#ffcf6a")
+	_glow.draw.connect(func():
+		var a := minf(1.0, maxf(0.0, _t - 0.35) * 2.5)
+		if a <= 0.0: return
+		var R := cr.grow(1.0)
+		var pul := 0.5 + 0.5 * sin(_t * 2.6)
+		# çerçeve hâresi (iki kat)
+		for k in 3:
+			_glow.draw_rect(R.grow(1.5 + k * 2.5), Color(gold, (0.16 - k * 0.045) * (0.6 + 0.4 * pul) * a), false, 2.0)
+		# çerçeve boyunca dolaşan iki ışık
+		var per := 2.0 * (R.size.x + R.size.y)
+		for j in 2:
+			var d := fmod(_t * 260.0 + j * per * 0.5, per)
+			var p: Vector2
+			if d < R.size.x: p = R.position + Vector2(d, 0)
+			elif d < R.size.x + R.size.y: p = R.position + Vector2(R.size.x, d - R.size.x)
+			elif d < 2.0 * R.size.x + R.size.y: p = R.end - Vector2(d - R.size.x - R.size.y, 0)
+			else: p = R.position + Vector2(0, R.size.y - (d - 2.0 * R.size.x - R.size.y))
+			for k in 4:
+				_glow.draw_circle(p, 9.0 - k * 2.0, Color(1, 0.86, 0.5, (0.12 + k * 0.12) * a))
+		# SATIN AL düğmesinde kayan parıltı
+		if br.size.x > 0:
+			var u := fmod(_t * 0.7, 1.8)
+			if u < 1.0:
+				var x := br.position.x + u * (br.size.x + 60.0) - 30.0
+				var top := br.position.y + 4.0; var bot := br.end.y - 4.0
+				var P := PackedVector2Array([Vector2(x, top), Vector2(x + 22, top), Vector2(x + 6, bot), Vector2(x - 16, bot)])
+				for i in P.size(): P[i].x = clampf(P[i].x, br.position.x + 8, br.end.x - 8)
+				_glow.draw_colored_polygon(P, Color(1, 0.95, 0.8, 0.22 * a)))
+
 func _process(dt: float) -> void:
 	if not visible or _card == null: return
 	_t += dt
@@ -171,6 +217,7 @@ func _process(dt: float) -> void:
 		_chest.scale = Vector2(sc * sx, sc * sy)
 		_chest.rotation = 0.05 * sin(_t * 1.7)
 		_fx.queue_redraw()
+	if _glow: _glow.queue_redraw()
 
 func close() -> void:
 	if not visible: return

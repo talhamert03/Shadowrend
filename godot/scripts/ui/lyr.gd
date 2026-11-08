@@ -741,6 +741,17 @@ func find_in(root: N, key: String) -> N:
 		if r: return r
 	return null
 
+## yakalanmış sayısal yazıyı (anahtarı tam `key`, ör. "b" fiyat / "s" eski fiyat) güncel değerle değiştir
+func set_num(key: String, v: String) -> void:
+	for n in nodes:
+		if not (n is N) or String(n.d.get("key", "")) != key or n.txt == null: continue
+		if not String(n.txt.text).strip_edges().is_valid_int(): continue
+		var w0: float = n.txt.text_width()
+		set_text(n, v)
+		var dw: float = n.txt.text_width() - w0
+		if absf(dw) > 0.5: fit_width(n, n.size.x + dw, false)
+		return
+
 func find(key: String, idx := 0) -> N:
 	var a := find_all(key)
 	return a[idx] if idx < a.size() else null

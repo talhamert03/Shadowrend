@@ -148,6 +148,8 @@ func _chests() -> void:
 	var deal := today_deal()
 	var D1 := _add("deal_" + str(deal.t) + ("_done" if deal.bought else ""), K)
 	if D1:
+		D1.set_num("b", str(int(deal.price)))
+		D1.set_num("s", str(int(float(deal.C.stonePrice))))
 		var cd := D1.find_id("#deal-cd")
 		if cd and not deal.bought:
 			D1.set_text(cd, ChestSystem.fmt_dur(day_ends_in()))
@@ -191,6 +193,7 @@ func _chests() -> void:
 		var can := stones >= float(C.stonePrice)
 		var V := _add("vc_" + t + ("" if can else "_broke"), K)
 		if V:
+			V.set_num("b", str(int(float(C.stonePrice))))
 			var tt: String = t
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
 			_bobify(V)
