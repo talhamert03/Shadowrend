@@ -317,7 +317,7 @@ static func _reward_tex(rw: Dictionary) -> Texture2D:
 			var C: Dictionary = ChestSystem.chests().get(rw.get("chest", ""), {})
 			var t := clampi(int(C.get("tier", 1)), 1, 7)
 			return load("res://assets/ui/art/chest/t" + str(t) + ".png")
-		"gear": return load("res://assets/ui/art/icon/kilic.png")
+		"gear", "gearcards": return load("res://assets/ui/art/icon/kilic.png")
 		"char", "cards": return load("res://assets/ui/art/icon/maske.png")
 	return null
 
@@ -326,10 +326,13 @@ static func _reward_label(rw: Dictionary) -> String:
 	match String(rw.get("kind", "")):
 		"rubies", "stone": return "+" + ShopPage.fmt_tr(int(rw.get("amount", 0)))
 		"chest": return str(ChestSystem.chests().get(rw.get("chest", ""), {}).get("name", "SANDIK"))
-		"gear": return ["", "SIRADAN", "YAYGIN", "NADİR", "EPİK", "EFSANE"][clampi(int(rw.get("rarityMax", 1)), 1, 5)] + " EŞYA"
+		"gear":
+			if rw.has("rarity"): return "GARANTİ " + {3: "EPİK", 4: "EFSANE"}.get(int(rw.rarity), "") + " EŞYA"
+			return "RASTGELE EŞYA"
+		"gearcards": return "+" + str(int(rw.get("amount", 1))) + " EKİPMAN"
 		"char": return "GİZLİ KAHRAMAN"
 		"cards":
-			var nm: String = D.CHARACTERS[rw.char].name if D.CHARACTERS.has(rw.get("char", "")) else "KART"
+			var nm: String = D.CHARACTERS[rw.char].name if D.CHARACTERS.has(rw.get("char", "")) else "KAHRAMAN"
 			return "+" + str(int(rw.get("amount", 1))) + " " + nm
 	return ""
 

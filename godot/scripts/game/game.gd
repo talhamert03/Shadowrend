@@ -1601,16 +1601,33 @@ func bp_claim(tier: int, track: String):
 			var C = ChestSystem.chests().get(r.chest)
 			toast = (C.name if C else "SANDIK") + (" KAZANILDI" if give_chest(r.chest) else " AÇILIYOR")
 		"gear":
+			# rarity → garanti (tam o nadirlik); yoksa rarityMax'a kadar rastgele
+			var exact := int(r.get("rarity", 0))
 			var pool := []
 			for it in D.EQUIPMENT:
-				if not meta.owned.has(it.id) and it.rarity <= JS.num(r, "rarityMax", 4.0): pool.append(it)
+				var ok: bool = int(it.rarity) == exact if exact > 0 else ChestSystem.rk(it.rarity) <= JS.num(r, "rarityMax", 4.0)
+				if ok and not meta.owned.has(it.id): pool.append(it)
 			if pool.size():
 				var it = pool[int(randf() * pool.size())]
 				meta.owned.append(it.id)
 				toast = it.name + " KAZANILDI"
 			else:
-				add_rubies(80)
-				toast = "+80 ALTIN"
+				# hepsi sende: o nadirlikten bir eşyaya kart
+				var pool3 := []
+				for it in D.EQUIPMENT:
+					if exact == 0 or int(it.rarity) == exact: pool3.append(it)
+				var it2 = pool3[int(randf() * pool3.size())]
+				add_gear_cards(it2.id, D.charCardDrop(int(it2.rarity)))
+				toast = it2.name + " KARTLARI"
+		"gearcards":
+			# rastgele ekipman kartı: sahip olunan bir eşyaya (yoksa herhangi birine)
+			var gp := []
+			for it in D.EQUIPMENT:
+				if meta.owned.has(it.id): gp.append(it)
+			if gp.is_empty(): gp = D.EQUIPMENT
+			var ge = gp[int(randf() * gp.size())]
+			add_gear_cards(ge.id, int(r.amount))
+			toast = "+" + JS.s(r.amount) + " " + str(ge.name) + " KARTI"
 		"cards":
 			# rastgele kahraman kartı: sahip olunan kahramanlardan biri (yoksa herhangi biri)
 			var cid: String = str(r.get("char", ""))

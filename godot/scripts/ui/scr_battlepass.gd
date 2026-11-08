@@ -33,7 +33,7 @@ func open() -> void:
 	open_overlay()
 	# şimdiki kademeye kaydır
 	var tier: int = g.bp_tier()
-	if tier > 1:
+	if tier > 1 and not OS.get_cmdline_user_args().has("bptop"):
 		_scroll = clampf(_row_y(tier) - _qclip.size.y * 0.35, 0.0, _scroll_max)
 	_first = false
 
@@ -178,7 +178,7 @@ func _tier_panel(y: float, tier: int, mx: int) -> float:
 ## PREMİUM GEÇİŞ afişi
 func _premium_cta(y: float) -> float:
 	var w := _W.x - 32
-	var h := 112.0
+	var h := 146.0
 	var pn := Node2D.new()
 	pn.position = Vector2(16, y)
 	pn.draw.connect(func():
@@ -219,10 +219,10 @@ func _premium_cta(y: float) -> float:
 		match String(pr.kind):
 			"stone": gems += int(pr.amount)
 			"chest": nch += 1
-			"cards": ncard += int(pr.amount)
-			"char": nchar += 1
+			"gearcards": ncard += int(pr.amount)
+			"cards": nchar += 1
 	_small(pn, str(gems) + " GEM · " + str(nch) + " SANDIK", 13, Color(1, 0.92, 0.6, 1.0), Vector2(106, 44), 240)
-	_small(pn, str(ncard) + " KAHRAMAN KARTI · " + str(nchar) + " GİZLİ KAHRAMAN", 11, Color(1, 0.9, 0.8, 0.9), Vector2(106, 62), 240)
+	_small(pn, str(ncard) + " EKİPMAN KARTI · " + str(nchar) + " KAHRAMAN ÖDÜLÜ", 11, Color(1, 0.9, 0.8, 0.9), Vector2(106, 62), 240)
 	# "×5 DEĞER" rozeti
 	var vb := Node2D.new()
 	vb.position = Vector2(w - 40, 14)
@@ -237,7 +237,7 @@ func _premium_cta(y: float) -> float:
 	_txt(vb, "×5 DEĞER", 15, Color.WHITE, "", Vector2(-38, -15), 74).align = 0.5
 	var price := int(D.BATTLE_PASS.premiumPrice)
 	var can: bool = g.read_stones() >= price
-	var b := _cta(pn, Vector2(w - 92, h - 28), 152, 40, "     " + str(price), Color("#7a2cff") if can else Color("#4a3a50"), Color("#a85cff") if can else Color("#5a4a60"), _buy, true, 22)
+	var b := _cta(pn, Vector2(106 + (w - 106 - 14) * 0.5, h - 30), minf(200.0, w - 120.0), 40, "     " + str(price), Color("#7a2cff") if can else Color("#4a3a50"), Color("#a85cff") if can else Color("#5a4a60"), _buy, true, 22)
 	_icon(b, load("res://assets/fx/currency/gem.png"), 28, Vector2(-34, 0))
 	b.set_meta("bob", 1.0)
 	return y + h
@@ -332,10 +332,12 @@ func _card(rw: Dictionary, track: String, st: String, sz: Vector2) -> Node2D:
 	var box := 54.0
 	match String(rw.kind):
 		"chest": box = 66.0
-		"char", "gear": box = 44.0
+		"char", "gear", "gearcards": box = 44.0
 	var mod := Color.WHITE
 	if String(rw.kind) == "char": mod = Color("#c79bff")
-	elif String(rw.kind) == "gear": mod = Color("#9fd0ff")
+	elif String(rw.kind) == "gear":
+		mod = Color("#c79bff") if int(rw.get("rarity", 0)) == 3 else (Color("#ffcf5a") if int(rw.get("rarity", 0)) == 4 else Color("#9fd0ff"))
+	elif String(rw.kind) == "gearcards": mod = Color("#bfe6ff")
 	if st == "claimed": mod = mod * Color(0.7, 0.7, 0.7, 0.75)
 	elif st == "lock" or st == "future": mod = mod * Color(0.8, 0.78, 0.8, 0.9)
 	var ic := _icon(n, tex, box, Vector2(0, -10), mod)
