@@ -29,7 +29,7 @@
     1
    ],
    "price": 0,
-   "stonePrice": 8,
+   "stonePrice": 9,
    "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit."
   },
   "yaygin": {
@@ -61,7 +61,7 @@
     2
    ],
    "price": 55,
-   "stonePrice": 14,
+   "stonePrice": 15,
    "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar."
   },
   "kemik": {
@@ -93,7 +93,7 @@
     3
    ],
    "price": 90,
-   "stonePrice": 22,
+   "stonePrice": 24,
    "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür."
   },
   "kan": {
@@ -125,7 +125,7 @@
     4
    ],
    "price": 220,
-   "stonePrice": 34,
+   "stonePrice": 37,
    "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner."
   },
   "kadim": {
@@ -157,7 +157,7 @@
     5
    ],
    "price": 450,
-   "stonePrice": 75,
+   "stonePrice": 82,
    "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar."
   },
   "mistik": {
@@ -189,7 +189,7 @@
     0
    ],
    "price": 900,
-   "stonePrice": 150,
+   "stonePrice": 165,
    "pureLegendary": true,
    "desc": "Karanlık büyüyle mühürlü kara ahşap; derzlerinden mor ışık sızar. İçinde TEK bir efsane uyur — garanti."
   },
@@ -223,7 +223,7 @@
    ],
    "minTop": 4,
    "price": 1600,
-   "stonePrice": 260,
+   "stonePrice": 286,
    "desc": "Ejder yavrusunun sarıldığı kara demir sandık; pulları sıcak, gözleri hiç kapanmaz. İçinde efsane GARANTİ."
   }
  },

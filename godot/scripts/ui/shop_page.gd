@@ -59,7 +59,9 @@ func render() -> void:
 	_chests()
 	_market()
 	_stone_shop()
-	_exchange()
+	# gem → altın bozdurma kaldırıldı (bölüm gizli kalır)
+	for nn in shell.nodes:
+		if nn is Lyr.N and str(nn.d.get("id", "")) in ["11", "14"]: shell.set_hidden(nn, true)
 	_relayout()
 
 # ═════════════ yardımcılar ═════════════

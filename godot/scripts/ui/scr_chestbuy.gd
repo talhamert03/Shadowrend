@@ -65,6 +65,9 @@ func _texts() -> void:
 			L.fit_width(bal, bal.size.x + dw, true)
 
 func _buy() -> void:
+	# açılıştaki ilk 0,55 sn dokunuşları yok say: arkadaki sandık kartına yapılan çift dokunuş
+	# yanlışlıkla SATIN AL'a basmasın (kral sandıkları düğmenin tam altında kalıyordu)
+	if _t < 0.55: return
 	var C: Dictionary = ChestSystem.chests()[type]
 	var price: float = float(opts.get("price", C.stonePrice))
 	if g.read_stones() < price or not g.spend_stones(price):
@@ -106,7 +109,17 @@ func _build_fx() -> void:
 			var pts := PackedVector2Array([Vector2.ZERO, Vector2(cos(a - 0.11), sin(a - 0.11)) * 120.0, Vector2(cos(a + 0.11), sin(a + 0.11)) * 120.0])
 			_fx.draw_colored_polygon(pts, Color(col, 0.10 * minf(1.0, _t * 2.0)))
 		for k in 4:
-			_fx.draw_circle(Vector2.ZERO, 70.0 - k * 14.0, Color(col, 0.05 * minf(1.0, _t * 2.0))))
+			_fx.draw_circle(Vector2.ZERO, 70.0 - k * 14.0, Color(col, 0.05 * minf(1.0, _t * 2.0)))
+		# sandığın çevresinde yükselip sönen yıldız parıltıları
+		for k in 9:
+			var ph := fmod(_t * 0.7 + k * 0.137, 1.0)
+			var ang := k * 2.399
+			var rr := 52.0 + 30.0 * fmod(k * 0.618, 1.0)
+			var sp := Vector2(cos(ang) * rr, sin(ang) * rr * 0.7 - ph * 26.0)
+			var sz := 4.5 * sin(ph * PI)
+			var sc2 := Color(1, 0.95, 0.75, 0.9 * sin(ph * PI))
+			_fx.draw_line(sp - Vector2(sz, 0), sp + Vector2(sz, 0), sc2, 1.6)
+			_fx.draw_line(sp - Vector2(0, sz), sp + Vector2(0, sz), sc2, 1.6))
 	if tex:
 		_chest = Sprite2D.new()
 		_chest.texture = tex
