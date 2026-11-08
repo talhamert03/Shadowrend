@@ -8352,7 +8352,7 @@
    "need": 34,
    "reward": {
     "kind": "chest",
-    "chest": "kan"
+    "chest": "kadim"
    }
   },
   {
@@ -8368,7 +8368,7 @@
    "need": 70,
    "reward": {
     "kind": "chest",
-    "chest": "kadim"
+    "chest": "kan"
    }
   }
  ],

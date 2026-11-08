@@ -215,7 +215,7 @@ func _kupa(y: float) -> float:
 		cs.position = Vector2(0, -4)
 		cup.add_child(cs)
 		cup.draw.connect(func(): ComicArt.sparkles(cup, Vector2(0, -4), ctx.get_size() * (132.0 / ctx.get_height()), 132.0, _t, Color("#ffe6a0")))
-	_small(pn, "HAYATTA KALDIĞIN SÜRE", 12, Color(1, 0.85, 0.7, 0.85), Vector2(156, 18), 200)
+	_small(pn, "TÜM SAVAŞLARDA TOPLAM SÜREN", 12, Color(1, 0.85, 0.7, 0.85), Vector2(156, 18), 200)
 	var big := _txt(pn, str(mins), 54, YEL, UIK.ink_stroke(3.0, 4.0), Vector2(156, 30), 200)
 	_txt(pn, "DK", 24, Color.WHITE, UIK.ink_stroke(2.0, 2.4), Vector2(162 + big.text_width(), 58), 60)
 	var fr := 1.0
@@ -306,8 +306,8 @@ func _kupa(y: float) -> float:
 			_icon(n, _reward_tex(rw), 62.0 if String(rw.kind) == "chest" else 50.0, Vector2(-w * 0.5 + 46, 0), mod)
 		var lc := INK if st == "ready" else Color.WHITE
 		_txt(n, _reward_label(rw), 20, lc, "" if st == "ready" else UIK.ink_stroke(1.6, 2.0), Vector2(-w * 0.5 + 92, -ch * 0.5 + 12), w - 170)
-		var sub := "ALINDI" if claimed else ("HAZIR!" if can else (str(int(ms.need) - mins) + " DK KALDI"))
-		_small(n, sub, 12, Color(INK, 0.8) if st == "ready" else Color(1, 0.8, 0.65, 0.8), Vector2(-w * 0.5 + 93, 12), w - 170)
+		var sub := "ALINDI" if claimed else ("HAZIR!" if can else ("TOPLAM " + str(int(ms.need)) + " DK HAYATTA KAL"))
+		_small(n, sub, 11, Color(INK, 0.8) if st == "ready" else Color(1, 0.8, 0.65, 0.8), Vector2(-w * 0.5 + 93, 12), w - 170)
 		if st == "claimed": _check(n, Vector2(w * 0.5 - 34, 0), 1.4)
 		elif st == "ready":
 			var b := Node2D.new()
