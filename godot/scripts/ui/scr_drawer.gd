@@ -102,9 +102,11 @@ func _bp_badge() -> void:
 	if d and d.pending(): _dot(L.find_id("#quest-open"))
 
 func _dot(bn) -> void:
-	if bn == null or not (bn is Control): return
+	if bn == null: return
+	var host: Node = bn.node if bn is Lyr.N else bn
+	var w: float = bn.size.x if bn is Lyr.N else (bn as Control).size.x
 	var bd := Node2D.new()
-	bd.position = Vector2((bn as Control).size.x - 10, 10)
+	bd.position = Vector2(w - 10, 10)
 	bd.z_index = 5
 	var t0 := Time.get_ticks_msec()
 	bd.draw.connect(func():
@@ -116,6 +118,7 @@ func _dot(bn) -> void:
 		bd.draw_circle(Vector2.ZERO, 8, Color("#ffd23a"))
 		bd.draw_arc(Vector2.ZERO, 8, 0, TAU, 24, Color("#3a2200"), 1.6, true)
 		bd.draw_circle(Vector2(-2.5, -2.5), 2.2, Color(1, 1, 1, 0.8)))
-	(bn as Control).add_child(bd)
+	host.add_child(bd)
+	if bn is Lyr.N: L.set_dyn(bn)
 	var tw := bd.create_tween().set_loops()
 	tw.tween_callback(func(): if bd.is_visible_in_tree(): bd.queue_redraw()).set_delay(0.033)
