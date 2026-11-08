@@ -1983,7 +1983,7 @@ func update(dt: float) -> void:
 		viewL = cam.x - w / 2; viewR = cam.x + w / 2
 		viewT = cam.y - h / 2; viewB = cam.y + h / 2
 	if player.pendingLevels > 0 and _lvDelay <= 0:
-		_lvDelay = 2.0
+		_lvDelay = 0.9
 		ui.banner("SEVİYE " + str(player.level), "")
 		_level_rise()
 	if _lvDelay > 0:

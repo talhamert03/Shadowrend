@@ -157,6 +157,7 @@ var _bmUntil := -99.0
 var bmOn := false
 # olay pankartları / süper flaşları
 var _evs: Array = []         # [{node, at}]
+var _evTop := 120.0
 var _flashes: Array = []     # [{node, at}]
 # toast
 var _toast := ""
@@ -480,6 +481,7 @@ func _layout() -> void:
 	cb.position = Vector2(sal + 10 + _cbX, _hudH * 0.36)
 	# pankart: top max(%32, sat+150)
 	banner.position = Vector2(W * 0.5, maxf(H * 0.32, sat + 150))
+	_evTop = sat + 118.0   # olay bildirimi: dalga sayacı ve duraklat düğmesinin altında
 	bnMain.position = Vector2.ZERO
 	bnSub.position = Vector2(0, 53 + 6)
 	# boss anı plakası: %22, genişlik min(%92, 380)
@@ -795,7 +797,7 @@ func update_hud() -> void:
 	if p.level != cLevel:
 		cLevel = p.level
 		vLevel.text = str(p.level)
-	var waveStr := str(g.worldId) + "-" + str(g.missionId) + " · DALGA " + str(g.wave) + "/" + str(int(g.msn.get("waves", 0)))
+	var waveStr := str(g.worldId) + "-" + str(g.missionId) + " · DALGA " + str(g.wave)
 	if waveStr != cWave:
 		cWave = waveStr
 		tWave.text = waveStr
@@ -1164,13 +1166,13 @@ func _tick_hud(rm: bool) -> void:
 			box.queue_free()
 			_evs.remove_at(i)
 			continue
-		var top := _hudH * (0.4 if bmOn else 0.3)
+		var top := _evTop + (40.0 if bmOn else 0.0)
 		var y := 0.0
-		var sc := 1.0
+		var sc := 0.86
 		var al := 1.0
 		if age < 0.48:
 			var k := UIK.ez(UIK.POP, age / 0.48)
-			y = lerpf(-24, 0, k); sc = lerpf(0.9, 1.0, k); al = clampf(k, 0, 1)
+			y = lerpf(-24, 0, k); sc = lerpf(0.78, 0.86, k); al = clampf(k, 0, 1)
 		if age >= 2.2:
 			var k2 := UIK.ez(UIK.EASE, clampf((age - 2.2) / 0.38, 0, 1))
 			y = lerpf(0, -14, k2); al = 1 - k2

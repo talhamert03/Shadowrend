@@ -332,8 +332,11 @@ func saveProgress(prog: Dictionary) -> void:
 	for k in prog: o[str(k)] = prog[k]
 	Store.set_item(PROG_KEY, JSON.stringify(o))
 
+## TEST: tüm dünyalar ve bölümler açık (yayından önce false yapılacak)
+const UNLOCK_ALL := true
+
 func worldCleared(prog: Dictionary, w: int) -> bool:
-	if w <= 1: return true
+	if w <= 1 or UNLOCK_ALL: return true
 	return JS.i(prog.get(w - 1, 0)) >= MISSIONS_PER_WORLD
 
 func worldUnlocked(_prog: Dictionary, _w: int) -> bool:
@@ -341,6 +344,7 @@ func worldUnlocked(_prog: Dictionary, _w: int) -> bool:
 
 func missionUnlocked(prog: Dictionary, w: int, m: int) -> bool:
 	if not worldUnlocked(prog, w): return false
+	if UNLOCK_ALL: return true
 	return m <= JS.i(prog.get(w, 0)) + 1
 
 func nextMission(prog: Dictionary) -> Dictionary:
