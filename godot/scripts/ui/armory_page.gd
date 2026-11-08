@@ -138,15 +138,16 @@ func _decks() -> void:
 	var row := shell.find_id("#kzd-row")
 	if row == null: return
 	var d: Dictionary = g.decks()
-	var x := 0.0
+	# sade segment kontrol: tek koyu çubukta 3 dizilim (seçili altın) + sağda SETLER düğmesi.
+	# Yakalanan kartlar yalnız görünmez dokunma alanı olarak kalır.
+	var RW: float = row.size.x
+	var RH := 50.0
+	var setW := 58.0
+	var gap := 8.0
+	var barW: float = RW - setW - gap
+	var segW: float = (barW - 8.0) / 3.0
+	var info := []
 	for i in 3:
-		var on: bool = int(d.a) == i
-		var C := _add("kzd_on" if on else "kzd_off", row, Vector2(x, 0))
-		if C == null: continue
-		# 3 dizilim + SET REHBERİ aynı satıra sığsın
-		C.scale = Vector2(0.77, 0.77)
-		C.position.y = C.nodes[0].size.y * 0.115
-		x += C.nodes[0].size.x * 0.77 + 5.0
 		var map: Dictionary = g.deck_gear(i)
 		var n := 0
 		var pw := 0
@@ -156,33 +157,60 @@ func _decks() -> void:
 			if gx and g.owns_gear(gx.id):
 				n += 1
 				pw += pow_of(g, gx)
-		C.set_text(C.find(".kzd-no"), str(i + 1))
-		var nm := C.find_exact(".kzd-n")
 		var lst: Array = d.get("l", [])
 		var dn := str(lst[i].get("n", "")) if i < lst.size() and lst[i] is Dictionary else ""
-		if nm: C.set_text(nm, dn if dn != "" else "DİZİLİM " + str(i + 1))
-		var mm := C.find_exact(".kzd-m")
-		if mm: C.set_text(mm, (str(n) + "/" + str(D.EQUIP_SLOTS.size()) + " · " + str(pw)) if n else "BOŞ")
+		info.append({"name": dn if dn != "" else "DİZİLİM " + str(i + 1), "meta": (str(n) + "/" + str(D.EQUIP_SLOTS.size()) + " · " + str(pw) + " GÜÇ") if n else "BOŞ", "on": int(d.a) == i})
+		var C := _add("kzd_off", row, Vector2(4.0 + i * segW, 0))
+		if C == null: continue
+		var cs: Vector2 = C.nodes[0].size
+		C.scale = Vector2(segW / cs.x, RH / cs.y)
+		C.modulate.a = 0.0
 		var ii := i
 		menu.btn(C, C.nodes[0], func():
 			g.audio.play("click")
 			if ii != int(g.decks().a):
 				g.switch_deck(ii)
 				render(), 0.96)
-	# SET REHBERİ: dizilimlerin yanında kitap düğmesi
-	var SG := _add("kzd_off", row, Vector2(x, 0))
+	var SG := _add("kzd_off", row, Vector2(barW + gap, 0))
 	if SG:
-		SG.scale = Vector2(0.77, 0.77)
-		SG.position.y = SG.nodes[0].size.y * 0.115
-		SG.modulate = Color(1.0, 0.92, 0.7)
-		SG.set_text(SG.find(".kzd-no"), "?")
-		var sn := SG.find_exact(".kzd-n")
-		if sn: SG.set_text(sn, "SET REHBERİ")
-		var sm := SG.find_exact(".kzd-m")
-		if sm: SG.set_text(sm, "5 SET")
+		var cs2: Vector2 = SG.nodes[0].size
+		SG.scale = Vector2(setW / cs2.x, RH / cs2.y)
+		SG.modulate.a = 0.0
 		menu.btn(SG, SG.nodes[0], func():
 			g.audio.play("click")
 			g.ui.show_set_guide(), 0.96)
+	var gold := Color("#f0c77a")
+	var ink := Color("#1a0d10")
+	var fb := UIK.font(true, 900)
+	var fs := UIK.font(false, 700)
+	var ov := Node2D.new()
+	ov.z_index = 2
+	ov.draw.connect(func():
+		var bar := Rect2(0, 0, barW, RH)
+		ov.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45), 14), Rect2(bar.position + Vector2(0, 3), bar.size))
+		ov.draw_style_box(ComicSkin.sb(Color("#160c10"), 14, 1.5, Color(gold, 0.35)), bar)
+		for i in 3:
+			var I: Dictionary = info[i]
+			var r := Rect2(4.0 + i * segW, 4.0, segW - 0.0, RH - 8.0).grow_individual(0, 0, -3.0, 0)
+			if I.on:
+				ov.draw_style_box(ComicSkin.sb(Color("#3a2410"), 11), Rect2(r.position + Vector2(0, 2), r.size))
+				ov.draw_style_box(ComicSkin.sb(Color("#e8b456"), 11, 1.5, Color("#fff0c0")), r)
+				ov.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.18), 11), Rect2(r.position, Vector2(r.size.x, r.size.y * 0.45)))
+			elif i > 0 and not info[i - 1].on:
+				ov.draw_line(Vector2(r.position.x - 1.5, r.position.y + 8), Vector2(r.position.x - 1.5, r.end.y - 8), Color(gold, 0.18), 1.0)
+			var tc: Color = ink if I.on else Color(1, 0.93, 0.85, 0.9)
+			var mc: Color = Color(ink, 0.75) if I.on else Color(gold, 0.6)
+			ov.draw_string(fb, Vector2(r.position.x, r.position.y + 17), str(I.name), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, tc)
+			ov.draw_string(fs, Vector2(r.position.x, r.position.y + 33), str(I.meta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 10, mc)
+		# SETLER düğmesi: altın çerçeveli, kitap simgesi
+		var sr := Rect2(barW + gap, 0, setW, RH)
+		ov.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45), 14), Rect2(sr.position + Vector2(0, 3), sr.size))
+		ov.draw_style_box(ComicSkin.sb(Color("#2a1810"), 14, 2.0, gold), sr)
+		var bc := sr.get_center() + Vector2(0, -7)
+		ov.draw_colored_polygon(PackedVector2Array([bc + Vector2(-11, -7), bc + Vector2(-1, -5), bc + Vector2(-1, 8), bc + Vector2(-11, 6)]), gold)
+		ov.draw_colored_polygon(PackedVector2Array([bc + Vector2(11, -7), bc + Vector2(1, -5), bc + Vector2(1, 8), bc + Vector2(11, 6)]), gold.darkened(0.15))
+		ov.draw_string(fb, Vector2(sr.position.x, sr.end.y - 7), "SETLER", HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 10, gold))
+	row.node.add_child(ov)
 
 # ═════════════ kahraman sahnesi + statlar ═════════════
 
@@ -354,6 +382,7 @@ func _bag(dy: float) -> void:
 	for s in D.EQUIP_SLOTS: tabs.append({"id": s.id, "name": KZ_SHORT.get(s.id, s.name)})
 	if tabs_n:
 		var x := 12.0
+		var made := []
 		for t in tabs:
 			var C := _add("kztab_on" if t.id == tab else "kztab_off", tabs_n, Vector2(x, 2))
 			if C == null: continue
@@ -369,12 +398,22 @@ func _bag(dy: float) -> void:
 			if em: C.move(em, em.pos + Vector2(dw - (em.txt.text_width() - ew), 0))
 			C.fit_width(root_n, root_n.size.x + dw, false)
 			x += root_n.size.x + 6.0
+			made.append(C)
 			var tid: String = t.id
 			menu.btn(C, root_n, func():
 				g.audio.play("click")
 				tab = tid
 				sel_id = ""
 				render(), 0.95)
+		# sekmeler alana sığmıyorsa hepsini orantılı küçült (çizme sağa taşmasın)
+		var avail: float = tabs_n.size.x - 12.0
+		if x - 6.0 > avail and made.size():
+			var k: float = (avail - 12.0) / (x - 6.0 - 12.0)
+			var xx := 12.0
+			for C in made:
+				C.scale = Vector2(k, k)
+				C.position = Vector2(xx, 2 + (1.0 - k) * C.nodes[0].size.y * 0.5)
+				xx += C.nodes[0].size.x * k + 6.0 * k
 	# kartlar
 	var grid := shell.find_id("#armory-shop")
 	if grid == null: return
