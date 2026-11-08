@@ -1194,6 +1194,21 @@ func _update_trap(b, dt: float) -> bool:
 				g.spawn_burst(b.x, b.y, "#8a6a4a", 8, 120, 2.4, 0.35, false)
 				g.audio.play("trapthrow")
 			else:
+				b.mMass = 0
+				b.mR0 = b.mR
+				# yakındaki kuyuyla BİRLEŞME: eski kuyu büyür, güçlenir, ömrü uzar
+				for o in g.pools.pBullets.active:
+					if o == b or not o.well or not o.mArmed or o.life <= 0.0: continue
+					if JS.hypot(o.x - b.x, o.y - b.y) < o.mR + b.mR * 0.5:
+						o.mR = minf(o.mR0 * 1.7, o.mR * 1.18)
+						o.dmg *= 1.12
+						o.life = minf(o.life + 0.7, 4.5)
+						o.mMass += 2
+						g.spawn_burst(o.x, o.y, "#c08aff", 16, 260, 3.0, 0.45, true)
+						g.pools.rings.take().setup(o.x, o.y, o.mR * 1.1, 0.3, "#e0b0ff")
+						g.audio.play("void")
+						b.life = -99.0
+						return true
 				g.audio.play("void")
 				g.add_shake(0.05)
 		return false
@@ -1227,7 +1242,9 @@ func _update_trap(b, dt: float) -> bool:
 			var pull: float = (190.0 + 140.0 * (1.0 - d / maxf(1.0, R))) * dt
 			e.x += dx / d * minf(pull, d - 4.0)
 			e.y += dy / d * minf(pull, d - 4.0)
-		if tick: Combat.apply_hit(g, e, b.dmg, atan2(-dy, -dx), 0, b.critAdd, false)
+		if tick:
+			Combat.apply_hit(g, e, b.dmg, atan2(-dy, -dx), 0, b.critAdd, false)
+			if e.hp <= 0: b.mMass += 1
 	# içe akan yıldız tozu
 	if g.in_view(b.x, b.y, R) and randf() < dt * 40.0:
 		var an := randf() * TAU
@@ -1236,7 +1253,11 @@ func _update_trap(b, dt: float) -> bool:
 		g.pools.particles.take().setup(b.x + cos(an) * rr2, b.y + sin(an) * rr2 * 0.62, -cos(an) * sp, -sin(an) * sp * 0.62,
 			0.35, 2.4, "#c08aff" if randf() < 0.6 else "#ffffff", 0.97, 0, true)
 	if b.life <= 0.0:
-		g.explode(b.x, b.y, b.dmg * 2.0, R * 0.95, true)
+		# kütle büyüdükçe çöküş güçlenir (×3'e kadar) ve genişler
+		var mass := minf(1.0, float(b.mMass) / 16.0)
+		R *= 1.0 + 0.35 * mass
+		g.explode(b.x, b.y, b.dmg * (2.0 + 4.0 * mass), R * 0.95, true)
+		if mass > 0.3: g.add_shake(0.12 * mass)
 		if b.split > 0: spawn_split(b)
 		g.spawn_burst(b.x, b.y, "#b46cff", 22, 300, 3.2, 0.6, true)
 		g.spawn_burst(b.x, b.y, "#1a0a2a", 14, 200, 3.4, 0.7, false)

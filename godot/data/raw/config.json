@@ -1509,7 +1509,7 @@
    },
    "perks": [
     "İmza: Boşluk Küresi — yanında süzülen kara küre",
-    "Hedefe çekim kuyusu açar: çeker, ezer, sonunda içe çöker",
+    "Çekim kuyuları birleşip büyür; yutulan her düşman çöküşü güçlendirir",
     "Hasar +%15, kritik +%5, saldırı hızı +%5, azami can +8",
     "Efsane — kadronun en nadir kademesi"
    ],
@@ -10371,7 +10371,7 @@
    "floatVisual": true,
    "well": true,
    "sfx": "void",
-   "descNew": "Kara Delik Cadısı'nın yanında süzülen boşluk küresi — hedefe çekim kuyusu açar; sürüyü çeker, ezer, sonunda içe çöker.",
+   "descNew": "Kara Delik Cadısı'nın yanında süzülen boşluk küresi — hedefe çekim kuyusu açar; sürüyü çeker, ezer. Yakın kuyular birleşip büyür; kuyuda ezilen her düşman sondaki çöküşü güçlendirir (×3'e kadar).",
    "descUp": [
     "Hasar +, kuyu büyür",
     "Daha sık açar",

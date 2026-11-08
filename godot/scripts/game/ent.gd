@@ -107,6 +107,8 @@ class PBullet:
 	var mine := false      # mayın (Tuzakçı): yay çizip düşer, kurulur, temasta patlar
 	var well := false      # çekim kuyusu (Kara Delik Cadısı): hedef noktada açılır, çeker, ezer, içe çöker
 	var mx := 0.0; var my := 0.0; var mT := 0.0; var mFly := 0.5; var mArmed := false; var mR := 50.0; var mHold := 0.0; var mTick := 0.0
+	var mMass := 0         # kuyuda ezilen düşman sayısı → çöküş gücü
+	var mR0 := 0.0         # ilk yarıçap (birleşme sınırı)
 	var raven := false     # kuzgun (Kuzgun Lordu): kanat çırpan kuzgun + tüy izi
 	var pal := ""          # yalım topu paleti (R3Fx.FIRE_PAL; boş → mavi kor)
 	var trT := 0.0
