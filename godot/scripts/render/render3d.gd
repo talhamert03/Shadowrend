@@ -560,6 +560,7 @@ func load_character(char_id: String) -> void:
 	walkRate = float(md.get("walkRate", 1.0))
 	# malzeme: MeshStandard + charLook (pürüz ≤ 0,48 · metal 0,08–0,22 · kenar ışığı) + lift
 	_apply_char_look(inst, float(md.get("lift", 0.0)), 0.48)
+	if md.has("rigidPart"): _rigid_part(inst, md.rigidPart)
 	heroAnim = inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if heroAnim:
 		heroAnim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
@@ -661,6 +662,70 @@ static func _damp_walk(an: Animation, amp: float) -> void:
 			for i in k:
 				var v: Vector3 = an.track_get_key_value(t, i)
 				an.track_set_key_value(t, i, c + (v - c) * amp)
+
+## bacağa bağlı sarkan parça (ör. pelerin/kın) bacakla savrulmasın: kemik ekseninden r'den uzak
+## köşeleri hedef kemiğe (kalça) bağlar — yükleme anında bir kez, ağın kopyası üzerinde
+func _rigid_part(inst: Node, cfg: Dictionary) -> void:
+	var sk_a := inst.find_children("*", "Skeleton3D", true, false)
+	if sk_a.is_empty(): return
+	var sk: Skeleton3D = sk_a[0]
+	var from_b := sk.find_bone(str(cfg.get("bone", "")))
+	var child_b := sk.find_bone(str(cfg.get("child", "")))
+	var to_b := sk.find_bone(str(cfg.get("to", "Hips")))
+	if from_b < 0 or to_b < 0: return
+	var a: Vector3 = sk.get_bone_global_rest(from_b).origin
+	var b: Vector3 = sk.get_bone_global_rest(child_b).origin if child_b >= 0 else a + Vector3(0, -0.4, 0)
+	var r: float = float(cfg.get("r", 0.08))
+	for mi in inst.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.skin == null or not (m.mesh is ArrayMesh): continue
+		# bind indeksi → iskelet kemiği
+		var fb := -1; var tb := -1
+		for i in m.skin.get_bind_count():
+			var bn := m.skin.get_bind_name(i)
+			var bi := sk.find_bone(bn) if bn != "" else m.skin.get_bind_bone(i)
+			if bi == from_b: fb = i
+			if bi == to_b: tb = i
+		if fb < 0 or tb < 0: continue
+		# kemik başlarını ağ uzayına çevir (bind pozunun tersi): iskelet ~54× ölçekli
+		var cb := -1
+		for i in m.skin.get_bind_count():
+			var bn2 := m.skin.get_bind_name(i)
+			if (sk.find_bone(bn2) if bn2 != "" else m.skin.get_bind_bone(i)) == child_b: cb = i
+		a = m.skin.get_bind_pose(fb).affine_inverse() * Vector3.ZERO
+		b = (m.skin.get_bind_pose(cb).affine_inverse() * Vector3.ZERO) if cb >= 0 else a + Vector3(0, -0.4, 0)
+		var src := m.mesh as ArrayMesh
+		var dst := ArrayMesh.new()
+		var moved := 0
+		for si in src.get_surface_count():
+			var arr := src.surface_get_arrays(si)
+			var V: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+			var BI = arr[Mesh.ARRAY_BONES]
+			var BW = arr[Mesh.ARRAY_WEIGHTS]
+			if BI == null or BW == null:
+				dst.add_surface_from_arrays(src.surface_get_primitive_type(si), arr)
+				dst.surface_set_material(si, src.surface_get_material(si))
+				continue
+			var nw: int = BI.size() / V.size()
+			for vi in V.size():
+				var wsum := 0.0
+				for k in nw:
+					if int(BI[vi * nw + k]) == fb: wsum += float(BW[vi * nw + k])
+				if wsum < 0.3: continue
+				var p: Vector3 = V[vi]
+				var ab := b - a
+				var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 1e-6), 0.0, 1.0)
+				if p.distance_to(a + ab * t) < r: continue
+				for k in nw:
+					BI[vi * nw + k] = tb if k == 0 else 0
+					BW[vi * nw + k] = 1.0 if k == 0 else 0.0
+				moved += 1
+			arr[Mesh.ARRAY_BONES] = BI
+			arr[Mesh.ARRAY_WEIGHTS] = BW
+			dst.add_surface_from_arrays(src.surface_get_primitive_type(si), arr, [], {}, src.surface_get_format(si) & ~Mesh.ARRAY_FORMAT_VERTEX & ~Mesh.ARRAY_FORMAT_INDEX)
+			dst.surface_set_material(si, src.surface_get_material(si))
+		if moved > 0: m.mesh = dst
+		if OS.has_environment("RIGDBG"): print("RIGID moved=", moved, " r=", r, " a=", a, " b=", b, " mesh=", m.name, " aabb=", src.get_aabb())
 
 ## charLook.applyCharLook + lift: her yüzey malzemesini three Standard karşılığına çevirir.
 func _apply_char_look(root: Node, lift: float, rough_max: float) -> void:
