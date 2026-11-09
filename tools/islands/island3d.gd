@@ -9,6 +9,7 @@ var rng := RandomNumberGenerator.new()
 var emis: Array = []      # ışıyan düğümler (ışıma geçişi için)
 var mats := {}
 var W := 1
+var CHEST := false
 var MINI := -1      # >=0: bölüm adacığı (sade, az süslü) — varyant no
 var TH := {}
 const THEMES := {
@@ -333,6 +334,9 @@ func cloud(p: Vector3, s: float, col: Color) -> void:
 
 func build() -> void:
 	rng.seed = 21 + W * 7
+	if CHEST:
+		chest()
+		return
 	if MINI >= 0:
 		rng.seed = 100 + W * 13 + MINI * 31
 		build_island()
@@ -348,6 +352,68 @@ func build() -> void:
 	cloud(Vector3(8.4, -13.0, 5.0), 1.7, T("cl0"))
 	cloud(Vector3(-12.6, -5.6, -3.0), 1.2, T("cl1"))
 	cloud(Vector3(12.2, -7.6, -4.0), 1.4, T("cl1"))
+
+## KIZIL AY SANDIĞI — tasarım önerisi: kara meşe gövde, altın kuşaklar, hilal kilit + kızıl taş,
+## kapak aralığından sızan kızıl ışık, pençe ayaklar, kapakta boynuz hilali.
+func chest() -> void:
+	var n := grp(Vector3(0, -5.0, 0), -30.0, 1.25)
+	var wood := M(Color("#3a2a4a")); var wood2 := M(Color("#2c2038")); var wood3 := M(Color("#46335a"))
+	var gold := M(Color("#f2b83a"), 0.45); var gold2 := M(Color("#c8862a"), 0.5); var iron := M(Color("#2a2434"))
+	var red := E(Color("#ff3a4e")); var glow := E(Color("#ff6a5a"))
+	var HW := 6.6; var HD := 4.2; var BH := 5.6
+	# gövde: kalaslar
+	box(Vector3(HW * 2, BH, HD * 2), wood2, Vector3(0, BH * 0.5, 0), Vector3.ZERO, n)
+	for i in 3:
+		box(Vector3(HW * 2 - 2.6, BH / 3.0 - 0.16, 0.3), [wood, wood3, wood][i], Vector3(0, BH / 6.0 + i * BH / 3.0, HD + 0.06), Vector3.ZERO, n)
+		box(Vector3(0.3, BH / 3.0 - 0.16, HD * 2 - 1.6), [wood3, wood, wood3][i], Vector3(HW + 0.06, BH / 6.0 + i * BH / 3.0, 0), Vector3.ZERO, n)
+	# taban + üst çerçeve (altın)
+	box(Vector3(HW * 2 + 0.7, 0.7, HD * 2 + 0.7), gold2, Vector3(0, 0.35, 0), Vector3.ZERO, n)
+	box(Vector3(HW * 2 + 0.6, 0.55, HD * 2 + 0.6), gold, Vector3(0, BH - 0.1, 0), Vector3.ZERO, n)
+	# kapak aralığı ışığı
+	box(Vector3(HW * 2 + 0.2, 0.34, HD * 2 + 0.2), glow, Vector3(0, BH + 0.3, 0), Vector3.ZERO, n)
+	omni(Color("#ff4a4a"), 2.2, 9.0, Vector3(0, BH + 0.4, HD + 2.0), n)
+	# kapak: yarım fıçı
+	var LY := BH + 0.55
+	var lid := cyl(HD, HD, HW * 2, 20, wood, Vector3(0, LY, 0), Vector3(0, 0, 90), n)
+	lid.scale = Vector3(0.82, 1, 1)
+	box(Vector3(HW * 2 + 0.5, 0.5, HD * 2 + 0.5), gold, Vector3(0, LY + 0.1, 0), Vector3.ZERO, n)
+	# kuşaklar (gövde + kapak) ve perçinler
+	for sx in [-1.0, 1.0]:
+		var x: float = sx * (HW - 1.5)
+		box(Vector3(1.1, BH, HD * 2 + 0.5), gold, Vector3(x, BH * 0.5, 0), Vector3.ZERO, n)
+		cyl(HD + 0.22, HD + 0.22, 1.1, 20, gold, Vector3(x, LY, 0), Vector3(0, 0, 90), n).scale = Vector3(0.84, 1, 1)
+		for k in 3: sph(0.26, gold2, Vector3(x, 1.2 + k * 1.7, HD + 0.3), n)
+		# köşe başlıkları
+		var ex: float = sx * HW
+		cyl(HD + 0.3, HD + 0.3, 0.5, 20, gold2, Vector3(ex, LY, 0), Vector3(0, 0, 90), n).scale = Vector3(0.84, 1, 1)
+		for sz in [-1.0, 1.0]:
+			box(Vector3(0.9, BH + 0.2, 0.9), gold2, Vector3(sx * (HW + 0.05), BH * 0.5, sz * (HD + 0.05)), Vector3.ZERO, n)
+			# pençe ayak
+			cyl(0.75, 0.45, 1.1, 6, gold2, Vector3(sx * (HW - 0.2), -0.45, sz * (HD - 0.2)), Vector3.ZERO, n)
+			sph(0.5, iron, Vector3(sx * (HW - 0.2), -1.0, sz * (HD - 0.2)), n, Vector3(1, 0.6, 1), 8)
+	# kilit: kalkan plaka + hilal + kızıl taş
+	var lk := grp(Vector3(0, BH - 0.4, HD + 0.35), 0.0, 1.0, n)
+	cyl(1.7, 1.7, 0.45, 6, gold2, Vector3(0, 0, 0), Vector3(90, 0, 0), lk)
+	cyl(1.35, 1.35, 0.55, 6, iron, Vector3(0, 0, 0.02), Vector3(90, 0, 0), lk)
+	cyl(1.02, 1.02, 0.5, 18, gold, Vector3(0, 0, 0.14), Vector3(90, 0, 0), lk)
+	cyl(0.84, 0.84, 0.56, 18, iron, Vector3(0.34, 0.2, 0.15), Vector3(90, 0, 0), lk)
+	sph(0.42, red, Vector3(0.36, 0.2, 0.42), lk, Vector3(1, 1, 0.7), 10)
+	box(Vector3(0.7, 1.3, 0.4), gold2, Vector3(0, 1.75, -0.05), Vector3.ZERO, lk)
+	# kapak tepesi: boynuz hilali + taş
+	var top := grp(Vector3(0, LY + HD * 0.82, 0), 0.0, 1.0, n)
+	cyl(0.9, 1.1, 0.5, 8, gold2, Vector3(0, 0.1, 0), Vector3.ZERO, top)
+	sph(0.62, red, Vector3(0, 0.8, 0), top, Vector3(1, 1.25, 1), 8)
+	for sx in [-1.0, 1.0]:
+		seg(Vector3(sx * 0.7, 0.3, 0), Vector3(sx * 1.9, 1.0, 0), 0.34, 0.26, gold, top)
+		seg(Vector3(sx * 1.9, 1.0, 0), Vector3(sx * 2.2, 2.3, 0), 0.26, 0.14, gold, top)
+		seg(Vector3(sx * 2.2, 2.3, 0), Vector3(sx * 1.7, 3.3, 0), 0.14, 0.0, gold, top)
+	# yan tutamaklar
+	for sx in [-1.0, 1.0]:
+		cyl(0.95, 0.95, 0.3, 12, iron, Vector3(sx * (HW + 0.3), BH * 0.55, 0), Vector3(0, 0, 90), n)
+		cyl(0.6, 0.6, 0.36, 12, gold, Vector3(sx * (HW + 0.34), BH * 0.55, 0), Vector3(0, 0, 90), n)
+	# süzülen kıvılcımlar
+	for sp in [Vector3(-8.6, 9.5, 2), Vector3(8.2, 8.0, 3), Vector3(-6.0, 12.5, -1), Vector3(6.4, 12.0, 1), Vector3(9.4, 3.0, 4), Vector3(-9.6, 4.0, 4)]:
+		sph(0.2, E(Color("#ffd27a")), sp, n, Vector3(1, 1.6, 1), 4)
 
 ## bölüm adacığı süsü: dünyaya özgü 2-3 küçük nesne, varyanta göre yer değiştirir
 func mini_decor(k: int) -> void:
@@ -828,6 +894,7 @@ func _init() -> void:
 		if a.begins_with("px="): px = int(a.substr(3))
 		if a.begins_with("w="): W = int(a.substr(2))
 		if a.begins_with("mini="): MINI = int(a.substr(5))
+		if a.begins_with("chest="): CHEST = true
 	TH = THEMES[W]
 	vp = SubViewport.new()
 	vp.size = Vector2i(px, int(px * 744.0 / 760.0))
