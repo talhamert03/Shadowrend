@@ -21,7 +21,7 @@
    "gearChance": 0.5,
    "rarityMax": 1,
    "weaponChance": 0,
-   "charChance": 0.06,
+   "charChance": 0.04,
    "charRarityMax": 2,
    "stoneChance": 0.1,
    "stoneDrop": [
@@ -33,14 +33,21 @@
    "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit.",
    "charOdds": [
     0,
-    85,
-    15,
+    92,
+    8,
     0,
     0
    ],
    "heroCards": [
     1,
     2
+   ],
+   "packOdds": [
+    0,
+    90,
+    10,
+    0,
+    0
    ]
   },
   "yaygin": {
@@ -64,7 +71,7 @@
    "gearChance": 0.75,
    "rarityMax": 2,
    "weaponChance": 0.04,
-   "charChance": 0.09,
+   "charChance": 0.06,
    "charRarityMax": 3,
    "stoneChance": 0.18,
    "stoneDrop": [
@@ -76,14 +83,21 @@
    "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar.",
    "charOdds": [
     0,
-    70,
-    27,
-    3,
+    80,
+    19,
+    1,
     0
    ],
    "heroCards": [
     2,
     4
+   ],
+   "packOdds": [
+    0,
+    78,
+    20,
+    2,
+    0
    ]
   },
   "kemik": {
@@ -106,8 +120,8 @@
    ],
    "gearChance": 1,
    "rarityMax": 2,
-   "weaponChance": 0.08,
-   "charChance": 0.14,
+   "weaponChance": 0.06,
+   "charChance": 0.09,
    "charRarityMax": 4,
    "stoneChance": 0.3,
    "stoneDrop": [
@@ -119,14 +133,21 @@
    "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür.",
    "charOdds": [
     0,
-    52,
-    38,
-    9,
-    1
+    66,
+    30,
+    3.7,
+    0.3
    ],
    "heroCards": [
     4,
     6
+   ],
+   "packOdds": [
+    0,
+    62,
+    31,
+    6,
+    1
    ]
   },
   "kan": {
@@ -150,7 +171,7 @@
    "gearChance": 1,
    "rarityMax": 3,
    "weaponChance": 0.2,
-   "charChance": 0.2,
+   "charChance": 0.14,
    "charRarityMax": 4,
    "stoneChance": 0.55,
    "stoneDrop": [
@@ -162,14 +183,21 @@
    "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner.",
    "charOdds": [
     0,
-    35,
+    48,
     40,
-    21,
-    4
+    10.5,
+    1.5
    ],
    "heroCards": [
     7,
     10
+   ],
+   "packOdds": [
+    0,
+    45,
+    38,
+    14,
+    3
    ]
   },
   "kadim": {
@@ -193,7 +221,7 @@
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.45,
-   "charChance": 0.3,
+   "charChance": 0.22,
    "charRarityMax": 4,
    "stoneChance": 0.85,
    "stoneDrop": [
@@ -205,14 +233,21 @@
    "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar.",
    "charOdds": [
     0,
-    15,
-    40,
-    35,
-    10
+    25,
+    50,
+    21,
+    4
    ],
    "heroCards": [
     12,
     16
+   ],
+   "packOdds": [
+    0,
+    28,
+    42,
+    24,
+    6
    ]
   },
   "mistik": {
@@ -283,13 +318,20 @@
    "charOdds": [
     0,
     0,
-    25,
-    50,
-    25
+    40,
+    48,
+    12
    ],
    "heroCards": [
     22,
     30
+   ],
+   "packOdds": [
+    0,
+    10,
+    35,
+    40,
+    15
    ]
   }
  },

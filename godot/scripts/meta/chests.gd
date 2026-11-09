@@ -35,8 +35,9 @@ static func pity_n(t: String) -> int:
 static func land_sfx(g, t: String) -> void:
 	g.audio.play("chestland_" + (t if t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"] else "ahsap"))
 ## kahraman garantisi: bu kadar sandıkta epik+ / efsanevi kahraman çıkmazsa bir sonraki sandık verir
-const HERO_EPIC_PITY := 24
-const HERO_LEG_PITY := 75
+const PACK_MUL := [1.0, 1.0, 0.7, 0.4, 0.2]   # nadirlik → kart adedi çarpanı
+const HERO_EPIC_PITY := 40
+const HERO_LEG_PITY := 130
 const SKIP_FULL_RATIO := 0.8
 const SKIP_CURVE := 0.8
 const CHEST_SLOTS := 4
@@ -45,7 +46,7 @@ const FREE_KEY := "kh_freechest"
 const FREE_CHEST_CD := 6 * 60 * 60 * 1000.0
 const BOSS_DROP := [["ahsap", 32, 0.0], ["yaygin", 27, 0.3], ["kemik", 24, 0.6], ["kan", 13, 1.2], ["kadim", 4, 2.0]]
 const MISSION_DROP := [["ahsap", 42, 0.0], ["yaygin", 29, 0.3], ["kemik", 17, 0.6], ["kan", 9, 1.0], ["kadim", 3.5, 1.6]]
-const GEAR_W := [0, 100, 46, 15, 2.2, 28]
+const GEAR_W := [0, 100, 38, 7, 0.8, 20]
 
 static var CHESTS: Dictionary = {}
 
@@ -323,20 +324,37 @@ func hero_pack(type: String) -> Array:
 	var n: int = int(hc[0]) + int(round(randf() * (float(hc[1]) - float(hc[0]))))
 	if n <= 0: return []
 	var open := func(id) -> bool: return D.CHARACTERS.has(id) and g.owns_char(id) and g.char_level(id) < D.CHAR_MAX_LEVEL
-	var owned: Array = []
+	# sandığa özgü kart nadirliği: önce nadirlik zarı (packOdds), sonra o nadirlikten sahip olunan
+	# kahraman. Tahta sandıktan epik/efsanevi kart ÇIKMAZ; yüksek nadirlikte kart adedi de azalır.
+	var po = C.get("packOdds")
+	var by := {}
 	for id in g.meta.charsOwned:
-		if open.call(id): owned.append(id)
-	if owned.is_empty(): return []
+		if open.call(id):
+			var rr0 := int(JS.num(D.CHARACTERS[id], "rarity", 1.0))
+			if not by.has(rr0): by[rr0] = []
+			by[rr0].append(id)
+	if by.is_empty(): return []
 	var sel: String = str(g.meta.selectedChar)
 	var parts := {}
-	if open.call(sel):
-		var main := int(round(n * 0.55)) if owned.size() > 1 else n
-		parts[sel] = main
-		n -= main
-		owned.erase(sel)
-	if n > 0:
-		var other: String = owned[int(randf() * owned.size())] if owned.size() else sel
-		if other != "" and open.call(other): parts[other] = int(parts.get(other, 0)) + n
+	var picks := 2 if n >= 2 else 1
+	var share := [int(round(n * 0.55)), n - int(round(n * 0.55))] if picks == 2 else [n]
+	for pi in picks:
+		var tot := 0.0
+		for r in by: tot += float(po[r]) if (po is Array and r < po.size()) else 1.0
+		if tot <= 0.0: break
+		var x := randf() * tot
+		var want := -1
+		for r in by:
+			var w: float = float(po[r]) if (po is Array and r < po.size()) else 1.0
+			if w <= 0.0: continue
+			x -= w
+			want = r
+			if x <= 0.0: break
+		if want < 0: break
+		var lst: Array = by[want]
+		var id: String = sel if (sel in lst and randf() < 0.6) else lst[int(randf() * lst.size())]
+		var cnt := maxi(1, int(round(share[pi] * PACK_MUL[clampi(want, 0, 4)])))
+		parts[id] = int(parts.get(id, 0)) + cnt
 	var out := []
 	for id in parts:
 		if int(parts[id]) <= 0: continue

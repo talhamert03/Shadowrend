@@ -295,6 +295,7 @@ func boot() -> void:
 		elif ov == "gift": celebrate.gift({"h": 6.5, "gold": 240, "chest": "ahsap", "full": false})
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
+		if _arg("rollsim") != "": _dev_rollsim()
 		if _arg("ceremony") != "":
 			# cerwait=sn: menü ısınması bittikten sonra (gerçek dokunuş gibi) aç
 			var cw := float(_arg("cerwait")) if _arg("cerwait") != "" else 0.0
@@ -991,3 +992,16 @@ func _nav_test() -> void:
 	await get_tree().process_frame
 	await M._open_worlds()
 	print("NAV6 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))
+func _dev_rollsim() -> void:
+	for t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "ejderha"]:
+		var c := {}
+		for i in 2000:
+			for r in g.chests.roll_rewards(t):
+				if r.kind in ["char", "gear"]:
+					var k := str(r.kind) + ("P" if r.get("pack") else "") + str(int(r.rarity))
+					c[k] = int(c.get(k, 0)) + 1
+		var ks := c.keys(); ks.sort()
+		var s := ""
+		for k in ks: s += "%s=%.1f%% " % [k, c[k] / 20.0]
+		print("ROLL ", t, " ", s)
+	get_tree().quit()
