@@ -292,6 +292,18 @@ func set_tier(k: int) -> void:
 	for b in cm.bobs: _bobs.append(b)
 	_pupil = cm.pupil
 	_build_chest_fx()
+	# ağız/iç efektleri modelle aynı duruşu paylaşsın (model üç çeyrek dönük)
+	var mroot: Node3D = cm.root
+	var movers: Array = [_mouth_dark, _mouth_glow, _collar, _seam]
+	for u in _treasure: movers.append(u.m)
+	for nd in movers:
+		if nd == null: continue
+		(nd as Node).reparent(mroot, false)
+	# sandığın içi artık gerçekten oyuk: düz ağız dokusu gizli; ışıma tabandan yükselir
+	_mouth_dark.position.y = -400.0
+	_mouth_glow.position.y = ChestModel.BH - 8.6
+	_mouth_glow.scale = Vector3.ONE * 0.6
+	_seam.visible = false
 	_t = 0.0
 	_open_prev = 0.0
 	for s in _sparks:
@@ -468,12 +480,12 @@ func _process(dt: float) -> void:
 	_mouth_dark.visible = mk > 0.01
 	_a(_mouth_dark, mk)
 	_mouth_glow.visible = mk > 0.01
-	_a(_mouth_glow, mk * (0.5 + sin(_t * 4.6) * 0.09))
-	_mouth_glow.scale = Vector3.ONE * (0.85 + mk * 0.3 + sin(_t * 2.7) * 0.05)
+	_a(_mouth_glow, mk * (0.3 + sin(_t * 4.6) * 0.06))
+	_mouth_glow.scale = Vector3.ONE * (0.52 + mk * 0.1 + sin(_t * 2.7) * 0.03)
 	_collar.visible = mk > 0.05
 	(_collar.material_override as StandardMaterial3D).emission_energy_multiplier = 0.1 + mk * 0.3
 	_a(_seam, maxf(0, leak - open * 0.8) * 0.9 + seam * 0.25)
-	_seam.visible = open < 0.5
+	_seam.visible = false
 	# kıvılcım fıskiyesi
 	if open > 0.1 and open < 0.92 and open > _open_prev:
 		spawn_spark(); spawn_spark()
@@ -552,7 +564,7 @@ func _anim_model(leak: float) -> void:
 		else: m.emission_energy_multiplier = v + leak * 0.6
 	# ışık nabzı: sızan ışık nefes alır, kapak aralandıkça güçlenir
 	for gm in _glow_mats:
-		(gm as StandardMaterial3D).emission_energy_multiplier = float(gm.get_meta("e0", 1.5)) * (0.82 + 0.18 * sin(_t * 2.1)) + leak * 0.5
+		(gm as StandardMaterial3D).emission_energy_multiplier = float(gm.get_meta("e0", 1.5)) * (0.82 + 0.18 * sin(_t * 2.1)) + leak * 0.2
 	for f in _flames:
 		var ph: float = f[1]
 		var fl := 0.72 + 0.3 * sin(_t * 6.3 + ph) + 0.16 * sin(_t * 13.7 + ph * 2.3)
