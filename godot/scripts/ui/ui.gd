@@ -296,6 +296,7 @@ func boot() -> void:
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
 		if _arg("rollsim") != "": _dev_rollsim()
+		if _arg("chestshots") != "": _dev_chestshots(_arg("chestshots"))
 		if _arg("ceremony") != "":
 			# cerwait=sn: menü ısınması bittikten sonra (gerçek dokunuş gibi) aç
 			var cw := float(_arg("cerwait")) if _arg("cerwait") != "" else 0.0
@@ -1004,4 +1005,20 @@ func _dev_rollsim() -> void:
 		var s := ""
 		for k in ks: s += "%s=%.1f%% " % [k, c[k] / 20.0]
 		print("ROLL ", t, " ", s)
+	get_tree().quit()
+## geliştirici: chestshots=<klasör>[:open] — 7 sandığı ChestStage ile çizip PNG kaydeder (simge üretimi)
+func _dev_chestshots(dir: String) -> void:
+	var op := 0.0
+	if dir.ends_with(":open"):
+		dir = dir.trim_suffix(":open"); op = 1.0
+	var st := ChestStage.new()
+	add_child(st)
+	st.setup(450, 450)
+	st.vp.size = Vector2i(900, 900)
+	for t in range(1, 8):
+		st.set_tier(t)
+		st.p = {"open": op, "seam": 0.0}
+		for i in 14: await get_tree().process_frame
+		var im: Image = st.vp.get_texture().get_image()
+		im.save_png(dir + "/c" + str(t) + ("o" if op > 0 else "") + ".png")
 	get_tree().quit()

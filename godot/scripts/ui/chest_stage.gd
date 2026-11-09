@@ -53,6 +53,9 @@ var _mats := {}              # ad → BaseMaterial3D
 var _pulses: Array = []
 var _bobs: Array = []        # [node, y0, amp, dur, beg]
 var _pupil: Node3D
+var _glow_mats: Array = []
+var _halo_mats: Array = []
+var _flames: Array = []
 var _sheen: ShaderMaterial
 var _sheen_c := Color.BLACK
 var _sheen_prm: Array = []
@@ -272,28 +275,18 @@ func set_tier(k: int) -> void:
 	_sheen = null
 	_T = meta().get("tiers", {}).get(str(tier), {})
 	glow_col = Color(String(_T.get("glow", "#ffbe5a")))
-	var ps: PackedScene = scene(tier)
-	var inst := ps.instantiate() as Node3D
+	# yeni karanlık temalı sandıklar: yordamsal model (ChestModel) — GLB yerine
+	var cm := ChestModel.build(tier)
+	glow_col = cm.col
 	_chest = Node3D.new()
-	_chest.add_child(inst)
+	_chest.add_child(cm.root)
 	world.add_child(_chest)
-	_lid = inst.find_child("LID", true, false) as Node3D
-	# malzemeler: ada göre yeniden kur
-	if _T.get("sheen") is Array:
-		var sh: Array = _T.sheen
-		_sheen_prm = sh
-		var c := Color.hex((int(sh[0]) << 8) | 0xff)
-		_sheen_c = Color(c.r, c.g, c.b) * float(sh[1]) * 2.4
-		_sheen = ShaderMaterial.new()
-		_sheen.shader = load("res://shaders/chest_sheen.gdshader")
-		_sheen.set_shader_parameter("col", Vector3(_sheen_c.r, _sheen_c.g, _sheen_c.b))
-		_sheen.set_shader_parameter("pos", -99.0)
-	_fix(inst)
-	for pu in _T.get("pulses", []): _pulses.append(pu)
-	for b in _T.get("bobbers", []):
-		var n := inst.find_child(String(b[0]), true, false) as Node3D
-		if n: _bobs.append([n, float(b[1]), float(b[2]), float(b[3]), float(b[4])])
-	_pupil = inst.find_child("PUPIL", true, false) as Node3D
+	_lid = cm.lid
+	_glow_mats = cm.glow
+	_halo_mats = cm.halos
+	_flames = cm.flames
+	for b in cm.bobs: _bobs.append(b)
+	_pupil = cm.pupil
 	_build_chest_fx()
 	_t = 0.0
 	_open_prev = 0.0
@@ -553,6 +546,16 @@ func _anim_model(leak: float) -> void:
 		var v := a + (b - a) * (0.5 - 0.5 * cos(((_t - float(pu[5])) / float(pu[4])) * TAU))
 		if String(pu[1]) == "opacity": m.albedo_color.a = clampf(v, 0, 1)
 		else: m.emission_energy_multiplier = v + leak * 0.6
+	# ışık nabzı: sızan ışık nefes alır, kapak aralandıkça güçlenir
+	for gm in _glow_mats:
+		(gm as StandardMaterial3D).emission_energy_multiplier = float(gm.get_meta("e0", 1.5)) * (0.82 + 0.18 * sin(_t * 2.1)) + leak * 0.5
+	for f in _flames:
+		var ph: float = f[1]
+		var fl := 0.72 + 0.3 * sin(_t * 6.3 + ph) + 0.16 * sin(_t * 13.7 + ph * 2.3)
+		(f[0] as Node3D).scale = Vector3(0.8 + 0.25 * sin(_t * 9.1 + ph), fl * (1.0 + leak * 1.2), 1)
+		(f[2] as StandardMaterial3D).albedo_color.a = clampf(0.55 + 0.3 * sin(_t * 7.7 + ph * 1.3), 0.15, 0.9)
+	for hm in _halo_mats:
+		(hm as StandardMaterial3D).albedo_color.a = float(hm.get_meta("a0", 0.4)) * (0.8 + 0.2 * sin(_t * 2.1)) * (1.0 + leak * 0.8)
 	for b in _bobs:
 		var n: Node3D = b[0]
 		n.position.y = float(b[1]) + (0.5 - 0.5 * cos(((_t - float(b[4])) / float(b[3])) * TAU)) * float(b[2])
