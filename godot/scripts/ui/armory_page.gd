@@ -566,40 +566,50 @@ func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 			elif k.contains(".out"):
 				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid))
 				info.acts.append([r, "ÇIKAR", Color("#e8463c")])
-		# geliştirilebilirse tepside GELİŞTİR: büyük düğme yerini alır, diğerleri alt sırada yan yana
-		if g.can_upgrade_gear(gid) and info.acts.size():
+		# tepsi (v3): üstte büyük düğme (YÜKSELT varsa o, yoksa KULLAN/ÇIKAR),
+		# alt sırada İNCELE · (KULLAN) · GELİŞTİR (+ basma ocağı)
+		if info.acts.size():
 			var big := -1
 			for j in info.acts.size():
 				if (info.acts[j][0] as Rect2).size.y >= 32.0: big = j
 			var low: Rect2 = info.acts[-1][0]
-			var up_r: Rect2
-			var rest: Array = []
-			if big >= 0:
-				up_r = info.acts[big][0]
-				for j in info.acts.size():
-					if j != big: rest.append(info.acts[j])
-				rest.push_front(info.acts[big])
+			if big >= 0 and info.acts.size() == 1: low = Rect2((info.acts[big][0] as Rect2).position + Vector2(0, (info.acts[big][0] as Rect2).size.y + 4), Vector2((info.acts[big][0] as Rect2).size.x, 26))
+			var up_r: Rect2 = info.acts[big][0] if big >= 0 else Rect2(low.position - Vector2(0, 36), Vector2(low.size.x, 32))
+			var useA: Array = ["ÇIKAR", Color("#e8463c")] if on else ["KULLAN", ScrLevelUp.YEL]
+			var canUp: bool = g.can_upgrade_gear(gid)
+			var forgeA: Array = ["GELİŞTİR", Color("#e0832a")]
+			var infoA: Array = ["İNCELE", Color("#3aa0ff")]
+			# 2x2 ızgara: üst sıra büyük, alt sıra küçük; her sırada en fazla iki düğme
+			var topRow: Array = []
+			var lowRow: Array = []
+			if canUp:
+				topRow = [["YÜKSELT", GearCard.GREEN], forgeA]
+				lowRow = [infoA, useA] if (wear or on) else [infoA]
+			elif wear or on:
+				topRow = [useA, forgeA]
+				lowRow = [infoA]
 			else:
-				up_r = Rect2(low.position - Vector2(0, 36), Vector2(low.size.x, 32))
-				rest = info.acts.duplicate()
-			# alt sıra: kalan düğmeler low satırını eşit böler
-			var n := rest.size()
+				topRow = [forgeA]
+				lowRow = [infoA]
+			var nacts: Array = []
 			var gap := 4.0
-			var cw := (low.size.x - gap * (n - 1)) / n
-			var nacts: Array = [[up_r, "GELİŞTİR", GearCard.GREEN]]
-			for j in n:
-				var rr := Rect2(low.position + Vector2(j * (cw + gap), 0), Vector2(cw, low.size.y))
-				nacts.append([rr, rest[j][1], rest[j][2]])
+			for rowDef in [[topRow, up_r], [lowRow, low]]:
+				var rw: Array = rowDef[0]
+				var rr0: Rect2 = rowDef[1]
+				var n := rw.size()
+				var cw := (rr0.size.x - gap * (n - 1)) / n
+				for j in n:
+					nacts.append([Rect2(rr0.position + Vector2(j * (cw + gap), 0), Vector2(cw, rr0.size.y)), rw[j][0], rw[j][1]])
 			info.acts = nacts
-			# dokunma alanları: yakalanan düğmeler yerine yeni dikdörtgenler (kart köküne göre)
 			for b in C.find_all(".kc-act"): menu.unbtn_node(C, b)
 			for a2 in nacts:
 				var lbl: String = a2[1]
 				var cb: Callable
-				if lbl == "GELİŞTİR": cb = func(): _upgrade(gid)
+				if lbl == "YÜKSELT": cb = func(): _upgrade(gid)
 				elif lbl == "İNCELE": cb = func(): g.audio.play("click"); g.ui.open_gear_detail(gid)
-				elif lbl == "KUŞAN": cb = func(): _equip(gid)
-				else: cb = func(): sel_id = ""; g.toggle_equip(gid)
+				elif lbl == "KULLAN": cb = func(): _equip(gid)
+				elif lbl == "ÇIKAR": cb = func(): sel_id = ""; g.toggle_equip(gid)
+				else: cb = func(): g.audio.play("click"); g.ui.open_gear_detail(gid, "forge")
 				menu.btn(C, root_n, cb, 1.0, 2.0, Rect2(o + (a2[0] as Rect2).position, (a2[0] as Rect2).size))
 				menu.clip_last()
 	GearCard.build(root_n.node, root_n.size, info, _gear_tex(str(x.icon)))

@@ -231,6 +231,12 @@ func boot() -> void:
 			if _arg("evtab") != "": show_event(_arg("evtab"))   # geliştirici: etkinlik ekranı
 			if pg and _arg("chw") != "" and pg.has_method("render_chapters"):
 				pg.render_chapters(int(_arg("chw")))   # geliştirici: bölüm seçimini aç
+			if pg and _arg("gsel") != "" and "sel_id" in pg:
+				# geliştirici: gsel=eşya — çantada eşyayı seç (tepsi testi)
+				g.add_gear_cards(_arg("gsel"), 30)
+				g.add_rubies(20000)
+				pg.sel_id = _arg("gsel")
+				pg.render()
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
@@ -251,10 +257,10 @@ func boot() -> void:
 			if pp.size() > 2:
 				if not (g.meta.get("gearPlus") is Dictionary): g.meta["gearPlus"] = {}
 				g.meta.gearPlus[pp[1]] = int(pp[2])
-			if pp.size() > 3:
-				geardetail.id = pp[1]
-				geardetail.tab = pp[3]
-			open_gear_detail(pp[1])
+			open_gear_detail(pp[1], pp[3] if pp.size() > 3 else "")
+			if pp.size() > 4:
+				# geliştirici: 5. alan = otomatik + bas (dövme animasyonu testi)
+				get_tree().create_timer(float(pp[4])).timeout.connect(func(): geardetail._plus())
 		elif ov == "drawer": show_daily_drawer()
 		elif ov == "aj": show_account_journey()
 		elif ov == "quests": show_quests()
@@ -808,8 +814,8 @@ func _ov(k: String, f: Callable) -> void:
 	Prof.t("ov:" + k)
 
 ## eşya inceleme ekranı
-func open_gear_detail(id: String) -> void:
-	if geardetail: _ov("gd", func(): geardetail.open(id))
+func open_gear_detail(id: String, mode := "") -> void:
+	if geardetail: _ov("gd", func(): geardetail.open(id, mode))
 	else: toast("YAKINDA")
 
 ## kahraman detay ekranı
