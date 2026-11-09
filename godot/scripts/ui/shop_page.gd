@@ -194,6 +194,8 @@ func _chests() -> void:
 		var V := _add("vc_" + t + ("" if can else "_broke"), K)
 		if V:
 			V.set_num("b", str(int(float(C.stonePrice))))
+			var hk := V.find(".vc-hook")
+			if hk: V.set_text(hk, (("LEGEND GUARANTEE" if I18n.lang == "en" else "EFSANEVİ GARANTİ") if t in ["mistik", "ejderha"] else ""))
 			var tt: String = t
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
 			_bobify(V)

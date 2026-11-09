@@ -281,6 +281,16 @@ func roll_rewards(type: String) -> Array:
 		out.append({"kind": "gear", "id": it.id, "name": it.name, "icon": it.get("icon"),
 			"rarity": it.rarity, "desc": it.get("desc"), "mods": it.mods, "cards": D.charCardDrop(int(it.rarity)),
 			"isNew": not g.owns_gear(it.id)})
+	# büyük ikramiye: düşük kademeli sandıkta çok küçük efsanevi eşya şansı (heyecan için)
+	if randf() < JS.num(C, "legendGear", 0.0):
+		var lp := []
+		for it in D.EQUIPMENT:
+			if int(it.rarity) == 4: lp.append(it)
+		if lp.size():
+			var it = lp[int(randf() * lp.size())]
+			out.append({"kind": "gear", "id": it.id, "name": it.name, "icon": it.get("icon"),
+				"rarity": it.rarity, "desc": it.get("desc"), "mods": it.mods, "cards": D.charCardDrop(int(it.rarity)),
+				"isNew": not g.owns_gear(it.id)})
 	if randf() < C.weaponChance:
 		var locked := []
 		for id in D.WEAPON_META:

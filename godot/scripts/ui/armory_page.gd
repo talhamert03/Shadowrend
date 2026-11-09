@@ -260,6 +260,9 @@ func _slots_and_stats() -> float:
 			if lv: C.set_text(lv, str(g.gear_level(gx.id)))
 			var nm := C.find(".kz-nm")
 			if nm: C.set_text(nm, str(gx.name))
+			var fr := C.find(".kz-frame")
+			var pl: int = g.gear_plus(gx.id)
+			if fr and pl > 0: _plus_badge(fr.node, Vector2(fr.size.x - 6.0, 6.0), pl)
 			if g.owns_gear(gx.id) and g.can_wear(gx.id): pw += pow_of(g, gx)
 		var lb := C.find(".kz-lab")
 		if lb: C.set_text(lb, KZ_SHORT.get(s.id, str(s.name)))
@@ -498,10 +501,7 @@ var _popN := 0
 func _process(_dt: float) -> void:
 	# kahraman portresi nefes alır (hafif ölçek + ışık nabzı)
 	if _por and is_instance_valid(_por) and is_visible_in_tree():
-		_animT += _dt
-		var k := 1.0 + 0.022 * sin(_animT * 2.2)
-		_por.scale = Vector2(k, k)
-		_por.modulate = Color(1, 1, 1).lerp(Color(1.12, 1.06, 0.95), 0.5 + 0.5 * sin(_animT * 2.2))
+		pass   # portre sabit durur (nefes ölçeği titreme gibi görünüyordu)
 	if _lazy.is_empty(): return
 	if is_visible_in_tree():
 		_build_lazy(6)
@@ -634,3 +634,23 @@ func _equip(id: String) -> void:
 	g.audio.play("equip")
 	g.ui.menu.refresh_wallet()
 	render()
+
+## kuşanılı yuvada basma seviyesi rozeti (+N): turuncu altıgen + Bangers yazı
+func _plus_badge(host: Node, at: Vector2, pl: int) -> void:
+	var b := Control.new()
+	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.position = at
+	b.z_index = 5
+	host.add_child(b)
+	_items.append(b)
+	var ink := Color(0.05, 0.03, 0.07)
+	b.draw.connect(func():
+		var po := PackedVector2Array(); var pi := PackedVector2Array()
+		for i in 6:
+			po.append(Vector2.from_angle(PI / 6 + i * PI / 3) * 15.0)
+			pi.append(Vector2.from_angle(PI / 6 + i * PI / 3) * 12.0)
+		b.draw_colored_polygon(po, ink)
+		b.draw_colored_polygon(pi, Color("#ffb23a").lerp(Color("#ff5a1e"), pl / 7.0))
+		var f := UIK.font(false, 1000)
+		b.draw_string_outline(f, Vector2(-15, 6), "+" + str(pl), HORIZONTAL_ALIGNMENT_CENTER, 30, 15, 3, ink)
+		b.draw_string(f, Vector2(-15, 6), "+" + str(pl), HORIZONTAL_ALIGNMENT_CENTER, 30, 15, Color.WHITE))
