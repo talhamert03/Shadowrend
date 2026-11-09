@@ -251,6 +251,9 @@ func boot() -> void:
 			if pp.size() > 2:
 				if not (g.meta.get("gearPlus") is Dictionary): g.meta["gearPlus"] = {}
 				g.meta.gearPlus[pp[1]] = int(pp[2])
+			if pp.size() > 3:
+				geardetail.id = pp[1]
+				geardetail.tab = pp[3]
 			open_gear_detail(pp[1])
 		elif ov == "drawer": show_daily_drawer()
 		elif ov == "aj": show_account_journey()
