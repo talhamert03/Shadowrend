@@ -353,67 +353,97 @@ func build() -> void:
 	cloud(Vector3(-12.6, -5.6, -3.0), 1.2, T("cl1"))
 	cloud(Vector3(12.2, -7.6, -4.0), 1.4, T("cl1"))
 
-## KIZIL AY SANDIĞI — tasarım önerisi: kara meşe gövde, altın kuşaklar, hilal kilit + kızıl taş,
-## kapak aralığından sızan kızıl ışık, pençe ayaklar, kapakta boynuz hilali.
+## KARANLIK SANDIK — tasarım önerisi: kömür karası gövde, dövme demir kuşaklar, dikenler,
+## kafatası kilit; kapak aralığından, rünlerden ve çatlaklardan sızan renkli (yeşil/kızıl) ışık.
+var CHEST_COL := Color("#3dff7a")
 func chest() -> void:
-	var n := grp(Vector3(0, -5.0, 0), -30.0, 1.25)
-	var wood := M(Color("#3a2a4a")); var wood2 := M(Color("#2c2038")); var wood3 := M(Color("#46335a"))
-	var gold := M(Color("#f2b83a"), 0.45); var gold2 := M(Color("#c8862a"), 0.5); var iron := M(Color("#2a2434"))
-	var red := E(Color("#ff3a4e")); var glow := E(Color("#ff6a5a"))
-	var HW := 6.6; var HD := 4.2; var BH := 5.6
+	var gc := CHEST_COL
+	var n := grp(Vector3(0, -5.6, 0), -30.0, 1.22)
+	var wood := M(Color("#1c1622")); var wood2 := M(Color("#120e17")); var wood3 := M(Color("#241c2c"))
+	var iron := M(Color("#565064"), 0.4); var iron2 := M(Color("#38323f"), 0.5); var bone := M(Color("#b8b0a4"), 0.7)
+	var glow := E(gc); var glow2 := E(gc.lerp(Color.WHITE, 0.55))
+	var HW := 6.6; var HD := 4.2; var BH := 5.4
+	# zemindeki ışık havuzu
+	var pl := cyl(9.5, 9.5, 0.05, 28, E(gc.darkened(0.82)), Vector3(0, -1.25, 0), Vector3.ZERO, n); pl.scale = Vector3(1.15, 1, 0.8); pl.set_meta("soft", true)
+	var pl2 := cyl(6.0, 6.0, 0.06, 24, E(gc.darkened(0.62)), Vector3(0, -1.22, 0), Vector3.ZERO, n); pl2.scale = Vector3(1.15, 1, 0.8); pl2.set_meta("soft", true)
 	# gövde: kalaslar
 	box(Vector3(HW * 2, BH, HD * 2), wood2, Vector3(0, BH * 0.5, 0), Vector3.ZERO, n)
 	for i in 3:
-		box(Vector3(HW * 2 - 2.6, BH / 3.0 - 0.16, 0.3), [wood, wood3, wood][i], Vector3(0, BH / 6.0 + i * BH / 3.0, HD + 0.06), Vector3.ZERO, n)
-		box(Vector3(0.3, BH / 3.0 - 0.16, HD * 2 - 1.6), [wood3, wood, wood3][i], Vector3(HW + 0.06, BH / 6.0 + i * BH / 3.0, 0), Vector3.ZERO, n)
-	# taban + üst çerçeve (altın)
-	box(Vector3(HW * 2 + 0.7, 0.7, HD * 2 + 0.7), gold2, Vector3(0, 0.35, 0), Vector3.ZERO, n)
-	box(Vector3(HW * 2 + 0.6, 0.55, HD * 2 + 0.6), gold, Vector3(0, BH - 0.1, 0), Vector3.ZERO, n)
-	# kapak aralığı ışığı
-	box(Vector3(HW * 2 + 0.2, 0.34, HD * 2 + 0.2), glow, Vector3(0, BH + 0.3, 0), Vector3.ZERO, n)
-	omni(Color("#ff4a4a"), 2.2, 9.0, Vector3(0, BH + 0.4, HD + 2.0), n)
-	# kapak: yarım fıçı
-	var LY := BH + 0.55
-	var lid := cyl(HD, HD, HW * 2, 20, wood, Vector3(0, LY, 0), Vector3(0, 0, 90), n)
-	lid.scale = Vector3(0.82, 1, 1)
-	box(Vector3(HW * 2 + 0.5, 0.5, HD * 2 + 0.5), gold, Vector3(0, LY + 0.1, 0), Vector3.ZERO, n)
-	# kuşaklar (gövde + kapak) ve perçinler
+		box(Vector3(HW * 2 - 2.6, BH / 3.0 - 0.2, 0.3), [wood, wood3, wood][i], Vector3(0, BH / 6.0 + i * BH / 3.0, HD + 0.06), Vector3.ZERO, n)
+		box(Vector3(0.3, BH / 3.0 - 0.2, HD * 2 - 1.6), [wood3, wood, wood3][i], Vector3(HW + 0.06, BH / 6.0 + i * BH / 3.0, 0), Vector3.ZERO, n)
+	# kalas aralarından sızan ışık
+	for i in 2:
+		box(Vector3(HW * 2 - 2.8, 0.09, 0.12), glow, Vector3(0, BH / 3.0 * (i + 1), HD + 0.1), Vector3.ZERO, n)
+		box(Vector3(0.12, 0.09, HD * 2 - 1.8), glow, Vector3(HW + 0.1, BH / 3.0 * (i + 1), 0), Vector3.ZERO, n)
+	# rünler (ön yüz)
+	for rx in [-2.9, 2.9]:
+		var r := grp(Vector3(rx, BH * 0.5, HD + 0.24), 0.0, 1.0, n)
+		box(Vector3(0.14, 1.5, 0.06), glow2, Vector3.ZERO, Vector3.ZERO, r)
+		box(Vector3(0.9, 0.14, 0.06), glow2, Vector3(0, 0.25, 0), Vector3(0, 0, 38), r)
+		box(Vector3(0.7, 0.14, 0.06), glow2, Vector3(0, -0.4, 0), Vector3(0, 0, -38), r)
+	# taban + üst çerçeve (demir)
+	box(Vector3(HW * 2 + 0.8, 0.8, HD * 2 + 0.8), iron2, Vector3(0, 0.4, 0), Vector3.ZERO, n)
+	box(Vector3(HW * 2 + 0.6, 0.5, HD * 2 + 0.6), iron, Vector3(0, BH - 0.1, 0), Vector3.ZERO, n)
+	# kapak aralığı ışığı (kalın, parlak)
+	box(Vector3(HW * 2 + 0.3, 0.5, HD * 2 + 0.3), glow2, Vector3(0, BH + 0.38, 0), Vector3.ZERO, n)
+	omni(gc, 3.4, 12.0, Vector3(0, BH + 0.5, HD + 2.4), n)
+	omni(gc, 2.4, 10.0, Vector3(HW + 2.6, BH * 0.5, 0), n)
+	omni(gc, 2.0, 10.0, Vector3(0, -0.6, HD + 3.0), n)
+	# kapak: hafif aralık yarım fıçı
+	var LY := BH + 0.75
+	var lg := grp(Vector3(0, LY, -HD * 0.82), 0.0, 1.0, n); lg.rotation_degrees.x = -7.0
+	var lc := Vector3(0, 0, HD * 0.82)
+	cyl(HD, HD, HW * 2, 20, wood, lc, Vector3(0, 0, 90), lg).scale = Vector3(0.82, 1, 1)
+	box(Vector3(HW * 2 + 0.5, 0.5, HD * 2 + 0.5), iron, lc + Vector3(0, 0.1, 0), Vector3.ZERO, lg)
+	# kapak çatlakları (ışık damarları)
+	for cx in [-2.6, 0.9, 3.0]:
+		var c0 := lc + Vector3(cx, HD * 0.60, HD * 0.60)
+		seg(c0, c0 + Vector3(0.5, 0.42, -0.62), 0.07, 0.05, glow2, lg, 4)
+		seg(c0 + Vector3(0.5, 0.42, -0.62), c0 + Vector3(0.1, 0.72, -1.5), 0.05, 0.02, glow2, lg, 4)
 	for sx in [-1.0, 1.0]:
 		var x: float = sx * (HW - 1.5)
-		box(Vector3(1.1, BH, HD * 2 + 0.5), gold, Vector3(x, BH * 0.5, 0), Vector3.ZERO, n)
-		cyl(HD + 0.22, HD + 0.22, 1.1, 20, gold, Vector3(x, LY, 0), Vector3(0, 0, 90), n).scale = Vector3(0.84, 1, 1)
-		for k in 3: sph(0.26, gold2, Vector3(x, 1.2 + k * 1.7, HD + 0.3), n)
-		# köşe başlıkları
+		box(Vector3(1.15, BH, HD * 2 + 0.5), iron, Vector3(x, BH * 0.5, 0), Vector3.ZERO, n)
+		cyl(HD + 0.22, HD + 0.22, 1.15, 20, iron, lc + Vector3(x, 0, 0), Vector3(0, 0, 90), lg).scale = Vector3(0.84, 1, 1)
+		for k in 3: cyl(0.3, 0.0, 0.6, 5, iron2, Vector3(x, 1.0 + k * 1.7, HD + 0.5), Vector3(90, 0, 0), n)
+		for k in 3: cyl(0.3, 0.0, 0.7, 5, iron2, lc + Vector3(x, sin(deg_to_rad(35.0 + k * 35.0)) * (HD * 0.84 + 0.4), cos(deg_to_rad(35.0 + k * 35.0)) * (HD + 0.5)), Vector3(55.0 - k * 35.0, 0, 0), lg)
 		var ex: float = sx * HW
-		cyl(HD + 0.3, HD + 0.3, 0.5, 20, gold2, Vector3(ex, LY, 0), Vector3(0, 0, 90), n).scale = Vector3(0.84, 1, 1)
+		cyl(HD + 0.3, HD + 0.3, 0.5, 20, iron2, lc + Vector3(ex, 0, 0), Vector3(0, 0, 90), lg).scale = Vector3(0.84, 1, 1)
 		for sz in [-1.0, 1.0]:
-			box(Vector3(0.9, BH + 0.2, 0.9), gold2, Vector3(sx * (HW + 0.05), BH * 0.5, sz * (HD + 0.05)), Vector3.ZERO, n)
-			# pençe ayak
-			cyl(0.75, 0.45, 1.1, 6, gold2, Vector3(sx * (HW - 0.2), -0.45, sz * (HD - 0.2)), Vector3.ZERO, n)
-			sph(0.5, iron, Vector3(sx * (HW - 0.2), -1.0, sz * (HD - 0.2)), n, Vector3(1, 0.6, 1), 8)
-	# kilit: kalkan plaka + hilal + kızıl taş
-	var lk := grp(Vector3(0, BH - 0.4, HD + 0.35), 0.0, 1.0, n)
-	cyl(1.7, 1.7, 0.45, 6, gold2, Vector3(0, 0, 0), Vector3(90, 0, 0), lk)
-	cyl(1.35, 1.35, 0.55, 6, iron, Vector3(0, 0, 0.02), Vector3(90, 0, 0), lk)
-	cyl(1.02, 1.02, 0.5, 18, gold, Vector3(0, 0, 0.14), Vector3(90, 0, 0), lk)
-	cyl(0.84, 0.84, 0.56, 18, iron, Vector3(0.34, 0.2, 0.15), Vector3(90, 0, 0), lk)
-	sph(0.42, red, Vector3(0.36, 0.2, 0.42), lk, Vector3(1, 1, 0.7), 10)
-	box(Vector3(0.7, 1.3, 0.4), gold2, Vector3(0, 1.75, -0.05), Vector3.ZERO, lk)
-	# kapak tepesi: boynuz hilali + taş
-	var top := grp(Vector3(0, LY + HD * 0.82, 0), 0.0, 1.0, n)
-	cyl(0.9, 1.1, 0.5, 8, gold2, Vector3(0, 0.1, 0), Vector3.ZERO, top)
-	sph(0.62, red, Vector3(0, 0.8, 0), top, Vector3(1, 1.25, 1), 8)
+			box(Vector3(1.0, BH + 0.2, 1.0), iron2, Vector3(sx * (HW + 0.05), BH * 0.5, sz * (HD + 0.05)), Vector3.ZERO, n)
+			cyl(0.34, 0.0, 1.5, 5, iron, Vector3(sx * (HW + 0.05), BH + 0.9, sz * (HD + 0.05)), Vector3(sz * 8, 0, -sx * 8), n)
+			cyl(0.85, 0.5, 1.2, 6, iron2, Vector3(sx * (HW - 0.2), -0.5, sz * (HD - 0.2)), Vector3.ZERO, n)
+	# zincir (ön yüzde çapraz)
+	for i in 9:
+		var t := i / 8.0
+		var cp := Vector3(lerpf(-HW + 1.9, -1.5, t), lerpf(0.9, BH - 1.0, t) - sin(t * PI) * 0.5, HD + 0.42)
+		var cp2 := Vector3(-cp.x, cp.y, cp.z)
+		for q in [cp, cp2]: cyl(0.3, 0.3, 0.16, 8, iron, q, Vector3(90, 0, 90.0 if i % 2 else 0.0), n).scale = Vector3(1, 1, 0.62)
+	# kilit: kafatası
+	var lk := grp(Vector3(0, BH - 0.2, HD + 0.5), 0.0, 1.0, n); lk.set_meta("gid", true)
+	cyl(1.75, 1.75, 0.4, 6, iron2, Vector3(0, -0.1, -0.1), Vector3(90, 0, 0), lk)
+	sph(1.05, bone, Vector3(0, 0.25, 0.25), lk, Vector3(1.0, 0.95, 0.8), 12)
+	box(Vector3(1.1, 0.7, 0.7), bone, Vector3(0, -0.6, 0.3), Vector3.ZERO, lk)
+	for sx in [-1.0, 1.0]: sph(0.3, glow2, Vector3(sx * 0.4, 0.3, 0.95), lk, Vector3(1, 1.1, 0.6), 8)
+	cyl(0.13, 0.0, 0.3, 3, M(Color("#120e17")), Vector3(0, -0.15, 1.05), Vector3.ZERO, lk)
+	for i in 4: box(Vector3(0.18, 0.3, 0.1), M(Color("#8e867a")), Vector3(-0.36 + i * 0.24, -0.82, 0.68), Vector3.ZERO, lk)
+	omni(gc, 1.6, 4.0, Vector3(0, 0.3, 2.0), lk)
+	# kapak tepesi: boynuzlar + ruh taşı
+	var top := grp(lc + Vector3(0, HD * 0.82, 0), 0.0, 1.0, lg)
+	cyl(0.9, 1.2, 0.5, 8, iron2, Vector3(0, 0.1, 0), Vector3.ZERO, top)
+	cyl(0.55, 0.0, 1.5, 6, glow2, Vector3(0, 1.2, 0), Vector3.ZERO, top)
+	cyl(0.0, 0.55, 0.5, 6, glow2, Vector3(0, 0.25, 0), Vector3.ZERO, top)
+	omni(gc, 1.8, 6.0, Vector3(0, 1.4, 1.0), top)
 	for sx in [-1.0, 1.0]:
-		seg(Vector3(sx * 0.7, 0.3, 0), Vector3(sx * 1.9, 1.0, 0), 0.34, 0.26, gold, top)
-		seg(Vector3(sx * 1.9, 1.0, 0), Vector3(sx * 2.2, 2.3, 0), 0.26, 0.14, gold, top)
-		seg(Vector3(sx * 2.2, 2.3, 0), Vector3(sx * 1.7, 3.3, 0), 0.14, 0.0, gold, top)
-	# yan tutamaklar
-	for sx in [-1.0, 1.0]:
-		cyl(0.95, 0.95, 0.3, 12, iron, Vector3(sx * (HW + 0.3), BH * 0.55, 0), Vector3(0, 0, 90), n)
-		cyl(0.6, 0.6, 0.36, 12, gold, Vector3(sx * (HW + 0.34), BH * 0.55, 0), Vector3(0, 0, 90), n)
-	# süzülen kıvılcımlar
-	for sp in [Vector3(-8.6, 9.5, 2), Vector3(8.2, 8.0, 3), Vector3(-6.0, 12.5, -1), Vector3(6.4, 12.0, 1), Vector3(9.4, 3.0, 4), Vector3(-9.6, 4.0, 4)]:
-		sph(0.2, E(Color("#ffd27a")), sp, n, Vector3(1, 1.6, 1), 4)
+		seg(Vector3(sx * 0.8, 0.2, 0), Vector3(sx * 2.4, 0.7, 0), 0.42, 0.34, iron, top)
+		seg(Vector3(sx * 2.4, 0.7, 0), Vector3(sx * 3.1, 2.2, 0), 0.34, 0.2, iron, top)
+		seg(Vector3(sx * 3.1, 2.2, 0), Vector3(sx * 2.6, 3.9, 0), 0.2, 0.0, iron, top)
+	# yükselen ruh alevleri (aralıktan)
+	for f in [[-4.4, 1.5], [-1.6, 2.3], [1.9, 1.8], [4.6, 2.6]]:
+		var fp := Vector3(f[0], BH + 0.9, HD + 0.9)
+		var w0 := sph(0.34, glow, fp, n, Vector3(1, f[1] * 1.5, 1), 6); w0.set_meta("soft", true)
+		var w1 := sph(0.2, glow2, fp + Vector3(0.25, f[1] * 0.9, 0), n, Vector3(1, 2.2, 1), 5); w1.set_meta("soft", true)
+	for sp in [Vector3(-8.8, 9.5, 2), Vector3(8.4, 8.0, 3), Vector3(-6.2, 13.0, -1), Vector3(6.4, 12.5, 1), Vector3(9.6, 3.0, 4), Vector3(-9.8, 4.0, 4), Vector3(-3.0, 11.5, 3), Vector3(3.4, 10.0, 4)]:
+		sph(0.17, glow2, sp, n, Vector3(1, 1.8, 1), 4)
 
 ## bölüm adacığı süsü: dünyaya özgü 2-3 küçük nesne, varyanta göre yer değiştirir
 func mini_decor(k: int) -> void:
@@ -894,8 +924,13 @@ func _init() -> void:
 		if a.begins_with("px="): px = int(a.substr(3))
 		if a.begins_with("w="): W = int(a.substr(2))
 		if a.begins_with("mini="): MINI = int(a.substr(5))
-		if a.begins_with("chest="): CHEST = true
+		if a.begins_with("chest="):
+			CHEST = true
+			CHEST_COL = Color(a.substr(6)) if a.length() > 8 else CHEST_COL
 	TH = THEMES[W]
+	if CHEST:
+		TH = TH.duplicate()
+		TH["amb"] = "#221c30"; TH["rim"] = "#" + CHEST_COL.to_html(false)
 	vp = SubViewport.new()
 	vp.size = Vector2i(px, int(px * 744.0 / 760.0))
 	vp.transparent_bg = true
@@ -912,7 +947,7 @@ func _init() -> void:
 	var we := WorldEnvironment.new(); we.environment = env; vp.add_child(we)
 	var key := DirectionalLight3D.new()
 	key.rotation_degrees = Vector3(-42, -38, 0)
-	key.light_color = Color("#e8e2ff"); key.light_energy = 0.78
+	key.light_color = Color("#e8e2ff"); key.light_energy = 0.5 if CHEST else 0.78
 	key.shadow_enabled = true; key.directional_shadow_max_distance = 110.0; key.shadow_bias = 0.12; key.shadow_normal_bias = 2.5; key.shadow_blur = 0.6
 	RenderingServer.directional_shadow_atlas_set_size(8192, true)
 	key.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
