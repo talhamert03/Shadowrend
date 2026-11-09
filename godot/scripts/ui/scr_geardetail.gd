@@ -55,10 +55,20 @@ func open(gid: String) -> void:
 func _now() -> float: return Time.get_ticks_msec() / 1000.0
 
 # ───────────────────────── çizim yardımcıları ─────────────────────────
-func _txt(p: Vector2, s: String, sz: int, col: Color, w := 0.0, al := HORIZONTAL_ALIGNMENT_LEFT, disp := false, ol := 0) -> void:
-	var f := UIK.font(disp, 900 if disp else 700)
-	if ol > 0: cv.draw_string_outline(f, p, s, al, w if w > 0 else -1.0, sz, ol, INK)
-	cv.draw_string(f, p, s, al, w if w > 0 else -1.0, sz, col)
+## başlık yazısı: temiz, keskin (Chakra Petch kalın, hafif harf aralığı); serif yalnız eşya adında
+func _hf() -> Font: return UIK.font(false, 700, 0.8)
+func _serif() -> Font: return UIK.font(true, 700, 0.6)
+
+func _txt(p: Vector2, s: String, sz: int, col: Color, w := 0.0, al := HORIZONTAL_ALIGNMENT_LEFT, disp := false, ol := 0, serif := false) -> void:
+	var f := _serif() if serif else (_hf() if disp else UIK.font(false, 600))
+	if disp and not serif: sz = int(round(sz * 0.8))
+	var ww := w if w > 0 else -1.0
+	if ol > 0:
+		# ince kontur yerine yumuşak gölge + 2px kontur (kalın mürekkep kalitesiz duruyordu)
+		var sh := Color(0, 0, 0, 0.55 * col.a)
+		cv.draw_string(f, p + Vector2(0, 2), s, al, ww, sz, sh)
+		cv.draw_string_outline(f, p, s, al, ww, sz, 2, Color(INK, 0.85 * col.a))
+	cv.draw_string(f, p, s, al, ww, sz, col)
 
 func _box(r: Rect2, c: Color, rad := 14.0, bw := 0.0, bc := INK) -> void:
 	cv.draw_style_box(ComicSkin.sb(c, rad, bw, bc), r)
@@ -93,9 +103,9 @@ func _button(r: Rect2, label: String, sub: String, col: Color, enabled: bool, cb
 	var tc := Color.WHITE if enabled else Color("#a8a0a6")
 	if coin and r.size.y < 50.0:
 		# tek satır: etiket + altın simgesi + bedel
-		var f := UIK.font(true, 900)
-		var lw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
-		var cw2 := f.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x
+		var f := _hf()
+		var lw := f.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, int(round(22 * 0.8))).x
+		var cw2 := f.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, int(round(18 * 0.8))).x
 		var tot := lw + 18.0 + 22.0 + cw2
 		var x0 := r.get_center().x - tot * 0.5
 		var by := r.get_center().y + 8
@@ -110,7 +120,7 @@ func _button(r: Rect2, label: String, sub: String, col: Color, enabled: bool, cb
 		_txt(Vector2(r.position.x, r.position.y + r.size.y * 0.45), label, 21, tc, r.size.x, HORIZONTAL_ALIGNMENT_CENTER, true, 6)
 		var subc := Color("#fff1c9") if enabled else BAD
 		if coin:
-			var tw := UIK.font(false, 700).get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+			var tw := UIK.font(false, 600).get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
 			var cx := r.get_center().x - (tw + 20) * 0.5
 			_coin(Vector2(cx + 7, r.position.y + r.size.y * 0.76 - 5))
 			_txt(Vector2(cx + 18, r.position.y + r.size.y * 0.76), sub, 15, subc, 0, HORIZONTAL_ALIGNMENT_LEFT, false, 4)
@@ -250,9 +260,10 @@ func _paint() -> void:
 	# ── BAŞLIK ──
 	var y := R.position.y + showH + 6
 	var nm := str(x.name) if owned else "???"
-	_txt(Vector2(cx, y + 26), nm, 28, Color.WHITE, cw, HORIZONTAL_ALIGNMENT_CENTER, true, 7)
+	_txt(Vector2(cx, y + 26), nm, 23, Color.WHITE, cw, HORIZONTAL_ALIGNMENT_CENTER, true, 3, true)
 	var rn: String = RNAME.get(rar, "")
-	var rw := UIK.font(true, 900).get_string_size(rn, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var rfont := UIK.font(false, 700, 3.0)
+	var rw := rfont.get_string_size(rn, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 	var ry := y + 52
 	var mid := cx + cw * 0.5
 	cv.draw_line(Vector2(mid - rw * 0.5 - 50, ry - 5), Vector2(mid - rw * 0.5 - 12, ry - 5), rc, 2.0, true)
@@ -260,7 +271,7 @@ func _paint() -> void:
 	for sx in [-1.0, 1.0]:
 		var dp := Vector2(mid + sx * (rw * 0.5 + 8), ry - 5)
 		cv.draw_colored_polygon(PackedVector2Array([dp + Vector2(0, -4), dp + Vector2(4, 0), dp + Vector2(0, 4), dp + Vector2(-4, 0)]), rc)
-	_txt(Vector2(cx, ry), rn, 14, rc, cw, HORIZONTAL_ALIGNMENT_CENTER, true, 3)
+	cv.draw_string(rfont, Vector2(cx, ry), rn, HORIZONTAL_ALIGNMENT_CENTER, cw, 12, rc)
 	if owned and g.is_equipped(id):
 		var er := Rect2(Vector2(R.end.x - 104, y - 4), Vector2(90, 22))
 		_box(er, Color("#1e4a2a"), 11, 1.5, GOOD.darkened(0.2))
@@ -353,7 +364,7 @@ func _paint_lvl(b: Rect2, lvl: int) -> void:
 		var fc := GOOD if f >= 1.0 else Color("#4ea6ff")
 		_box(Rect2(br.position + Vector2(2, 2), Vector2(maxf(20.0, (br.size.x - 4) * f), br.size.y - 4)), fc, 10)
 		_box(Rect2(br.position + Vector2(4, 3), Vector2(maxf(16.0, (br.size.x - 8) * f), 7)), Color(1, 1, 1, 0.25), 6)
-	_txt(Vector2(br.position.x, br.position.y + 17), str(cards) + " / " + str(int(need)) + " KART", 13, Color.WHITE, br.size.x, HORIZONTAL_ALIGNMENT_CENTER, true, 3)
+	_txt(Vector2(br.position.x, br.position.y + 17), str(cards) + " / " + str(int(need)) + " KART", 16, Color.WHITE, br.size.x, HORIZONTAL_ALIGNMENT_CENTER, true, 2)
 	var ok: bool = g.can_upgrade_gear(id)
 	var cost := int(g.gold_for_next_gear(id))
 	_button(Rect2(b.position + Vector2(18, 102), Vector2(b.size.x - 36, 56)), "GELİŞTİR", JS.s(cost), Color("#e0a53a"), ok, func(): _upgrade(), true)
@@ -379,7 +390,7 @@ func _paint_plus(b: Rect2, plus: int, t: float) -> void:
 				cv.draw_arc(c, r + 3, 0, TAU, 32, Color(1.0, 0.8, 0.35, 0.4 + 0.5 * pa), 2.5, true)
 			if i + 1 >= g.PLUS_BURN_FROM:
 				cv.draw_arc(c, r - 1, 0, TAU, 24, Color(1, 0.35, 0.3, 0.55), 1.5, true)
-		_txt(Vector2(c.x - 14, c.y + 6), "+" + str(i + 1), 12, Color.WHITE if done else DIM, 28, HORIZONTAL_ALIGNMENT_CENTER, true, 3 if done else 0)
+		_txt(Vector2(c.x - 14, c.y + 6), "+" + str(i + 1), 14, Color("#3a1d06") if done else DIM, 28, HORIZONTAL_ALIGNMENT_CENTER, true, 0)
 	if plus >= PM:
 		_txt(Vector2(b.position.x, b.position.y + 94), "AZAMİ +7", 30, GOLD, b.size.x, HORIZONTAL_ALIGNMENT_CENTER, true, 6)
 		_txt(Vector2(b.position.x, b.position.y + 122), "Tüm statlar +%" + str(int(round(g.PLUS_BONUS[PM] * 100))) + " · eşya tam güçte", 13, DIM, b.size.x, HORIZONTAL_ALIGNMENT_CENTER)
@@ -433,9 +444,10 @@ func _paint_fx(t: float) -> void:
 	var cc2 := col
 	cc2.a = al
 	cv.draw_set_transform(c + Vector2(0, -60 - ft * 18), 0.0, Vector2.ONE * sc)
-	var f := UIK.font(true, 900)
-	cv.draw_string_outline(f, Vector2(-170, 14), txt, HORIZONTAL_ALIGNMENT_CENTER, 340, 40, 9, Color(INK, al))
-	cv.draw_string(f, Vector2(-170, 14), txt, HORIZONTAL_ALIGNMENT_CENTER, 340, 40, cc2)
+	var f := _serif()
+	cv.draw_string(f, Vector2(-170, 17), txt, HORIZONTAL_ALIGNMENT_CENTER, 340, 32, Color(0, 0, 0, 0.6 * al))
+	cv.draw_string_outline(f, Vector2(-170, 14), txt, HORIZONTAL_ALIGNMENT_CENTER, 340, 32, 3, Color(INK, al))
+	cv.draw_string(f, Vector2(-170, 14), txt, HORIZONTAL_ALIGNMENT_CENTER, 340, 32, cc2)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 # ───────────────────────── veri ─────────────────────────
