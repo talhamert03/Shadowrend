@@ -550,68 +550,8 @@ func _card(grid: Lyr.N, x: Dictionary, locked: bool, pos: Vector2) -> Lyr:
 		info.better = not on and wear and _better(x)
 	var gid: String = x.id
 	menu.btn(C, root_n, func(): _card_tap(gid, locked), 0.97)
-	# tepsi düğmeleri (seçili kartta)
-	if info.sel:
-		var o := C.rect_of(root_n).position
-		for b in C.find_all(".kc-act"):
-			var k: String = b.d.key
-			var r := C.rect_of(b)
-			r.position -= o
-			if k.contains("info"):
-				menu.btn(C, b, func(): g.audio.play("click"); g.ui.open_gear_detail(gid))
-				info.acts.append([r, "İNCELE", Color("#3aa0ff")])
-			elif k.contains(".eq"):
-				menu.btn(C, b, func(): _equip(gid))
-				info.acts.append([r, "KUŞAN", ScrLevelUp.YEL])
-			elif k.contains(".out"):
-				menu.btn(C, b, func(): sel_id = ""; g.toggle_equip(gid))
-				info.acts.append([r, "ÇIKAR", Color("#e8463c")])
-		# tepsi (v3): üstte büyük düğme (YÜKSELT varsa o, yoksa KULLAN/ÇIKAR),
-		# alt sırada İNCELE · (KULLAN) · GELİŞTİR (+ basma ocağı)
-		if info.acts.size():
-			var big := -1
-			for j in info.acts.size():
-				if (info.acts[j][0] as Rect2).size.y >= 32.0: big = j
-			var low: Rect2 = info.acts[-1][0]
-			if big >= 0 and info.acts.size() == 1: low = Rect2((info.acts[big][0] as Rect2).position + Vector2(0, (info.acts[big][0] as Rect2).size.y + 4), Vector2((info.acts[big][0] as Rect2).size.x, 26))
-			var up_r: Rect2 = info.acts[big][0] if big >= 0 else Rect2(low.position - Vector2(0, 36), Vector2(low.size.x, 32))
-			var useA: Array = ["ÇIKAR", Color("#e8463c")] if on else ["KULLAN", ScrLevelUp.YEL]
-			var canUp: bool = g.can_upgrade_gear(gid)
-			var forgeA: Array = ["GELİŞTİR", Color("#e0832a")]
-			var infoA: Array = ["İNCELE", Color("#3aa0ff")]
-			# 2x2 ızgara: üst sıra büyük, alt sıra küçük; her sırada en fazla iki düğme
-			var topRow: Array = []
-			var lowRow: Array = []
-			if canUp:
-				topRow = [["YÜKSELT", GearCard.GREEN], forgeA]
-				lowRow = [infoA, useA] if (wear or on) else [infoA]
-			elif wear or on:
-				topRow = [useA, forgeA]
-				lowRow = [infoA]
-			else:
-				topRow = [forgeA]
-				lowRow = [infoA]
-			var nacts: Array = []
-			var gap := 4.0
-			for rowDef in [[topRow, up_r], [lowRow, low]]:
-				var rw: Array = rowDef[0]
-				var rr0: Rect2 = rowDef[1]
-				var n := rw.size()
-				var cw := (rr0.size.x - gap * (n - 1)) / n
-				for j in n:
-					nacts.append([Rect2(rr0.position + Vector2(j * (cw + gap), 0), Vector2(cw, rr0.size.y)), rw[j][0], rw[j][1]])
-			info.acts = nacts
-			for b in C.find_all(".kc-act"): menu.unbtn_node(C, b)
-			for a2 in nacts:
-				var lbl: String = a2[1]
-				var cb: Callable
-				if lbl == "YÜKSELT": cb = func(): _upgrade(gid)
-				elif lbl == "İNCELE": cb = func(): g.audio.play("click"); g.ui.open_gear_detail(gid)
-				elif lbl == "KULLAN": cb = func(): _equip(gid)
-				elif lbl == "ÇIKAR": cb = func(): sel_id = ""; g.toggle_equip(gid)
-				else: cb = func(): g.audio.play("click"); g.ui.open_gear_detail(gid, "forge")
-				menu.btn(C, root_n, cb, 1.0, 2.0, Rect2(o + (a2[0] as Rect2).position, (a2[0] as Rect2).size))
-				menu.clip_last()
+	# eylemler kart içinde değil: dokununca kartın yanında açılan menü (ScrGearMenu)
+	for bb in C.find_all(".kc-act"): C.set_hidden(bb, true)
 	GearCard.build(root_n.node, root_n.size, info, _gear_tex(str(x.icon)))
 	_cardOf[gid] = {"C": C, "args": [grid, x, locked, pos]}
 	return C
@@ -656,13 +596,22 @@ func _better(x: Dictionary) -> bool:
 
 func _card_tap(id: String, locked: bool) -> void:
 	g.audio.play("click")
-	if locked or sel_id == id:
+	if locked:
 		g.ui.open_gear_detail(id)
 		return
 	var old := sel_id
 	sel_id = id
-	_rebuild_card(old)
-	_rebuild_card(id)
+	if old != id:
+		_rebuild_card(old)
+		_rebuild_card(id)
+	# kartın yanında eylem menüsü
+	var e = _cardOf.get(id)
+	if e and is_instance_valid(e.C):
+		var C: Lyr = e.C
+		var rn: Lyr.N = C.nodes[0]
+		var r := C.rect_of(rn)
+		var xf := C.get_global_transform_with_canvas()
+		g.ui.gearmenu.open_for(self, id, Rect2(xf * r.position, xf.basis_xform(r.size)))
 
 ## karttaki GELİŞTİR: yükseltme töreni; kapanınca yalnız bu kart yeniden kurulur
 func _upgrade(id: String) -> void:

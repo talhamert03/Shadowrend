@@ -34,6 +34,7 @@ var ceremony: ScrCeremony      # sandık açılış töreni
 var chestinspect: ScrChestInspect
 var chardetail: ScrCharDetail
 var geardetail: ScrGearDetail
+var gearmenu: ScrGearMenu
 var chestbuy: ScrChestBuy
 var drawer: ScrDrawer
 var accjourney: ScrAccJourney
@@ -134,6 +135,8 @@ func _ready() -> void:
 	uiroot.add_child(ceremony)
 	chardetail = ScrCharDetail.new(g)
 	uiroot.add_child(chardetail)
+	gearmenu = ScrGearMenu.new(g)
+	uiroot.add_child(gearmenu)
 	geardetail = ScrGearDetail.new(g)
 	uiroot.add_child(geardetail)
 	chestbuy = ScrChestBuy.new(g)
@@ -235,8 +238,9 @@ func boot() -> void:
 				# geliştirici: gsel=eşya — çantada eşyayı seç (tepsi testi)
 				g.add_gear_cards(_arg("gsel"), 30)
 				g.add_rubies(20000)
-				pg.sel_id = _arg("gsel")
 				pg.render()
+				var gs := _arg("gsel")
+				get_tree().create_timer(1.0).timeout.connect(func(): pg._card_tap(gs, false))
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
