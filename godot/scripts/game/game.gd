@@ -590,6 +590,10 @@ func _start_run_now(wi: int, mi: int) -> void:
 	player.apply_mods(cdef.get("mods", {}))
 	apply_meta_to_player()
 	var clv := char_level(meta.selectedChar)
+	# TEST dönemi (UNLOCK_ALL): kahraman o dünyada beklenen seviyeden düşükse savaşta beklenen
+	# seviyeyle oynar — böylece test edilen his gerçek oyuncunun o dünyaya vardığındaki hissidir.
+	if D.UNLOCK_ALL and not OS.get_cmdline_user_args().has("bot=1"):
+		clv = maxi(clv, int(D.EXPECTED_LV[clampi(worldId, 1, 10)]))
 	if clv > 1:
 		var lm := D.charLevelMods(clv)
 		player.maxHp = maxf(10.0, JS.round_js(player.maxHp * lm.hpMul))
@@ -1344,6 +1348,55 @@ func cards_for_next_gear(id):
 func gold_for_next_gear(id):
 	var lvl := gear_level(id)
 	return null if lvl >= D.GEAR_MAX_LEVEL else D.GEAR_GOLD_COST[lvl + 1]
+## ═══ EKİPMAN + BASMA (altın harcama alanı) ═══
+## Eşya altınla +0 → +7 basılır; her basış ŞANSA bağlı. +4 ve üstünü hedefleyen başarısız
+## basışta eşya YANAR ve +0'a döner (eşyanın kendisi kaybolmaz). Etki eşyanın statlarına çarpan:
+## +7'de tüm statlar x1,28 (ör. efsanevi Sv6 silah %48 → %61 hasar; kahramanın toplam hasarına
+## ~+%8-10) — güçlenme hissi verir ama oyunu bozacak sıçrama yaratmaz.
+const PLUS_MAX := 7
+const PLUS_BONUS := [0.0, 0.03, 0.06, 0.09, 0.13, 0.17, 0.22, 0.28]   # +N toplam stat bonusu
+const PLUS_CHANCE := [1.0, 0.9, 0.8, 0.65, 0.5, 0.38, 0.27]          # +N → +N+1 başarı şansı
+const PLUS_BURN_FROM := 4                                             # bu hedeften itibaren başarısızlık yakar
+const PLUS_BASE := [0, 250, 500, 900, 1600, 2600]                     # nadirlik sırası (GEAR_RANK) → taban altın
+const PLUS_STEP := [1.0, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5]
+func gear_plus(id) -> int:
+	var gs = meta.get("gearPlus")
+	return JS.i(gs.get(id)) if gs is Dictionary else 0
+func gear_mul(id) -> float:
+	return D.gearLevelMods(gear_level(id)) * (1.0 + PLUS_BONUS[clampi(gear_plus(id), 0, PLUS_MAX)])
+func plus_cost(id):
+	var p := gear_plus(id)
+	if p >= PLUS_MAX: return null
+	var it = gear_by_id(id)
+	if it == null: return null
+	return int(PLUS_BASE[Market._gear_rank(it)] * PLUS_STEP[p])
+func plus_chance(id) -> float:
+	var p := gear_plus(id)
+	return 0.0 if p >= PLUS_MAX else PLUS_CHANCE[p]
+func plus_burns(id) -> bool: return gear_plus(id) + 1 >= PLUS_BURN_FROM
+func can_plus(id) -> bool:
+	var c = plus_cost(id)
+	return owns_gear(id) and c != null and read_rubies() >= c
+## döner: "ok" | "fail" | "burn" | "" (yapılamadı)
+func plus_gear(id) -> String:
+	if not can_plus(id):
+		audio.play("error")
+		return ""
+	var ch := plus_chance(id)
+	var burns := plus_burns(id)
+	if not spend_rubies(plus_cost(id)): return ""
+	if not (meta.get("gearPlus") is Dictionary): meta["gearPlus"] = {}
+	var res := "ok"
+	if randf() < ch:
+		meta.gearPlus[id] = gear_plus(id) + 1
+	elif burns:
+		meta.gearPlus[id] = 0
+		res = "burn"
+	else:
+		res = "fail"
+	save_meta()
+	return res
+
 func can_upgrade_gear(id) -> bool:
 	if not owns_gear(id): return false
 	var need = cards_for_next_gear(id)
@@ -1413,7 +1466,7 @@ func apply_meta_to_player() -> void:
 		var id = mp[slot]
 		var it = gear_by_id(id)
 		if it and it.slot == slot and owns_gear(id) and can_wear(id):
-			var mul := D.gearLevelMods(gear_level(id))
+			var mul := gear_mul(id)
 			var scaled := {}
 			for k in it.mods: scaled[k] = it.mods[k] * mul
 			player.apply_mods(scaled)
@@ -1896,11 +1949,13 @@ func _process(_delta: float) -> void:
 				acc -= STEP
 				steps += 1
 			if steps == MAX_STEPS * devSpeed: acc = 0
-	Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
+	if not _botMode or Engine.get_frames_drawn() % 30 == 0:
+		Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
 	Prof.frame()
 	Prof.cur = "motor-cizim"      # betik bitti: buradan sonraki donma motor/GPU tarafında
 
 var _ultauto := -1.0
+var _botMode := OS.get_cmdline_user_args().has("bot=1")
 var _dieat := 0.0
 var _vfxtest := false
 var _stallTest := 0
@@ -1972,6 +2027,7 @@ func update(dt: float) -> void:
 	Prof.b("powerups.update"); powerups.update(dt); Prof.e("powerups.update")
 	Prof.b("fieldChests.update"); fieldChests.update(dt); Prof.e("fieldChests.update")
 	# geliştirici: ultauto=sn — süper yetenek her sn'de bir dolu ve ateşlenir (efekt testi)
+	if _botMode and ult.ready: ult.fire()
 	if _ultauto > 0.0 and fmod(time, _ultauto) < dt and time > 2.0:
 		ult.charge = Ultimate.ULT_NEED; ult.ready = true; ult.fire()
 	Prof.b("ult.update"); ult.update(dt); skills.update(dt); vfx.update(dt); Prof.e("ult.update")

@@ -87,7 +87,7 @@ func _add(key: String, parent: Lyr.N, pos: Vector2) -> Lyr:
 	return C
 
 static func pow_of(g2, x: Dictionary) -> int:
-	var mul: float = D.gearLevelMods(g2.gear_level(x.id))
+	var mul: float = g2.gear_mul(x.id)
 	var p := 0.0
 	for k in x.get("mods", {}): p += float(KZ_W.get(k, 300)) * float(x.mods[k])
 	return int(round(p * mul))
@@ -287,7 +287,7 @@ func _slots_and_stats() -> float:
 		var x = g.gear_by_id(map[sl])
 		if x == null or not g.owns_gear(x.id) or not g.can_wear(x.id): continue
 		worn_items.append(x)
-		var mul: float = D.gearLevelMods(g.gear_level(x.id))
+		var mul: float = g.gear_mul(x.id)
 		for k in x.get("mods", {}): tot[k] = float(tot.get(k, 0.0)) + float(x.mods[k]) * mul
 	var sets: Array = SideModes.active_sets(worn_items)
 	for A in sets:

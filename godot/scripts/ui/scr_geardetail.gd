@@ -117,13 +117,93 @@ func _build() -> void:
 	if sel and not String(sel.d.key).contains("cant"): btn(L, sel, func(): _toggle())
 	var sd := L.find(".cd-selected")
 	if sd: btn(L, sd, func(): _toggle())
+	if owned:
+		var pl: int = g.gear_plus(id)
+		if pl > 0:
+			var nm := L.find_id("#gd-name")
+			if nm: L.set_text(nm, str(x.name) + "  +" + str(pl))
+		_build_plus(L.find(".gd-card"))
+
+## ═══ + BASMA paneli (kartın altında) ═══
+var _plb: Node2D
+var _pbFx := ""
+var _pbT := 0.0
+func _build_plus(card: Lyr.N) -> void:
+	if card == null: return
+	var W := UIK.ui_size(get_viewport())
+	var h := 92.0
+	var r := Rect2(card.pos.x, card.pos.y + card.size.y + 10.0, card.size.x, h)
+	if (L.get_global_transform() * r).end.y > W.y - 8.0:
+		r.position.y = card.pos.y - h - 10.0
+	var bR := Rect2(r.position.x + r.size.x - 128.0, r.position.y + 14.0, 116.0, h - 28.0)
+	_plb = Node2D.new()
+	L.add_child(_plb)
+	var gid := id
+	_plb.draw.connect(func():
+		var pl: int = g.gear_plus(gid)
+		var fb := UIK.font(true, 900)
+		var fs := UIK.font(false, 700)
+		var shake := Vector2.ZERO
+		var ft := (Time.get_ticks_msec() / 1000.0) - _pbT
+		if _pbFx != "" and ft < 0.45: shake = Vector2(sin(ft * 70.0) * 6.0 * (1.0 - ft / 0.45), 0)
+		_plb.draw_set_transform(shake, 0.0, Vector2.ONE)
+		_plb.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 16), Rect2(r.position + Vector2(0, 5), r.size))
+		_plb.draw_style_box(ComicSkin.sb(Color("#1b1218"), 16, 2.0, Color("#e9c98a")), r)
+		var gold := Color("#ffd27a")
+		_plb.draw_string(fb, r.position + Vector2(16, 44), "+" + str(pl), HORIZONTAL_ALIGNMENT_LEFT, 80, 34, gold if pl > 0 else Color("#9a8f86"))
+		_plb.draw_string(fs, r.position + Vector2(16, 68), "Statlar +%" + str(int(round(g.PLUS_BONUS[pl] * 100))), HORIZONTAL_ALIGNMENT_LEFT, 110, 12, Color("#d9cfc2"))
+		var mx := r.position.x + 104.0
+		if pl >= g.PLUS_MAX:
+			_plb.draw_string(fb, Vector2(mx, r.position.y + 40), "AZAMİ +7", HORIZONTAL_ALIGNMENT_LEFT, 160, 18, gold)
+			_plb.draw_string(fs, Vector2(mx, r.position.y + 62), "Eşya tam güçte", HORIZONTAL_ALIGNMENT_LEFT, 160, 12, Color("#d9cfc2"))
+		else:
+			var ch := int(round(g.plus_chance(gid) * 100))
+			var cc := Color("#7ee08a") if ch >= 80 else (Color("#ffd27a") if ch >= 50 else Color("#ff7d6a"))
+			_plb.draw_string(fs, Vector2(mx, r.position.y + 28), "+" + str(pl + 1) + " ŞANSI", HORIZONTAL_ALIGNMENT_LEFT, 120, 11, Color("#b8ad9f"))
+			_plb.draw_string(fb, Vector2(mx, r.position.y + 52), "%" + str(ch), HORIZONTAL_ALIGNMENT_LEFT, 120, 24, cc)
+			if g.plus_burns(gid):
+				_plb.draw_string(fs, Vector2(mx, r.position.y + 74), "Başarısız: YANAR, +0", HORIZONTAL_ALIGNMENT_LEFT, bR.position.x - mx - 4.0, 10, Color("#ff7d6a"))
+			else:
+				_plb.draw_string(fs, Vector2(mx, r.position.y + 74), "Başarısız: kayıp yok", HORIZONTAL_ALIGNMENT_LEFT, bR.position.x - mx - 4.0, 10, Color("#9fd6a6"))
+			var ok: bool = g.can_plus(gid)
+			_plb.draw_style_box(ComicSkin.sb(ComicSkin.INK, 12), Rect2(bR.position + Vector2(0, 4), bR.size))
+			_plb.draw_style_box(ComicSkin.sb(Color("#e0a53a") if ok else Color("#5a4c40"), 12, 2.0, ComicSkin.INK), bR)
+			_plb.draw_string(fb, bR.position + Vector2(0, 28), "+ BAS", HORIZONTAL_ALIGNMENT_CENTER, bR.size.x, 20, Color.WHITE if ok else Color("#b0a497"))
+			_plb.draw_string(fs, bR.position + Vector2(0, 50), JS.s(g.plus_cost(gid)) + " altın", HORIZONTAL_ALIGNMENT_CENTER, bR.size.x, 13, Color("#fff1c9") if ok else Color("#ff8f7a"))
+		if _pbFx != "" and ft < 1.4:
+			var a := clampf(1.4 - ft, 0.0, 1.0)
+			var txt: String = {"ok": "BAŞARILI!", "fail": "BAŞARISIZ", "burn": "YANDI! +0"}[_pbFx]
+			var col: Color = {"ok": Color("#7ee08a"), "fail": Color("#ffd27a"), "burn": Color("#ff5a4a")}[_pbFx]
+			col.a = a
+			var sc := 1.0 + 0.25 * maxf(0.0, 1.0 - ft * 4.0)
+			_plb.draw_set_transform(r.get_center() + Vector2(0, -h * 0.5 - 18.0 - ft * 14.0), 0.0, Vector2.ONE * sc)
+			_plb.draw_string(fb, Vector2(-120, 10), txt, HORIZONTAL_ALIGNMENT_CENTER, 240, 26, col))
+	if g.gear_plus(gid) < g.PLUS_MAX:
+		btn(L, card, func(): _plus(), 1.0, 2.0, bR)
+
+func _plus() -> void:
+	if not g.can_plus(id):
+		g.audio.play("error")
+		g.ui.toast("YETERSİZ ALTIN")
+		return
+	var res: String = g.plus_gear(id)
+	if res == "": return
+	g.audio.play({"ok": "levelup", "fail": "blunder", "burn": "boom"}[res])
+	g.ui.menu.refresh_wallet()
+	_pbFx = res
+	_pbT = Time.get_ticks_msec() / 1000.0
+	# kart/statlar yeni +seviyeyle yeniden kurulur, sonuç efekti yeni panelde sürer
+	_build()
+	if g.ui.menu.pages.has("cephane"): g.ui.menu.pages["cephane"].on_gear_upgraded(id)
+	var tw := create_tween().set_loops(45)
+	tw.tween_callback(func(): if is_instance_valid(_plb): _plb.queue_redraw()).set_delay(0.033)
 
 ## stat satırları (2 sütun); döner: yükseklik farkı
 func _stats(x: Dictionary, owned: bool, lvl: int, st: Lyr.N) -> float:
-	var mul: float = D.gearLevelMods(lvl)
+	var mul: float = g.gear_mul(id) if owned else D.gearLevelMods(lvl)
 	var cur_id = g.char_gear_map().get(x.slot) if owned else null
 	var cur = g.gear_by_id(cur_id) if cur_id and cur_id != id else null
-	var cur_mul: float = D.gearLevelMods(g.gear_level(cur.id)) if cur else 1.0
+	var cur_mul: float = g.gear_mul(cur.id) if cur else 1.0
 	var keys: Array = (x.get("mods", {}) as Dictionary).keys()
 	if cur:
 		for k in cur.get("mods", {}):

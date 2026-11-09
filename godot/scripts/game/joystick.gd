@@ -99,6 +99,10 @@ func sample() -> void:
 			if a.begins_with("walk="):
 				var p := a.substr(5).split(",")
 				_walk = Vector2(float(p[0]), float(p[1]))
+	if _bot == null: _bot = OS.get_cmdline_user_args().has("bot=1")
+	if _bot and game.state == "playing":
+		_bot_move()
+		return
 	if _walk != Vector2.ZERO and game.state == "playing":
 		mx = _walk.x; my = _walk.y
 		# walk=9,9 → sağa-sola, ileri-geri dolaşma (gerçek oyun hareketi gibi; akıcılık testi)
@@ -129,6 +133,93 @@ func sample() -> void:
 			var wl := sqrt(wx * wx + wy * wy)
 			if wl > 0.001: mx = wx / wl; my = wy / wl
 var _walk = null
+var _bot = null
+var _botT := 0.0
+var _botSkill := -1.0
+var _botDir := Vector2.ZERO
+var botMinHp := 1.0
+var botHurt := 0.0
+var _botLastHp := -1.0
+
+## DENGE BOTU (bot=1): makul bir oyuncu gibi oynar — tehlikeden uzaklaşır, sürünün çevresinde
+## tur atar (kite), güvendeyken XP/güç toplar, arena duvarından kaçar. Sonuçlar dengeleme
+## ölçümü için (tools/balance/botrun.py). Uzman değil "ortalama iyi oyuncu" vekili.
+func _bot_move() -> void:
+	var g = game
+	var P = g.player
+	if _botSkill < 0.0:
+		_botSkill = 0.5
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("botskill="): _botSkill = float(a.substr(9))
+	botMinHp = minf(botMinHp, P.hp / maxf(1.0, P.maxHp))
+	if _botLastHp >= 0.0 and P.hp < _botLastHp: botHurt += _botLastHp - P.hp
+	_botLastHp = P.hp
+	# insan benzeri tepki: yön yalnız belli aralıklarla güncellenir (beceri düştükçe daha geç)
+	_botT -= 1.0 / 60.0
+	if _botT > 0.0:
+		mx = _botDir.x; my = _botDir.y
+		return
+	_botT = lerpf(0.42, 0.12, _botSkill) * randf_range(0.7, 1.3)
+	var dx := 0.0; var dy := 0.0
+	var danger := 0.0
+	var R := lerpf(150.0, 300.0, _botSkill)
+	for e in g.enemies.pool.active:
+		var ex: float = P.x - e.x; var ey: float = P.y - e.y
+		var d2 := ex * ex + ey * ey
+		if d2 < R * R and d2 > 1.0:
+			var d := sqrt(d2)
+			var w := (R - d) / R
+			w = w * w * (1.0 + float(e.radius) / 20.0)
+			dx += ex / d * w; dy += ey / d * w
+			danger += w
+	for pn in ["eBullets", "hazards", "bombs"]:
+		if not g.pools.has(pn): continue
+		for b in g.pools[pn].active:
+			var bx: float = P.x - float(b.x); var by: float = P.y - float(b.y)
+			var d2b := bx * bx + by * by
+			if d2b < 140.0 * 140.0 and d2b > 1.0:
+				var db := sqrt(d2b); var wb := (140.0 - db) / 140.0 * 1.6
+				dx += bx / db * wb; dy += by / db * wb
+				danger += wb
+	var dl := sqrt(dx * dx + dy * dy)
+	var mx2 := 0.0; var my2 := 0.0
+	if dl > 0.01:
+		var ux := dx / dl; var uy := dy / dl
+		# kaçış + yana kayma (sürünün çevresinde dön)
+		var side := 1.0 if fmod(g.time, 14.0) < 7.0 else -1.0
+		mx2 = ux * 0.75 - uy * 0.65 * side; my2 = uy * 0.75 + ux * 0.65 * side
+	# güvendeyken en yakın XP / güç
+	var safe := clampf(1.0 - danger / 2.5, 0.0, 1.0)
+	if safe > 0.15:
+		var best = null; var bd := 420.0 * 420.0
+		for gm in g.pools.gems.active:
+			var gx: float = float(gm.x) - P.x; var gy: float = float(gm.y) - P.y
+			var gd := gx * gx + gy * gy
+			if gd < bd: bd = gd; best = gm
+		if g.powerups and "pool" in g.powerups:
+			for pu in g.powerups.pool.active:
+				var px: float = float(pu.x) - P.x; var py: float = float(pu.y) - P.y
+				var pd := (px * px + py * py) * 0.5
+				if pd < bd: bd = pd; best = pu
+		if best != null:
+			var tx: float = float(best.x) - P.x; var ty: float = float(best.y) - P.y
+			var tl := sqrt(tx * tx + ty * ty)
+			if tl > 1.0: mx2 += tx / tl * safe * 0.9; my2 += ty / tl * safe * 0.9
+	# duvar itmesi
+	var A = g.arena
+	if A:
+		var m := 160.0
+		if P.x - A.l < m: mx2 += (m - (P.x - A.l)) / m * 1.5
+		if A.r - P.x < m: mx2 -= (m - (A.r - P.x)) / m * 1.5
+		if P.y - A.t < m: my2 += (m - (P.y - A.t)) / m * 1.5
+		if A.b - P.y < m: my2 -= (m - (A.b - P.y)) / m * 1.5
+	# dikkat dağınıklığı: düşük beceride rastgele sapma
+	var jit := (1.0 - _botSkill) * 0.9
+	mx2 += randf_range(-jit, jit); my2 += randf_range(-jit, jit)
+	var l := sqrt(mx2 * mx2 + my2 * my2)
+	if l > 0.05: mx = mx2 / l; my = my2 / l
+	else: mx = 0.0; my = 0.0
+	_botDir = Vector2(mx, my)
 
 ## Ekran-uzayı joystick çizimi (yalnız aktifken) — input.js render(ctx).
 func render(ctx: Ctx2D) -> void:

@@ -51,7 +51,7 @@
    "gemMul": 1.7,
    "density": 1.1,
    "aliveCap": 140,
-   "eliteChance": 0.05,
+   "eliteChance": 0.04,
    "boss": "KOR ÇOBANI",
    "moon": [
     "#ffc48a",
@@ -81,7 +81,7 @@
    "gemMul": 2.6,
    "density": 1.2,
    "aliveCap": 170,
-   "eliteChance": 0.08,
+   "eliteChance": 0.06,
    "boss": "BATAK ANASI",
    "moon": [
     "#a8f0d8",
@@ -106,7 +106,7 @@
    "gemMul": 3.8,
    "density": 1.3,
    "aliveCap": 200,
-   "eliteChance": 0.11,
+   "eliteChance": 0.08,
    "boss": "KIZIL PİSKOPOS",
    "moon": [
     "#c8a8ff",
@@ -131,7 +131,7 @@
    "gemMul": 5.2,
    "density": 1.4,
    "aliveCap": 230,
-   "eliteChance": 0.15,
+   "eliteChance": 0.1,
    "boss": "HİÇLİK KRALI",
    "moon": [
     "#f0ecff",
@@ -156,7 +156,7 @@
    "gemMul": 7.2,
    "density": 1.5,
    "aliveCap": 260,
-   "eliteChance": 0.18,
+   "eliteChance": 0.12,
    "boss": "GÖK YARGICI",
    "moon": [
     "#fff4f0",
@@ -187,7 +187,7 @@
    "gemMul": 9.8,
    "density": 1.58,
    "aliveCap": 280,
-   "eliteChance": 0.21,
+   "eliteChance": 0.14,
    "boss": "TUZ MUHAFIZI",
    "moon": [
     "#fff0c8",
@@ -218,7 +218,7 @@
    "gemMul": 13.2,
    "density": 1.66,
    "aliveCap": 300,
-   "eliteChance": 0.24,
+   "eliteChance": 0.16,
    "boss": "AYAZ LORDU",
    "moon": [
     "#dff4ff",
@@ -243,7 +243,7 @@
    "gemMul": 17.6,
    "density": 1.74,
    "aliveCap": 320,
-   "eliteChance": 0.27,
+   "eliteChance": 0.18,
    "boss": "FİLDİŞİ BAHÇIVAN",
    "moon": [
     "#fff4d0",
@@ -268,7 +268,7 @@
    "gemMul": 23,
    "density": 1.82,
    "aliveCap": 340,
-   "eliteChance": 0.3,
+   "eliteChance": 0.2,
    "boss": "ÇARKIN İLK DİŞİ",
    "moon": [
     "#ffffff",

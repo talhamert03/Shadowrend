@@ -189,8 +189,14 @@ func start_wave(w: int) -> void:
 	wave = w
 	# genel zorluk cilası: +%6 can, +%4 hasar (ilk dalgalar etkilenmesin diye 2. dalgadan sonra)
 	var hard := 1.0 if w <= 1 else 1.06
-	hpMul = D.waveHpMul(w) * msn.hpMul * hard
-	dmgMul = D.waveDmgMul(w) * msn.dmgMul * (1.0 if w <= 1 else 1.04)
+	# denge v5 — açılış rampası: koşu başında kahraman seviye 1 silahla başlar; dünya çarpanının
+	# fazlası ilk dalgalarda kademeli devreye girer (D1: %40 → D2: %70 → D3+: %100). Böylece geç
+	# dünyalarda ilk 20 saniyede ezilme yok (D1 %30 → D2 %55 → D3 %80 → D4+ %100), zorluk dalga ilerledikçe dünyanın gerçek düzeyine çıkar.
+	var op: float = [0.3, 0.55, 0.8][w - 1] if w <= 3 else 1.0
+	var mh: float = 1.0 + (float(msn.hpMul) - 1.0) * op if msn.hpMul > 1.0 else float(msn.hpMul)
+	var md: float = 1.0 + (float(msn.dmgMul) - 1.0) * op if msn.dmgMul > 1.0 else float(msn.dmgMul)
+	hpMul = D.waveHpMul(w) * mh * hard
+	dmgMul = D.waveDmgMul(w) * md * (1.0 if w <= 1 else 1.04)
 	weights = D.waveWeights(eff, msn.roster)
 	densityMul = JS.num(msn, "density", 1.0) * (0.4 if game.is_boss_wave(w) else 1.0)
 	interval = D.spawnGap(w, 1)
@@ -203,7 +209,9 @@ func start_wave(w: int) -> void:
 		osCap *= devDense; aliveCap *= devDense
 	var bhm = msn.get("bossHpMul")
 	bossHpMul = D.waveHpMul(w) * (float(bhm) if JS.truthy(bhm) else float(msn.hpMul))
-	eliteChance = JS.num(msn, "eliteChance")
+	# elitler açılışta yok, 2. dalgada yarı oranda (geç dünyalarda ilk dakikadaki çöküşün ana nedeni:
+	# x3,2 can / x1,5 hasar + 2 ek özellikli elitler 1. dalgadan itibaren geliyordu)
+	eliteChance = JS.num(msn, "eliteChance") * (0.0 if w <= 1 else (0.5 if w == 2 else 1.0))
 	spawnTimer = 0.55
 	spawning = true
 	bossSpawned = false

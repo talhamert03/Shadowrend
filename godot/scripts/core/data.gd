@@ -284,8 +284,15 @@ func missionDef(w: int, m: int) -> Dictionary:
 	# dünya içi rampa (v4): B1→B10 can ×1,45, hasar ×1,18 (eskiden ×2,08 / ×1,40 — "ters testere":
 	# yeni dünyanın 1. bölümü önceki dünyanın son bölümlerinden KOLAYDI). Artık her dünya önceki
 	# dünyanın ~6. bölümü zorluğunda başlar, boss'ta zirve yapar; dünyalar arası adım ×1,15–1,25.
-	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.05) * grace * hardHp
-	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.02) * graceDmg * hardDmg
+	var wHp: float = wd.hpMul
+	var wDmg: float = wd.dmgMul
+	# geliştirici (denge botu): whp=x,dmg=y — dünya çarpanını geçersiz kıl (eski/yeni eğri karşılaştırma)
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("whp="):
+			var pp := a.substr(4).split(",")
+			wHp = float(pp[0]); wDmg = float(pp[1]) if pp.size() > 1 else wDmg
+	var hpMul: float = wHp * (1 + (m - 1) * 0.05) * grace * hardHp
+	var dmgMul: float = wDmg * (1 + (m - 1) * 0.02) * graceDmg * hardDmg
 	var bossCurve := JS.num(wd, "bossCurve", 1.0)
 	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace * (1.0 if (w == 1 and m <= 2) else 1.1)
 	var mixOffset: float = (w - 1) * 2 + floor((m - 1) / 2.0)
@@ -337,6 +344,8 @@ func saveProgress(prog: Dictionary) -> void:
 
 ## TEST: tüm dünyalar ve bölümler açık (yayından önce false yapılacak)
 const UNLOCK_ALL := true
+## simülasyona göre oyuncunun dünyaya vardığında beklenen kahraman seviyesi (denge v4)
+const EXPECTED_LV := [1, 1, 3, 4, 5, 6, 6, 7, 7, 8, 8]
 
 func worldCleared(prog: Dictionary, w: int) -> bool:
 	if w <= 1 or UNLOCK_ALL: return true

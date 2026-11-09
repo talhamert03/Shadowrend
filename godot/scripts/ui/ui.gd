@@ -243,7 +243,16 @@ func boot() -> void:
 		# geliştirici: katman aç — ov=drawer|aj|quests|odds:<tür>|doc:<k>|wipe
 		var ov := _arg("ov")
 		if _arg("cd") != "": open_char_detail(_arg("cd"))      # geliştirici: kahraman detayı
-		if ov == "drawer": show_daily_drawer()
+		if ov.begins_with("gd:"):
+			# geliştirici: ov=gd:eşya_id[:plus] — eşya inceleme (+ basma paneli testi)
+			var pp := ov.split(":")
+			g.add_gear_cards(pp[1], 1)
+			g.add_rubies(50000)
+			if pp.size() > 2:
+				if not (g.meta.get("gearPlus") is Dictionary): g.meta["gearPlus"] = {}
+				g.meta.gearPlus[pp[1]] = int(pp[2])
+			open_gear_detail(pp[1])
+		elif ov == "drawer": show_daily_drawer()
 		elif ov == "aj": show_account_journey()
 		elif ov == "quests": show_quests()
 		elif ov == "wipe": confirm_wipe()
@@ -307,6 +316,20 @@ func boot() -> void:
 			if not g.meta.charsOwned.has(ch): g.meta.charsOwned.append(ch)
 			g.meta.selectedChar = ch
 		g.meta.ftue = 1
+		# denge botu: lvl=N kahraman seviyesi, gear=R:L tüm yuvalara R nadirlikte L seviye eşya
+		if _arg("lvl") != "":
+			g.meta.charLevels[g.meta.selectedChar] = int(_arg("lvl"))
+		if _arg("gear") != "":
+			var gp := _arg("gear").split(":")
+			var gr := float(gp[0]); var gl := int(gp[1]) if gp.size() > 1 else 1
+			var mp: Dictionary = g.char_gear_map()
+			mp.clear()
+			for it in D.EQUIPMENT:
+				if ChestSystem.rk(it.rarity) != gr or mp.has(it.slot): continue
+				if not g.can_wear(it.id): continue
+				if not g.meta.owned.has(it.id): g.meta.owned.append(it.id)
+				g.meta.gearLevels[it.id] = gl
+				mp[it.slot] = it.id
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
 		if _arg("dense") != "": g.enemies.devDense = float(_arg("dense"))
@@ -620,6 +643,24 @@ func _process(_dt: float) -> void:
 		_shot = ""
 		if _arg("quit") != "": get_tree().quit()
 
+## denge botu kart seçimi: evrim > imza kademesi > özel perk > güç nimeti > rün; canı azsa şifa
+func _bot_pick(choices: Array) -> Dictionary:
+	var best: Dictionary = choices[0]
+	var bs := -1e9
+	var hpf: float = g.player.hp / maxf(1.0, g.player.maxHp)
+	for c in choices:
+		var sc := 0.0
+		if c.get("evo"): sc = 100.0
+		elif c.get("sig"): sc = 60.0 - float(c.get("level", 0)) * 4.0
+		elif c.get("kind") == "special": sc = 50.0
+		elif c.get("kind") == "guc": sc = 40.0
+		elif c.get("kind") == "passive": sc = 35.0 + (5.0 if c.get("id") in ["kalp", "zirh"] else 0.0)
+		elif c.get("kind") == "heal": sc = 70.0 if hpf < 0.45 else 5.0
+		else: sc = 30.0
+		sc += randf() * 6.0
+		if sc > bs: bs = sc; best = c
+	return best
+
 func play_battle_intro(info, mid: Callable, end: Callable) -> void:
 	missionend.hide_end()
 	if _arg("autorun") != "" and _arg("gate") == "":
@@ -638,6 +679,9 @@ func show_bless_pick(list, cb: Callable, opt = null) -> void:
 		return
 	levelup.show_bless(list, cb, opt)      # çizgi roman kart ekranı (eski kutsama ekranı yerine)
 func show_level_up(choices) -> void:
+	if _arg("bot") != "" and choices is Array and choices.size():
+		g.call_deferred("pick_upgrade", _bot_pick(choices))
+		return
 	if _arg("autopick") != "" and choices is Array and choices.size():
 		g.call_deferred("pick_upgrade", choices[0])
 		return
@@ -698,6 +742,14 @@ func show_armory() -> void:
 	if menu.page == "cephane" or menu.page == "kahraman" or menu.page == "savas":
 		menu._render(menu.page)
 func show_mission_end(won, info) -> void:
+	if _arg("bot") != "":
+		var m: Dictionary = g.msn if g.msn else {}
+		print("BOTRESULT ", JSON.stringify({"won": bool(won), "char": g.meta.selectedChar, "lvl": g.char_level(),
+			"world": g.worldId, "mission": g.missionId, "wave": g.wave, "waves": m.get("waves", 0), "time": snappedf(g.time, 0.1),
+			"kills": g.kills, "plv": g.player.level, "hp": snappedf(g.player.hp, 1), "maxHp": g.player.maxHp, "gear": _arg("gear"), "seed": _arg("seed"),
+			"minHp": snappedf(g.input.botMinHp, 0.01), "hurt": int(g.input.botHurt), "skill": _arg("botskill", "0.5"), "whp": _arg("whp")}))
+		get_tree().quit()
+		return
 	hud.hide_hud()
 	levelup.hide_screen()
 	pause.hide_pause()
