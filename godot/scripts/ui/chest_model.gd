@@ -393,12 +393,8 @@ func _build(tier: int) -> Dictionary:
 	_ring(HW * 2 + 9.4, 3.4, HD * 2 + 9.4, 6.6, trim, lid, Vector3(0, 1.9, HD))
 	_ring(HW * 2 + 10.0, 1.0, HD * 2 + 10.0, 6.4, acc, lid, Vector3(0, 0.4, HD))
 	# kapağın içi: oyuk, koyu astarlı (açılınca dış kabuk görünmez)
-	var lin := _mat(bc.darkened(0.62), 0.0, 0.9)
-	match kind:
-		"low": _half(HD - 2.4, HD * 0.62 - 2.4, HW * 2 - 3.6, 14, lin, lid, Vector3(0, 0, HD), false, true)
-		"barrel": _half(HD - 2.4, HD * 0.95 - 2.4, HW * 2 - 3.6, 16, lin, lid, Vector3(0, 0, HD), false, true)
-		"hex": _half(HD * 1.06 - 2.4, HD * 0.74 * 1.06 - 2.4, HW * 2 - 3.6, 3, lin, lid, Vector3(0, 0, HD), false, true, true)
-		_: _box(Vector3(HW * 2 - 2.0, 0.6, HD * 2 - 2.0), lin, lid, Vector3(0, 0.1, HD))
+	var lin := _mat(bc.darkened(0.7), 0.0, 0.95, "wood")
+	_box(Vector3(HW * 2 - 1.6, 0.8, HD * 2 - 1.6), lin, lid, Vector3(0, 1.3, HD))
 	for sx in [-1.0, 1.0]: _lid_shape(kind, 3.2, 1.06, trim2, lid, sx * (HW + 0.4))
 	# yan halka kulplar (iri)
 	for sx in [-1.0, 1.0]:
