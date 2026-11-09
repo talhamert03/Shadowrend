@@ -56,6 +56,8 @@ var _pupil: Node3D
 var _glow_mats: Array = []
 var _halo_mats: Array = []
 var _flames: Array = []
+var _embers: Array = []
+var _orbits: Array = []
 var _sheen: ShaderMaterial
 var _sheen_c := Color.BLACK
 var _sheen_prm: Array = []
@@ -285,6 +287,8 @@ func set_tier(k: int) -> void:
 	_glow_mats = cm.glow
 	_halo_mats = cm.halos
 	_flames = cm.flames
+	_embers = cm.embers
+	_orbits = cm.orbits
 	for b in cm.bobs: _bobs.append(b)
 	_pupil = cm.pupil
 	_build_chest_fx()
@@ -444,7 +448,7 @@ func _process(dt: float) -> void:
 	_chest.position = Vector3(shx, posY + ((5 + sin(_t * 1.4) * hov) if hov != 0.0 else 0.0), 0)
 	_chest.rotation = Vector3(0, sin(_t * 0.6) * 0.045, p.get("rotZ", 0.0))
 	_chest.scale = Vector3(sx, sy, sz)
-	if _lid: _lid.rotation.x = (0.0 if open <= 0 else _ease_back(minf(1.0, open))) * -1.85
+	if _lid: _lid.rotation.x = (0.0 if open <= 0 else _ease_back(minf(1.0, open))) * -1.85 - (0.0 if open > 0 else (0.022 + 0.022 * sin(_t * 2.1) + seam * 0.08))
 	var leak := maxf(open, seam * 0.5)
 	_anim_model(leak)
 	_inner.light_energy = leak * 7.5 / PI
@@ -554,6 +558,16 @@ func _anim_model(leak: float) -> void:
 		var fl := 0.72 + 0.3 * sin(_t * 6.3 + ph) + 0.16 * sin(_t * 13.7 + ph * 2.3)
 		(f[0] as Node3D).scale = Vector3(0.8 + 0.25 * sin(_t * 9.1 + ph), fl * (1.0 + leak * 1.2), 1)
 		(f[2] as StandardMaterial3D).albedo_color.a = clampf(0.55 + 0.3 * sin(_t * 7.7 + ph * 1.3), 0.15, 0.9)
+	for e in _embers:
+		var u := fmod(_t * 0.32 + float(e[4]), 1.0)
+		var bp: Vector3 = e[2]
+		(e[0] as Node3D).position = bp + Vector3(sin(_t * 1.7 + float(e[4]) * 9.0) * 2.2 * u, u * float(e[3]), cos(_t * 1.3 + float(e[4]) * 5.0) * 1.4 * u)
+		(e[0] as Node3D).scale = Vector3.ONE * (1.0 - u * 0.6)
+		(e[1] as StandardMaterial3D).albedo_color.a = sin(u * PI) * (0.75 + leak * 0.25)
+	for o in _orbits:
+		var an := _t * float(o[4]) + float(o[3])
+		var oc: Vector3 = o[1]
+		(o[0] as Node3D).position = oc + Vector3(cos(an) * float(o[2]), sin(an * 1.7) * 3.0, sin(an) * float(o[2]) * 0.8)
 	for hm in _halo_mats:
 		(hm as StandardMaterial3D).albedo_color.a = float(hm.get_meta("a0", 0.4)) * (0.8 + 0.2 * sin(_t * 2.1)) * (1.0 + leak * 0.8)
 	for b in _bobs:

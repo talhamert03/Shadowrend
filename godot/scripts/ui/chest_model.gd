@@ -33,6 +33,8 @@ var _pupil: Node3D
 var _cache := {}
 var _halos: Array = []
 var _flames: Array = []
+var _embers: Array = []
+var _orbits: Array = []
 var _bm := {}
 
 static func build(tier: int) -> Dictionary:
@@ -41,43 +43,31 @@ static func build(tier: int) -> Dictionary:
 
 ## yordamsal dokular (bir kez üretilir): ahşap damarı ve dövme metal — albedo + normal
 static var _tx := {}
+## elle boyanmış hissi veren sade dokular (gürültü yok): geniş yumuşak fırça şeritleri,
+## kenarlara doğru koyulaşma. "wood": yatay damar şeritleri; "metal": dikey fırça + hafif leke.
 static func _tex(kind: String) -> Array:
 	if _tx.has(kind): return _tx[kind]
 	var n := FastNoiseLite.new()
 	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	n.seed = 7 if kind == "wood" else 19
-	n.frequency = 0.035
-	var n2 := FastNoiseLite.new()
-	n2.noise_type = FastNoiseLite.TYPE_CELLULAR if kind == "metal" else FastNoiseLite.TYPE_SIMPLEX
-	n2.seed = 33; n2.frequency = 0.09 if kind == "metal" else 0.25
+	n.seed = 11 if kind == "wood" else 23
+	n.frequency = 0.012
 	var W := 256
 	var im := Image.create(W, W, false, Image.FORMAT_RGB8)
-	var hm := Image.create(W, W, false, Image.FORMAT_RGB8)
 	for y in W:
 		for x in W:
-			var v := 0.0; var h := 0.0
+			var v := 0.0
 			if kind == "wood":
-				# damar: x boyunca uzun çizgiler + budak dalgası
-				var wv := n.get_noise_2d(x * 0.35, y * 0.9) * 6.0
-				var g := 0.5 + 0.5 * sin((y + wv * 9.0) * 0.55)
-				var f := n2.get_noise_2d(x * 0.5, y * 6.0)
-				v = 0.62 + 0.26 * g + 0.12 * f
-				h = 0.5 + 0.35 * g + 0.15 * f
-				# kalas derzi
-				var jy := y % 64
-				if jy < 3: v *= 0.35; h = 0.0
+				var band := n.get_noise_2d(x * 0.25, y * 2.6)            # uzun yatay şeritler
+				var knot := n.get_noise_2d(x * 1.4 + 300.0, y * 1.4)
+				v = 0.80 + 0.13 * band + 0.05 * smoothstep(0.35, 0.6, knot)
+				v = floorf(v * 9.0) / 9.0 * 0.6 + v * 0.4                 # hafif basamak: boyalı görünüm
 			else:
-				var c := n2.get_noise_2d(x, y)             # dövme izleri (hücresel)
-				var f2 := n.get_noise_2d(x * 3.0, y * 3.0)
-				var sc := n.get_noise_2d(x * 0.4, y * 14.0)   # fırça çizikleri
-				v = 0.80 + 0.12 * c + 0.06 * f2 + 0.05 * sc
-				h = 0.5 + 0.4 * c + 0.1 * sc
-			v = clampf(v, 0.0, 1.0); h = clampf(h, 0.0, 1.0)
+				var br := n.get_noise_2d(x * 3.2, y * 0.3)                # dikey fırça
+				var bl := n.get_noise_2d(x * 0.8 + 90.0, y * 0.8)
+				v = 0.88 + 0.07 * br + 0.06 * bl
 			im.set_pixel(x, y, Color(v, v, v))
-			hm.set_pixel(x, y, Color(h, h, h))
-	hm.bump_map_to_normal_map(6.0 if kind == "wood" else 3.5)
-	im.generate_mipmaps(); hm.generate_mipmaps()
-	_tx[kind] = [ImageTexture.create_from_image(im), ImageTexture.create_from_image(hm)]
+	im.generate_mipmaps()
+	_tx[kind] = [ImageTexture.create_from_image(im), null]
 	return _tx[kind]
 
 func _mat(col: Color, metal := 0.0, rough := 0.8, kind := "") -> StandardMaterial3D:
@@ -90,11 +80,8 @@ func _mat(col: Color, metal := 0.0, rough := 0.8, kind := "") -> StandardMateria
 	if kind != "":
 		var t := _tex(kind)
 		m.albedo_texture = t[0]
-		m.normal_enabled = true
-		m.normal_texture = t[1]
-		m.normal_scale = 1.0 if kind == "wood" else 0.6
 		m.uv1_triplanar = true
-		m.uv1_scale = Vector3.ONE * (0.045 if kind == "wood" else 0.11)
+		m.uv1_scale = Vector3.ONE * (0.05 if kind == "wood" else 0.07)
 		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	if metal > 0.5:
 		m.metallic_specular = 0.7
@@ -134,6 +121,29 @@ func _flame(par: Node3D, pos: Vector3, h: float, col: Color, ph: float) -> void:
 	m.render_priority = 3
 	var mi := _mi(q, m, par, pos)
 	_flames.append([mi, ph, m])
+
+func _add_quad(par: Node3D, pos: Vector3, r: float, col: Color, a: float) -> Array:
+	var q := QuadMesh.new(); q.size = Vector2(r * 2.0, r * 2.0)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	m.albedo_texture = load("res://assets/chest/fx_glow.png")
+	m.albedo_color = Color(col.r, col.g, col.b, a)
+	m.render_priority = 4
+	return [_mi(q, m, par, pos), m]
+
+## yükselen kor: aralıktan çıkar, süzülerek yükselir ve söner (döngülü)
+func _ember(par: Node3D, pos: Vector3, h: float, col: Color, ph: float, sz: float) -> void:
+	var e := _add_quad(par, pos, sz, col.lerp(Color.WHITE, 0.25), 0.0)
+	_embers.append([e[0], e[1], pos, h, ph])
+
+## sandığın çevresinde dönen ışık zerresi
+func _orbit(par: Node3D, c: Vector3, r: float, col: Color, ph: float, sp: float) -> void:
+	var e := _add_quad(par, c, 1.6, col.lerp(Color.WHITE, 0.35), 0.85)
+	_orbits.append([e[0], c, r, ph, sp])
 
 func _ink_mat() -> StandardMaterial3D:
 	return _mat(Color(0.035, 0.03, 0.045), 0.0, 0.95)
@@ -289,14 +299,14 @@ func _build(tier: int) -> Dictionary:
 	_ink.grow = true
 	_ink.grow_amount = 0.6
 	var gc := Color(String(D.glow))
-	var bc := Color(String(D.body))
-	var body := _mat(bc.darkened(0.3), 0.0, 0.7)
-	var body2 := _mat(bc, 0.0, 0.6)
-	var body3 := _mat(bc.lightened(0.14), 0.0, 0.6)
-	var mc := Color(String(D.metal))
-	var trim := _mat(mc, 0.55, 0.34)
-	var trim2 := _mat(mc.darkened(0.3), 0.5, 0.42)
-	var acc := _mat(Color(String(D.acc)), 0.6, 0.28)
+	var bc := Color(String(D.body)).darkened(0.34)
+	var body := _mat(bc.darkened(0.35), 0.0, 0.75, "wood")
+	var body2 := _mat(bc, 0.0, 0.62, "wood")
+	var body3 := _mat(bc.lightened(0.1), 0.0, 0.62, "wood")
+	var mc := Color(String(D.metal)).darkened(0.0 if tier == 3 else 0.28)
+	var trim := _mat(mc, 0.6, 0.32, "metal")
+	var trim2 := _mat(mc.darkened(0.32), 0.55, 0.42, "metal")
+	var acc := _mat(Color(String(D.acc)).darkened(0.08), 0.65, 0.26, "metal")
 	var bone := _mat(Color("#e6dcc6"), 0.0, 0.6)
 	var dark := _mat(Color("#0c0910"), 0.0, 0.9)
 	var g1 := _gm(gc, 1.5)
@@ -366,6 +376,12 @@ func _build(tier: int) -> Dictionary:
 	gmm.set_meta("a0", 0.4)
 	_halos.append(gmm)
 	_mi(gq, gmm, root, Vector3(0, -3.0, 2.0), Vector3(-90, 0, 0))
+	for ei in (10 + tier * 2):
+		var ex := -HW + 2.0 + fmod(ei * 7.31, 1.0) * (HW * 2 - 4.0)
+		var ez := HD + 1.0 - fmod(ei * 3.77, 1.0) * 6.0
+		_ember(root, Vector3(ex, HY, ez), 16.0 + fmod(ei * 5.13, 1.0) * 22.0, gc, ei * 0.37, 0.9 + fmod(ei * 2.9, 1.0) * 1.1)
+	for oi in (3 + tier / 2):
+		_orbit(root, Vector3(0, 10.0 + oi * 5.0, 0), 31.0 + oi * 2.5, gc, oi * TAU / 3.0 + oi, 0.5 + 0.12 * oi)
 	# kademe süsleri
 	if tier >= 4:
 		for rx in [-1.0, 1.0]:
@@ -374,13 +390,15 @@ func _build(tier: int) -> Dictionary:
 			_cyl(1.9, 0.0, 1.8, 4, g2, rr, Vector3(0, 0, 0.8), Vector3(90, 45, 0))
 			_halo(rr, Vector3(0, 0, 2.2), 5.0, gc, 0.55)
 	if tier == 5:
-		var ice := _gm(gc.lerp(Color.WHITE, 0.2), 1.0)
-		for sd in [[-HW - 3.0, HD + 1.0, 12.0, -14.0], [HW + 3.0, HD - 1.0, 14.0, 12.0], [-HW + 2.0, HD + 4.0, 7.0, -6.0], [HW - 3.0, HD + 4.4, 6.0, 8.0]]:
-			_cyl(3.0, 0.0, sd[2], 5, ice, root, Vector3(sd[0], sd[2] * 0.5 - 2.0, sd[1]), Vector3(6, 0, sd[3]))
+		var frost := _mat(Color("#eaf6ff"), 0.0, 0.5)
+		for sx in [-1.0, 1.0]:
+			for sz in [-1.0, 1.0]:
+				_sph(4.6, frost, root, Vector3(sx * (HW + 0.9), BH + 2.6, sz * (HD + 0.9)), Vector3(1, 0.62, 1), 10)
+		_box(Vector3(HW * 2 + 5.6, 1.6, HD * 2 + 5.6), frost, root, Vector3(0, 3.4, 0))
 	if tier == 7 or tier == 4:
 		for sx in [-1.0, 1.0]:
 			for sz in [-1.0, 1.0]:
-				_cyl(2.2, 0.0, 6.4, 6, bone if tier == 7 else trim2, root, Vector3(sx * (HW + 0.9), BH + 5.4, sz * (HD + 0.9)), Vector3(sz * 10, 0, -sx * 10))
+				_cyl(2.2, 0.0, 6.4, 6, acc if tier == 7 else trim2, root, Vector3(sx * (HW + 0.9), BH + 5.4, sz * (HD + 0.9)), Vector3(sz * 10, 0, -sx * 10))
 	if tier == 6:
 		for sx in [-1.0, 1.0]:
 			var ta := Vector3(sx * (HW + 3.0), 2.0, 6.0)
@@ -398,9 +416,10 @@ func _build(tier: int) -> Dictionary:
 			_cyl(1.5, 1.5, 1.4, 12, g2, lk, Vector3(0, -2.0, 1.0), Vector3(90, 0, 0))
 		"shield":
 			_cyl(5.4, 5.4, 1.4, 5, trim2, lk, Vector3(0, -1.2, 0), Vector3(90, 180, 0))
-			_cyl(3.8, 3.8, 1.5, 5, trim, lk, Vector3(0, -1.2, 0.5), Vector3(90, 180, 0))
-			_box(Vector3(1.0, 4.4, 0.6), g2, lk, Vector3(0, -1.0, 1.3))
-			_box(Vector3(3.2, 1.0, 0.6), g2, lk, Vector3(0, -0.2, 1.3))
+			_cyl(3.9, 3.9, 1.5, 5, acc, lk, Vector3(0, -1.2, 0.5), Vector3(90, 180, 0))
+			var sg := _grp(lk, Vector3(0, -1.0, 1.6))
+			_cyl(2.0, 0.0, 1.6, 6, g2, sg, Vector3(0, 0, 0.6), Vector3(90, 0, 0))
+			_cyl(2.0, 2.3, 0.5, 6, g2, sg, Vector3(0, 0, -0.2), Vector3(90, 0, 0))
 		"sun":
 			_cyl(5.2, 5.2, 1.3, 8, acc, lk, Vector3(0, -1.0, 0), Vector3(90, 22.5, 0))
 			for i in 8: _cyl(1.0, 0.0, 3.4, 4, trim, lk, Vector3(cos(i * TAU / 8) * 5.6, -1.0 + sin(i * TAU / 8) * 5.6, 0.2), Vector3(0, 0, i * 45.0 - 90.0))
@@ -426,19 +445,17 @@ func _build(tier: int) -> Dictionary:
 				_seg(Vector3(sx * 6.6, -0.6, 0.4), Vector3(sx * 9.6, 1.4, 0.4), 0.9, 0.2, trim, lk, 5)
 				_seg(Vector3(sx * 6.4, -2.2, 0.4), Vector3(sx * 9.0, -4.4, 0.4), 0.8, 0.2, trim, lk, 5)
 		"dragon":
-			_cyl(6.8, 6.8, 1.4, 6, acc, lk, Vector3(0, -0.4, -0.2), Vector3(90, 0, 0))
-			var hd := _grp(lk, Vector3(0, 0.6, 1.2))
-			_box(Vector3(6.4, 5.0, 4.4), trim, hd, Vector3(0, 0.6, 0.8))
-			_box(Vector3(4.4, 3.2, 5.6), trim, hd, Vector3(0, -1.8, 3.4), Vector3(14, 0, 0))
-			_box(Vector3(4.0, 1.1, 5.0), trim2, hd, Vector3(0, -4.2, 2.8), Vector3(-8, 0, 0))
-			for sx in [-1.0, 1.0]:
-				_sph(1.0, g2, hd, Vector3(sx * 2.2, 1.2, 3.1), Vector3(1.2, 0.7, 0.6), 8)
-				_seg(Vector3(sx * 2.6, 2.8, 0.2), Vector3(sx * 5.4, 6.4, -1.4), 1.2, 0.9, bone, hd, 6)
-				_seg(Vector3(sx * 5.4, 6.4, -1.4), Vector3(sx * 5.0, 10.2, -2.0), 0.9, 0.0, bone, hd, 6)
-				_cyl(0.5, 0.0, 1.6, 4, bone, hd, Vector3(sx * 1.4, -3.4, 5.6), Vector3(180, 0, 0))
-				_sph(0.42, g2, hd, Vector3(sx * 1.0, -0.6, 6.3), Vector3.ONE, 6)
-			_box(Vector3(3.4, 0.5, 4.2), g1, hd, Vector3(0, -3.3, 3.0), Vector3(3, 0, 0))
-
+			_cyl(6.6, 6.6, 1.4, 8, acc, lk, Vector3(0, -0.6, -0.2), Vector3(90, 22.5, 0))
+			_cyl(5.0, 5.0, 1.5, 8, trim2, lk, Vector3(0, -0.6, 0.2), Vector3(90, 22.5, 0))
+			var rg := _grp(lk, Vector3(0, -0.6, 1.4))
+			_cyl(3.4, 0.0, 2.6, 8, g2, rg, Vector3(0, 0, 1.2), Vector3(90, 0, 0))
+			_cyl(3.4, 3.8, 0.7, 8, g2, rg, Vector3(0, 0, -0.3), Vector3(90, 0, 0))
+			for ci in 4:
+				var ca := ci * TAU / 4.0 + PI / 4.0
+				var c0 := Vector3(cos(ca) * 5.6, -0.6 + sin(ca) * 5.6, 0.6)
+				var c1 := Vector3(cos(ca) * 4.2, -0.6 + sin(ca) * 4.2, 2.8)
+				var c2 := Vector3(cos(ca) * 2.4, -0.6 + sin(ca) * 2.4, 3.3)
+				_seg(c0, c1, 1.1, 0.8, acc, lk, 6); _seg(c1, c2, 0.8, 0.1, acc, lk, 6)
 	# ── tepe süsü ──
 	var ty := _lid_top(kind)
 	var top := _grp(lid, Vector3(0, ty, HD))
@@ -459,9 +476,12 @@ func _build(tier: int) -> Dictionary:
 				_seg(Vector3(sx * 9.4, 2.6, 0), Vector3(sx * 12.2, 8.6, 0), 1.35, 0.8, trim, top)
 				_seg(Vector3(sx * 12.2, 8.6, 0), Vector3(sx * 10.2, 15.2, 0), 0.8, 0.0, trim, top)
 		"ice":
-			var ice2 := _gm(gc.lerp(Color.WHITE, 0.1), 0.85)
-			for s in [[0.0, 9.5, 0.0, 0.0], [-4.6, 6.0, 0.6, 16.0], [4.2, 6.6, -0.4, -14.0], [-8.4, 3.8, 0.0, 26.0], [8.0, 4.2, 0.4, -24.0]]:
-				_cyl(1.8 if s[1] > 7 else 1.3, 0.0, s[1], 5, ice2, top, Vector3(s[0], s[1] * 0.5 - 0.6, s[2]), Vector3(0, 0, s[3]))
+			_cyl(5.0, 6.0, 2.2, 8, acc, top, Vector3(0, 0.2, 0))
+			var ic := _grp(top, Vector3(0, 7.2, 0))
+			_cyl(3.6, 0.0, 5.0, 6, g2, ic, Vector3(0, 3.6, 0))
+			_cyl(3.6, 3.6, 2.4, 6, g2, ic, Vector3(0, 0, 0))
+			_cyl(0.0, 3.6, 3.0, 6, g2, ic, Vector3(0, -2.7, 0))
+			_bobs.append([ic, 7.2, 1.0, 3.6, 0.0])
 		"gem":
 			_cyl(3.4, 4.4, 1.8, 6, acc, top, Vector3(0, 0.4, 0))
 			var fl := _grp(top, Vector3(0, 7.0, 0))
@@ -488,4 +508,4 @@ func _build(tier: int) -> Dictionary:
 				_seg(w0, w1, 1.3, 0.9, trim, top); _seg(w1, w2, 0.9, 0.2, trim, top)
 				_seg(w1, w0 + Vector3(sx * 9.0, -1.0, -2.0), 0.6, 0.15, trim, top)
 				_seg(w1, w0 + Vector3(sx * 4.4, -3.0, -1.6), 0.6, 0.15, trim, top)
-	return {"root": root, "lid": lid, "halos": _halos, "flames": _flames, "glow": _glow, "pupil": _pupil, "bobs": _bobs, "col": gc}
+	return {"root": root, "lid": lid, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": _pupil, "bobs": _bobs, "col": gc}

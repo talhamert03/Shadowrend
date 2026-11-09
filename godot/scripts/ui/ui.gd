@@ -1021,4 +1021,9 @@ func _dev_chestshots(dir: String) -> void:
 		for i in 14: await get_tree().process_frame
 		var im: Image = st.vp.get_texture().get_image()
 		im.save_png(dir + "/c" + str(t) + ("o" if op > 0 else "") + ".png")
+		if _arg("chestanim") != "" and str(t) in _arg("chestanim").split(","):
+			for fr in 36:
+				st.p = {"open": clampf((fr - 22) / 9.0, 0.0, 1.0), "seam": clampf((fr - 14) / 8.0, 0.0, 1.0)}
+				for i in 4: await get_tree().process_frame
+				(st.vp.get_texture().get_image() as Image).save_png(dir + "/a" + str(t) + "_%02d.png" % fr)
 	get_tree().quit()
