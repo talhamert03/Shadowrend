@@ -216,6 +216,17 @@ func _bot_move() -> void:
 	# dikkat dağınıklığı: düşük beceride rastgele sapma
 	var jit := (1.0 - _botSkill) * 0.9
 	mx2 += randf_range(-jit, jit); my2 += randf_range(-jit, jit)
+	if Combat.devHpMul > 1.0:
+		# bench: en yakın düşmana sokul, yakınında dön (yakın dövüşçüler de ölçülebilsin)
+		var ne = null; var nd := 1e12
+		for e in g.enemies.pool.active:
+			var q: float = (e.x - P.x) * (e.x - P.x) + (e.y - P.y) * (e.y - P.y)
+			if q < nd: nd = q; ne = e
+		if ne != null:
+			var nl := sqrt(nd)
+			var vx: float = (ne.x - P.x) / maxf(nl, 1.0); var vy: float = (ne.y - P.y) / maxf(nl, 1.0)
+			if nl > 70.0: mx2 = vx; my2 = vy
+			else: mx2 = -vy * 0.6; my2 = vx * 0.6
 	var l := sqrt(mx2 * mx2 + my2 * my2)
 	if l > 0.05: mx = mx2 / l; my = my2 / l
 	else: mx = 0.0; my = 0.0

@@ -8,6 +8,7 @@ const FEEL := {
 	"mergeWin": 0.42, "mergeMaxSize": 19,
 	"kickCrit": 2.6, "kickHurt": 4.2,
 }
+static var devHpMul := 1.0   # geliştirici: bench — düşman canı çarpanı (hasar doygunluğunu önler)
 static var devDmg := 0.0   # geliştirici: bench=sn — toplam verilen hasar (kahraman dengesi ölçümü)
 const BLOOD := "#a31226"
 const BLOOD_DARK := "#6e0b18"

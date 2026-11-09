@@ -607,7 +607,7 @@
     "rim": "rgba(127,216,255,0.48)"
    },
    "emblem": "arrow",
-   "sigDmg": 1.12
+   "sigDmg": 0.935
   },
   "sapanci": {
    "id": "sapanci",
@@ -670,7 +670,7 @@
     "rim": "rgba(255,222,158,0.5)"
    },
    "emblem": "star",
-   "sigDmg": 0.783
+   "sigDmg": 1.042
   },
   "simsek": {
    "id": "simsek",
@@ -731,7 +731,7 @@
     "rim": "rgba(184,192,204,0.42)"
    },
    "emblem": "shield",
-   "sigDmg": 0.707
+   "sigDmg": 0.818
   },
   "gokalev": {
    "id": "gokalev",
@@ -763,7 +763,7 @@
     "rim": "rgba(120,180,255,0.52)"
    },
    "emblem": "flame",
-   "sigDmg": 1.708
+   "sigDmg": 1.603
   },
   "korsan": {
    "id": "korsan",
@@ -795,7 +795,7 @@
     "rim": "rgba(245,192,68,0.5)"
    },
    "emblem": "cleaver",
-   "sigDmg": 1.298
+   "sigDmg": 1.382
   },
   "kralice": {
    "id": "kralice",
@@ -827,7 +827,7 @@
     "rim": "rgba(160,200,255,0.5)"
    },
    "emblem": "star",
-   "sigDmg": 0.461
+   "sigDmg": 0.562
   },
   "sovalye": {
    "id": "sovalye",
@@ -887,7 +887,7 @@
     "rim": "rgba(201,167,122,0.45)"
    },
    "emblem": "shield",
-   "sigDmg": 0.977
+   "sigDmg": 1.048
   },
   "fenerci": {
    "id": "fenerci",
@@ -918,7 +918,7 @@
     "rim": "rgba(125,255,184,0.48)"
    },
    "emblem": "star",
-   "sigDmg": 1.828
+   "sigDmg": 1.529
   },
   "zehra": {
    "id": "zehra",
@@ -950,7 +950,7 @@
     "rim": "rgba(156,255,90,0.5)"
    },
    "emblem": "flame",
-   "sigDmg": 0.311
+   "sigDmg": 0.4
   },
   "demirhan": {
    "id": "demirhan",
@@ -982,7 +982,7 @@
     "rim": "rgba(255,211,106,0.52)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.554
+   "sigDmg": 0.781
   },
   "prizma": {
    "id": "prizma",
@@ -1014,7 +1014,7 @@
     "rim": "rgba(201,166,255,0.5)"
    },
    "emblem": "eye",
-   "sigDmg": 0.321
+   "sigDmg": 0.558
   },
   "zaman": {
    "id": "zaman",
@@ -1047,7 +1047,7 @@
     "rim": "rgba(255,207,106,0.52)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.952
+   "sigDmg": 0.704
   },
   "baltaci": {
    "id": "baltaci",
@@ -1078,7 +1078,7 @@
     "rim": "rgba(201,205,212,0.45)"
    },
    "emblem": "shield",
-   "sigDmg": 0.659
+   "sigDmg": 0.721
   },
   "avci": {
    "id": "avci",
@@ -1110,7 +1110,7 @@
     "rim": "rgba(232,240,255,0.45)"
    },
    "emblem": "arrow",
-   "sigDmg": 0.76
+   "sigDmg": 0.819
   },
   "kanrahip": {
    "id": "kanrahip",
@@ -1141,7 +1141,7 @@
     "rim": "rgba(255,58,74,0.5)"
    },
    "emblem": "flame",
-   "sigDmg": 0.376
+   "sigDmg": 0.709
   },
   "gecedans": {
    "id": "gecedans",
@@ -1174,7 +1174,7 @@
     "rim": "rgba(201,166,255,0.5)"
    },
    "emblem": "eye",
-   "sigDmg": 0.743
+   "sigDmg": 0.785
   },
   "ejder": {
    "id": "ejder",
@@ -1206,7 +1206,7 @@
     "rim": "rgba(255,140,60,0.55)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.237
+   "sigDmg": 0.291
   },
   "mizrakci": {
    "id": "mizrakci",
@@ -1237,7 +1237,7 @@
     "rim": "rgba(47,184,168,0.45)"
    },
    "emblem": "shield",
-   "sigDmg": 1.48
+   "sigDmg": 1.014
   },
   "bumerang": {
    "id": "bumerang",
@@ -1268,7 +1268,7 @@
     "rim": "rgba(255,176,74,0.45)"
    },
    "emblem": "arrow",
-   "sigDmg": 0.45
+   "sigDmg": 0.56
   },
   "tirpanci": {
    "id": "tirpanci",
@@ -1330,7 +1330,7 @@
     "rim": "rgba(255,74,106,0.5)"
    },
    "emblem": "flame",
-   "sigDmg": 1.33
+   "sigDmg": 1.243
   },
   "kuzgun": {
    "id": "kuzgun",
@@ -1362,7 +1362,7 @@
     "rim": "rgba(180,108,255,0.55)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.98
+   "sigDmg": 0.897
   },
   "tuzakci": {
    "id": "tuzakci",
@@ -1393,7 +1393,7 @@
     "rim": "rgba(255,138,42,0.45)"
    },
    "emblem": "shield",
-   "sigDmg": 0.52
+   "sigDmg": 0.656
   },
   "barutcu": {
    "id": "barutcu",
@@ -1424,7 +1424,7 @@
     "rim": "rgba(255,90,26,0.5)"
    },
    "emblem": "flame",
-   "sigDmg": 2.0
+   "sigDmg": 3.2
   },
   "kukla": {
    "id": "kukla",
@@ -1455,7 +1455,7 @@
     "rim": "rgba(255,90,208,0.5)"
    },
    "emblem": "bolt",
-   "sigDmg": 1.35
+   "sigDmg": 1.07
   },
   "cellat": {
    "id": "cellat",
@@ -1486,7 +1486,7 @@
     "rim": "rgba(216,26,42,0.5)"
    },
    "emblem": "skull",
-   "sigDmg": 0.64
+   "sigDmg": 0.584
   },
   "karadelik": {
    "id": "karadelik",
@@ -1518,7 +1518,7 @@
     "rim": "rgba(154,90,255,0.55)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.135
+   "sigDmg": 0.253
   },
   "zincirci": {
    "id": "zincirci",
@@ -1548,7 +1548,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "shield",
-   "sigDmg": 0.8
+   "sigDmg": 1.28
   },
   "simyaci": {
    "id": "simyaci",
@@ -1578,7 +1578,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "flame",
-   "sigDmg": 0.56
+   "sigDmg": 0.907
   },
   "falci": {
    "id": "falci",
@@ -1609,7 +1609,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.86
+   "sigDmg": 1.247
   },
   "kamci": {
    "id": "kamci",
@@ -1640,7 +1640,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "flame",
-   "sigDmg": 0.53
+   "sigDmg": 0.598
   },
   "golge": {
    "id": "golge",
@@ -1671,7 +1671,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 1.75
+   "sigDmg": 1.599
   },
   "kemik": {
    "id": "kemik",
@@ -1702,7 +1702,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 1.0
+   "sigDmg": 1.061
   },
   "ayaz": {
    "id": "ayaz",
@@ -1733,7 +1733,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.71
+   "sigDmg": 1.029
   },
   "totem": {
    "id": "totem",
@@ -1764,7 +1764,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "shield",
-   "sigDmg": 4.2
+   "sigDmg": 4.561
   },
   "yildiz": {
    "id": "yildiz",
@@ -1796,7 +1796,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.13
+   "sigDmg": 0.209
   },
   "siren": {
    "id": "siren",
@@ -1827,7 +1827,7 @@
     "rim": "rgba(255,255,255,0.4)"
    },
    "emblem": "bolt",
-   "sigDmg": 0.62
+   "sigDmg": 0.462
   }
  },
  "CHAR_CARD_REQ": [

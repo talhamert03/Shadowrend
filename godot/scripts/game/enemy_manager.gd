@@ -142,7 +142,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	else:
 		var s: Dictionary = D.ENEMY_TYPES[type]
 		e.isBoss = false
-		e.maxHp = JS.round_js(s.hp * p_hpMul)
+		e.maxHp = JS.round_js(s.hp * p_hpMul * Combat.devHpMul)
 		e.hp = e.maxHp
 		e.speed = s.speed * (0.88 + randf() * 0.24)
 		e.radius = s.radius

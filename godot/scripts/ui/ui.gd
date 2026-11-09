@@ -345,6 +345,7 @@ func boot() -> void:
 				mp[it.slot] = it.id
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
+		if _arg("bench") != "": Combat.devHpMul = 8.0
 		if _arg("dense") != "": g.enemies.devDense = float(_arg("dense"))
 		g.start_run(int(_arg("world", "1")), int(_arg("mission", "1")))
 		if _arg("spawnn") != "":
