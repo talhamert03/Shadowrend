@@ -275,16 +275,19 @@ func missionDef(w: int, m: int) -> Dictionary:
 	var wd: Dictionary = WORLDS[w - 1]
 	var isBoss := m == MISSIONS_PER_WORLD
 	var waves: float = 8.0 if isBoss else minf(9.0, 4.0 + ceil(m * 0.55))
-	var grace := 0.72 if (w == 1 and m <= 2) else (0.86 if (w == 1 and m <= 4) else 1.0)
+	# denge v4: Dünya 1 kademeli öğretici (B1-2 / B3-4 / B5-6 yumuşak), sonrası tam güç
+	var grace := 0.72 if (w == 1 and m <= 2) else (0.86 if (w == 1 and m <= 4) else (0.94 if (w == 1 and m <= 6) else 1.0))
 	# ilk iki görev: sürü yoğun ama vuruşları hafif (öğretici akış, sıkıcı değil)
 	var graceDmg := 0.6 if (w == 1 and m <= 2) else grace
-	# zorluk (v2): ilk iki görev öğretici kalır; sonrası daha sert (düşman canı +%18, hasarı +%12)
-	var hardHp := 1.0 if (w == 1 and m <= 2) else 1.18
-	var hardDmg := 1.0 if (w == 1 and m <= 2) else 1.12
-	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.12) * grace * hardHp
-	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.045) * graceDmg * hardDmg
+	var hardHp := 1.0 if (w == 1 and m <= 2) else 1.08
+	var hardDmg := 1.0 if (w == 1 and m <= 2) else 1.05
+	# dünya içi rampa (v4): B1→B10 can ×1,45, hasar ×1,18 (eskiden ×2,08 / ×1,40 — "ters testere":
+	# yeni dünyanın 1. bölümü önceki dünyanın son bölümlerinden KOLAYDI). Artık her dünya önceki
+	# dünyanın ~6. bölümü zorluğunda başlar, boss'ta zirve yapar; dünyalar arası adım ×1,15–1,25.
+	var hpMul: float = wd.hpMul * (1 + (m - 1) * 0.05) * grace * hardHp
+	var dmgMul: float = wd.dmgMul * (1 + (m - 1) * 0.02) * graceDmg * hardDmg
 	var bossCurve := JS.num(wd, "bossCurve", 1.0)
-	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace * (1.0 if (w == 1 and m <= 2) else 1.15)
+	var bossHpMul := bossCurve * (1 + (m - 1) * 0.08) * grace * (1.0 if (w == 1 and m <= 2) else 1.1)
 	var mixOffset: float = (w - 1) * 2 + floor((m - 1) / 2.0)
 	var mt := mType(w, m)
 	var objective: String

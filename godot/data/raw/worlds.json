@@ -45,8 +45,8 @@
     "atici": 1,
     "muhafiz": 1
    },
-   "hpMul": 1.32,
-   "dmgMul": 1.2,
+   "hpMul": 1.39,
+   "dmgMul": 1.24,
    "speedMul": 1.04,
    "gemMul": 1.7,
    "density": 1.1,
@@ -60,7 +60,7 @@
     "#3d1e0a"
    ],
    "lore": "Yanmış tarlaların altında hâlâ nefes alan bir fırın var.",
-   "bossCurve": 1.28
+   "bossCurve": 1.35
   },
   {
    "id": 3,
@@ -75,8 +75,8 @@
     "atici": 0.8,
     "muhafiz": 1.25
    },
-   "hpMul": 1.72,
-   "dmgMul": 1.44,
+   "hpMul": 1.66,
+   "dmgMul": 1.4,
    "speedMul": 1.07,
    "gemMul": 2.6,
    "density": 1.2,
@@ -90,7 +90,7 @@
     "#0a2d24"
    ],
    "lore": "Buradaki sis, içine çekeni bir daha geri vermez.",
-   "bossCurve": 1.63
+   "bossCurve": 1.57
   },
   {
    "id": 4,
@@ -100,8 +100,8 @@
    "glow": "rgba(155,108,255,0.5)",
    "floor": "katedral",
    "hue": -55,
-   "hpMul": 2.22,
-   "dmgMul": 1.72,
+   "hpMul": 1.83,
+   "dmgMul": 1.49,
    "speedMul": 1.1,
    "gemMul": 3.8,
    "density": 1.3,
@@ -115,7 +115,7 @@
     "#1a0a3d"
    ],
    "lore": "Vitraylardan süzülen ışık bile burada kanla boyanır.",
-   "bossCurve": 2.07
+   "bossCurve": 1.71
   },
   {
    "id": 5,
@@ -125,8 +125,8 @@
    "glow": "rgba(232,228,216,0.45)",
    "floor": "hiclik",
    "hue": 150,
-   "hpMul": 2.84,
-   "dmgMul": 2.04,
+   "hpMul": 2.02,
+   "dmgMul": 1.6,
    "speedMul": 1.13,
    "gemMul": 5.2,
    "density": 1.4,
@@ -140,7 +140,7 @@
     "#14122a"
    ],
    "lore": "Dünyanın bittiği yerde, taht hâlâ birini bekliyor.",
-   "bossCurve": 2.6
+   "bossCurve": 1.85
   },
   {
    "id": 6,
@@ -150,8 +150,8 @@
    "glow": "rgba(255,158,196,0.5)",
    "floor": "gokada",
    "hue": -70,
-   "hpMul": 3.64,
-   "dmgMul": 2.43,
+   "hpMul": 2.25,
+   "dmgMul": 1.72,
    "speedMul": 1.16,
    "gemMul": 7.2,
    "density": 1.5,
@@ -165,7 +165,7 @@
     "#4a1e3a"
    ],
    "lore": "Kopan kıtanın teraslarında rüzgâr hâlâ badem çiçeği taşıyor.",
-   "bossCurve": 3.28
+   "bossCurve": 2.03
   },
   {
    "id": 7,
@@ -181,8 +181,8 @@
     "muhafiz": 1,
     "patlayici": 1
    },
-   "hpMul": 4.76,
-   "dmgMul": 2.9,
+   "hpMul": 2.53,
+   "dmgMul": 1.86,
    "speedMul": 1.19,
    "gemMul": 9.8,
    "density": 1.58,
@@ -196,7 +196,7 @@
     "#3d2c0d"
    ],
    "lore": "Kurumuş göl tabanı bir kabuk. Altında yürüyen şeyler var.",
-   "bossCurve": 4.23
+   "bossCurve": 2.25
   },
   {
    "id": 8,
@@ -212,8 +212,8 @@
     "muhafiz": 1,
     "agir": 1
    },
-   "hpMul": 6.15,
-   "dmgMul": 3.45,
+   "hpMul": 2.85,
+   "dmgMul": 2.01,
    "speedMul": 1.22,
    "gemMul": 13.2,
    "density": 1.66,
@@ -227,7 +227,7 @@
     "#0c2434"
    ],
    "lore": "Buzun altındaki siluetler seninle aynı hızda yürüyor.",
-   "bossCurve": 5.41
+   "bossCurve": 2.51
   },
   {
    "id": 9,
@@ -237,8 +237,8 @@
    "glow": "rgba(255,226,150,0.5)",
    "floor": "kemikbahce",
    "hue": 30,
-   "hpMul": 7.67,
-   "dmgMul": 4.08,
+   "hpMul": 3.2,
+   "dmgMul": 2.17,
    "speedMul": 1.25,
    "gemMul": 17.6,
    "density": 1.74,
@@ -252,7 +252,7 @@
     "#3d3214"
    ],
    "lore": "Hasatçılar burayı bahçe sanıyor. Belki haklılar.",
-   "bossCurve": 6.67
+   "bossCurve": 2.78
   },
   {
    "id": 10,
@@ -262,8 +262,8 @@
    "glow": "rgba(122,166,255,0.5)",
    "floor": "gokcark",
    "hue": -85,
-   "hpMul": 9.13,
-   "dmgMul": 4.75,
+   "hpMul": 3.61,
+   "dmgMul": 2.35,
    "speedMul": 1.28,
    "gemMul": 23,
    "density": 1.82,
@@ -277,7 +277,7 @@
     "#16204a"
    ],
    "lore": "Son durak değil — gökyüzünün döküldüğü yer.",
-   "bossCurve": 7.86
+   "bossCurve": 3.11
   }
  ],
  "loadProgress": {

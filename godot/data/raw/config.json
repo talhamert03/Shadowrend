@@ -118,7 +118,7 @@
    },
    "premium": {
     "kind": "cards",
-    "amount": 5
+    "amount": 1
    }
   },
   {
@@ -228,7 +228,7 @@
    },
    "premium": {
     "kind": "cards",
-    "amount": 8
+    "amount": 1
    }
   },
   {
@@ -448,7 +448,7 @@
    },
    "premium": {
     "kind": "cards",
-    "amount": 12
+    "amount": 1
    }
   },
   {

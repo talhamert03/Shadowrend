@@ -63,6 +63,7 @@ static func rk_of(o) -> float:
 	return JS.num(o, "rarity", 0.0)
 
 static func is_legend(o) -> bool:
+	if o and o.get("pack"): return false   # sahip olunan kahraman kart paketi garanti sayaçlarını sıfırlamaz
 	return rk_of(o) >= 4
 
 static func skip_cost(chest_type: String, remaining_ms: float) -> float:
@@ -300,6 +301,7 @@ func roll_rewards(type: String) -> Array:
 				"cards": D.charCardDrop(int(rr)), "isNew": not g.owns_char(ch.id)})
 		else:
 			rubies += 60
+	for pk in hero_pack(type): out.append(pk)
 	_stable_sort(out, func(a, b): return rk_of(a) - rk_of(b))
 	if JS.truthy(C.get("stoneChance")) and randf() < C.stoneChance:
 		var lo: float = C.stoneDrop[0]
@@ -307,6 +309,40 @@ func roll_rewards(type: String) -> Array:
 		var amt := minf(5.0, lo + JS.round_js(randf() * (hi - lo)))
 		if amt > 0: out.push_front({"kind": "stone", "amount": amt, "name": "GEM", "icon": "stone", "rarity": 0, "desc": ""})
 	out.push_front({"kind": "rubies", "amount": rubies, "name": "ALTIN", "icon": "ruby", "rarity": 0, "desc": ""})
+	return out
+
+## Kahraman kart paketi (denge v4): her sandık sahip olunan kahramanlara kart verir —
+## ~%55 seçili kahramana, kalanı rastgele başka bir sahip olunan kahramana. Eskiden kahraman
+## kartı yalnız düşük olasılıklı "kahraman düşmesi"nden geliyordu (ayda ~10 kart, 40 kahramana
+## dağılarak) — ana kahraman bir ayda ancak Sv2-3 oluyordu. Hedef: 1. gün Sv2-3, 1. hafta Sv5, 1. ay Sv7.
+func hero_pack(type: String) -> Array:
+	var g = game
+	var C: Dictionary = chests()[type]
+	var hc = C.get("heroCards")
+	if not (hc is Array) or hc.size() < 2: return []
+	var n: int = int(hc[0]) + int(round(randf() * (float(hc[1]) - float(hc[0]))))
+	if n <= 0: return []
+	var open := func(id) -> bool: return D.CHARACTERS.has(id) and g.owns_char(id) and g.char_level(id) < D.CHAR_MAX_LEVEL
+	var owned: Array = []
+	for id in g.meta.charsOwned:
+		if open.call(id): owned.append(id)
+	if owned.is_empty(): return []
+	var sel: String = str(g.meta.selectedChar)
+	var parts := {}
+	if open.call(sel):
+		var main := int(round(n * 0.55)) if owned.size() > 1 else n
+		parts[sel] = main
+		n -= main
+		owned.erase(sel)
+	if n > 0:
+		var other: String = owned[int(randf() * owned.size())] if owned.size() else sel
+		if other != "" and open.call(other): parts[other] = int(parts.get(other, 0)) + n
+	var out := []
+	for id in parts:
+		if int(parts[id]) <= 0: continue
+		var ch: Dictionary = D.CHARACTERS[id]
+		out.append({"kind": "char", "id": id, "name": ch.name, "rarity": JS.num(ch, "rarity", 1.0), "char": ch,
+			"cards": int(parts[id]), "isNew": false, "pack": true})
 	return out
 
 func _pick_weighted(pool: Array, out: Array):
@@ -406,6 +442,7 @@ func odds(type: String, N: int = 4000) -> Dictionary:
 				gem += 1
 				gemLo = minf(gemLo, r.amount); gemHi = maxf(gemHi, r.amount)
 				continue
+			if r.get("pack"): continue
 			if r.kind == "char":
 				hero += 1
 				if is_legend(r): heroLeg += 1
@@ -487,7 +524,7 @@ func hero_pity(rewards: Array) -> Array:
 	var g = game
 	var bestHero := 0
 	for r in rewards:
-		if r.get("kind") == "char": bestHero = maxi(bestHero, int(r.rarity))
+		if r.get("kind") == "char" and not r.get("pack"): bestHero = maxi(bestHero, int(r.rarity))
 	var e := JS.i(g.meta.get("hpE")) + 1
 	var l := JS.i(g.meta.get("hpL")) + 1
 	if bestHero >= 3: e = 0
