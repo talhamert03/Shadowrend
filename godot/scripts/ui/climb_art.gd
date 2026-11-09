@@ -148,16 +148,19 @@ func paint(wd: Dictionary, cleared: int, w: float, h: float, mode_tall := false,
 		var cap := rxe * (3.0 if n.boss else 2.1)
 		var kk := minf(1.0, minf(cap, room) / (Hf * rxe))
 		var sc := rxe / R0 / dpr
-		var tb := _tex(dir + nm + "_b.png")
-		var ts := _tex(dir + nm + "_s.png")
-		var bm = sm.get("body")
-		var tm = sm.get("top")
+		# yeni sade adacıklar (tools/islands/island3d.gd mini=…): 3B diorama stili, az süslü;
+		# boss adası dünyanın ana önizleme görseli
+		var boss_i: bool = n.boss
+		var ti := _tex(ArenaArt.path_of(wid)) if boss_i else _tex("res://assets/ui/isle/w" + str(wid) + "_" + str(i % 3) + ".png")
+		var flip := (not boss_i) and (i % 2 == 1)
 		cur.ops.append(func(ci: CanvasItem):
-			if tb and bm is Dictionary:
-				ci.draw_texture_rect(tb, Rect2(p - Vector2(bm.ax, bm.ay) * sc, Vector2(bm.w, bm.h) * sc), false)
-			if ts and tm is Dictionary and rxe > 9.0:
-				var s2 := sc * kk
-				ci.draw_texture_rect(ts, Rect2(p - Vector2(tm.ax, tm.ay) * s2, Vector2(tm.w, tm.h) * s2), false))
+			if ti == null: return
+			var ts2 := ti.get_size()
+			var anc := Vector2(0.5, 0.444) if boss_i else Vector2(0.5, 0.421)
+			var s3 := rxe * (2.75 if boss_i else 2.6) / ts2.x
+			var r := Rect2(p - ts2 * anc * s3 + Vector2(0, 0.0 if boss_i else rxe * 0.22), ts2 * s3)
+			if flip: r.size.x = -r.size.x   # negatif genişlik: yerinde aynalar
+			ci.draw_texture_rect(ti, r, false))
 		if done:
 			var fp := Vector2(x - (rx * 0.82 if n.boss else rx * 0.5), y + ry * 0.2)
 			var fs := maxf(5.0, rx * 0.17)

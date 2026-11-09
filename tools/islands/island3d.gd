@@ -9,6 +9,7 @@ var rng := RandomNumberGenerator.new()
 var emis: Array = []      # ışıyan düğümler (ışıma geçişi için)
 var mats := {}
 var W := 1
+var MINI := -1      # >=0: bölüm adacığı (sade, az süslü) — varyant no
 var TH := {}
 const THEMES := {
 	1: {"g0": "#5f9458", "g1": "#3f7350", "gs": "#2f5d40", "d0": "#4a3438", "d1": "#33242b", "r0": "#9a93b6", "r1": "#544d70", "cr": "#ff4f5e", "cl0": "#7d76a0", "cl1": "#5a5478", "amb": "#4a3f66", "rim": "#ff4a5a"},
@@ -332,6 +333,11 @@ func cloud(p: Vector3, s: float, col: Color) -> void:
 
 func build() -> void:
 	rng.seed = 21 + W * 7
+	if MINI >= 0:
+		rng.seed = 100 + W * 13 + MINI * 31
+		build_island()
+		mini_decor(MINI)
+		return
 	build_island()
 	call("w%d" % W)
 	mini_rock(Vector3(-14.2, 1.2, 0.5), 1.5, W == 1)
@@ -342,6 +348,54 @@ func build() -> void:
 	cloud(Vector3(8.4, -13.0, 5.0), 1.7, T("cl0"))
 	cloud(Vector3(-12.6, -5.6, -3.0), 1.2, T("cl1"))
 	cloud(Vector3(12.2, -7.6, -4.0), 1.4, T("cl1"))
+
+## bölüm adacığı süsü: dünyaya özgü 2-3 küçük nesne, varyanta göre yer değiştirir
+func mini_decor(k: int) -> void:
+	var A: Vector3 = [Vector3(-4.6, 0.15, -1.6), Vector3(4.4, 0.15, -2.0), Vector3(-1.0, 0.15, -3.2)][k]
+	var B: Vector3 = [Vector3(4.2, 0.2, 2.6), Vector3(-4.6, 0.2, 2.8), Vector3(4.6, 0.2, 1.6)][k]
+	var C: Vector3 = [Vector3(-1.2, 0.2, 4.6), Vector3(0.8, 0.2, 4.8), Vector3(-5.2, 0.2, 3.4)][k]
+	var cr := T("cr")
+	match W:
+		1:
+			tree(A, 6.4, 5 + k)
+			tomb(B, k % 3, -12.0, 1.4); tomb(B + Vector3(1.9, 0, 1.2), (k + 1) % 3, 8.0, 1.2)
+			lantern(C, 2.9, 20.0)
+		2:
+			tree(A, 5.6, 11 + k)
+			pool(B, 1.9, Color("#ff9a2a"), Color("#2c2226"))
+			boulder(C, 1.3, Color("#5a4c54")); boulder(C + Vector3(1.8, 0, -0.6), 0.8, Color("#4a3e46"))
+		3:
+			tree(A, 6.2, 3 + k, Color("#4a3a30"), Color("#3f7a48"))
+			pool(B, 2.0, Color("#6cf0a0"), Color("#2a3a2c"))
+			for i in 3: mushroom(C + Vector3(i * 1.1 - 1.1, 0, (i % 2) * 0.8), 1.3 + 0.3 * i, Color("#d890ff"), true)
+		4:
+			obelisk(A, 4.6, Color("#6c5a98"), Color("#ff5a7a"), 20.0, -4.0)
+			tomb(B, 1, -10.0, 1.4); tomb(B + Vector3(-1.8, 0, 1.4), 0, 12.0, 1.2)
+			lantern(C, 2.7, 0.0)
+		5:
+			obelisk(A, 5.0, Color("#e8e4f0"), Color("#b090ff"), 10.0, 3.0)
+			obelisk(B, 3.2, Color("#d8d4e4"), Color("#b090ff"), -20.0, -6.0)
+			spike(C, 1.8, Color("#c8b0ff"), Vector3(8, 0, -10))
+		6:
+			tree(A, 6.0, 7 + k, Color("#6a4638"), Color("#ffa6cc"))
+			boulder(B, 1.1, Color("#8fc86a")); boulder(B + Vector3(1.6, 0, 0.8), 0.8, Color("#74b458"))
+			for i in 3: mushroom(C + Vector3(i * 1.0 - 1.0, 0, (i % 2) * 0.7), 1.1, Color("#ff6a8a"))
+		7:
+			spike(A, 4.6, Color("#f6f0e0"), Vector3(4, 0, -6), false); spike(A + Vector3(1.5, 0, 0.6), 2.8, Color("#e8dcc4"), Vector3(-6, 0, 10), false)
+			skull(B, 1.25, -24.0, Color("#efe6cc"), Color("#ffb040"))
+			boulder(C, 1.0, Color("#cdbb96"))
+		8:
+			spike(A, 4.8, Color("#8cdcff"), Vector3(5, 0, -8)); spike(A + Vector3(1.4, 0, 0.8), 3.0, Color("#b4ecff"), Vector3(-8, 0, 12))
+			pool(B, 2.0, Color("#c4ecff"), Color("#9fd4f4"), false)
+			boulder(C, 1.1, Color("#e4f0ff")); boulder(C + Vector3(1.5, 0, -0.5), 0.7, Color("#cfe2f6"))
+		9:
+			tree(A, 5.8, 13 + k)
+			skull(B, 1.2, 18.0)
+			for i in 3: mushroom(C + Vector3(i * 1.1 - 1.1, 0, (i % 2) * 0.8), 1.2, Color("#ffd070"), true)
+		10:
+			obelisk(A, 4.4, Color("#46557a"), Color("#ffc83c"), 15.0, 2.0)
+			spike(B, 2.4, Color("#ffc83c"), Vector3(6, 0, -12)); spike(B + Vector3(1.2, 0, 0.8), 1.6, Color("#ffe08a"), Vector3(-8, 0, 14))
+			boulder(C, 1.1, Color("#36406a"))
 
 func path(pts: Array, col: Color) -> void:
 	for sp in pts: cyl(0.62, 0.7, 0.16, 7, M(col), sp, Vector3(0, rng.randf() * 60.0, 0))
@@ -773,6 +827,7 @@ func _init() -> void:
 		if a.begins_with("out="): out = a.substr(4)
 		if a.begins_with("px="): px = int(a.substr(3))
 		if a.begins_with("w="): W = int(a.substr(2))
+		if a.begins_with("mini="): MINI = int(a.substr(5))
 	TH = THEMES[W]
 	vp = SubViewport.new()
 	vp.size = Vector2i(px, int(px * 744.0 / 760.0))
