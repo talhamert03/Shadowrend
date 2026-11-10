@@ -12,6 +12,7 @@ func _init(game) -> void:
 	name = "Drawer"
 
 func open() -> void:
+	z_index = 40
 	cancel_fade()
 	var d = g.dailies
 	if d: d.touch()

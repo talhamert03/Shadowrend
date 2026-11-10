@@ -88,6 +88,7 @@ func cancel_fade() -> void:
 
 ## açılış geçişi: solarak + hafif büyüyerek belirir (ekran merkezli)
 func fade_show(dur := 0.2) -> void:
+	if name != "Menu" and not (get_script() as Script).resource_path.ends_with("scr_menu.gd"): z_index = 40   # sayfalardaki z_index'li ögelerin üstünde kal
 	if _fade_tw and _fade_tw.is_valid(): _fade_tw.kill()
 	var W := UIK.ui_size(get_viewport())
 	modulate.a = 0.0

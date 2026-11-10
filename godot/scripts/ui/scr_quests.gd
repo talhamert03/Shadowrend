@@ -382,6 +382,8 @@ func _sec_quests(d: Dailies, y: float) -> float:
 		rows.append({"def": def, "cur": cur, "ok": ok, "taken": tk, "p": minf(1.0, float(cur) / float(def.need)), "rank": 2 if tk else (0 if ok else 1)})
 	rows.sort_custom(func(a, b):
 		if a.rank != b.rank: return a.rank < b.rank
+		var am: bool = int(a.def.pts) == 0; var bm: bool = int(b.def.pts) == 0
+		if am != bm: return am      # ustalık görevleri listenin başında
 		return a.p > b.p)
 	_ribbon(y, "HAFTALIK GÖREVLER", str(done_n) + " / " + str(rows.size()) + " TAMAM", 0.65)
 	y += 46
