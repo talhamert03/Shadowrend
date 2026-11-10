@@ -18,9 +18,9 @@ const WEEKLY_QUESTS := [
 	{"id": "boss",       "label": "BOSS DEVİR",        "need": 2,   "pts": 14, "reward": {"kind": "stone",  "amount": 16}},
 	{"id": "objectives", "label": "SAHA GÖREVİ BİTİR", "need": 4,   "pts": 12, "reward": {"kind": "rubies", "amount": 240}},
 	{"id": "waves",      "label": "DALGA ATLAT",       "need": 40,  "pts": 10, "reward": {"kind": "rubies", "amount": 200}},
-	# KAHRAMAN USTALIĞI (basit): farklı kahramanlarla oyna + haftanın kahramanıyla ustalaş. Haftalık puana katılmaz.
-	{"id": "heroes",     "label": "FARKLI KAHRAMANLA KAZAN", "need": 3, "pts": 0, "reward": {"kind": "rubies", "amount": 350}},
-	{"id": "mastery",    "label": "USTALIK",           "need": 250, "pts": 0,  "reward": {"kind": "chest",  "chest": "kemik"}},
+	# KAHRAMAN USTALIĞI (basit): farklı kahramanlarla oyna + haftanın kahramanıyla ustalaş. Her biri +10 haftalık puan verir.
+	{"id": "heroes",     "label": "FARKLI KAHRAMANLA KAZAN", "need": 3, "pts": 10, "reward": {"kind": "rubies", "amount": 350}},
+	{"id": "mastery",    "label": "USTALIK",           "need": 250, "pts": 10,  "reward": {"kind": "chest",  "chest": "kemik"}},
 ]
 const WEEKLY_TIERS := [
 	{"pts": 20, "reward": {"kind": "chest", "chest": "kemik"}},
