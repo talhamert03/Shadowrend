@@ -343,7 +343,7 @@ func saveProgress(prog: Dictionary) -> void:
 	Store.set_item(PROG_KEY, JSON.stringify(o))
 
 ## TEST: tüm dünyalar ve bölümler açık (yayından önce false yapılacak)
-const UNLOCK_ALL := true
+const UNLOCK_ALL := false
 ## simülasyona göre oyuncunun dünyaya vardığında beklenen kahraman seviyesi (denge v4)
 const EXPECTED_LV := [1, 1, 3, 4, 5, 6, 6, 7, 7, 8, 8]
 

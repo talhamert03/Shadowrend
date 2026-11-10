@@ -434,14 +434,10 @@ func _build(tier: int) -> Dictionary:
 	_hull(HW + 1.1, HD + 1.1, RAD + 0.9, 5.4, BH - 5.0, 0.085, trim, root, "corners", 0.0, false, 8)
 	for sx in [-1.0, 1.0]:
 		for sz in [-1.0, 1.0]:
-			for yy in [8.4, BH - 8.4]:
-				var bl := 1.0 + 0.085 * sin(PI * yy / BH)
-				_sph(1.7, acc, root, Vector3(sx * (HW - 2.0) * bl * 1.05, yy, sz * (HD - 2.0) * bl * 1.08), Vector3.ONE, 10)
 			# topuz ayaklar
 			_sph(5.2, trim2, root, Vector3(sx * (HW - 2.6), -1.8, sz * (HD - 2.6)), Vector3(1, 0.7, 1), 12)
 			# kapak köşe topuzları (kapakla birlikte kalkar)
 			var capm: Material = _mat(Color("#eaf6ff"), 0.0, 0.5) if tier == 5 else acc
-			_sph(3.6, capm, lid, Vector3(sx * (HW - 0.6), 3.9, HD + sz * (HD - 0.6)), Vector3(1, 0.78, 1), 12)
 			if tier == 4 or tier == 7:
 				_cyl(1.9, 0.0, 5.6, 6, acc if tier == 7 else trim2, lid, Vector3(sx * (HW - 0.6), 8.2, HD + sz * (HD - 0.6)), Vector3(sz * 10, 0, -sx * 10))
 	# ── kapak: bombeli gövde + yuvarlak çerçeve + kalın şeritler ──
@@ -455,7 +451,6 @@ func _build(tier: int) -> Dictionary:
 	for bx in [-HW + 9.0, HW - 9.0]:
 		_lid_shape(kind, 7.2, 1.05, trim, lid, bx)
 		for e in [-3.9, 3.9]: _lid_shape(kind, 0.9, 1.075, acc, lid, bx + e)
-		for a in [36.0, 90.0]: _sph(1.8, acc, lid, _lid_pt(kind, bx, a, 1.6), Vector3.ONE * 0.9, 10)
 	# yan halka kulplar (iri)
 	for sx in [-1.0, 1.0]:
 		_sph(3.0, acc, root, Vector3(sx * (HW + 1.9), BH * 0.6, 0), Vector3(0.6, 1, 1), 10)

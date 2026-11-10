@@ -56,6 +56,7 @@ func _init(game) -> void:
 func open() -> void:
 	if g.dailies: g.dailies.touch()
 	visible = true
+	z_index = 40          # kuşanım sayfasındaki z_index'li ögelerin (rozet, katman) üstünde kalsın
 	cancel_fade()
 	position = Vector2.ZERO
 	scale = Vector2.ONE

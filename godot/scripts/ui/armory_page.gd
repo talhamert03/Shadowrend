@@ -640,7 +640,7 @@ func _plus_badge(host: Node, at: Vector2, pl: int) -> void:
 	var b := Control.new()
 	b.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.position = at
-	b.z_index = 5
+	b.z_index = 1
 	host.add_child(b)
 	_items.append(b)
 	var ink := Color(0.05, 0.03, 0.07)
