@@ -409,7 +409,7 @@ func _sec_quests(d: Dailies, y: float) -> float:
 				n.draw_style_box(ComicSkin.sb(YEL if p >= 1.0 else GREEN, 5), f))
 		_content.add_child(n)
 		_anim_in[n] = 0.7 + j * 0.06
-		_txt(n, str(def.label), 20, Color.WHITE, UIK.ink_stroke(1.8, 2.2), Vector2(-w * 0.5 + 14, -h * 0.5 + 9), w - 130)
+		_txt(n, d.label_of(def), 20 if def.id != "mastery" else 16, Color.WHITE, UIK.ink_stroke(1.8, 2.2), Vector2(-w * 0.5 + 14, -h * 0.5 + 9), w - 130)
 		_txt(n, ShopPage.fmt_tr(int(r.cur)) + " / " + ShopPage.fmt_tr(int(def.need)), 13, Color.WHITE, UIK.ink_stroke(1.2, 1.2), Vector2(-w * 0.5 + 14, 9), w - 130).align = 0.5
 		# ödül + düğme (sağ)
 		var tx := _reward_tex(def.reward)
@@ -434,7 +434,7 @@ func _sec_quests(d: Dailies, y: float) -> float:
 			_btn(b, Rect2(-34, -26, 68, 52), func(): _claim_quest(qid, n))
 			b.set_meta("bob", true)
 		elif st == "prog":
-			_txt(b, "+" + str(int(def.pts)) + " P", 14, Color(1, 1, 1, 0.8), "", Vector2(-28, -10), 56).align = 0.5
+			if int(def.pts) > 0: _txt(b, "+" + str(int(def.pts)) + " P", 14, Color(1, 1, 1, 0.8), "", Vector2(-28, -10), 56).align = 0.5
 		else:
 			_check(b, Vector2.ZERO)
 		y += h + 10

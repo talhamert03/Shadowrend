@@ -752,7 +752,7 @@ func _process(dt: float) -> void:
 			S.open = minf(1.0, S.open + dt * 2.2)
 			S.punch = maxf(0.0, S.punch - dt * 3.0)
 			sc = 1.0 + S.punch * 0.12
-			if _cstate == "" and S.t > 0.38: _next()
+			if _cstate == "" and S.t > 1.15: _next()   # önce renkli sis yükselir, dağılırken kartlar gelir
 		"summary":
 			S.open = 1.0
 	if S.sq > 0.0:

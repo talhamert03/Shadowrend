@@ -25,6 +25,15 @@ const EXTRA_PASSIVES := {
 }
 const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukluk": "YILDIRIM", "miknatis": "RUH", "keskinlik": "AYAZ", "gazap": "KOR",
 	"kiragi": "AYAZ", "buzkalp": "AYAZ", "hayalet": "AYAZ", "hasatrun": "RUH", "kanemici": "RUH", "statik": "YILDIRIM", "demir": "CELIK", "kulkani": "KOR"}
+## KART BİRLEŞİMİ (evrim): iki pasif rün 3. seviyeye gelince üst form kartı çıkar — koşu başına her biri bir kez.
+const FUSIONS := [
+	{"id": "demir", "a": "kalp", "b": "zirh", "name": "Demir Yürek", "desc": "Azami can +45, zırh +2, saniyede 1,5 can yenileme.", "mods": {"maxHp": 45, "armor": 2, "regen": 1.5}},
+	{"id": "kanemici", "a": "gazap", "b": "keskinlik", "name": "Kızıl Öfke", "desc": "Tüm hasar +%22, kritik hasarı +%40, can çalma +%2.", "mods": {"dmgPct": 0.22, "critMult": 0.4, "lifeSteal": 0.02}},
+	{"id": "statik", "a": "cabukluk", "b": "cizme", "name": "Fırtına Ayağı", "desc": "Saldırı hızı +%16, hız +%8, sıyrılma +%6.", "mods": {"atkPct": 0.16, "speedPct": 0.08, "dodge": 0.06}},
+	{"id": "hasatrun", "a": "miknatis", "b": "buzkalp", "name": "Ruh Hasadı", "desc": "Tecrübe +%18, çekim alanı +%60, saniyede 1 can yenileme.", "mods": {"xpPct": 0.18, "magnetPct": 0.6, "regen": 1.0}},
+	{"id": "kiragi", "a": "kulkani", "b": "gazap", "name": "Kıyamet Koru", "desc": "Patlama şansı +%14, patlama hasarı +%60, alanı +%30.", "mods": {"explodeChance": 0.14, "explodeDmgPct": 0.6, "explodeRPct": 0.3}},
+]
+var fused := {}
 const HERO_TAG := {"okcu": "RUH", "sapanci": "CELIK", "seher": "KOR", "simsek": "YILDIRIM", "savasci": "CELIK", "gokalev": "KOR", "korsan": "KOR", "kralice": "RUH", "sovalye": "AYAZ",
 	"mezarci": "CELIK", "fenerci": "RUH", "zehra": "KOR", "demirhan": "YILDIRIM",
 	"prizma": "RUH", "zaman": "CELIK",
@@ -163,6 +172,7 @@ func reset() -> void:
 	if mech: mech.reset()
 	slots = {}; passives = {}; synApplied = {}; specialTaken = {}; sigLvl = {}
 	evolved = false; wEvolved = false
+	fused = {}
 	tethers = []; tetherPts = PackedVector2Array()
 	swordT = 0.5; swing = 0; swingDur = 0.18; swingDir = 0; swingRange = 0; swingArc = 0
 	swingId = 0; swingKind = "normal"; swingCount = 0
@@ -1816,8 +1826,8 @@ func roll_choices(n: int) -> Array:
 				"tag": "EVRİM", "name": E.name, "desc": E.desc, "level": 0, "max": 1, "stats": [], "boost": boost}
 	var nimets := [
 		{"kind": "heal", "id": "heal", "tag": "NİMET", "name": "Kızıl Şifa", "desc": "Anında 40 can yeniler.", "level": 0, "max": 1, "stats": []},
-		{"kind": "guc", "id": "guc", "tag": "NİMET", "name": "Kadim Güç", "desc": "Tüm hasar kalıcı olarak +%8.", "level": 0, "max": 1, "stats": []},
-		{"kind": "heal", "id": "heal2", "tag": "NİMET", "name": "Kan Ziyafeti", "desc": "Anında 40 can yeniler.", "level": 0, "max": 1, "stats": []},
+		{"kind": "guc", "id": "guc", "tag": "NİMET", "name": "Kadim Güç", "desc": "Tüm hasar kalıcı olarak +%6.", "level": 0, "max": 1, "stats": []},
+		{"kind": "feast", "id": "heal2", "tag": "NİMET", "name": "Kan Ziyafeti", "desc": "20 can yeniler, azami can kalıcı +10.", "level": 0, "max": 1, "stats": []},
 	]
 	JS.shuffle(passives_l)
 	JS.shuffle(actives)
@@ -1859,6 +1869,14 @@ func roll_choices(n: int) -> Array:
 			evoCard = {"kind": "special", "evo": true, "wEvo": true, "myth": true, "id": "evo_w_" + best, "icon": best,
 				"tag": "EVRİM", "name": E.name, "desc": E.desc, "level": 0, "max": 1, "stats": [], "boost": boost}
 	if evoCard: res[int(randf() * res.size())] = evoCard
+	else:
+		# kart birleşimi: koşulu sağlanan ilk birleşim bir yuvaya gelir
+		for F in FUSIONS:
+			if fused.get(F.id): continue
+			if JS.i(passives.get(F.a)) >= 3 and JS.i(passives.get(F.b)) >= 3:
+				res[int(randf() * res.size())] = {"kind": "fusion", "evo": true, "myth": true, "id": F.id, "tag": "EVRİM",
+					"name": F.name, "desc": F.desc, "level": 0, "max": 1, "stats": [], "mods": F.mods}
+				break
 	if g.player and g.player.level >= 8 and curses < 2 and randf() < 0.16:
 		var pool := []
 		for K in CURSES:
@@ -1943,7 +1961,7 @@ func evo_hint():
 func apply_choice(c: Dictionary) -> void:
 	var p = game.player
 	_add_tag(c)
-	var cc := {"weapon": Color(1, 0.78, 0.3), "passive": Color(0.4, 0.9, 1), "special": Color(0.75, 0.5, 1), "curse": Color(1, 0.25, 0.3), "heal": Color(0.4, 1, 0.55), "guc": Color(1, 0.5, 0.3)}
+	var cc := {"weapon": Color(1, 0.78, 0.3), "passive": Color(0.4, 0.9, 1), "special": Color(0.75, 0.5, 1), "curse": Color(1, 0.25, 0.3), "heal": Color(0.4, 1, 0.55), "feast": Color(0.4, 1, 0.55), "fusion": Color(1, 0.82, 0.35), "guc": Color(1, 0.5, 0.3)}
 	if game.vfx: game.vfx.cast(p.x, p.y, cc.get(c.kind, Color(1, 0.85, 0.5)))
 	match c.kind:
 		"weapon":
@@ -1958,7 +1976,20 @@ func apply_choice(c: Dictionary) -> void:
 		"heal":
 			p.heal(40)
 		"guc":
-			p.dmgMult += 0.08
+			p.dmgMult += 0.06
+		"feast":
+			p.apply_mods({"maxHp": 10})
+			p.heal(20)
+		"fusion":
+			fused[c.id] = true
+			p.apply_mods(c.mods)
+			var gg = game
+			gg.spawn_burst(p.x, p.y, "#f0c77a", 26, 320, 3.4, 0.8, true)
+			gg.spawn_burst(p.x, p.y, "#ffffff", 10, 180, 2.4, 0.5, true)
+			gg.fx_impact(p.x, p.y, 0, 3, "#f0c77a")
+			gg.punch(0.04)
+			gg.spawn_text(p.x, p.y - 70, "EVRİM · " + Txt.upper_tr(str(c.name)), "#ffe9bd", 16, true)
+			gg.audio.play("synergy")
 		"curse":
 			cursed[c.id] = true
 			curses += 1

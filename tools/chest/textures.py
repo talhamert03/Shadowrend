@@ -20,6 +20,15 @@ fine = noise(60, 4, 3)                                            # ince lif
 plank_tone = np.repeat(rng.uniform(0.86, 1.0, 4), N // 4)[:, None]
 v = (0.70 + 0.20 * grain + 0.10 * fine) * plank_tone
 jy = (np.arange(N) % (N // 4))[:, None]
+# kalas kenarlarına doğru kararma (boyalı hacim) + uzun ince çatlaklar
+edge = np.minimum(jy, N // 4 - jy) / (N / 8)
+v = v * (0.80 + 0.20 * np.clip(edge * 2.2, 0, 1))
+for _ in range(9):
+    cy0 = rng.integers(0, N); cx0 = rng.integers(0, N); L = rng.integers(60, 200)
+    for t in range(L):
+        yy = int(cy0 + 3.0 * np.sin(t * 0.05)) % N
+        v[yy, (cx0 + t) % N] *= 0.55
+        v[(yy + 1) % N, (cx0 + t) % N] *= 1.10
 v = np.where(jy < 5, v * 0.28, v)                                  # derz
 v = np.where((jy >= 5) & (jy < 9), v * 1.12, v)                    # derz kenarı ışığı
 for _ in range(7):                                                # çivi başları
@@ -31,6 +40,8 @@ Image.fromarray((np.clip(v, 0, 1) * 255).astype(np.uint8)).convert("RGB").save("
 ham = noise(7, 7, 11); ham = np.floor(ham * 6) / 6 * 0.5 + ham * 0.5   # dövme fasetleri
 brush = noise(90, 3, 12)
 v = 0.80 + 0.14 * ham + 0.07 * brush
+pat = noise(5, 5, 21)                                              # koyu pas/is lekeleri
+v = v * (0.84 + 0.16 * np.clip((pat - 0.25) * 2.2, 0, 1))
 for _ in range(26):                                               # ince çizikler
     x0, y0 = rng.integers(0, N), rng.integers(0, N); L = rng.integers(30, 110); a = rng.uniform(-0.5, 0.5)
     for t in range(L):

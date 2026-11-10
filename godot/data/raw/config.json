@@ -2454,6 +2454,32 @@
    }
   },
   {
+   "id": "e_buzulzirh",
+   "name": "Buzul Zırhı",
+   "slot": "zirh",
+   "rarity": 5,
+   "price": 170,
+   "icon": "z_nd",
+   "desc": "Don tutmuş çelik; darbeyi soğukkanlı karşılar.",
+   "mods": {
+    "maxHp": 21,
+    "armor": 1
+   }
+  },
+  {
+   "id": "e_kizilay",
+   "name": "Kızıl Ay Zırhı",
+   "slot": "zirh",
+   "rarity": 4,
+   "price": 395,
+   "icon": "z_kizilay",
+   "desc": "Göğsündeki hilal her damlada parlar.",
+   "mods": {
+    "maxHp": 30,
+    "lifeSteal": 0.035
+   }
+  },
+  {
    "id": "e_derield",
    "name": "Deri Eldiven",
    "slot": "eldiven",
@@ -2531,6 +2557,44 @@
    }
   },
   {
+   "id": "e_sargi",
+   "name": "Sargı Bezi",
+   "slot": "eldiven",
+   "rarity": 1,
+   "price": 42,
+   "icon": "g_sargi",
+   "desc": "Sıkı sarılmış bir yumruk boşa gitmez.",
+   "mods": {
+    "critChance": 0.025
+   }
+  },
+  {
+   "id": "e_ayazel",
+   "name": "Ayaz Eldiveni",
+   "slot": "eldiven",
+   "rarity": 5,
+   "price": 165,
+   "icon": "g_nd",
+   "desc": "Soğuk çelik, sakin el, isabetli vuruş.",
+   "mods": {
+    "atkPct": 0.1,
+    "critChance": 0.03
+   }
+  },
+  {
+   "id": "e_cellatel",
+   "name": "Cellat Eldiveni",
+   "slot": "eldiven",
+   "rarity": 4,
+   "price": 385,
+   "icon": "g_cellat",
+   "desc": "Bu el bir kez kalkar, bir kez iner.",
+   "mods": {
+    "critChance": 0.07,
+    "critMult": 0.25
+   }
+  },
+  {
    "id": "e_derizizme",
    "name": "Deri Çizme",
    "slot": "cizme",
@@ -2604,6 +2668,44 @@
     "atkPct": 0.17500000000000002,
     "dmgPct": 0.07
    }
+  },
+  {
+   "id": "e_carik",
+   "name": "Yamalı Çarık",
+   "slot": "cizme",
+   "rarity": 1,
+   "price": 42,
+   "icon": "b_carik",
+   "desc": "Çok yol görmüş, hâlâ koşuyor.",
+   "mods": {
+    "speedPct": 0.03
+   }
+  },
+  {
+   "id": "e_karizi",
+   "name": "Kar İzi Çizmesi",
+   "slot": "cizme",
+   "rarity": 5,
+   "price": 165,
+   "icon": "b_nd",
+   "desc": "Karda iz bırakmaz, rüzgâr gibi geçer.",
+   "mods": {
+    "atkPct": 0.09,
+    "speedPct": 0.04
+   }
+  },
+  {
+   "id": "e_golgecizme",
+   "name": "Gölge Çizmesi",
+   "slot": "cizme",
+   "rarity": 4,
+   "price": 385,
+   "icon": "b_golge",
+   "desc": "Vuruş geldiğinde sen çoktan gitmişsindir.",
+   "mods": {
+    "dodge": 0.06,
+    "speedPct": 0.06
+   }
   }
  ],
  "EQUIP_SLOTS": [
@@ -2639,7 +2741,7 @@
   "maxShakePx": 7,
   "shakeDecay": 3.6,
   "floatTextLife": 0.85,
-  "hitFlashTime": 0.09
+  "hitFlashTime": 0.11
  },
  "GEAR_CARD_REQ": [
   0,
@@ -3037,10 +3139,11 @@
   },
   "miknatis": {
    "name": "Ruh Feneri",
-   "desc": "Cevherleri %55 daha uzaktan çeker.",
+   "desc": "Cevherleri %45 daha uzaktan çeker, tecrübe +%4.",
    "maxLevel": 4,
    "mods": {
-    "magnetPct": 0.55
+    "magnetPct": 0.45,
+    "xpPct": 0.04
    }
   },
   "keskinlik": {
@@ -3054,10 +3157,11 @@
   },
   "zirh": {
    "name": "Kemik Zırh",
-   "desc": "Yediğin her vuruştan 2 hasar siler.",
+   "desc": "Yediğin her vuruştan 2 hasar siler, azami can +6.",
    "maxLevel": 4,
    "mods": {
-    "armor": 2
+    "armor": 2,
+    "maxHp": 6
    }
   },
   "gazap": {
@@ -3074,6 +3178,23 @@
    "maxLevel": 4,
    "mods": {
     "atkPct": 0.1
+   }
+  },
+  "kulkani": {
+   "name": "Kül Kanı",
+   "desc": "Öldürdüğün düşman %9 ihtimalle patlar.",
+   "maxLevel": 4,
+   "mods": {
+    "explodeChance": 0.09,
+    "explodeDmgPct": 0.12
+   }
+  },
+  "buzkalp": {
+   "name": "Buz Kalp",
+   "desc": "Saniyede 0,7 can yenilersin.",
+   "maxLevel": 4,
+   "mods": {
+    "regen": 0.7
    }
   }
  },

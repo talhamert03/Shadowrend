@@ -715,6 +715,7 @@ func show_menu() -> void:
 	pause.hide_pause()
 	levelup.hide_screen()
 	menu.open("savas")
+	get_tree().create_timer(1.6).timeout.connect(_coach)
 	# bekleyen dönüş hediyesi / hesap seviyesi (ui.js showMenu)
 	if g._pendingGift:
 		var G = g._pendingGift
@@ -1027,3 +1028,44 @@ func _dev_chestshots(dir: String) -> void:
 				for i in 4: await get_tree().process_frame
 				(st.vp.get_texture().get_image() as Image).save_png(dir + "/a" + str(t) + "_%02d.png" % fr)
 	get_tree().quit()
+
+## HAFİF YÖNLENDİRME: yeni oyuncuya menüde tek satırlık ipuçları. Hiçbir şeyi kilitlemez, dokunuşu
+## engellemez; her ipucu yalnız BİR kez ve menüye her dönüşte en çok bir tane gösterilir.
+func _coach() -> void:
+	if menu == null or not menu.visible or g.state == "playing" or _arg("autorun") != "": return
+	if not (g.meta.get("coach") is Dictionary): g.meta["coach"] = {}
+	var C: Dictionary = g.meta.coach
+	if C.size() >= 6: return
+	var tip := ""
+	var key := ""
+	var cleared := 0
+	for w in g.progress: cleared += JS.i(g.progress[w])
+	var ready := false
+	var waiting := false
+	for c in g.chests.slots:
+		if c and c.st == "ready": ready = true
+		if c and c.st == "locked": waiting = true
+	var worn := 0
+	var map: Dictionary = g.char_gear_map()
+	for k in map:
+		if map[k]: worn += 1
+	var spare := false
+	for id in g.meta.owned:
+		if g.gear_by_id(id) and not g.is_equipped(id) and g.can_wear(id): spare = true
+	if cleared == 0 and not C.has("start"):
+		key = "start"; tip = "SAVAŞ’A BAS — İLK GÖREVİN SENİ BEKLİYOR"
+	elif ready and not C.has("chest"):
+		key = "chest"; tip = "SANDIĞIN HAZIR — ALTTAKİ YUVAYA DOKUN"
+	elif waiting and not ready and not C.has("unlock") and cleared >= 1:
+		key = "unlock"; tip = "SANDIĞA DOKUN, AÇILMAYA BAŞLASIN"
+	elif spare and worn == 0 and not C.has("gear"):
+		key = "gear"; tip = "YENİ EŞYAN VAR — KUŞANIM’DAN KUŞAN"
+	elif g.can_upgrade_char(str(g.meta.selectedChar)) and not C.has("hero"):
+		key = "hero"; tip = "KAHRAMANIN YÜKSELMEYE HAZIR — KAHRAMAN SEKMESİ"
+	elif cleared >= 3 and not C.has("daily"):
+		key = "daily"; tip = "GÜNLÜK GÖREVLER ÖDÜL VERİR — SAĞ ÜSTTEKİ DEFTERE BAK"
+	if key == "": return
+	C[key] = 1
+	g.save_meta()
+	toast(I18n.t(tip))
+	hud._toastUntil = hud._t + 4.2      # ipucu okunacak kadar kalsın

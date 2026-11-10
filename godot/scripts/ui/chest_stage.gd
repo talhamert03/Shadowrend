@@ -58,6 +58,10 @@ var _halo_mats: Array = []
 var _flames: Array = []
 var _embers: Array = []
 var _orbits: Array = []
+var _smoke: Array = []          # açılış sisi: {m, mat, t, life, p0, v, ph, s0}
+var _smoke_armed := true
+var _open_cur := 0.0
+var _mroot: Node3D
 var _sheen: ShaderMaterial
 var _sheen_c := Color.BLACK
 var _sheen_prm: Array = []
@@ -294,6 +298,9 @@ func set_tier(k: int) -> void:
 	_build_chest_fx()
 	# ağız/iç efektleri modelle aynı duruşu paylaşsın (model üç çeyrek dönük)
 	var mroot: Node3D = cm.root
+	_mroot = mroot
+	_smoke.clear()
+	_smoke_armed = true
 	var movers: Array = [_mouth_dark, _mouth_glow, _collar, _seam]
 	for u in _treasure: movers.append(u.m)
 	for nd in movers:
@@ -418,6 +425,37 @@ func _build_chest_fx() -> void:
 		var mm := (mo.m as MeshInstance3D).material_override as StandardMaterial3D
 		mm.albedo_color = Color(Color("#fff0c8") if tier <= 2 else gc, 0)
 
+func _spawn_smoke() -> void:
+	for s in _smoke:
+		if is_instance_valid(s.m): (s.m as Node).queue_free()
+	_smoke.clear()
+	if _mroot == null: return
+	var gc := glow_col
+	var n := 40
+	for i in n:
+		var add := i % 3 == 0
+		var q := QuadMesh.new(); q.size = Vector2(2, 2)
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD if add else BaseMaterial3D.BLEND_MODE_MIX
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+		m.albedo_texture = tex("glow")
+		var c := gc.lerp(Color.WHITE, 0.25) if add else gc.lerp(Color(0.75, 0.75, 0.8), 0.3)
+		m.albedo_color = Color(c.r, c.g, c.b, 0.0)
+		m.render_priority = 5
+		var mi := MeshInstance3D.new()
+		mi.mesh = q; mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.visible = false
+		_mroot.add_child(mi)
+		var px := (randf() - 0.5) * 38.0
+		_smoke.append({"m": mi, "mat": m, "t": -randf() * 0.5, "life": 1.5 + randf() * 0.9,
+			"p0": Vector3(px, ChestModel.BH + 1.0 + randf() * 3.0, 6.0 + randf() * 12.0),
+			"v": Vector3(px * 0.28, 20.0 + randf() * 20.0, 2.0 + randf() * 5.0), "ph": randf() * TAU,
+			"s0": 9.0 + randf() * 9.0, "a0": (0.7 if add else 0.9)})
+
 func spawn_spark() -> void:
 	for s in _sparks:
 		if s.life > 0: continue
@@ -461,6 +499,7 @@ func _process(dt: float) -> void:
 	_chest.rotation = Vector3(0, sin(_t * 0.6) * 0.045, p.get("rotZ", 0.0))
 	_chest.scale = Vector3(sx, sy, sz)
 	if _lid: _lid.rotation.x = (0.0 if open <= 0 else _ease_back(minf(1.0, open))) * -1.85 - (0.0 if open > 0 else (0.022 + 0.022 * sin(_t * 2.1) + seam * 0.08))
+	_open_cur = open
 	var leak := maxf(open, seam * 0.5)
 	_anim_model(leak)
 	_inner.light_energy = leak * 7.5 / PI
@@ -580,6 +619,23 @@ func _anim_model(leak: float) -> void:
 		var an := _t * float(o[4]) + float(o[3])
 		var oc: Vector3 = o[1]
 		(o[0] as Node3D).position = oc + Vector3(cos(an) * float(o[2]), sin(an * 1.7) * 3.0, sin(an) * float(o[2]) * 0.8)
+	# açılış sisi: kapak aralanınca sandık renginde duman kıvrılarak yükselir, kısa sürede dağılır
+	if _open_cur > 0.02 and _smoke_armed:
+		_smoke_armed = false
+		_spawn_smoke()
+	elif _open_cur <= 0.0:
+		_smoke_armed = true
+	for sm in _smoke:
+		sm.t += get_process_delta_time()
+		var u: float = clampf(sm.t / sm.life, 0.0, 1.0)
+		var nd: Node3D = sm.m
+		nd.visible = sm.t >= 0.0 and u < 1.0
+		if not nd.visible: continue
+		var p0: Vector3 = sm.p0; var vv: Vector3 = sm.v
+		var curl := sin(u * 5.2 + float(sm.ph)) * (4.0 + 12.0 * u)
+		nd.position = p0 + vv * (u * sm.life) * (1.0 - 0.35 * u) + Vector3(curl, 0, cos(u * 4.1 + float(sm.ph)) * 3.0 * u)
+		nd.scale = Vector3.ONE * float(sm.s0) * (0.55 + 1.9 * u)
+		(sm.mat as StandardMaterial3D).albedo_color.a = float(sm.a0) * pow(sin(PI * pow(u, 0.6)), 1.2)
 	for hm in _halo_mats:
 		(hm as StandardMaterial3D).albedo_color.a = float(hm.get_meta("a0", 0.4)) * (0.8 + 0.2 * sin(_t * 2.1)) * (1.0 + leak * 0.8)
 	for b in _bobs:

@@ -18,6 +18,9 @@ const WEEKLY_QUESTS := [
 	{"id": "boss",       "label": "BOSS DEVİR",        "need": 2,   "pts": 14, "reward": {"kind": "stone",  "amount": 16}},
 	{"id": "objectives", "label": "SAHA GÖREVİ BİTİR", "need": 4,   "pts": 12, "reward": {"kind": "rubies", "amount": 240}},
 	{"id": "waves",      "label": "DALGA ATLAT",       "need": 40,  "pts": 10, "reward": {"kind": "rubies", "amount": 200}},
+	# KAHRAMAN USTALIĞI (basit): farklı kahramanlarla oyna + haftanın kahramanıyla ustalaş. Haftalık puana katılmaz.
+	{"id": "heroes",     "label": "FARKLI KAHRAMANLA KAZAN", "need": 3, "pts": 0, "reward": {"kind": "rubies", "amount": 350}},
+	{"id": "mastery",    "label": "USTALIK",           "need": 250, "pts": 0,  "reward": {"kind": "chest",  "chest": "kemik"}},
 ]
 const WEEKLY_TIERS := [
 	{"pts": 20, "reward": {"kind": "chest", "chest": "kemik"}},
@@ -92,6 +95,7 @@ static func normalize_quests(q) -> Dictionary:
 		"makeupUsed": s.makeupUsed if s.get("makeupUsed") is String else "",
 		"week": s.week if s.get("week") is String else "",
 		"prog": prog,
+		"heroes": (s.heroes as Array).filter(func(x): return x is String) if s.get("heroes") is Array else [],
 		"claimed": claimed,
 		"tiers": tiers,
 	}
@@ -113,6 +117,7 @@ func touch() -> void:
 	if Q.week != week_key():
 		for def in WEEKLY_QUESTS: Q.prog[def.id] = 0
 		Q.claimed = []
+		Q["heroes"] = []
 		Q.tiers = []
 		Q.makeup = 1
 		Q.week = week_key()
@@ -183,6 +188,29 @@ func add(id: String, n: float) -> void:
 	var cur := JS.i(q.prog.get(id))
 	if cur >= def.need: return
 	q.prog[id] = mini(def.need, cur + int(floor(n)))
+
+## haftanın kahramanı: sahip olunanlar arasından haftaya göre sabit seçim
+func mastery_hero() -> String:
+	var own: Array = game.meta.charsOwned.duplicate()
+	own.sort()
+	if own.is_empty(): return str(game.meta.selectedChar)
+	return str(own[absi(hash(week_key())) % own.size()])
+
+func label_of(def: Dictionary) -> String:
+	if def.id == "mastery":
+		var c = D.CHARACTERS.get(mastery_hero())
+		return I18n.t("USTALIK") + " · " + I18n.t(str(c.name) if c else "") + " " + I18n.t("İLE DÜŞMAN DEVİR")
+	return I18n.t(str(def.label))
+
+## görev sonu: ustalık ilerlemesi (farklı kahramanla zafer + haftanın kahramanıyla öldürme)
+func add_mastery(kills: float, won: bool) -> void:
+	var ch := str(game.meta.selectedChar)
+	if won:
+		if not (q.get("heroes") is Array): q["heroes"] = []
+		if not q.heroes.has(ch):
+			q.heroes.append(ch)
+			add("heroes", 1)
+	if ch == mastery_hero(): add("mastery", kills)
 
 func claim_quest(id: String):
 	var def = null

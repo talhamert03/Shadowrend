@@ -59,6 +59,8 @@ func _mat(col: Color, metal := 0.0, rough := 0.8, kind := "") -> StandardMateria
 	if kind != "":
 		var t := _tex(kind)
 		m.albedo_texture = t[0]
+		m.roughness_texture = t[0]
+		m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
 		m.uv1_triplanar = true
 		m.uv1_scale = Vector3.ONE * (0.036 if kind == "wood" else 0.06)
 		m.uv1_triplanar_sharpness = 8.0
@@ -237,70 +239,140 @@ func _grp(par: Node3D, pos := Vector3.ZERO, nm := "") -> Node3D:
 	par.add_child(n)
 	return n
 
-## yarım fıçı: yalnız üst yarı (0…180°). solid=true → altı kapalı (kuşak/uç parçaları);
-## inner=true → içe bakan yüzeyler (kapağın oyuk içi)
-func _half(rz: float, ry: float, xlen: float, segs: int, mat: Material, par: Node3D, c: Vector3, solid := true, inner := false, flat := false) -> MeshInstance3D:
+## kapak profilleri: tür → [yükseklik oranı, kemer üssü (1 = yuvarlak, <1 basık-dolgun, >1 sivri kemer), dilim]
+const LID := {"low": [0.60, 1.0, 14], "flat": [0.50, 0.55, 14], "barrel": [0.95, 1.0, 16], "gable": [1.08, 1.7, 14], "hex": [0.82, 0.8, 5]}
+
+static func _arch(a: float, rz: float, ry: float, ex: float) -> Vector3:
+	return Vector3(0, pow(maxf(0.0, sin(a)), ex) * ry, cos(a) * rz)
+
+## bombeli yarım kapak: üst yarı kemer; uçlara doğru hafif daralır (crown) — düz silindir değil.
+## solid → altı kapalı; inner → içe bakan yüzeyler
+func _half(rz: float, ry: float, xlen: float, segs: int, mat: Material, par: Node3D, c: Vector3, solid := true, inner := false, ex := 1.0, crown := 0.0) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var hx := xlen * 0.5
-	var sgn := -1.0 if inner else 1.0
-	var tri := func(a: Vector3, na: Vector3, b: Vector3, nb: Vector3, cc: Vector3, nc: Vector3, fn: Vector3):
-		if (b - a).cross(cc - a).dot(fn) > 0.0:
-			var t := b; b = cc; cc = t
-			var tn := nb; nb = nc; nc = tn
-		st.set_normal(na); st.add_vertex(a)
-		st.set_normal(nb); st.add_vertex(b)
-		st.set_normal(nc); st.add_vertex(cc)
-	for i in segs:
-		var a0 := PI * i / segs; var a1 := PI * (i + 1) / segs
-		var p0 := Vector3(0, sin(a0) * ry, cos(a0) * rz); var p1 := Vector3(0, sin(a1) * ry, cos(a1) * rz)
-		var n0 := Vector3(0, sin(a0) * rz, cos(a0) * ry).normalized() * sgn
-		var n1 := Vector3(0, sin(a1) * rz, cos(a1) * ry).normalized() * sgn
-		if flat:
-			n0 = ((n0 + n1) * 0.5).normalized(); n1 = n0
-		var fn := ((n0 + n1) * 0.5).normalized()
-		var A := p0 + Vector3(-hx, 0, 0); var B := p0 + Vector3(hx, 0, 0)
-		var C := p1 + Vector3(hx, 0, 0); var Dd := p1 + Vector3(-hx, 0, 0)
-		tri.call(A, n0, B, n0, C, n1, fn)
-		tri.call(A, n0, C, n1, Dd, n1, fn)
-		for sx in [-1.0, 1.0]:
-			var nn := Vector3(sx * sgn, 0, 0)
-			tri.call(Vector3(sx * hx, 0, 0), nn, p0 + Vector3(sx * hx, 0, 0), nn, p1 + Vector3(sx * hx, 0, 0), nn, nn)
+	var XS := 8 if crown > 0.0 else 1
+	var P := segs + 1
+	for xi in XS + 1:
+		var u := -1.0 + 2.0 * xi / XS
+		var k := 1.0 - crown * pow(absf(u), 2.6)
+		for i in P:
+			var v := _arch(PI * i / segs, rz * k, ry * k, ex)
+			st.add_vertex(Vector3(u * hx, v.y, v.z))
+	for xi in XS:
+		for i in segs:
+			var i0 := xi * P + i; var i1 := (xi + 1) * P + i
+			var q := [i0, i1 + 1, i1, i0, i0 + 1, i1 + 1] if not inner else [i0, i1, i1 + 1, i0, i1 + 1, i0 + 1]
+			for id in q: st.add_index(id)
+	st.generate_normals()
+	var m1 := st.commit()
+	# uç kapakları (+ istenirse taban) ayrı yüzey: düz normaller
+	var st2 := SurfaceTool.new()
+	st2.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var kE := 1.0 - crown
+	for sx in [-1.0, 1.0]:
+		var nn := Vector3(sx * (-1.0 if inner else 1.0), 0, 0)
+		for i in segs:
+			var p0 := _arch(PI * i / segs, rz * kE, ry * kE, ex) + Vector3(sx * hx, 0, 0)
+			var p1 := _arch(PI * (i + 1) / segs, rz * kE, ry * kE, ex) + Vector3(sx * hx, 0, 0)
+			var o := Vector3(sx * hx, 0, 0)
+			var tri := [o, p0, p1] if (p0 - o).cross(p1 - o).dot(nn) < 0.0 else [o, p1, p0]
+			for v in tri:
+				st2.set_normal(nn); st2.add_vertex(v)
 	if solid and not inner:
 		var dn := Vector3(0, -1, 0)
-		tri.call(Vector3(-hx, 0, rz), dn, Vector3(hx, 0, rz), dn, Vector3(hx, 0, -rz), dn, dn)
-		tri.call(Vector3(-hx, 0, rz), dn, Vector3(hx, 0, -rz), dn, Vector3(-hx, 0, -rz), dn, dn)
-	return _mi(st.commit(), mat, par, c)
+		for v in [Vector3(-hx, 0, rz), Vector3(hx, 0, -rz), Vector3(hx, 0, rz), Vector3(-hx, 0, rz), Vector3(-hx, 0, -rz), Vector3(hx, 0, -rz)]:
+			st2.set_normal(dn); st2.add_vertex(v)
+	st2.commit(m1)
+	return _mi(m1, mat, par, c)
 
 ## kapak gövdesi: x boyunca uzanan şekil (menteşe yerelinde; merkez z = +HD)
 func _lid_shape(kind: String, xlen: float, k: float, mat: Material, par: Node3D, x := 0.0) -> void:
-	var c := Vector3(x, 0, HD)
-	match kind:
-		"low": _half(HD * k, HD * 0.62 * k, xlen, 14, mat, par, c)
-		"barrel": _half(HD * k, HD * 0.95 * k, xlen, 16, mat, par, c)
-		"hex": _half(HD * k * 1.06, HD * 0.74 * k * 1.06, xlen, 3, mat, par, c, true, false, true)
-		"flat":
-			_box(Vector3(xlen, 6.0 * k, HD * 2 * k), mat, par, c + Vector3(0, 3.0 * k, 0))
-			_box(Vector3(xlen * (0.86 if xlen > 10 else 1.0), 4.4 * k, HD * 1.5 * k), mat, par, c + Vector3(0, 7.6 * k, 0))
-		"gable":
-			var pm := PrismMesh.new()
-			pm.size = Vector3(HD * 2 * k, 15.0 * k, xlen)
-			_mi(pm, mat, par, c + Vector3(0, 7.5 * k, 0), Vector3(0, 90, 0))
+	var L: Array = LID[kind]
+	var cr := 1.0 - 0.10 * pow(absf(x) / (HW + 0.5), 2.6)       # şerit, kapağın o noktadaki daralmasını izler
+	_half((HD + 1.7) * k * cr, (HD + 1.7) * float(L[0]) * k * cr, xlen, int(L[2]), mat, par, Vector3(x, 0.6, HD), true, false, float(L[1]))
 
 ## kapak yüzeyinde bir nokta (a: önden arkaya açı derecesi, 0 = ön kenar, 90 = tepe)
 func _lid_pt(kind: String, x: float, a: float, out := 0.0) -> Vector3:
-	var r := deg_to_rad(a)
-	match kind:
-		"low": return Vector3(x, sin(r) * (HD * 0.62 + out), HD + cos(r) * (HD + out))
-		"barrel": return Vector3(x, sin(r) * (HD * 0.95 + out), HD + cos(r) * (HD + out))
-		"hex": return Vector3(x, sin(r) * (HD * 0.74 + out), HD + cos(r) * (HD * 0.98 + out))
-		"flat": return Vector3(x, (10.0 if a > 40.0 else 4.0) + out, HD + cos(r) * (HD * (0.75 if a > 40.0 else 1.0) + out))
-		_:  # gable
-			var t := 1.0 - absf(cos(r))
-			return Vector3(x, t * 15.0 + out, HD + cos(r) * HD)
+	var L: Array = LID[kind]
+	var cr := 1.0 - 0.10 * pow(absf(x) / (HW + 0.5), 2.6)
+	var v := _arch(deg_to_rad(a), (HD + 1.7 + out) * cr, ((HD + 1.7) * float(L[0]) + out) * cr, float(L[1]))
+	return Vector3(x, v.y + 0.6, HD + v.z)
 
 func _lid_top(kind: String) -> float:
-	return {"low": HD * 0.62, "barrel": HD * 0.95, "hex": HD * 0.74, "flat": 9.8, "gable": 15.0}[kind]
+	return (HD + 1.7) * float(LID[kind][0]) + 0.6
+
+## bombeli gövde halkası: yuvarlatılmış dikdörtgen kesit, dikeyde göbekli (bulge), yumuşak normaller.
+## mask "corners" → yalnız köşe koruyucuları; cap_in → üst kenardan içe doğru halka kapak (duvar kalınlığı);
+## inner → içe bakan duvar.
+func _hull(hx: float, hz: float, rad: float, y0: float, y1: float, bulge: float, mat: Material, par: Node3D, mask := "", cap_in := 0.0, inner := false, lv := 8, c := Vector3.ZERO, cap_bot := false) -> MeshInstance3D:
+	var pts: Array = []          # kesit noktaları (x,z), saat yönünün tersine
+	var corner: Array = []
+	for k in 4:
+		var sx: float = [1.0, 1.0, -1.0, -1.0][k]; var sz: float = [1.0, -1.0, -1.0, 1.0][k]
+		var cx := sx * (hx - rad); var cz := sz * (hz - rad)
+		for i in 7:
+			var th := PI * 0.5 * i / 6.0
+			var ex2 := Vector2(sx * (sin(th) if (k % 2 == 0) else cos(th)), sz * (cos(th) if (k % 2 == 0) else sin(th)))
+			pts.append(Vector2.ZERO)
+			pts[-1] = Vector2(cx + ex2.x * rad, cz + ex2.y * rad)
+			corner.append(true)
+		# köşeden sonraki düz kenar: 3 ara nokta (bir sonraki köşeye doğru)
+		var nk := (k + 1) % 4
+		var nsx: float = [1.0, 1.0, -1.0, -1.0][nk]; var nsz: float = [1.0, -1.0, -1.0, 1.0][nk]
+		var pa: Vector2 = pts[-1]
+		var th0 := 0.0
+		var ex3 := Vector2(nsx * (sin(th0) if (nk % 2 == 0) else cos(th0)), nsz * (cos(th0) if (nk % 2 == 0) else sin(th0)))
+		var pb := Vector2(nsx * (hx - rad) + ex3.x * rad, nsz * (hz - rad) + ex3.y * rad)
+		for i in range(1, 4):
+			pts.append(pa.lerp(pb, i / 4.0)); corner.append(i == 1 or i == 3)
+	var P := pts.size()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for j in lv + 1:
+		var t := float(j) / lv
+		var sc := (1.0 + bulge * pow(sin(PI * t), 0.85)) * lerpf(0.955, 1.0, t)
+		for i in P:
+			var q: Vector2 = pts[i]
+			st.add_vertex(Vector3(q.x * sc, lerpf(y0, y1, t), q.y * sc))
+	var base := (lv + 1) * P
+	if cap_in > 0.0:
+		for i in P:
+			var q2: Vector2 = pts[i]
+			var kx := (hx - cap_in) / hx; var kz := (hz - cap_in) / hz
+			st.add_vertex(Vector3(q2.x * kx, y1, q2.y * kz))
+	# sarım yönü: kesit noktalarının dönüş yönünden bağımsız olsun diye ilk dörtlüde sına
+	var flip := false
+	var A0: Vector2 = pts[0]; var A1: Vector2 = pts[1]
+	var nrm := Vector3(A1.x - A0.x, 0, A1.y - A0.y).cross(Vector3(0, 1, 0))
+	if nrm.dot(Vector3(A0.x, 0, A0.y)) > 0.0: flip = true
+	if inner: flip = not flip
+	for j in lv:
+		for i in P:
+			if mask == "corners" and not (corner[i] and corner[(i + 1) % P]): continue
+			var i0 := j * P + i; var i1 := j * P + (i + 1) % P
+			var i2 := (j + 1) * P + (i + 1) % P; var i3 := (j + 1) * P + i
+			var q := [i0, i3, i2, i0, i2, i1] if flip else [i0, i2, i3, i0, i1, i2]
+			for id in q: st.add_index(id)
+	if cap_in > 0.0:
+		for i in P:
+			var o0 := lv * P + i; var o1 := lv * P + (i + 1) % P
+			var n0 := base + i; var n1 := base + (i + 1) % P
+			var q := [o0, n0, n1, o0, n1, o1] if flip else [o0, n1, n0, o0, o1, n1]
+			for id in q: st.add_index(id)
+	st.generate_normals()
+	var m := st.commit()
+	if cap_bot:
+		var st2 := SurfaceTool.new()
+		st2.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for i in P:
+			var q0: Vector2 = pts[i] * 0.955; var q1: Vector2 = pts[(i + 1) % P] * 0.955
+			var tri := [Vector3(0, y0, 0), Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y)]
+			if (tri[1] - tri[0]).cross(tri[2] - tri[0]).dot(Vector3(0, -1, 0)) > 0.0: tri = [tri[0], tri[2], tri[1]]
+			for v in tri:
+				st2.set_normal(Vector3(0, -1, 0)); st2.add_vertex(v)
+		st2.commit(m)
+	return _mi(m, mat, par, c)
 
 func _rune(par: Node3D, p: Vector3, g: Material, s := 1.0, v := 0) -> void:
 	var r := _grp(par, p)
@@ -336,7 +408,7 @@ func _build(tier: int) -> Dictionary:
 	var gem := _gm(gc.darkened(0.12), 1.05)
 	var kind: String = D.lid
 	var root := Node3D.new()
-	root.rotation = Vector3(0.2, -0.5, 0)
+	root.rotation = Vector3(0.27, -0.22, 0)
 	root.scale = Vector3.ONE * 0.86      # üç çeyrek + hafif üstten: mobil oyun sandık duruşu
 	var lid := _grp(root, Vector3(0, HY, -HD), "LID")
 	for lp in [Vector3(0, BH + 2.0, HD + 18.0), Vector3(HW + 18.0, BH * 0.5, 4.0)]:
@@ -345,61 +417,49 @@ func _build(tier: int) -> Dictionary:
 		ol.position = lp
 		root.add_child(ol)
 
-	# ── gövde: iri, tombul; üç kalın kalas, derin derzler ──
-	var FLY := BH - 10.0      # iç taban yüksekliği
-	_box(Vector3(HW * 2 - 1.0, FLY, HD * 2 - 1.0), body, root, Vector3(0, FLY * 0.5, 0))
-	_ring(HW * 2 - 1.0, BH - FLY + 1.0, HD * 2 - 1.0, 2.6, body, root, Vector3(0, (BH + FLY) * 0.5 + 0.5, 0))
-	# iç: koyu taban + derine doğru kararan duvar astarı
-	_box(Vector3(HW * 2 - 5.0, 0.6, HD * 2 - 5.0), dark, root, Vector3(0, FLY + 0.2, 0))
-	_ring(HW * 2 - 5.6, BH - FLY - 3.0, HD * 2 - 5.6, 0.5, dark, root, Vector3(0, FLY + (BH - FLY - 3.0) * 0.5, 0))
-	for i in 3:
-		var py := 4.4 + i * 6.9
-		var pm: Material = [body2, body3, body2][i]
-		if i < 2: _box(Vector3(HW * 2 + 1.2, 6.0, HD * 2 + 1.2), pm, root, Vector3(0, py, 0))
-		else: _ring(HW * 2 + 1.2, 6.0, HD * 2 + 1.2, 3.0, pm, root, Vector3(0, py, 0))
-	# taban + üst çember (kalın)
-	_box(Vector3(HW * 2 + 5.0, 4.2, HD * 2 + 5.0), trim2, root, Vector3(0, 0.6, 0))
-	_ring(HW * 2 + 4.4, 3.6, HD * 2 + 4.4, 4.6, trim, root, Vector3(0, BH - 0.8, 0))
-	_ring(HW * 2 + 5.0, 1.0, HD * 2 + 5.0, 4.4, acc, root, Vector3(0, BH + 0.9, 0))
+	# ── gövde: bombeli (göbekli) oyun sandığı — yuvarlak köşeler, oyuk iç ──
+	var FLY := BH - 11.0
+	var RAD := 6.4
+	_hull(HW, HD, RAD, 0.0, BH, 0.085, body2, root, "", 2.8)                       # dış kabuk + ağız kenarı
+	_hull(HW - 2.8, HD - 2.8, RAD - 2.0, FLY, BH, 0.0, _mat(bc.darkened(0.6), 0.0, 0.95, "wood"), root, "", 0.0, true, 2)   # iç duvar
+	_hull(HW - 2.6, HD - 2.6, RAD - 2.0, FLY - 0.6, FLY, 0.0, dark, root, "", HW - 3.0, false, 1)   # iç taban
+	# taban kuşağı + ağız çemberi (kalın, yuvarlak)
+	_hull(HW + 1.5, HD + 1.5, RAD + 1.2, -1.0, 4.6, 0.02, trim2, root, "", 3.0, false, 3, Vector3.ZERO, true)
+	_hull(HW + 1.2, HD + 1.2, RAD + 1.0, 4.6, 6.2, 0.0, acc, root, "", 2.0, false, 1)
+	_hull(HW + 2.4, HD + 2.4, RAD + 1.6, BH - 4.6, BH + 0.8, 0.0, trim, root, "", 5.0, false, 2)
+	_hull(HW + 2.9, HD + 2.9, RAD + 1.9, BH - 5.8, BH - 4.6, 0.0, acc, root, "", 1.2, false, 1)
 	# kapak aralığı (ışık şeridi)
-	_ring(HW * 2 + 1.4, 2.0, HD * 2 + 1.4, 1.5, g1, root, Vector3(0, HY + 0.1, 0))
-	# iri köşe dikmeleri + yuvarlak başlık + topuz ayak
+	_hull(HW + 0.9, HD + 0.9, RAD + 0.6, BH + 0.8, HY + 1.0, 0.0, g1, root, "", 2.2, false, 1)
+	# köşe koruyucuları: gövdenin bombesini izleyen kalın metal + perçinler
+	_hull(HW + 1.1, HD + 1.1, RAD + 0.9, 5.4, BH - 5.0, 0.085, trim, root, "corners", 0.0, false, 8)
 	for sx in [-1.0, 1.0]:
 		for sz in [-1.0, 1.0]:
-			var cp := Vector3(sx * (HW + 0.9), 0, sz * (HD + 0.9))
-			_cyl(3.6, 3.6, BH + 1.4, 12, trim, root, cp + Vector3(0, BH * 0.5 + 0.2, 0))
-			_cyl(4.1, 4.1, 1.6, 12, acc, root, cp + Vector3(0, BH - 4.4, 0))
-			_cyl(4.1, 4.1, 1.6, 12, acc, root, cp + Vector3(0, 4.6, 0))
+			for yy in [8.4, BH - 8.4]:
+				var bl := 1.0 + 0.085 * sin(PI * yy / BH)
+				_sph(1.7, acc, root, Vector3(sx * (HW - 2.0) * bl * 1.05, yy, sz * (HD - 2.0) * bl * 1.08), Vector3.ONE, 10)
+			# topuz ayaklar
+			_sph(5.2, trim2, root, Vector3(sx * (HW - 2.6), -1.8, sz * (HD - 2.6)), Vector3(1, 0.7, 1), 12)
+			# kapak köşe topuzları (kapakla birlikte kalkar)
 			var capm: Material = _mat(Color("#eaf6ff"), 0.0, 0.5) if tier == 5 else acc
-			_sph(4.3, capm, lid, Vector3(sx * (HW + 0.9), 3.9, HD + sz * (HD + 0.9)), Vector3(1, 0.72, 1), 12)
+			_sph(3.6, capm, lid, Vector3(sx * (HW - 0.6), 3.9, HD + sz * (HD - 0.6)), Vector3(1, 0.78, 1), 12)
 			if tier == 4 or tier == 7:
-				_cyl(2.0, 0.0, 6.0, 6, acc if tier == 7 else trim2, lid, Vector3(sx * (HW + 0.9), 8.6, HD + sz * (HD + 0.9)), Vector3(sz * 10, 0, -sx * 10))
-			_sph(4.8, trim2, root, cp + Vector3(0, -1.2, 0), Vector3(1, 0.75, 1), 10)
-	# geniş kuşaklar: gövde + kapak, iri perçinli
-	for bx in [-HW + 8.4, HW - 8.4]:
-		for bz in [HD + 0.1, -HD - 0.1]: _box(Vector3(7.6, BH + 0.6, 3.4), trim, root, Vector3(bx, BH * 0.5, bz))
-		_box(Vector3(7.6, 3.0, HD * 2 + 3.6), trim, root, Vector3(bx, 1.5, 0))
-		_lid_shape(kind, 7.6, 1.06, trim, lid, bx)
-		for yy in [5.0, BH - 6.4]:
-			_sph(2.0, acc, root, Vector3(bx, yy, HD + 2.0), Vector3(1, 1, 0.7), 10)
-		for a in [34.0, 90.0]:
-			_sph(2.0, acc, lid, _lid_pt(kind, bx, a, 1.1), Vector3.ONE * 0.9, 10)
-	# ── kapak: dolgun gövde + kalın çerçeve + uç kapakları ──
-	match kind:
-		"low": _half(HD, HD * 0.62, HW * 2 + 1.0, 14, body2, lid, Vector3(0, 0, HD), false)
-		"barrel": _half(HD, HD * 0.95, HW * 2 + 1.0, 16, body2, lid, Vector3(0, 0, HD), false)
-		"hex": _half(HD * 1.06, HD * 0.74 * 1.06, HW * 2 + 1.0, 3, body2, lid, Vector3(0, 0, HD), false, false, true)
-		_: _lid_shape(kind, HW * 2 + 1.0, 1.0, body2, lid)
-	_ring(HW * 2 + 9.4, 3.4, HD * 2 + 9.4, 6.6, trim, lid, Vector3(0, 1.9, HD))
-	_ring(HW * 2 + 10.0, 1.0, HD * 2 + 10.0, 6.4, acc, lid, Vector3(0, 0.4, HD))
-	# kapağın içi: oyuk, koyu astarlı (açılınca dış kabuk görünmez)
+				_cyl(1.9, 0.0, 5.6, 6, acc if tier == 7 else trim2, lid, Vector3(sx * (HW - 0.6), 8.2, HD + sz * (HD - 0.6)), Vector3(sz * 10, 0, -sx * 10))
+	# ── kapak: bombeli gövde + yuvarlak çerçeve + kalın şeritler ──
+	var LK: Array = LID[kind]
+	_half(HD + 1.7, (HD + 1.7) * float(LK[0]), HW * 2 + 3.2, int(LK[2]), body3, lid, Vector3(0, 0.6, HD), false, false, float(LK[1]), 0.09)
+	_hull(HW + 2.6, HD + 2.6, RAD + 1.8, 0.0, 3.6, 0.0, trim, lid, "", 6.4, false, 2, Vector3(0, 0, HD), false)
+	_hull(HW + 3.1, HD + 3.1, RAD + 2.1, 0.0, 1.1, 0.0, acc, lid, "", 1.4, false, 1, Vector3(0, 0, HD))
+	# kapağın iç yüzü: koyu ahşap panel
 	var lin := _mat(bc.darkened(0.7), 0.0, 0.95, "wood")
-	_box(Vector3(HW * 2 - 1.6, 0.8, HD * 2 - 1.6), lin, lid, Vector3(0, 1.3, HD))
-	for sx in [-1.0, 1.0]: _lid_shape(kind, 3.2, 1.06, trim2, lid, sx * (HW + 0.4))
+	_box(Vector3(HW * 2 + 1.6, 0.9, HD * 2 + 1.6), lin, lid, Vector3(0, 0.9, HD))
+	for bx in [-HW + 9.0, HW - 9.0]:
+		_lid_shape(kind, 7.2, 1.05, trim, lid, bx)
+		for e in [-3.9, 3.9]: _lid_shape(kind, 0.9, 1.075, acc, lid, bx + e)
+		for a in [36.0, 90.0]: _sph(1.8, acc, lid, _lid_pt(kind, bx, a, 1.6), Vector3.ONE * 0.9, 10)
 	# yan halka kulplar (iri)
 	for sx in [-1.0, 1.0]:
-		_sph(3.0, acc, root, Vector3(sx * (HW + 1.4), BH * 0.62, 0), Vector3(0.6, 1, 1), 10)
-		_torus(4.2, 0.95, trim, root, Vector3(sx * (HW + 3.0), BH * 0.62 - 4.0, 0), Vector3(0, 0, 90.0 + sx * 18.0))
+		_sph(3.0, acc, root, Vector3(sx * (HW + 1.9), BH * 0.6, 0), Vector3(0.6, 1, 1), 10)
+		_torus(4.2, 0.95, trim, root, Vector3(sx * (HW + 3.6), BH * 0.6 - 4.0, 0), Vector3(0, 0, 90.0 + sx * 18.0))
 	# ── ışık: haleler, alevler, zemin havuzu ──
 	_halo(root, Vector3(0, HY + 0.2, HD + 2.4), 8.0, gc, 0.5, 5.6)
 	_halo(root, Vector3(0, BH - 2.0, HD + 9.0), 15.0, gc, 0.45)
@@ -427,7 +487,7 @@ func _build(tier: int) -> Dictionary:
 	# kademe süsleri
 	if tier >= 4:
 		for rx in [-1.0, 1.0]:
-			var rr := _grp(root, Vector3(rx * 0.0 + rx * (HW - 8.4), BH * 0.5 - 0.8, HD + 2.6))
+			var rr := _grp(root, Vector3(rx * (HW - 9.6), BH * 0.5 - 1.6, HD * 1.085 + 0.4))
 			_cyl(2.6, 2.6, 1.0, 4, acc, rr, Vector3.ZERO, Vector3(90, 45, 0))
 			_cyl(1.9, 0.0, 1.8, 4, g2, rr, Vector3(0, 0, 0.8), Vector3(90, 45, 0))
 			_halo(rr, Vector3(0, 0, 2.2), 5.0, gc, 0.55)
@@ -439,7 +499,7 @@ func _build(tier: int) -> Dictionary:
 			_sph(2.0, trim, root, tb, Vector3.ONE, 8); _sph(1.4, trim, root, tc, Vector3.ONE, 8)
 
 	# ── kilit ──
-	var lk := _grp(root, Vector3(0, BH - 0.6, HD + 3.4))
+	var lk := _grp(root, Vector3(0, BH - 2.0, HD + 4.0))
 	lk.scale = Vector3.ONE * 1.55
 	match String(D.lock):
 		"ring":

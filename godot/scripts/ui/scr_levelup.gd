@@ -51,8 +51,8 @@ static func glyph_file(c: Dictionary) -> String:
 		_glyphs = JSON.parse_string(f.get_as_text()) if f else {"tables": {}}
 	var T: Dictionary = _glyphs.get("tables", {})
 	var kind: String = c.get("kind", "")
-	if kind == "passive": return T.get("PASSIVE_GLYPHS", {}).get(c.get("id", ""), "fallback")
-	if kind == "heal" or kind == "guc": return T.get("BOON_GLYPHS", {}).get(c.get("id", ""), "fallback")
+	if kind == "passive" or kind == "fusion": return T.get("PASSIVE_GLYPHS", {}).get(c.get("id", ""), "fallback")
+	if kind == "heal" or kind == "guc" or kind == "feast": return T.get("BOON_GLYPHS", {}).get(c.get("id", ""), "fallback")
 	var ic: String = str(c.get("icon", c.get("id", "")) if c.get("icon") != null else c.get("id", ""))
 	for tb in ["SEHER_GLYPHS", "SIMSEK_GLYPHS", "SAVASCI_GLYPHS", "GOKALEV_GLYPHS", "KORSAN_GLYPHS", "KRALICE_GLYPHS", "SOVALYE_GLYPHS", "SAPANCI_GLYPHS", "WEAPON_GLYPHS"]:
 		var t: Dictionary = T.get(tb, {})

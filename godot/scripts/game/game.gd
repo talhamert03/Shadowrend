@@ -1527,6 +1527,7 @@ func save_record(won: bool = false) -> void:
 	meta.events.survTotal += int(floor(time))
 	if dailies:
 		dailies.add("kills", kills)
+		dailies.add_mastery(kills, won)
 		dailies.add("waves", msn.waves if won else maxf(0.0, wave - 1))
 		if won:
 			dailies.add("missions", 1)
