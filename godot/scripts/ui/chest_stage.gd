@@ -199,7 +199,7 @@ func set_screen(scr: Vector2, box_pos: Vector2) -> void:
 func _dpr() -> float:
 	var win := DisplayServer.window_get_size()
 	var vis := UIK.ui_size(get_viewport()) if is_inside_tree() else Vector2(390, 844)
-	return clampf(float(win.x) / maxf(1.0, vis.x), 1.0, 2.0)
+	return clampf(float(win.x) / maxf(1.0, vis.x), 1.0, 3.0)      # yüksek yoğunluklu ekranda tam çözünürlük (net doku)
 
 # ═════════════ efekt nesneleri ═════════════
 
@@ -291,7 +291,7 @@ func set_tier(k: int) -> void:
 	_glow_mats = cm.glow
 	# parıltı taraması: metal ve ahşabın üzerinden eğik bir ışık şeridi geçer (tüm kademeler)
 	_sheen_prm = [16777215, 0.3, 3.6, 0.5]
-	_sheen_c = cm.col.lerp(Color.WHITE, 0.6) * 0.5
+	_sheen_c = cm.col.lerp(Color.WHITE, 0.6) * (0.16 if cm.get("real", false) else 0.5)
 	_sheen = ShaderMaterial.new()
 	_sheen.shader = load("res://shaders/chest_sheen.gdshader")
 	_sheen.set_shader_parameter("col", Vector3(_sheen_c.r, _sheen_c.g, _sheen_c.b))

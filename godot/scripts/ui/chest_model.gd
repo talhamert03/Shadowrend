@@ -51,13 +51,13 @@ const REAL_DIR := "res://assets/chest/real/"
 const REAL_W := 54.0          # sahne biriminde sandık genişliği
 ## kademe → [kaynak model, kapak hizası, kilidin sarkma payı, kilit yarı genişliği, ton kayması, doygunluk, parlaklık]
 const REAL := {
-	1: [1, 0.44, 0.33, 0.21, 0.0, 1.0, 0.80],
+	1: [1, 0.44, 0.33, 0.21, 0.0, 1.0, 0.92],
 	2: [1, 0.44, 0.33, 0.21, 0.52, 0.30, 0.95],     # Tahta modelinin soğuk çelik tonlu hâli
-	3: [3, 0.496, 0.28, 0.21, 0.0, 1.0, 0.82],
-	4: [4, 0.439, 0.275, 0.25, 0.0, 1.0, 0.80],
-	5: [5, 0.443, 0.29, 0.18, 0.0, 1.0, 0.85],
-	6: [4, 0.439, 0.275, 0.25, 0.46, 1.05, 0.82],   # Büyülü modelinin mor tonlu hâli
-	7: [7, 0.405, 0.29, 0.21, 0.0, 1.0, 0.80],
+	3: [3, 0.496, 0.28, 0.21, 0.0, 1.0, 0.92],
+	4: [4, 0.439, 0.275, 0.25, 0.0, 1.0, 0.92],
+	5: [5, 0.443, 0.29, 0.18, 0.0, 1.0, 0.92, 0.74],
+	6: [4, 0.439, 0.275, 0.25, 0.46, 1.05, 0.92],   # Büyülü modelinin mor tonlu hâli
+	7: [7, 0.405, 0.36, 0.25, 0.0, 1.0, 0.92, 0.60],      # son değer: gövde genişliği oranı (kanatlar hariç)
 }
 static var _real_cache := {}
 
@@ -141,14 +141,14 @@ func _build_real(tier: int) -> Dictionary:
 	_ink.cull_mode = BaseMaterial3D.CULL_FRONT
 	_ink.albedo_color = Color(0.04, 0.02, 0.06)
 	_ink.grow = true
-	_ink.grow_amount = 0.011
+	_ink.grow_amount = 0.006
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/chest_real.gdshader")
 	mat.set_shader_parameter("tex", SP[2])
 	mat.set_shader_parameter("hue", float(R[4]))
 	mat.set_shader_parameter("sat", float(R[5]))
 	mat.set_shader_parameter("val", float(R[6]))
-	mat.set_shader_parameter("emi", 0.07)
+	mat.set_shader_parameter("emi", 0.03)
 	mat.next_pass = _ink
 	var root := Node3D.new()
 	root.rotation = Vector3(0.3, 0.0, 0)
@@ -161,30 +161,33 @@ func _build_real(tier: int) -> Dictionary:
 	# sandığın içi: koyu ağız + kapağın koyu iç yüzü (kesit açıkta kalmasın)
 	var dark := StandardMaterial3D.new()
 	dark.albedo_color = Color(0.02, 0.015, 0.03); dark.roughness = 1.0
-	var w := 0.84 * sc; var dp := (zh * 2.0 - 0.14) * sc
+	var w := (float(R[7]) if R.size() > 7 else 0.80) * sc; var dp := (zh * 2.0 - 0.2) * sc
 	var pm := QuadMesh.new(); pm.size = Vector2(w, dp)
 	_mi(pm, dark, root, Vector3(0, hy - 0.6, 0), Vector3(-90, 0, 0))
 	_mi(pm, dark, lid, Vector3(0, 0.5, -hz), Vector3(90, 0, 0))
+	# kilit kapakla kalkınca gövdede açılan boşluğu kapatan koyu demir levha
+	var plate := StandardMaterial3D.new()
+	plate.albedo_color = Color(0.11, 0.10, 0.13); plate.roughness = 0.6; plate.metallic = 0.4
+	var pq := QuadMesh.new(); pq.size = Vector2(float(R[3]) * 2.0 * sc + 1.0, float(R[2]) * sc + 0.6)
+	_mi(pq, plate, root, Vector3(0, hy - float(R[2]) * sc * 0.5, (zh - 0.082) * sc))
 	for lp in [Vector3(0, hy + 2.0, 34.0), Vector3(38.0, hy * 0.5, 6.0)]:
 		var ol := OmniLight3D.new()
-		ol.light_color = gc; ol.light_energy = 1.0; ol.omni_range = 64.0; ol.omni_attenuation = 1.4
+		ol.light_color = gc; ol.light_energy = 0.45; ol.omni_range = 64.0; ol.omni_attenuation = 1.4
 		ol.position = lp
 		root.add_child(ol)
 	var fz := zh * sc
-	_halo(root, Vector3(0, hy, fz + 2.0), 8.0, gc, 0.5, 5.6)
-	_halo(root, Vector3(0, hy - 2.0, fz + 9.0), 15.0, gc, 0.4)
 	for fi in 6:
 		var fx := -w * 0.5 + 3.0 + fi * (w - 6.0) / 5.0
 		if absf(fx) < 10.0: continue
-		_flame(root, Vector3(fx, hy + 0.4, fz + 1.0), 7.0 + 3.0 * (fi % 2), gc, fi * 1.7)
+		_flame(root, Vector3(fx, hy + 0.4, fz + 1.0), 4.0 + 2.0 * (fi % 2), gc, fi * 1.7)
 	var gq := QuadMesh.new(); gq.size = Vector2(130, 92)
 	var gmm := StandardMaterial3D.new()
 	gmm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	gmm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	gmm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	gmm.albedo_texture = load("res://assets/chest/fx_glow.png")
-	gmm.albedo_color = Color(gc.r, gc.g, gc.b, 0.4)
-	gmm.set_meta("a0", 0.4)
+	gmm.albedo_color = Color(gc.r, gc.g, gc.b, 0.3)
+	gmm.set_meta("a0", 0.3)
 	_halos.append(gmm)
 	_mi(gq, gmm, root, Vector3(0, -1.0, 2.0), Vector3(-90, 0, 0))
 	for ei in (10 + tier * 2):
@@ -192,7 +195,7 @@ func _build_real(tier: int) -> Dictionary:
 		_ember(root, Vector3(ex, hy, fz - fmod(ei * 3.77, 1.0) * 6.0), 16.0 + fmod(ei * 5.13, 1.0) * 22.0, gc, ei * 0.37, 0.9 + fmod(ei * 2.9, 1.0) * 1.1)
 	for oi in (3 + tier / 2):
 		_orbit(root, Vector3(0, 10.0 + oi * 5.0, 0), 31.0 + oi * 2.5, gc, oi * TAU / 3.0 + oi, 0.5 + 0.12 * oi)
-	return {"root": root, "lid": lid, "ink": _ink, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": null, "bobs": _bobs, "col": gc, "mouth_y": hy}
+	return {"root": root, "lid": lid, "ink": _ink, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": null, "bobs": _bobs, "col": gc, "mouth_y": hy, "real": true}
 
 static var _tx := {}
 ## elle boyanmış hissi veren sade dokular (gürültü yok): geniş yumuşak fırça şeritleri,
