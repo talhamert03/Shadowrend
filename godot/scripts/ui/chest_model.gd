@@ -374,6 +374,27 @@ func _hull(hx: float, hz: float, rad: float, y0: float, y1: float, bulge: float,
 		st2.commit(m)
 	return _mi(m, mat, par, c)
 
+## gövdenin bombesini izleyen ön kuşak: kalın metal şerit (ön yüz + iki yan yüz), yumuşak normaller
+func _strap(bx: float, w: float, y0: float, y1: float, bulge: float, out: float, th: float, mat: Material, par: Node3D, back := false) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var LV := 8
+	var sg := -1.0 if back else 1.0
+	for j in LV + 1:
+		var t := float(j) / LV
+		var sc := (1.0 + bulge * pow(sin(PI * t), 0.85)) * lerpf(0.955, 1.0, t)
+		var z := sg * (HD * sc + out)
+		var y := lerpf(y0, y1, t)
+		for q in [[bx - w, z - sg * th], [bx - w, z], [bx + w, z], [bx + w, z - sg * th]]:
+			st.add_vertex(Vector3(q[0], y, q[1]))
+	for j in LV:
+		for k in 3:
+			var a := j * 4 + k; var b := a + 1; var c := a + 5; var d := a + 4
+			var q2 := [a, c, b, a, d, c] if not back else [a, b, c, a, c, d]
+			for id in q2: st.add_index(id)
+	st.generate_normals()
+	_mi(st.commit(), mat, par)
+
 func _rune(par: Node3D, p: Vector3, g: Material, s := 1.0, v := 0) -> void:
 	var r := _grp(par, p)
 	_box(Vector3(0.7 * s, 7.0 * s, 0.4), g, r)
@@ -393,7 +414,7 @@ func _build(tier: int) -> Dictionary:
 	_ink.grow = true
 	_ink.grow_amount = 0.6
 	var gc := Color(String(D.glow))
-	var bc := Color(String(D.body)).darkened(0.34)
+	var bc := Color(String(D.body)).darkened(0.2)
 	var body := _mat(bc.darkened(0.35), 0.0, 0.75, "wood")
 	var body2 := _mat(bc, 0.0, 0.62, "wood")
 	var body3 := _mat(bc.lightened(0.1), 0.0, 0.62, "wood")
@@ -408,7 +429,7 @@ func _build(tier: int) -> Dictionary:
 	var gem := _gm(gc.darkened(0.12), 1.05)
 	var kind: String = D.lid
 	var root := Node3D.new()
-	root.rotation = Vector3(0.27, -0.22, 0)
+	root.rotation = Vector3(0.3, 0.0, 0)
 	root.scale = Vector3.ONE * 0.86      # üç çeyrek + hafif üstten: mobil oyun sandık duruşu
 	var lid := _grp(root, Vector3(0, HY, -HD), "LID")
 	for lp in [Vector3(0, BH + 2.0, HD + 18.0), Vector3(HW + 18.0, BH * 0.5, 4.0)]:
@@ -479,13 +500,21 @@ func _build(tier: int) -> Dictionary:
 		_ember(root, Vector3(ex, HY, ez), 16.0 + fmod(ei * 5.13, 1.0) * 22.0, gc, ei * 0.37, 0.9 + fmod(ei * 2.9, 1.0) * 1.1)
 	for oi in (3 + tier / 2):
 		_orbit(root, Vector3(0, 10.0 + oi * 5.0, 0), 31.0 + oi * 2.5, gc, oi * TAU / 3.0 + oi, 0.5 + 0.12 * oi)
-	# kademe süsleri
-	if tier >= 4:
-		for rx in [-1.0, 1.0]:
-			var rr := _grp(root, Vector3(rx * (HW - 9.6), BH * 0.5 - 1.6, HD * 1.085 + 0.4))
-			_cyl(2.6, 2.6, 1.0, 4, acc, rr, Vector3.ZERO, Vector3(90, 45, 0))
-			_cyl(1.9, 0.0, 1.8, 4, g2, rr, Vector3(0, 0, 0.8), Vector3(90, 45, 0))
-			_halo(rr, Vector3(0, 0, 2.2), 5.0, gc, 0.55)
+	# ön/arka kuşaklar: kapak şeritlerinin devamı, altın kenarlı; ortasında ışıyan mücevher
+	for bx in [-HW + 9.0, HW - 9.0]:
+		for bk in [false, true]:
+			_strap(bx, 3.6, 5.6, BH - 4.8, 0.085, 1.5, 1.6, trim, root, bk)
+			for e in [-3.9, 3.9]: _strap(bx + e, 0.5, 5.6, BH - 4.8, 0.085, 1.8, 1.9, acc, root, bk)
+		var rr := _grp(root, Vector3(bx, BH * 0.5 - 1.0, HD * 1.085 + 1.7))
+		_cyl(3.0, 3.0, 1.0, 4, acc, rr, Vector3.ZERO, Vector3(90, 45, 0))
+		_cyl(2.2, 0.0, 2.0, 4, gem, rr, Vector3(0, 0, 0.9), Vector3(90, 45, 0))
+		_halo(rr, Vector3(0, 0, 2.4), 6.0, gc, 0.6 if tier >= 3 else 0.4)
+	# kapağın ön yüzünde alın madalyonu (kilidin üstünde): küçük taş + altın yuva
+	var fm := _grp(lid, _lid_pt(kind, 0.0, 30.0, 1.4))
+	fm.rotation_degrees.x = -52.0
+	_cyl(3.4, 3.4, 0.9, 8, acc, fm, Vector3.ZERO, Vector3(90, 22.5, 0))
+	_cyl(2.3, 0.0, 1.6, 8, gem, fm, Vector3(0, 0, 0.8), Vector3(90, 22.5, 0))
+	_halo(fm, Vector3(0, 0, 2.0), 5.0, gc, 0.5)
 	if tier == 6:
 		for sx in [-1.0, 1.0]:
 			var ta := Vector3(sx * (HW + 3.0), 2.0, 6.0)
@@ -596,4 +625,4 @@ func _build(tier: int) -> Dictionary:
 				_seg(w0, w1, 1.3, 0.9, trim, top); _seg(w1, w2, 0.9, 0.2, trim, top)
 				_seg(w1, w0 + Vector3(sx * 9.0, -1.0, -2.0), 0.6, 0.15, trim, top)
 				_seg(w1, w0 + Vector3(sx * 4.4, -3.0, -1.6), 0.6, 0.15, trim, top)
-	return {"root": root, "lid": lid, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": _pupil, "bobs": _bobs, "col": gc}
+	return {"root": root, "lid": lid, "ink": _ink, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": _pupil, "bobs": _bobs, "col": gc}

@@ -289,6 +289,14 @@ func set_tier(k: int) -> void:
 	world.add_child(_chest)
 	_lid = cm.lid
 	_glow_mats = cm.glow
+	# parıltı taraması: metal ve ahşabın üzerinden eğik bir ışık şeridi geçer (tüm kademeler)
+	_sheen_prm = [16777215, 0.3, 3.6, 0.5]
+	_sheen_c = cm.col.lerp(Color.WHITE, 0.6) * 0.5
+	_sheen = ShaderMaterial.new()
+	_sheen.shader = load("res://shaders/chest_sheen.gdshader")
+	_sheen.set_shader_parameter("col", Vector3(_sheen_c.r, _sheen_c.g, _sheen_c.b))
+	_sheen.set_shader_parameter("pos", -99.0)
+	(cm.ink as StandardMaterial3D).next_pass = _sheen
 	_halo_mats = cm.halos
 	_flames = cm.flames
 	_embers = cm.embers

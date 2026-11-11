@@ -731,9 +731,23 @@ func _process(dt: float) -> void:
 				_hint.visible = true
 		"idle":
 			sc = 1.0 + sin(S.t * 3.2) * 0.018
-			# ara sıra küçük "kıpırdama" (içinde bir şey var)
-			var wig := fmod(S.t, 2.2)
-			if wig < 0.3: rot = sin(wig / 0.3 * TAU * 2.0) * 0.05 * (1.0 - wig / 0.3)
+			# sabırsız sandık: ara sıra zıplar, havada sallanır, yere basınca ezilir
+			var wig := fmod(S.t, 1.7)
+			if wig < 0.5:
+				var hk := wig / 0.5
+				posY = sin(hk * PI) * 26.0
+				rot = sin(hk * TAU * 1.5) * 0.07 * (1.0 - hk)
+				sqy = 1.0 + 0.08 * sin(hk * PI)
+				sqx = 1.0 - 0.05 * sin(hk * PI)
+			elif wig < 0.66:
+				var lk := (wig - 0.5) / 0.16
+				sqy = 1.0 - 0.12 * (1.0 - lk)
+				sqx = 1.0 + 0.10 * (1.0 - lk)
+				if not S.get("hopfx", false):
+					S["hopfx"] = true
+					_spark(_chest_mouth() + Vector2(0, 70), 6, 150, [Color.WHITE, JS.col(C.get("accent", C.color))], false, 0.3)
+			else:
+				S["hopfx"] = false
 			_hint.scale = Vector2.ONE * (1.0 + sin(_t * 5.0) * 0.06)
 			_hint.modulate.a = minf(1.0, S.t * 3.0)
 		"shake":
@@ -742,6 +756,7 @@ func _process(dt: float) -> void:
 			var amp := 3.0 + pr * 9.0
 			shx = sin(S.t * 52.0) * amp * 0.34
 			rot = sin(S.t * 47.0 + 0.6) * 0.035 * (0.4 + pr)
+			posY = absf(sin(S.shake * 20.0)) * 14.0 * pr       # gerilim: giderek hızlanan sıçramalar
 			sc = 1.0 + pr * 0.08
 			sqy = 1.0 - pr * 0.06
 			sqx = 1.0 + pr * 0.04
@@ -752,6 +767,9 @@ func _process(dt: float) -> void:
 			S.open = minf(1.0, S.open + dt * 2.2)
 			S.punch = maxf(0.0, S.punch - dt * 3.0)
 			sc = 1.0 + S.punch * 0.12
+			posY = sin(minf(1.0, S.punch) * PI) * 22.0      # patlamada ve her kartta sandık hoplar
+			sqy = 1.0 + S.punch * 0.10
+			sqx = 1.0 - S.punch * 0.06
 			if _cstate == "" and S.t > 1.15: _next()   # önce renkli sis yükselir, dağılırken kartlar gelir
 		"summary":
 			S.open = 1.0
@@ -884,6 +902,9 @@ func _next() -> void:
 		_build_i = cards.size()
 	var c: Dictionary = cards[idx]
 	var n: Node2D = c.node
+	# her kartta sandık "tükürür": hoplar, kıvılcım saçar
+	S.punch = maxf(float(S.punch), 0.75)
+	_spark(_chest_mouth(), 12, 300, [YEL, Color.WHITE, JS.col(C.get("accent", C.color))], true, 0.5)
 	n.reparent(_hold, false)
 	n.position = _chest_mouth()
 	n.scale = Vector2.ONE * 0.12

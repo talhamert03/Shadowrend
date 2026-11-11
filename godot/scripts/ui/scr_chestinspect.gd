@@ -14,6 +14,7 @@ var _t := 0.0
 var _puffed := false
 var _lastHit := -1
 var _tick := 0.0
+var _aura: Node2D
 
 func _init(game) -> void:
 	super(game)
@@ -71,9 +72,28 @@ func _build() -> void:
 		stage = ChestStage.new()
 	if stage.get_parent(): stage.get_parent().remove_child(stage)
 	if cv:
+		if _aura and is_instance_valid(_aura): _aura.queue_free()
+		_aura = Node2D.new()
+		_aura.position = cv.size * Vector2(0.5, 0.56)
+		var am := CanvasItemMaterial.new()
+		am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_aura.material = am
+		var gcol := ChestModel.glow_of(ChestStage.tier_of(str(c.t)))
+		var gtex: Texture2D = load("res://assets/chest/fx_glow.png")
+		var rr := minf(cv.size.x, cv.size.y) * 0.56
+		_aura.draw.connect(func():
+			_aura.draw_texture_rect(gtex, Rect2(Vector2(-rr, -rr) * 1.15, Vector2(rr, rr) * 2.3), false, Color(gcol, 0.6))
+			for i in 14:
+				var a := i * TAU / 14.0 + _t * 0.35
+				var w := 0.085 if i % 2 == 0 else 0.05
+				var ca := Color(gcol, 0.22 if i % 2 == 0 else 0.13)
+				_aura.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(cos(a - w), sin(a - w)) * rr * 1.2, Vector2(cos(a + w), sin(a + w)) * rr * 1.2]), PackedColorArray([ca, Color(gcol, 0.0), Color(gcol, 0.0)])))
+		cv.node.add_child(_aura)
 		cv.node.add_child(stage)
 		stage.setup(cv.size.x, cv.size.y)
 	stage.set_chest(str(c.t))
+	var dsc := L.find_id("#ci-desc")
+	if dsc: L.set_text(dsc, I18n.t(str(ChestSystem.chests()[str(c.t)].get("desc", ""))))
 	_texts()
 	btn(L, L.find_id("#ci-close"), func(): g.audio.play("click"); close())
 	btn(L, L.find(".odds-link"), func(): g.audio.play("click"); g.ui.show_odds(str(g.chests.slots[slot].t)))
@@ -123,7 +143,10 @@ func _process(dt: float) -> void:
 	if not visible or slot < 0: return
 	_t += dt
 	# yumuşak iniş: yukarıdan süzülerek gelir (ease-out), hafifçe yaylanıp oturur, nefes alır
-	var S := 1.08
+	var S := 1.24
+	if _aura and is_instance_valid(_aura):
+		_aura.queue_redraw()
+		_aura.scale = Vector2.ONE * minf(1.0, _t * 2.2) * (1.0 + 0.04 * sin(_t * 2.6))
 	var HIGH := 150.0
 	var bo := ChestSystem.bounce(_t)
 	var posY: float = HIGH * float(bo[0])

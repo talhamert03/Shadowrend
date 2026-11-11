@@ -206,8 +206,8 @@ const BANNERS := [
 	{"t": "zirve", "n": "SONSUZ KULE", "w": 10, "col": "#b98cff", "art": "res://assets/ui/art/icon/tac.png"},
 	{"t": "gunluk", "n": "GÜNLÜK HEDEFLER", "w": 6, "col": "#ff7a5c", "art": "res://assets/ui/art/chest/t1.png"},
 ]
-const BAN_H := 126.0
-const BAN_GAP := 14.0
+const BAN_H := 150.0
+const BAN_GAP := 16.0
 
 func _sub_of(t: String, dLeft: int, kReady: int) -> String:
 	match t:

@@ -29,6 +29,7 @@ var _medal: Node2D
 var _medal_lv: UIText
 var _scroll := 0.0
 var _scroll_max := 0.0
+var _ph := 0.0
 var _vel := 0.0
 var _cbtns: Array = []        # [{node, rect, cb}]
 var _cpress = null
@@ -105,6 +106,7 @@ func _build() -> void:
 	# tek ekrana sığdır: panel ekrandan uzunsa orantılı küçülür (kaydırma gerekmez);
 	# çok uzun durumda (küçük ekran) en fazla %72'ye iner, kalan kısım yine kaydırılabilir
 	var fit := clampf((_cdclip.size.y - 6.0) / (h + 16.0), 0.72, 1.0)
+	_ph = h
 	_content.scale = Vector2.ONE * fit
 	_content.position.x = _W.x * (1.0 - fit) * 0.5
 	_scroll_max = maxf(0.0, (h + 16.0) * fit - _cdclip.size.y)
@@ -500,6 +502,10 @@ func _input(ev: InputEvent) -> void:
 				if not _dragging and not st.canceled and (_hit(st.position) == B or _hit(_p0) == B):
 					TapFx.pop(st.position)
 					(B.cb as Callable).call()
+			elif not _dragging and not st.canceled and _ph > 0.0:
+				# boşluk: panelin dışına (kenar/alt boşluk) dokunuş kapatır
+				var pr: Rect2 = _content.get_global_transform_with_canvas() * Rect2(8, 0, _W.x - 16, _ph + 10)
+				if not pr.has_point(st.position) and not pr.has_point(_p0): close()
 	elif ev is InputEventScreenDrag:
 		var sd := ev as InputEventScreenDrag
 		get_viewport().set_input_as_handled()

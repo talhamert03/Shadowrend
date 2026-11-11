@@ -157,11 +157,11 @@
    "tier": 4,
    "time": 10800,
    "lock": "crystal",
-   "color": "#8a4ae8",
-   "rim": "#301468",
+   "color": "#1f8a5a",
+   "rim": "#0c3a26",
    "metal": "#2c2842",
-   "accent": "#cf9aff",
-   "glow": "rgba(210,150,255,0.65)",
+   "accent": "#7dffb0",
+   "glow": "rgba(110,255,170,0.65)",
    "rubies": [
     70,
     120
@@ -182,7 +182,7 @@
    ],
    "price": 220,
    "stonePrice": 37,
-   "desc": "Obsidyen kafesin içinde nabız gibi atan açık mor bir ametist kalp. Rün eteği ışıkla yanıp söner.",
+   "desc": "Kara demir kafesin içinde nabız gibi atan zehir yeşili bir ışık. Kafatası kilidi gözlerini senden ayırmaz.",
    "charOdds": [
     0,
     48,

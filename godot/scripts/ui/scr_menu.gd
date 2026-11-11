@@ -405,6 +405,7 @@ func _process(dt: float) -> void:
 	if not visible: return
 	_t += dt
 	_idle_refresh(dt)
+	if page == "savas": _anim_slots()
 	for S in _slides.duplicate():
 		var L: Node2D = S.L
 		var k := minf(1.0, (_t - float(S.t0)) / float(S.dur))
@@ -803,12 +804,51 @@ func _slot_texts() -> void:
 					S.set_text(sk, nv)
 					S.fit_width(sk, sk.size.x + sk.txt.text_width() - ow)
 
+var _slotHop := [-1.0, -1.0, -1.0, -1.0]
+var _slotBusy := false
 func _slot_tap(i: int) -> void:
 	var c = g.chests.slots[i]
-	if c == null: return
+	if c == null or _slotBusy: return
 	g.audio.play("click")
-	if c.st == "ready":
-		g.audio.play("panel")
-		g.ui.chest_ceremony(str(c.t), i, func(): refresh_wallet(); render_slots())
-		return
-	g.ui.chest_inspect(i)
+	# sandık önce yuvasından zıplar, sonra pencere / tören açılır
+	_slotHop[i] = _t
+	_slotBusy = true
+	get_tree().create_timer(0.26).timeout.connect(func():
+		_slotBusy = false
+		var c2 = g.chests.slots[i]
+		if c2 == null or not visible: return
+		if c2.st == "ready":
+			g.audio.play("panel")
+			g.ui.chest_ceremony(str(c2.t), i, func(): refresh_wallet(); render_slots())
+			return
+		g.ui.chest_inspect(i))
+
+## yuvadaki sandıklar canlı: nefes alır, hazır olan sabırsızca hoplar; dokununca yukarı fırlar
+func _anim_slots() -> void:
+	for i in 4:
+		var S = _slotL[i]
+		if S == null or not is_instance_valid(S): continue
+		var n: Lyr.N = (S as Lyr).find(".chest-svg")
+		if n == null: continue
+		var c = g.chests.slots[i]
+		var ph := _t * 2.4 + i * 1.7
+		var y := -sin(ph) * 1.4
+		var sx := 1.0 + 0.02 * sin(ph * 2.0)
+		var sy := 1.0 - 0.02 * sin(ph * 2.0)
+		var rot := 0.0
+		if c and c.st == "ready":
+			var hp := pow(maxf(0.0, sin(_t * 3.4 + i)), 5.0)
+			y -= hp * 9.0
+			rot = 0.06 * sin(_t * 13.0) * hp
+		var h0: float = _slotHop[i]
+		if h0 >= 0.0:
+			var k := (_t - h0) / 0.42
+			if k >= 1.0: _slotHop[i] = -1.0
+			else:
+				y -= sin(k * PI) * 30.0
+				sy *= 1.0 + 0.22 * sin(k * PI)
+				sx *= 1.0 - 0.12 * sin(k * PI)
+				rot += 0.10 * sin(k * TAU)
+		var c0: Vector2 = n.size * 0.5
+		n.extra = Transform2D(rot, Vector2(sx, sy), 0, Vector2(0, y) + c0 - (Transform2D(rot, Vector2(sx, sy), 0, Vector2.ZERO) * c0))
+		(S as Lyr).set_dyn(n)

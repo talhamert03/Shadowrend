@@ -6,7 +6,7 @@ extends RefCounted
 
 const PITY_N := 40
 ## sandık türüne göre efsane garantisi (kolay bulunan sandıklarda çok daha uzun)
-const PITY_BY := {"ahsap": 150, "yaygin": 125, "kemik": 100, "kan": 75, "kadim": 50, "ejderha": 30, "mistik": 10}
+const PITY_BY := {"ahsap": 150, "yaygin": 125, "kemik": 100, "kan": 75, "kadim": 30, "ejderha": 20, "mistik": 10}
 ## sandık iniş sesi: her türün kendine özgü tınısı (gümle + karakter sesi)
 ## sandık geliş sesi: her türe özel sentez stinger (assets/audio/sfx/chestland_<tür>_0.wav)
 ## sandık geliş eğrisi: yukarıdan düşüş + azalan 3 sekme → [yükseklik 0..1, ezilme -1..1, temas indeksi]
