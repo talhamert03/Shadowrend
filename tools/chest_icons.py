@@ -6,12 +6,22 @@ from PIL import Image, ImageEnhance
 src, bak = sys.argv[1], sys.argv[2]
 TIER = {"ahsap": 1, "yaygin": 2, "kemik": 3, "kan": 4, "kadim": 5, "mistik": 6, "ejderha": 7}
 new = {k: Image.open(f"{src}/c{k}.png").convert("RGBA").crop((114, 150, 754, 790)) for k in range(1, 8)}
-def bbox(im, th=150):
-    a = np.array(im)[..., 3]; ys, xs = np.where(a > th)
-    return (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1) if len(xs) else None
-nb = {k: bbox(v, 200) for k, v in new.items()}
+def bbox(im, th=150, robust=False):
+    a = np.array(im)[..., 3] > th
+    if not a.any(): return None
+    if not robust:
+        ys, xs = np.where(a); return (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
+    # sağlam kutu: tek tük ışıltı/kıvılcım pikselleri sayılmaz (sütun/satır doluluğu eşiği)
+    cx = a.sum(0); cy = a.sum(1)
+    xs = np.where(cx > cx.max() * 0.06)[0]; ys = np.where(cy > cy.max() * 0.06)[0]
+    return (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)
+nb = {k: bbox(v, 200, True) for k, v in new.items()}
 for k, v in new.items():
-    v.resize((450, 450), Image.LANCZOS).save(f"assets/ui/art/chest/t{k}.png")
+    # ortalanmış kare simge: sandık kutusu tam ortada, %7 pay
+    b = nb[k]; c = v.crop(b); side = int(max(c.size) * 1.14)
+    sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+    sq.alpha_composite(c, ((side - c.size[0]) // 2, (side - c.size[1]) // 2))
+    sq.resize((450, 450), Image.LANCZOS).save(f"assets/ui/art/chest/t{k}.png")
 files = {}
 for f in glob.glob("assets/ui/lyr/*.json"):
     try: d = json.load(open(f))
