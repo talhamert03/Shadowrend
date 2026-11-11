@@ -48,7 +48,7 @@ func render() -> void:
 	var colw := (grid.size.x - 8.0 - GAP_X * (COLS - 1)) / COLS if grid else 111.3
 	var x0 := 4.0
 	if _sort < 0:
-		var sv = Store.get_item("kh_hsort", "0")
+		var sv = Store.get_item("kh_hsort2", "2")      # varsayılan: nadirlik, düşükten yükseğe
 		_sort = clampi(int(str(sv)), 0, 2)
 	# sıralama düğmesi (ızgaranın üstünde, sağda)
 	if _sortBtn:
@@ -62,7 +62,7 @@ func render() -> void:
 	menu.btn(_sortBtn, _sortBtn.nodes[0], func():
 		g.audio.play("click")
 		_sort = (_sort + 1) % 3
-		Store.set_item("kh_hsort", str(_sort))
+		Store.set_item("kh_hsort2", str(_sort))
 		render(), 0.95)
 	var y := 44.0
 	var row_h := 0.0

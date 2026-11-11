@@ -297,6 +297,8 @@ func _hero_card(C: Lyr, o: Dictionary) -> void:
 			sat *= 0.3
 		m.set_shader_parameter("bri", bri)
 		m.set_shader_parameter("sat", sat)
+		pr.scale = Vector2.ONE * 0.9             # görsel %10 küçük, çerçevede ortalı
+		pr.position += art.size * 0.05
 		art.node.add_child(pr)
 	var nn := C.find(".mk-hc-n")
 	if nn: C.set_text(nn, "×" + str(int(o.n)))

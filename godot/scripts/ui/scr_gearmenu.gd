@@ -45,8 +45,14 @@ func open_for(p, gid: String, canvas_rect: Rect2) -> void:
 
 func _acts() -> Array:
 	var out := []
+	# seviye yükseltme her zaman görünür: hazırsa yeşil + bedel; değilse soluk + kart sayacı (dokununca ayrıntı açılır)
+	var need = g.cards_for_next_gear(id)
 	if g.can_upgrade_gear(id):
 		out.append({"l": "YÜKSELT", "c": Color("#3fb05a"), "cost": int(g.gold_for_next_gear(id)), "cb": func(): _do("up")})
+	elif need != null:
+		out.append({"l": "YÜKSELT", "c": Color("#5a5560"), "note": str(int(g.gear_card_count(id))) + "/" + str(int(need)), "cb": func(): _do("info")})
+	else:
+		out.append({"l": "AZAMİ SV", "c": Color("#5a5560"), "cb": func(): _do("info")})
 	if g.is_equipped(id):
 		out.append({"l": "ÇIKAR", "c": Color("#d8453c"), "cb": func(): _do("out")})
 	elif g.can_wear(id):
@@ -148,6 +154,10 @@ func _btn(r: Rect2, a: Dictionary, vis := 1.0) -> void:
 		cv.draw_circle(cc, 5.8, Color(Color("#e7a62c"), al))
 		cv.draw_circle(cc + Vector2(-1, -1), 3.4, Color(Color("#ffd86a"), al))
 		_bang(f, Vector2(cx, by - 1), cs, 15, Color(Color("#fff1c9"), al))
+	if a.has("note"):
+		var ns := str(a.note)
+		var nw := f.get_string_size(ns, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
+		_bang(f, Vector2(r.end.x - 14.0 - nw + off.x, by - 1), ns, 15, Color(Color("#ffd98a"), al))
 	if int(a.get("plus", 0)) > 0:
 		var hc := Vector2(r.end.x - 20.0, r.get_center().y) + off
 		var pts := PackedVector2Array()
@@ -162,7 +172,7 @@ func _btn(r: Rect2, a: Dictionary, vis := 1.0) -> void:
 ## düğme simgeleri (ilkel çizim): yükselt ↑ · kullan ✓ · çıkar ✕ · geliştir çekiç · incele büyüteç
 func _glyph(c: Vector2, lbl: String, col: Color) -> void:
 	match lbl:
-		"YÜKSELT":
+		"YÜKSELT", "AZAMİ SV":
 			cv.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -8), c + Vector2(8, 1), c + Vector2(3.4, 1), c + Vector2(3.4, 8), c + Vector2(-3.4, 8), c + Vector2(-3.4, 1), c + Vector2(-8, 1)]), col)
 		"KULLAN":
 			cv.draw_polyline(PackedVector2Array([c + Vector2(-7, 0), c + Vector2(-2, 6), c + Vector2(8, -6)]), col, 3.6)

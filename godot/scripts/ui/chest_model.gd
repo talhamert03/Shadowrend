@@ -39,9 +39,161 @@ var _bm := {}
 
 static func build(tier: int) -> Dictionary:
 	var b := ChestModel.new()
-	return b._build(clampi(tier, 1, 7))
+	tier = clampi(tier, 1, 7)
+	if has_real(tier): return b._build_real(tier)
+	return b._build(tier)
 
-## yordamsal dokular (bir kez üretilir): ahşap damarı ve dövme metal — albedo + normal
+## ── GERÇEK 3B MODEL (assets/chest/real/t<k>.glb) ──
+## Model tek parça gelir; genişliği 1'e, tabanı y=0'a normalize edilir, sonra kapak hizasından (seam)
+## ikiye bölünür: üst yarı + ön kilit bölgesi "LID"e gider ve arka menteşeden döner.
+## Bölünmüş ağlar kaynak model başına bir kez üretilir.
+const REAL_DIR := "res://assets/chest/real/"
+const REAL_W := 54.0          # sahne biriminde sandık genişliği
+## kademe → [kaynak model, kapak hizası, kilidin sarkma payı, kilit yarı genişliği, ton kayması, doygunluk, parlaklık]
+const REAL := {
+	1: [1, 0.44, 0.33, 0.21, 0.0, 1.0, 0.80],
+	2: [1, 0.44, 0.33, 0.21, 0.52, 0.30, 0.95],     # Tahta modelinin soğuk çelik tonlu hâli
+	3: [3, 0.496, 0.28, 0.21, 0.0, 1.0, 0.82],
+	4: [4, 0.439, 0.275, 0.25, 0.0, 1.0, 0.80],
+	5: [5, 0.443, 0.29, 0.18, 0.0, 1.0, 0.85],
+	6: [4, 0.439, 0.275, 0.25, 0.46, 1.05, 0.82],   # Büyülü modelinin mor tonlu hâli
+	7: [7, 0.405, 0.29, 0.21, 0.0, 1.0, 0.80],
+}
+static var _real_cache := {}
+
+static func has_real(tier: int) -> bool:
+	return REAL.has(tier) and ResourceLoader.exists(REAL_DIR + "t" + str(int(REAL[tier][0])) + ".glb")
+
+static func _find_mesh(n: Node) -> MeshInstance3D:
+	if n is MeshInstance3D: return n
+	for c in n.get_children():
+		var r := _find_mesh(c)
+		if r: return r
+	return null
+
+## döner: [gövde ağı, kapak ağı, doku, derinlik yarısı (normalize z)]
+static func _split(tier: int) -> Array:
+	var R: Array = REAL[tier]
+	var src := int(R[0])
+	if _real_cache.has(src): return _real_cache[src]
+	var ps: PackedScene = load(REAL_DIR + "t" + str(src) + ".glb")
+	var inst := ps.instantiate()
+	var mi := _find_mesh(inst)
+	var xf: Transform3D = Transform3D.IDENTITY
+	var q: Node = mi
+	while q != null and q is Node3D:
+		xf = (q as Node3D).transform * xf
+		q = q.get_parent()
+	var mesh := mi.mesh
+	var m0 := mesh.surface_get_material(0) as BaseMaterial3D
+	var arr := mesh.surface_get_arrays(0)
+	var V: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var U := PackedVector2Array()
+	if arr[Mesh.ARRAY_TEX_UV] != null: U = arr[Mesh.ARRAY_TEX_UV]
+	var I := PackedInt32Array()
+	if arr[Mesh.ARRAY_INDEX] != null: I = arr[Mesh.ARRAY_INDEX]
+	else:
+		for k in V.size(): I.append(k)
+	var lo := Vector3(1e9, 1e9, 1e9); var hi := -lo
+	for i in V.size():
+		V[i] = xf * V[i]
+		lo = lo.min(V[i]); hi = hi.max(V[i])
+	var k := 1.0 / maxf(0.001, hi.x - lo.x)
+	var off := Vector3((lo.x + hi.x) * 0.5, lo.y, (lo.z + hi.z) * 0.5)
+	for i in V.size(): V[i] = (V[i] - off) * k
+	var zh := (hi.z - lo.z) * k * 0.5
+	var seam: float = R[1]
+	var ib := PackedInt32Array(); var il := PackedInt32Array()
+	for t in range(0, I.size(), 3):
+		var c: Vector3 = (V[I[t]] + V[I[t + 1]] + V[I[t + 2]]) / 3.0
+		var lid: bool = c.y > seam or (c.z > zh - 0.075 and absf(c.x) < float(R[3]) and c.y > seam - float(R[2]))
+		var dst := il if lid else ib
+		dst.append(I[t]); dst.append(I[t + 1]); dst.append(I[t + 2])
+	var out := []
+	for idx in [ib, il]:
+		var a2 := []
+		a2.resize(Mesh.ARRAY_MAX)
+		a2[Mesh.ARRAY_VERTEX] = V
+		if U.size() == V.size(): a2[Mesh.ARRAY_TEX_UV] = U
+		a2[Mesh.ARRAY_INDEX] = idx
+		var m := ArrayMesh.new()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
+		var stn := SurfaceTool.new()      # yumuşak normaller (ışık + kontur için)
+		stn.create_from(m, 0)
+		stn.generate_normals()
+		out.append(stn.commit())
+	out.append(m0.albedo_texture if m0 else null)
+	out.append(zh)
+	inst.free()
+	_real_cache[src] = out
+	return out
+
+func _build_real(tier: int) -> Dictionary:
+	var D: Dictionary = DEF[tier]
+	var R: Array = REAL[tier]
+	var gc := Color(String(D.glow))
+	var SP := _split(tier)
+	var sc := REAL_W
+	var seam: float = R[1]
+	var zh: float = SP[3]
+	_ink = StandardMaterial3D.new()
+	_ink.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ink.cull_mode = BaseMaterial3D.CULL_FRONT
+	_ink.albedo_color = Color(0.04, 0.02, 0.06)
+	_ink.grow = true
+	_ink.grow_amount = 0.011
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/chest_real.gdshader")
+	mat.set_shader_parameter("tex", SP[2])
+	mat.set_shader_parameter("hue", float(R[4]))
+	mat.set_shader_parameter("sat", float(R[5]))
+	mat.set_shader_parameter("val", float(R[6]))
+	mat.set_shader_parameter("emi", 0.07)
+	mat.next_pass = _ink
+	var root := Node3D.new()
+	root.rotation = Vector3(0.3, 0.0, 0)
+	root.scale = Vector3.ONE * 0.86
+	_mi(SP[0], mat, root, Vector3.ZERO, Vector3.ZERO, Vector3.ONE * sc)
+	var hy := seam * sc
+	var hz := (-zh + 0.04) * sc
+	var lid := _grp(root, Vector3(0, hy, hz), "LID")
+	_mi(SP[1], mat, lid, Vector3(0, -hy, -hz), Vector3.ZERO, Vector3.ONE * sc)
+	# sandığın içi: koyu ağız + kapağın koyu iç yüzü (kesit açıkta kalmasın)
+	var dark := StandardMaterial3D.new()
+	dark.albedo_color = Color(0.02, 0.015, 0.03); dark.roughness = 1.0
+	var w := 0.84 * sc; var dp := (zh * 2.0 - 0.14) * sc
+	var pm := QuadMesh.new(); pm.size = Vector2(w, dp)
+	_mi(pm, dark, root, Vector3(0, hy - 0.6, 0), Vector3(-90, 0, 0))
+	_mi(pm, dark, lid, Vector3(0, 0.5, -hz), Vector3(90, 0, 0))
+	for lp in [Vector3(0, hy + 2.0, 34.0), Vector3(38.0, hy * 0.5, 6.0)]:
+		var ol := OmniLight3D.new()
+		ol.light_color = gc; ol.light_energy = 1.0; ol.omni_range = 64.0; ol.omni_attenuation = 1.4
+		ol.position = lp
+		root.add_child(ol)
+	var fz := zh * sc
+	_halo(root, Vector3(0, hy, fz + 2.0), 8.0, gc, 0.5, 5.6)
+	_halo(root, Vector3(0, hy - 2.0, fz + 9.0), 15.0, gc, 0.4)
+	for fi in 6:
+		var fx := -w * 0.5 + 3.0 + fi * (w - 6.0) / 5.0
+		if absf(fx) < 10.0: continue
+		_flame(root, Vector3(fx, hy + 0.4, fz + 1.0), 7.0 + 3.0 * (fi % 2), gc, fi * 1.7)
+	var gq := QuadMesh.new(); gq.size = Vector2(130, 92)
+	var gmm := StandardMaterial3D.new()
+	gmm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	gmm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	gmm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	gmm.albedo_texture = load("res://assets/chest/fx_glow.png")
+	gmm.albedo_color = Color(gc.r, gc.g, gc.b, 0.4)
+	gmm.set_meta("a0", 0.4)
+	_halos.append(gmm)
+	_mi(gq, gmm, root, Vector3(0, -1.0, 2.0), Vector3(-90, 0, 0))
+	for ei in (10 + tier * 2):
+		var ex := -w * 0.5 + 2.0 + fmod(ei * 7.31, 1.0) * (w - 4.0)
+		_ember(root, Vector3(ex, hy, fz - fmod(ei * 3.77, 1.0) * 6.0), 16.0 + fmod(ei * 5.13, 1.0) * 22.0, gc, ei * 0.37, 0.9 + fmod(ei * 2.9, 1.0) * 1.1)
+	for oi in (3 + tier / 2):
+		_orbit(root, Vector3(0, 10.0 + oi * 5.0, 0), 31.0 + oi * 2.5, gc, oi * TAU / 3.0 + oi, 0.5 + 0.12 * oi)
+	return {"root": root, "lid": lid, "ink": _ink, "halos": _halos, "flames": _flames, "embers": _embers, "orbits": _orbits, "glow": _glow, "pupil": null, "bobs": _bobs, "col": gc, "mouth_y": hy}
+
 static var _tx := {}
 ## elle boyanmış hissi veren sade dokular (gürültü yok): geniş yumuşak fırça şeritleri,
 ## kenarlara doğru koyulaşma. "wood": yatay damar şeritleri; "metal": dikey fırça + hafif leke.

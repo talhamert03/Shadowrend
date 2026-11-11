@@ -254,6 +254,8 @@ func _slots_and_stats() -> float:
 		if C == null: continue
 		if right: yr += C.nodes[0].size.y + 10.0
 		else: yl += C.nodes[0].size.y + 10.0
+		if gx == null:
+			_quick_equip(col, str(s.id), right, y, C.nodes[0].size)
 		if gx:
 			_art_into(C, C.find(".kz-frame"), str(gx.icon), 0.62)
 			var lv := C.find(".kz-lv")
@@ -654,3 +656,46 @@ func _plus_badge(host: Node, at: Vector2, pl: int) -> void:
 		var f := UIK.font(false, 1000)
 		b.draw_string_outline(f, Vector2(-15, 6), "+" + str(pl), HORIZONTAL_ALIGNMENT_CENTER, 30, 15, 3, ink)
 		b.draw_string(f, Vector2(-15, 6), "+" + str(pl), HORIZONTAL_ALIGNMENT_CENTER, 30, 15, Color.WHITE))
+
+## HIZLI KUŞAN: boş yuvanın iç yanında, o yuvaya giyilebilecek en iyi 1-2 eşya küçük kutucuk olarak
+## durur (nadirlik → seviye → basma sırasıyla). Dokununca doğrudan kuşanılır.
+const QE_RAR := {1: "#aeb6c4", 2: "#58c878", 5: "#5aa9ff", 3: "#b96cff", 4: "#ffb23a"}
+func _quick_equip(col: Lyr.N, slot_id: String, right: bool, y: float, ssz: Vector2) -> void:
+	var cand := []
+	for id in g.meta.owned:
+		var it = g.gear_by_id(id)
+		if it == null or str(it.slot) != slot_id or g.is_equipped(id) or not g.can_wear(id): continue
+		cand.append([Market._gear_rank(it) * 1000 + g.gear_level(id) * 10 + g.gear_plus(id), id])
+	if cand.is_empty(): return
+	cand.sort_custom(func(a, b): return a[0] > b[0])
+	var Q := 38.0
+	var n := mini(2, cand.size())
+	for i in n:
+		var gid: String = cand[i][1]
+		var it = g.gear_by_id(gid)
+		var L := Lyr.new()
+		L.build({"nodes": [{"id": "0", "key": ".qe", "box": [0, 0, Q, Q], "origin": [Q * 0.5, Q * 0.5]}]})
+		var x := (-Q - 6.0) if right else (ssz.x + 6.0)
+		L.position = Vector2(x, y + 6.0 + i * (Q + 6.0))
+		col.host.add_child(L)
+		_items.append(L)
+		var rc := Color(String(QE_RAR.get(int(it.rarity), "#aeb6c4")))
+		var dn := Node2D.new()
+		var tex := _gear_tex(str(it.icon))
+		var ph := float(i) * 0.9
+		dn.draw.connect(func():
+			var r := Rect2(0, 0, Q, Q)
+			dn.draw_style_box(ComicSkin.sb(Color(0.05, 0.03, 0.07), 10), r.grow(2.0))
+			dn.draw_style_box(ComicSkin.sb(rc.darkened(0.55), 9, 2.0, rc), r)
+			if tex: dn.draw_texture_rect(tex, r.grow(-4.0), false)
+			# küçük "kuşan" oku
+			var c := Vector2(Q - 5.0, 5.0)
+			dn.draw_circle(c, 6.5, Color(0.05, 0.03, 0.07))
+			dn.draw_circle(c, 5.0, Color("#3fb05a"))
+			dn.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3.2), c + Vector2(3.0, 0.6), c + Vector2(-3.0, 0.6)]), Color.WHITE))
+		L.nodes[0].node.add_child(dn)
+		# hafif nabız: dikkat çeker ama rahatsız etmez
+		var tw := dn.create_tween().set_loops()
+		tw.tween_property(dn, "modulate", Color(1.18, 1.18, 1.18), 0.7).set_delay(ph).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(dn, "modulate", Color.WHITE, 0.7).set_trans(Tween.TRANS_SINE)
+		menu.btn(L, L.nodes[0], func(): _equip(gid), 0.9, 4.0)

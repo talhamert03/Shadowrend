@@ -316,7 +316,7 @@ func set_tier(k: int) -> void:
 		(nd as Node).reparent(mroot, false)
 	# sandığın içi artık gerçekten oyuk: düz ağız dokusu gizli; ışıma tabandan yükselir
 	_mouth_dark.position.y = -400.0
-	_mouth_glow.position.y = ChestModel.BH - 8.6
+	_mouth_glow.position.y = (float(cm.get("mouth_y", ChestModel.BH)) - 0.2) if cm.has("mouth_y") else ChestModel.BH - 8.6
 	_mouth_glow.scale = Vector3.ONE * 0.6
 	_seam.visible = false
 	_t = 0.0
