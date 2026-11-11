@@ -197,6 +197,7 @@ func _chests() -> void:
 			var hk := V.find(".vc-hook")
 			if hk: V.set_text(hk, (("LEGEND GUARANTEE" if I18n.lang == "en" else "EFSANEVİ GARANTİ") if t in ["mistik", "ejderha"] else ""))
 			var tt: String = t
+			_restyle_vcard(V, t)
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
 			_bobify(V)
 
@@ -227,6 +228,61 @@ func _ad_tap() -> void:
 		g.audio.play("adreward")
 		menu.set_page("magaza", true)
 		g.ui.chest_ceremony(AD_CHEST, -1, func(): _after_ceremony()))
+
+## vitrin kartı çerçevesi: yakalanan düz zemin yerine sandığı öne çıkaran sahne —
+## kademe renginde metal kenar, üstten sahne ışığı, ışıyan kaide, isim levhası.
+func _restyle_vcard(V: Lyr, t: String) -> void:
+	var root: Lyr.N = V.nodes[0]
+	if root.img: root.img.visible = false
+	for k in [".vc-rift", ".vc-spark", ".vc-head", ".vc-sheen"]:
+		for q in V.find_all(k):
+			if q.img: q.img.visible = false
+	var gc := ChestModel.glow_of(ChestStage.tier_of(t))
+	var W: float = root.size.x
+	var H: float = root.size.y
+	var ink := Color(0.04, 0.02, 0.06)
+	var gold := Color("#e2b24a")
+	var fr := Node2D.new()
+	fr.draw.connect(func():
+		var R := Rect2(0, 0, W, H)
+		fr.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.55), 16), Rect2(R.position + Vector2(0, 6), R.size))
+		fr.draw_style_box(ComicSkin.sb(ink, 16), R.grow(2.0))
+		# metal kenar: üstte açık, altta koyu (kademe rengi)
+		fr.draw_style_box(ComicSkin.sb(gc.darkened(0.45), 15), R)
+		fr.draw_style_box(ComicSkin.sb(gc.lerp(Color.WHITE, 0.35), 15), Rect2(R.position, Vector2(W, H * 0.42)))
+		var I := R.grow(-3.0)
+		fr.draw_style_box(ComicSkin.sb(Color("#0d0911"), 12), I)
+		# üstten kademe renginde ışık + sahne ışığı konisi
+		fr.draw_polygon(PackedVector2Array([I.position + Vector2(6, 4), Vector2(I.end.x - 6, I.position.y + 4), Vector2(I.end.x - 6, I.position.y + H * 0.62), Vector2(I.position.x + 6, I.position.y + H * 0.62)]),
+			PackedColorArray([Color(gc, 0.34), Color(gc, 0.34), Color(gc, 0.0), Color(gc, 0.0)]))
+		var cx := W * 0.5
+		var py := H * 0.585
+		fr.draw_polygon(PackedVector2Array([Vector2(cx - 12, I.position.y + 2), Vector2(cx + 12, I.position.y + 2), Vector2(cx + W * 0.44, py), Vector2(cx - W * 0.44, py)]),
+			PackedColorArray([Color(1, 1, 1, 0.13), Color(1, 1, 1, 0.13), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0)]))
+		# kaide: koyu taş elips + kademe renginde ışıyan halka
+		fr.draw_set_transform(Vector2(cx, py), 0.0, Vector2(1.0, 0.3))
+		fr.draw_circle(Vector2.ZERO, W * 0.43, Color(gc, 0.22))
+		fr.draw_circle(Vector2.ZERO, W * 0.38, Color(0.03, 0.02, 0.05, 0.9))
+		fr.draw_arc(Vector2.ZERO, W * 0.38, 0, TAU, 40, Color(gc, 0.9), 2.4, true)
+		fr.draw_circle(Vector2.ZERO, W * 0.27, Color(gc, 0.16))
+		fr.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# isim levhası
+		var P := Rect2(7, 9, W - 14, 33)
+		fr.draw_style_box(ComicSkin.sb(ink, 9), P.grow(1.5))
+		fr.draw_style_box(ComicSkin.sb(Color("#1a121f"), 8), P)
+		fr.draw_style_box(ComicSkin.sb(Color("#2b1d33"), 8), Rect2(P.position, Vector2(P.size.x, P.size.y * 0.5)))
+		fr.draw_rect(Rect2(P.position.x + 10, P.end.y - 2.5, P.size.x - 20, 1.6), Color(gc, 0.9))
+		# köşe elmasları
+		for c in [Vector2(9, 9), Vector2(W - 9, 9), Vector2(9, H - 9), Vector2(W - 9, H - 9)]:
+			fr.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -3.6), c + Vector2(3.6, 0), c + Vector2(0, 3.6), c + Vector2(-3.6, 0)]), gold))
+	root.node.add_child(fr)
+	root.node.move_child(fr, 0)
+	# sandık biraz daha iri dursun
+	var cs := V.find(".csw")
+	if cs:
+		var cc: Vector2 = cs.size * 0.5
+		cs.extra = Transform2D(0, Vector2(0.8, 0.8), 0, cc - cc * 0.8 + Vector2(0, 9))
+		V.set_dyn(cs)
 
 func _vcard_tap(t: String) -> void:
 	# gem yetmese de pop-up açılır (sandık animasyonu görülür); yetersizlik SATIN AL'da söylenir

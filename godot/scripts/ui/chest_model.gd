@@ -152,7 +152,7 @@ func _build_real(tier: int) -> Dictionary:
 	mat.next_pass = _ink
 	var root := Node3D.new()
 	root.rotation = Vector3(0.3, 0.0, 0)
-	root.scale = Vector3.ONE * 0.86
+	root.scale = Vector3.ONE * 0.98
 	_mi(SP[0], mat, root, Vector3.ZERO, Vector3.ZERO, Vector3.ONE * sc)
 	var hy := seam * sc
 	var hz := (-zh + 0.04) * sc

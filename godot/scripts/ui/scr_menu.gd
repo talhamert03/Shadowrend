@@ -180,9 +180,35 @@ func busy() -> bool:
 ## v59 _navTap: dokunulan sekmeden halka yayılır, simge ezilip zıplar
 var _tab_n := {}             # sayfa → alt menü sekme düğümü
 var _hops := {}              # sekme düğümü → başlangıç
+var _dglow: Sprite2D
+## seçili sekmenin altında yumuşak altın ışık; sekme değişince o sekmeye doğru süzülür
+func _dock_glow(n: Lyr.N) -> void:
+	var c: Vector2 = g.ui.uiroot.get_global_transform().affine_inverse() * (shell.get_global_transform() * shell.rect_of(n).get_center())
+	if _dglow == null or not is_instance_valid(_dglow):
+		_dglow = Sprite2D.new()
+		_dglow.texture = load("res://assets/chest/fx_glow.png")
+		var am := CanvasItemMaterial.new()
+		am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_dglow.material = am
+		_dglow.modulate = Color(1.0, 0.78, 0.36, 0.42)
+		_dglow.z_index = 3
+		g.ui.uiroot.add_child(_dglow)
+		_dglow.position = c
+		var sz: Vector2 = _dglow.texture.get_size()
+		_dglow.scale = Vector2(118.0 / sz.x, 84.0 / sz.y)
+		var pw := _dglow.create_tween().set_loops()
+		pw.tween_property(_dglow, "modulate:a", 0.56, 0.9).set_trans(Tween.TRANS_SINE)
+		pw.tween_property(_dglow, "modulate:a", 0.34, 0.9).set_trans(Tween.TRANS_SINE)
+	else:
+		var tw := _dglow.create_tween()
+		tw.tween_property(_dglow, "position", c, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_dglow.visible = visible
+
 func _dock_fx(p: String) -> void:
 	var n: Lyr.N = _tab_n.get(p)
-	if n == null or Settings.data.get("rm", false): return
+	if n == null: return
+	_dock_glow(n)
+	if Settings.data.get("rm", false): return
 	_hops[n] = _t
 	var rip := Node2D.new()
 	rip.z_index = 5
