@@ -340,19 +340,18 @@ func _market() -> void:
 	var gems: float = g.read_stones()
 	var heroes := O.filter(func(o): return o.kind == "char")
 	var gears := O.filter(func(o): return o.kind != "char")
+	var cw: float = box.size.x if box else MK_HC_W * 2.0 + MK_GAP
 	var y := 0.0
-	var hh := 0.0
-	for i in heroes.size():
-		var o: Dictionary = heroes[i]
-		var r := clampi(int(o.rar), 1, 4)
-		var st := "got" if o.got else ("unlock" if o.get("unlock", false) else "n")
-		var C := _add("mkh" + str(r) + "_" + st, K, Vector2((i % 2) * (MK_HC_W + MK_GAP), (i / 2) * 0.0))
-		if C == null: continue
-		hh = C.nodes[0].size.y
-		C.position.y = (i / 2) * (hh + MK_GAP)
-		_hero_card(C, o)
-	if heroes.size(): y = ceilf(heroes.size() / 2.0) * (hh + MK_GAP) - MK_GAP
-	if heroes.size() and gears.size(): y += MK_GAP
+	# ── KAHRAMAN KARTLARI: 3 sütun, küçük kart, kendi çerçevesi ──
+	if heroes.size():
+		y = _mk_head(K, "KAHRAMAN KARTLARI", "#f0c77a", y, cw)
+		var hw := (cw - MK_GAP * 2.0) / 3.0
+		var hh := 0.0
+		for i in heroes.size():
+			hh = _hero_tile(K, heroes[i], Vector2((i % 3) * (hw + MK_GAP), y + (i / 3) * (hh + MK_GAP)), hw)
+		y += ceilf(heroes.size() / 3.0) * (hh + MK_GAP) + 6.0
+	# ── EKİPMAN KARTLARI ──
+	if gears.size(): y = _mk_head(K, "EKİPMAN KARTLARI", "#8fc8ff", y, cw)
 	var gh := 0.0
 	for i in gears.size():
 		var o: Dictionary = gears[i]
@@ -363,6 +362,146 @@ func _market() -> void:
 		_gear_card(C, o)
 	if gears.size(): y += ceilf(gears.size() / 2.0) * MK_GC_STEP.y - (MK_GC_STEP.y - gh)
 	if box: shell.resize_h(box, y)
+
+# ═════════════ kart pazarı: bölüm başlığı + kahraman kartı ═════════════
+
+func _mk_lyr(K: String, pos: Vector2, sz: Vector2, key: String) -> Lyr:
+	var L := Lyr.new()
+	L.build({"nodes": [{"id": "0", "key": key, "box": [0, 0, sz.x, sz.y], "origin": [sz.x * 0.5, sz.y * 0.5]}]})
+	L.position = pos
+	var n := shell.find_id(K)
+	n.host.add_child(L)
+	_items[K].append(L)
+	return L
+
+## başlık: altın yazı + iki yana sönen ince çizgi
+func _mk_head(K: String, title: String, col: String, y: float, cw: float) -> float:
+	var L := _mk_lyr(K, Vector2(0, y), Vector2(cw, 26), ".mk-head")
+	var c := Color(col)
+	var t := HeroesPage._lbl(true, 900, 14, 1.6, c, title, cw)
+	t.position = Vector2(0, 3)
+	var dn := Node2D.new()
+	var tw := t.text_width()
+	dn.draw.connect(func():
+		var mid := cw * 0.5
+		var gap := tw * 0.5 + 12.0
+		for sd in [-1.0, 1.0]:
+			var x0: float = mid + sd * gap
+			var x1: float = mid + sd * (cw * 0.5 - 4.0)
+			var pts := PackedVector2Array([Vector2(x0, 12.5), Vector2(x1, 12.5)])
+			dn.draw_polyline_colors(pts, PackedColorArray([Color(c, 0.75), Color(c, 0.0)]), 1.5, true)
+			dn.draw_circle(Vector2(x0 + sd * 3.0, 12.5), 2.2, c))
+	L.nodes[0].node.add_child(dn)
+	L.nodes[0].node.add_child(t)
+	return y + 34.0
+
+const MK_RAR_TAG := {1: "SIRADAN", 2: "NADİR", 3: "EPİK", 4: "EFSANEVİ"}
+
+## kahraman kartı (kart pazarı): koyu gövde, nadirlik renginde ince kenar + iç ışıma, portre,
+## nadirlik etiketi, ad, altın ve gem düğmeleri. Döndürür: kart yüksekliği
+func _hero_tile(K: String, o: Dictionary, pos: Vector2, w: float) -> float:
+	var rc := Color(String(HeroesPage._rar(str(o.id)).get("color", "#b8c0cc")))
+	var unlock: bool = o.get("unlock", false)
+	var got: bool = o.got
+	var ph := roundf(w * 1.28)
+	var by := 4.0 + ph + 34.0
+	var bh := 30.0
+	var H := by + bh * 2.0 + 6.0 + 6.0
+	var B := _mk_lyr(K, pos, Vector2(w, H), ".mk-ht")
+	var host: Node2D = B.nodes[0].node
+	var dn := Node2D.new()
+	var pr := Rect2(4, 4, w - 8, ph)
+	var tag: String = "YENİ KAHRAMAN" if unlock else str(MK_RAR_TAG.get(clampi(int(o.rar), 1, 4), ""))
+	dn.draw.connect(func():
+		var R := Rect2(0, 0, w, H)
+		# gölge + dış ışıma
+		dn.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45), 13), Rect2(R.position + Vector2(0, 4), R.size))
+		dn.draw_style_box(ComicSkin.sb(Color(rc, 0.16), 15), R.grow(3.0))
+		# gövde: koyu, üstten nadirlik renginde hafif ışık
+		dn.draw_style_box(ComicSkin.sb(Color("#140e18"), 12, 1.5, Color(rc, 0.85)), R)
+		var grad := PackedColorArray([Color(rc, 0.0), Color(rc, 0.0), Color(rc, 0.18), Color(rc, 0.18)])
+		dn.draw_polygon(PackedVector2Array([Vector2(2, H * 0.55), Vector2(w - 2, H * 0.55), Vector2(w - 2, H - 2), Vector2(2, H - 2)]), grad)
+		# portre çerçevesi (resim üstte çizilir), alttan karartma
+		dn.draw_style_box(ComicSkin.sb(Color("#0a070c"), 9), pr.grow(1.5)))
+	host.add_child(dn)
+	var pp := "res://assets/ui/art/portrait/" + str(o.id) + ".webp"
+	if ResourceLoader.exists(pp):
+		var img := UIK.round_image(UITex.get_tex(pp), pr.size.x, pr.size.y, 9.0, Vector2(0.5, 0.16), 0.0, Color(0, 0, 0, 0), Color("#120e15"), Color("#120e15"))
+		var m := img.material as ShaderMaterial
+		if got:
+			m.set_shader_parameter("bri", 0.55)
+			m.set_shader_parameter("sat", 0.25)
+		img.position = pr.position
+		host.add_child(img)
+	# portre üstü: alt karartma, ince iç kenar, nadirlik etiketi, ×N
+	var ov := Node2D.new()
+	ov.draw.connect(func():
+		var fy := pr.end.y - ph * 0.34
+		ov.draw_polygon(PackedVector2Array([Vector2(pr.position.x, fy), Vector2(pr.end.x, fy), pr.end, Vector2(pr.position.x, pr.end.y)]),
+			PackedColorArray([Color(0.04, 0.02, 0.05, 0.0), Color(0.04, 0.02, 0.05, 0.0), Color(0.04, 0.02, 0.05, 0.92), Color(0.04, 0.02, 0.05, 0.92)]))
+		ov.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 9, 1.0, Color(1, 1, 1, 0.12)), pr))
+	host.add_child(ov)
+	var tg := HeroesPage._lbl(false, 900, 8.5 if unlock else 9.0, 1.4, (Color("#ffd774") if unlock else rc.lightened(0.25)), tag, w)
+	tg.position = Vector2(0, pr.end.y - 16.0)
+	host.add_child(tg)
+	if not unlock:
+		var nb := HeroesPage._lbl(true, 900, 12, 0.4, Color.WHITE, "×" + str(int(o.n)), 40)
+		var bw2 := nb.text_width() + 12.0
+		var bp := Vector2(pr.end.x - bw2 - 4.0, pr.position.y + 4.0)
+		var bd := Node2D.new()
+		bd.draw.connect(func(): bd.draw_style_box(ComicSkin.sb(Color(0.05, 0.03, 0.07, 0.85), 8, 1.2, Color(rc, 0.9)), Rect2(bp, Vector2(bw2, 19))))
+		host.add_child(bd)
+		nb.wrap_w = bw2
+		nb.position = bp + Vector2(0, 1.5)
+		host.add_child(nb)
+	var nm := HeroesPage._lbl(true, 900, (12.5 if str(o.name).length() < 10 else (11.0 if str(o.name).length() < 12 else 10.0)), 0.5, Color("#fff4dc"), str(o.name).to_upper(), w - 6.0)
+	nm.position = Vector2(3, pr.end.y + 9.0)
+	host.add_child(nm)
+	var id: String = o.id
+	menu.btn(B, B.nodes[0], func(): g.audio.play("click"); g.ui.open_char_detail(id), 0.98)
+	# fiyat düğmeleri (kart gövdesinden SONRA kaydedilir → üstte kalır, satın alır)
+	if got:
+		var dn2 := Node2D.new()
+		dn2.draw.connect(func(): dn2.draw_style_box(ComicSkin.sb(Color("#2a2430"), 9, 1.2, Color(1, 1, 1, 0.12)), Rect2(6, by, w - 12, bh * 2.0 + 6.0)))
+		host.add_child(dn2)
+		var gl := HeroesPage._lbl(true, 900, 13, 1.2, Color("#9a92a4"), "ALINDI", w)
+		gl.position = Vector2(0, by + bh - 8.0)
+		host.add_child(gl)
+		return H
+	var slot: String = o.slot
+	for i in 2:
+		var gem := i == 1
+		var price := float(o.gem if gem else o.price)
+		var can: bool = (g.read_stones() if gem else g.read_rubies()) >= price
+		var bp2 := pos + Vector2(6, by + i * (bh + 6.0))
+		var Bb := _mk_lyr(K, bp2, Vector2(w - 12, bh), ".mk-hbuy")
+		var base := Color("#3f7ee8") if gem else Color("#e8893a")
+		if not can: base = Color("#3a3240")
+		var bn := Node2D.new()
+		var bw3 := w - 12.0
+		bn.draw.connect(func():
+			var r := Rect2(0, 0, bw3, bh)
+			bn.draw_style_box(ComicSkin.sb(base.darkened(0.55), 9), Rect2(0, 3, bw3, bh))
+			bn.draw_style_box(ComicSkin.sb(base, 9, 1.5, base.lightened(0.25)), r)
+			bn.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.16 if can else 0.05), 7), Rect2(3, 2, bw3 - 6, bh * 0.42)))
+		Bb.nodes[0].node.add_child(bn)
+		var ic := Sprite2D.new()
+		ic.texture = UITex.get_tex("res://assets/fx/currency/" + ("gem" if gem else "coin") + ".png")
+		var pt := HeroesPage._lbl(true, 900, 13, 0.3, Color.WHITE if can else Color("#9a92a4"), fmt_tr(price), bw3)
+		var tw2 := pt.text_width()
+		var isz := 17.0
+		if ic.texture: ic.scale = Vector2.ONE * (isz / maxf(ic.texture.get_width(), ic.texture.get_height()))
+		var gx := (bw3 - (isz + 4.0 + tw2)) * 0.5
+		ic.position = Vector2(gx + isz * 0.5, bh * 0.5)
+		if not can: ic.modulate = Color(0.6, 0.6, 0.6)
+		Bb.nodes[0].node.add_child(ic)
+		pt.align = 0.0
+		pt.wrap_w = tw2 + 4.0
+		pt.position = Vector2(gx + isz + 4.0, bh * 0.5 - 9.0)
+		Bb.nodes[0].node.add_child(pt)
+		var cur := "gem" if gem else "gold"
+		menu.btn(Bb, Bb.nodes[0], func(): _mk_buy(slot, cur), 0.94)
+	return H
 
 func _hero_card(C: Lyr, o: Dictionary) -> void:
 	var art := C.find(".mk-hc-art")
