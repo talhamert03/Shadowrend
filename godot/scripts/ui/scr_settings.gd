@@ -33,6 +33,8 @@ var _outDown := false
 func show_settings(from_pause: bool) -> void:
 	from = "pause" if from_pause else "menu"
 	_closing = false
+	_adm = ""
+	_verN = 0
 	_build()
 	_t = 0.0
 	visible = true
@@ -48,6 +50,9 @@ func _build() -> void:
 		if c is Node2D: c.queue_free()
 	_taps.clear()
 	_sliders.clear()
+	if _adm != "":
+		_build_admin()
+		return
 	var vs := UIK.ui_size(get_viewport())
 	_W = vs.x; _H = vs.y
 	_dim = Node2D.new()
@@ -143,6 +148,114 @@ func _build() -> void:
 	ver.align = 0.5; ver.wrap_w = pw
 	ver.position = Vector2(-pw * 0.5, R.end.y - 22)
 	_panel.add_child(ver)
+	# gizli yönetici girişi: sürüm yazısına 7 dokunuş → şifre
+	var vt := Node2D.new()
+	vt.position = Vector2(0, R.end.y - 14)
+	_panel.add_child(vt)
+	_tap(vt, Rect2(-50, -14, 100, 28), func():
+		_verN += 1
+		if _verN >= 7:
+			_verN = 0
+			_adm = "panel" if str(Store.get_item("kh_adm", "")) == ADM_HASH else "pin"
+			_pin = ""
+			_build_keep())
+
+# ═════════════ yönetici paneli (yalnız şifreyi bilen) ═════════════
+# Şifrenin kendisi oyunda yok; yalnız SHA-256 özeti. Doğru girilince bu cihazda açık kalır.
+const ADM_HASH := "2e1ec42919491e0f49d8f4d14e203d01c7ea8f1f3ae69c67d2a211f283a2fb4a"
+var _adm := ""            # "" | "pin" | "panel"
+var _pin := ""
+var _verN := 0
+
+func _build_admin() -> void:
+	var vs := UIK.ui_size(get_viewport())
+	_W = vs.x; _H = vs.y
+	_dim = Node2D.new()
+	_dim.draw.connect(func(): _dim.draw_rect(Rect2(-40, -40, _W + 80, _H + 80), Color(0.02, 0.0, 0.02, 0.8)))
+	add_child(_dim)
+	var pw := minf(340.0, _W - 36.0)
+	var ph := 400.0 if _adm == "panel" else 330.0
+	_panel = Node2D.new()
+	_panel.position = Vector2(_W * 0.5, _H * 0.5)
+	add_child(_panel)
+	var R := Rect2(-pw * 0.5, -ph * 0.5, pw, ph)
+	_prect = Rect2(_panel.position + R.position, R.size)
+	_panel.draw.connect(func():
+		_panel.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 22), Rect2(R.position + Vector2(0, 9), R.size))
+		_panel.draw_style_box(ComicSkin.sb(PANEL, 20, 3.5, INK), R))
+	var tt := _lbl("YÖNETİCİ", 24, YEL, true, 2.0)
+	tt.align = 0.5; tt.wrap_w = pw
+	tt.position = Vector2(-pw * 0.5, R.position.y + 16)
+	_panel.add_child(tt)
+	var x0 := R.position.x + 20.0
+	var cw := pw - 40.0
+	var y := R.position.y + 62.0
+	if _adm == "pin":
+		var dots := _lbl("● ".repeat(_pin.length()) + "○ ".repeat(8 - _pin.length()), 20, Color("#efe4dc"), false, 1.0)
+		dots.align = 0.5; dots.wrap_w = pw
+		dots.position = Vector2(-pw * 0.5, y)
+		_panel.add_child(dots)
+		y += 44.0
+		var kw := (cw - 20.0) / 3.0
+		var keys := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "SİL", "0", "ÇIK"]
+		for i in keys.size():
+			var k: String = keys[i]
+			_small_btn(k, x0 + (i % 3) * (kw + 10.0), y + (i / 3) * 48.0, kw, Color("#3a2a33"), func(): _pin_key(k))
+		return
+	var bw := (cw - 10.0) * 0.5
+	var info := _lbl("Gem: " + str(int(g.read_stones())) + "   Altın: " + str(int(g.read_rubies())), 13, Color("#8fe39a"), false, 0.4)
+	info.align = 0.5; info.wrap_w = pw
+	info.position = Vector2(-pw * 0.5, y)
+	_panel.add_child(info)
+	y += 28.0
+	for row in [[100, 1000], [10000, 100000]]:
+		for i in 2:
+			var n: int = row[i]
+			_small_btn("+" + str(n) + " GEM", x0 + i * (bw + 10.0), y, bw, Color("#4a2a6a"), func(): g.add_stones(n); _adm_done("+" + str(n) + " gem"))
+		y += 44.0
+	for i in 2:
+		var n2: int = [10000, 1000000][i]
+		_small_btn("+" + str(n2) + " ALTIN", x0 + i * (bw + 10.0), y, bw, Color("#6a5a1a"), func(): g.add_rubies(n2); _adm_done("+" + str(n2) + " altın"))
+	y += 50.0
+	var ct := ["ahsap", "yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]
+	var tw := (cw - 30.0) / 4.0
+	for i in ct.size():
+		var t: String = ct[i]
+		var nm := str(ChestSystem.chests().get(t, {}).get("name", t)).split(" ")[0].to_upper().substr(0, 6)
+		_small_btn(nm, x0 + (i % 4) * (tw + 10.0), y + (i / 4) * 44.0, tw, Color("#2a4a6a"), func(): g.give_chest(t); _adm_done(nm + " sandığı"))
+	y += 94.0
+	_small_btn("PANELİ KİLİTLE", x0, y, bw, Color("#5a1a20"), func():
+		Store.set_item("kh_adm", "")
+		_adm = ""
+		_build_keep())
+	_small_btn("GERİ", x0 + bw + 10.0, y, bw, Color("#3a2a33"), func():
+		_adm = ""
+		_build_keep())
+
+func _pin_key(k: String) -> void:
+	g.audio.play("click")
+	if k == "ÇIK":
+		_adm = ""
+	elif k == "SİL":
+		_pin = _pin.substr(0, maxi(0, _pin.length() - 1))
+	else:
+		_pin += k
+		if _pin.length() >= 8:
+			if ("shadowrend-admin:" + _pin).sha256_text() == ADM_HASH:
+				Store.set_item("kh_adm", ADM_HASH)
+				_adm = "panel"
+				g.audio.play("levelup")
+			else:
+				_adm = ""
+				g.audio.play("error")
+			_pin = ""
+	_build_keep()
+
+func _adm_done(what: String) -> void:
+	g.audio.play("claim")
+	g.ui.toast("YÖNETİCİ: " + what)
+	if g.ui.menu and g.ui.menu.has_method("refresh_wallet"): g.ui.menu.refresh_wallet()
+	_build_keep()
 
 ## yeniden kur, giriş animasyonu olmadan
 func _build_keep() -> void:
