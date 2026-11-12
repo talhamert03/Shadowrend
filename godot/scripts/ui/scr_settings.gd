@@ -63,7 +63,7 @@ func _build() -> void:
 	var ph := 478.0
 	var CL = g.ui.cloud
 	if CL and CL.available():
-		ph += 44.0 if not CL.signed else (22.0 + (44.0 if CL.cloud_level > g.account_level() else 0.0))
+		ph += 44.0 if not CL.signed else (62.0 + (44.0 if CL.cloud_level > g.account_level() else 0.0))
 	_panel = Node2D.new()
 	_panel.position = Vector2(_W * 0.5, _H * 0.5)
 	add_child(_panel)
@@ -130,7 +130,12 @@ func _build() -> void:
 	var C = g.ui.cloud
 	if C and C.available():
 		if C.signed:
-			var gn := _lbl("Google Play: " + (C.player_name if C.player_name != "" else "bağlı") + " · ilerleme bulutta", 11, Color("#8fe39a"), false, 0.4)
+			_small_btn("✓  GOOGLE PLAY'E BAĞLI", x0, y, cw, Color("#1f6b3a"), func():
+				g.audio.play("click")
+				g.ui.toast("GOOGLE PLAY: " + (C.player_name if C.player_name != "" else "BAĞLI") + " · İLERLEME BULUTTA"))
+			y += 40.0
+			var gn := _lbl((C.player_name + " · " if C.player_name != "" else "") + "ilerleme bulutta kayıtlı", 11, Color("#8fe39a"), false, 0.4)
+			gn.align = 0.5; gn.wrap_w = cw
 			gn.position = Vector2(x0, y)
 			_panel.add_child(gn)
 			y += 22.0
