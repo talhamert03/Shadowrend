@@ -36,6 +36,7 @@ var _flash: ColorRect
 var _title: UIText
 var _hint: UIText
 var _word: UIText
+var _word_sub: UIText
 var _badge: Node2D
 var _badge_t: UIText
 var _hold: Node2D            # kart kabı (zeminin üstü)
@@ -229,8 +230,23 @@ func _build() -> void:
 	_title.modulate.a = 0.0
 	_hint = _txt(1000, 26, 2.0, Color.WHITE, UIK.ink_stroke(2.5, 3.0))
 	_hint.visible = false
-	_word = _txt(1000, 56, 2.0, Color.WHITE, UIK.ink_stroke(4.0, 5.0))
+	_word = UIText.new()
+	_word.style(true, 900, 40, 7.0, Color.WHITE, "0 2px 8px rgba(0,0,0,0.85)")
+	_word.align = 0.5
+	_word.nowrap = true
+	_word.wrap_w = _W.x
+	_word.size = Vector2(_W.x, 64.0)
+	_word.pivot_offset = _word.size * 0.5
+	add_child(_word)
 	_word.visible = false
+	_word_sub = UIText.new()
+	_word_sub.style(false, 800, 11, 4.0, Color(1, 1, 1, 0.75), "0 1px 3px rgba(0,0,0,0.9)")
+	_word_sub.align = 0.5
+	_word_sub.nowrap = true
+	_word_sub.wrap_w = _W.x
+	_word_sub.size = Vector2(_W.x, 18.0)
+	add_child(_word_sub)
+	_word_sub.visible = false
 	_sum_title = _txt(1000, 42, 1.5, YEL, UIK.ink_stroke(3.5, 4.5))
 	_sum_title.text = "KAZANDIKLARIN!"
 	_sum_title.visible = false
@@ -649,21 +665,48 @@ func _draw_fx() -> void:
 		_fx.draw_colored_polygon(P2, Color(Color.WHITE, a * 0.9))
 		# genişleyen mürekkep halka
 		_fx.draw_arc(c, 60 + 220 * k, 0, TAU, 48, Color(INK, (1.0 - k) * 0.8), 6.0 * (1.0 - k) + 1.0, true)
-	# söz ardında patlama yıldızı
+	# nadirlik sözü: iki yana sönen ince çizgiler, yumuşak ışıma, bir kez geçen parlama (sade, premium)
 	if _word_t >= 0.0 and _word.visible:
-		var kw := clampf(_word_t / 0.3, 0, 1)
-		var sw := ScrLevelUp._back_ease(kw) if kw < 1.0 else 1.0 + sin(_t * 3.0) * 0.02
-		var wc := _word.position + _word.size * 0.5
 		var cc: Color = cards[idx].col if idx >= 0 and idx < cards.size() else YEL
-		var P3 := PackedVector2Array()
-		var I3 := PackedVector2Array()
-		for i in 24:
-			var an := -PI * 0.5 + i * PI / 12.0 + 0.05
-			var rr := (170.0 if i % 2 == 0 else 128.0) * sw
-			P3.append(wc + Vector2(cos(an) * rr, sin(an) * rr * 0.36))
-			I3.append(wc + Vector2(cos(an) * rr * 1.05, sin(an) * rr * 0.36 * 1.05) + Vector2(5, 6))
-		_fx.draw_colored_polygon(I3, Color(INK, _word.modulate.a))
-		_fx.draw_colored_polygon(P3, Color(cc.darkened(0.15), _word.modulate.a))
+		var wa := _word.modulate.a
+		var wc := _word.position + _word.size * 0.5
+		var ke := 1.0 - pow(1.0 - clampf(_word_t / 0.42, 0, 1), 3.0)
+		var half := 168.0 * ke
+		var lc := cc.lerp(Color.WHITE, 0.35)
+		# arka ışıma (nefes alır)
+		var gb := 0.20 + 0.05 * sin(_t * 2.4)
+		for gi in 4:
+			var gr := 1.0 - gi * 0.22
+			_fx.draw_set_transform(wc, 0.0, Vector2(1.0, 0.30))
+			_fx.draw_circle(Vector2.ZERO, 190.0 * gr * ke, Color(cc, gb * wa * (0.35 + gi * 0.2)))
+		_fx.draw_set_transform(Vector2.ZERO)
+		# koyu yatay şerit, uçları sönen
+		var bh := 66.0
+		var band := PackedVector2Array([wc + Vector2(-half * 1.25, -bh * 0.5), wc + Vector2(0, -bh * 0.5), wc + Vector2(half * 1.25, -bh * 0.5),
+			wc + Vector2(half * 1.25, bh * 0.5), wc + Vector2(0, bh * 0.5), wc + Vector2(-half * 1.25, bh * 0.5)])
+		var ba := Color(0.03, 0.01, 0.04, 0.0)
+		var bm := Color(0.03, 0.01, 0.04, 0.62 * wa)
+		_fx.draw_polygon(PackedVector2Array([band[0], band[1], band[4], band[5]]), PackedColorArray([ba, bm, bm, ba]))
+		_fx.draw_polygon(PackedVector2Array([band[1], band[2], band[3], band[4]]), PackedColorArray([bm, ba, ba, bm]))
+		# üst/alt ince çizgiler + ortada küçük elmas
+		for sy in [-1.0, 1.0]:
+			var yy: float = wc.y + sy * bh * 0.5
+			for sx in [-1.0, 1.0]:
+				_fx.draw_polyline_colors(PackedVector2Array([Vector2(wc.x + sx * 9.0, yy), Vector2(wc.x + sx * half, yy)]),
+					PackedColorArray([Color(lc, 0.95 * wa), Color(lc, 0.0)]), 1.6, true)
+			var dm := Vector2(wc.x, yy)
+			_fx.draw_colored_polygon(PackedVector2Array([dm + Vector2(0, -4.5), dm + Vector2(4.5, 0), dm + Vector2(0, 4.5), dm + Vector2(-4.5, 0)]), Color(lc, wa))
+		# parlama: yazının üstünden bir kez soldan sağa geçer
+		var sk := clampf((_word_t - 0.30) / 0.55, 0, 1)
+		if sk > 0.0 and sk < 1.0:
+			var sx2 := wc.x - half + sk * half * 2.0
+			var sw2 := 34.0
+			var clr := Color(1, 1, 1, 0.0)
+			var cm := Color(1, 1, 1, 0.22 * wa * sin(sk * PI))
+			_fx.draw_polygon(PackedVector2Array([Vector2(sx2 - sw2, wc.y - bh * 0.5), Vector2(sx2, wc.y - bh * 0.5), Vector2(sx2 - 10, wc.y + bh * 0.5), Vector2(sx2 - sw2 - 10, wc.y + bh * 0.5)]),
+				PackedColorArray([clr, cm, cm, clr]))
+			_fx.draw_polygon(PackedVector2Array([Vector2(sx2, wc.y - bh * 0.5), Vector2(sx2 + sw2, wc.y - bh * 0.5), Vector2(sx2 + sw2 - 10, wc.y + bh * 0.5), Vector2(sx2 - 10, wc.y + bh * 0.5)]),
+				PackedColorArray([cm, clr, clr, cm]))
 	# kıvılcımlar + konfeti: tek üçgen ağı (yüzlerce parça → tek çizim çağrısı)
 	var B := TriBatch.new()
 	for p in parts:
@@ -870,9 +913,15 @@ func _step_fx(dt: float) -> void:
 		_word_t += dt
 		var kw := clampf(_word_t / 0.3, 0, 1)
 		_word.visible = true
-		_word.scale = Vector2.ONE * (ScrLevelUp._back_ease(kw) if kw < 1.0 else 1.0 + sin(_t * 4.0) * 0.025)
-		_word.rotation = -0.06 + sin(_t * 2.0) * 0.01
-		_word.modulate.a = minf(1.0, _word_t / 0.12)
+		var kz := clampf((_word_t - 0.06) / 0.38, 0, 1)
+		var ez := 1.0 - pow(1.0 - kz, 3.0)
+		_word.scale = Vector2.ONE * lerpf(1.22, 1.0, ez)
+		_word.rotation = 0.0
+		_word.modulate.a = ez
+		_word_sub.visible = true
+		var ks := clampf((_word_t - 0.28) / 0.3, 0, 1)
+		_word_sub.modulate.a = ks
+		_word_sub.position = _word.position + Vector2(0, -24.0 + (1.0 - ks) * 6.0)
 	for i in range(parts.size() - 1, -1, -1):
 		var p: Dictionary = parts[i]
 		p.life = float(p.life) - dt
@@ -983,6 +1032,7 @@ func _next() -> void:
 	_landed = false
 	_word_t = -1.0
 	_word.visible = false
+	if _word_sub: _word_sub.visible = false
 	var r: Dictionary = c.r
 	_count_to = int(r.get("amount", 0)) if (r.kind == "rubies" or r.kind == "stone") else int(r.get("cards", 1))
 	_count_t = -1.0
@@ -1083,8 +1133,11 @@ func _land() -> void:
 		_flash_dur = [0.3, 0.3, 0.5, 0.8][dr]
 		_flash_c = col.lerp(Color.WHITE, 0.5)
 	if dr >= 2:
-		_word.text = ("EFSANEVİ!" if dr >= 3 else _tag_of(c.r) + "!")
-		_word.color = col.lightened(0.35)
+		_word.text = ("EFSANEVİ" if dr >= 3 else _tag_of(c.r))
+		_word.color = col.lerp(Color.WHITE, 0.55)
+		var kk := String(c.r.kind)
+		_word_sub.text = "KAHRAMAN" if kk == "char" else ("EKİPMAN" if kk == "gear" else ("SİLAH" if kk == "weapon" else ""))
+		_word_sub.color = Color(col.lerp(Color.WHITE, 0.4), 0.85)
 		_word.position = Vector2(0, _card_home().y - CARD.y * 0.5 - 88.0)
 		_word_t = 0.0
 		if dr >= 3: _confetti(56)
@@ -1112,6 +1165,7 @@ func _out() -> void:
 	_hint.visible = false
 	_word_t = -1.0
 	_word.visible = false
+	if _word_sub: _word_sub.visible = false
 	g.audio.play("select")
 
 func _confetti(n: int) -> void:
