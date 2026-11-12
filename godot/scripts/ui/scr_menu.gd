@@ -182,27 +182,79 @@ var _tab_n := {}             # sayfa → alt menü sekme düğümü
 var _hops := {}              # sekme düğümü → başlangıç
 var _dglow: Sprite2D
 ## seçili sekmenin altında yumuşak altın ışık; sekme değişince o sekmeye doğru süzülür
-func _dock_glow(n: Lyr.N) -> void:
-	var c: Vector2 = g.ui.uiroot.get_global_transform().affine_inverse() * (shell.get_global_transform() * shell.rect_of(n).get_center())
-	if _dglow == null or not is_instance_valid(_dglow):
-		_dglow = Sprite2D.new()
-		_dglow.texture = load("res://assets/chest/fx_glow.png")
-		var am := CanvasItemMaterial.new()
-		am.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		_dglow.material = am
-		_dglow.modulate = Color(1.0, 0.78, 0.36, 0.42)
-		_dglow.z_index = 3
-		g.ui.uiroot.add_child(_dglow)
-		_dglow.position = c
-		var sz: Vector2 = _dglow.texture.get_size()
-		_dglow.scale = Vector2(118.0 / sz.x, 84.0 / sz.y)
-		var pw := _dglow.create_tween().set_loops()
-		pw.tween_property(_dglow, "modulate:a", 0.56, 0.9).set_trans(Tween.TRANS_SINE)
-		pw.tween_property(_dglow, "modulate:a", 0.34, 0.9).set_trans(Tween.TRANS_SINE)
+func _dock_glow(_n: Lyr.N) -> void:
+	pass      # yerini _dock_style aldı (kayan altın hap)
+
+# ═════════════ alt menü (mobil oyun tarzı) ═════════════
+# Yakalanmış şerit / sarı gösterge / SAVAŞ çıkıntısı gizlenir (_skin: durum geçişlerinde de gizli
+# kalır); yerine koyu degrade şerit, ortada madalyon yuvası ve etkin sekmede kayan altın hap çizilir.
+var _dbg: Node2D
+var _dpill: Node2D
+var _dpill_x := -1.0
+var _dpill_tw: Tween
+func _dock_style(p: String) -> void:
+	var dock := shell.find(".dock")
+	if dock == null: return
+	if _dbg == null or not is_instance_valid(_dbg):
+		for k in [dock] + shell.find_all(".dk-ind") + shell.find_all("::before") + shell.find_all(".dk-tab"):
+			var kn: Lyr.N = k
+			var key := String(kn.d.get("key", ""))
+			if kn == dock or key.contains(".dk-ind") or key.begins_with(".dock") or key.contains("dk-battle"):
+				if key.contains("::before") or kn == dock or key.contains(".dk-ind") or key.begins_with(".dk-tab"):
+					kn.d["_skin"] = true
+					if kn.img: kn.img.visible = false
+		_dbg = Node2D.new()
+		dock.node.add_child(_dbg)
+		_dpill = Node2D.new()
+		_dpill.draw.connect(func():
+			var r := Rect2(-31, 4, 62, 50)
+			for k in 3: _dpill.draw_style_box(ComicSkin.sb(Color(1.0, 0.78, 0.36, 0.05 - k * 0.012), 18 + k * 3), r.grow(3.0 + k * 3.0))
+			_dpill.draw_style_box(ComicSkin.sb(Color("#3a2416"), 16, 1.3, Color("#e9c98a", 0.85)), r)
+			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(3, 3), Vector2(r.end.x - 3, r.position.y + 3), Vector2(r.end.x - 3, r.position.y + 24), r.position + Vector2(3, 24)]),
+				PackedColorArray([Color(1, 0.85, 0.55, 0.22), Color(1, 0.85, 0.55, 0.22), Color(1, 0.85, 0.55, 0.0), Color(1, 0.85, 0.55, 0.0)]))
+			_dpill.draw_line(Vector2(-10, 1.5), Vector2(10, 1.5), Color("#ffd774"), 2.5, true))
+		dock.node.add_child(_dpill)
+		# şeridin (kaplama) üstünde, sekme simgelerinin altında
+		var first := 1 << 20
+		for tn0 in shell.find_all(".dk-tab"):
+			var tnode: Node = (tn0 as Lyr.N).node
+			if tnode.get_parent() == dock.node: first = mini(first, tnode.get_index())
+		if first < (1 << 20): dock.node.move_child(_dpill, first)
+	# etkin sekme: hap kayar; simge büyür + yükselir, yazı altın; diğerleri sönük
+	for pg in _tab_n:
+		var tn: Lyr.N = _tab_n[pg]
+		var on: bool = pg == p
+		var ico := shell.find_in(tn, ".dk-ico")
+		var lab := shell.find_in(tn, ".dk-lab")
+		if pg != "savas":
+			if ico:
+				ico.extra = Transform2D(0, Vector2.ONE * (1.12 if on else 0.94), 0, Vector2(0, -3.0 if on else 1.0))
+				ico.op_mul = 1.0 if on else 0.62
+				shell.set_dyn(ico)
+			if lab:
+				lab.op_mul = 1.0 if on else 0.5
+				if lab.txt: lab.txt.color = Color("#ffd774") if on else Color("#d8cfd6")
+				shell.set_dyn(lab)
+		else:
+			var md := shell.find_in(tn, ".dk-medal")
+			if md:
+				md.extra = Transform2D(0, Vector2.ONE * (1.06 if on else 0.96), 0, Vector2.ZERO)
+				shell.set_dyn(md)
+			if lab:
+				if lab.txt: lab.txt.color = Color("#ffd774") if on else Color("#d8cfd6")
+				lab.op_mul = 1.0 if on else 0.7
+				shell.set_dyn(lab)
+	var an: Lyr.N = _tab_n.get(p)
+	if an == null: return
+	var cx: float = an.pos.x + an.size.x * 0.5
+	_dpill.visible = p != "savas"
+	if _dpill_x < 0.0 or Settings.data.get("rm", false):
+		_dpill.position = Vector2(cx, an.pos.y - 4.0)
 	else:
-		var tw := _dglow.create_tween()
-		tw.tween_property(_dglow, "position", c, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_dglow.visible = visible
+		if _dpill_tw and _dpill_tw.is_valid(): _dpill_tw.kill()
+		_dpill_tw = _dpill.create_tween()
+		_dpill_tw.tween_property(_dpill, "position", Vector2(cx, an.pos.y - 4.0), 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_dpill_x = cx
 
 func _dock_fx(p: String) -> void:
 	var n: Lyr.N = _tab_n.get(p)
@@ -287,6 +339,7 @@ func _activate(p: String) -> Node2D:
 	page = p
 	var dock := shell.find(".dock")
 	if dock and FileAccess.file_exists(Lyr.BASE + "menu_" + p + ".json"): shell.to_state("menu_" + p, dock)
+	_dock_style(p)
 	Prof.s("page:" + p)
 	var rk := UITex.rec_begin(p)
 	var L := _page(p)

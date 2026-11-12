@@ -329,15 +329,22 @@ static func _skin_dock(L: Lyr) -> void:
 	var dock := L.find(".dock")
 	if dock == null: return
 	strip(L, dock)
+	# mobil oyun alt menüsü: koyu degrade şerit, iki yana sönen altın çizgi, ortada madalyon yuvası
 	under(dock, func(d: Node2D, sz: Vector2):
-		d.draw_rect(Rect2(-400, 0, sz.x + 800, sz.y + 300), NIGHT)
-		halftone(d, Rect2(-400, 4, sz.x + 800, sz.y), Color(0, 0, 0, 0.25), 7.0, 7, 2.0)
-		d.draw_rect(Rect2(-400, -2, sz.x + 800, 5), INK)
-		d.draw_rect(Rect2(-400, 3, sz.x + 800, 2), Color(YEL, 0.75)))
+		var W := sz.x
+		var bot := sz.y + 300.0
+		d.draw_polygon(PackedVector2Array([Vector2(-400, 0), Vector2(W + 400, 0), Vector2(W + 400, bot), Vector2(-400, bot)]),
+			PackedColorArray([Color("#1d1319"), Color("#1d1319"), Color("#06040a"), Color("#06040a")]))
+		var mc := Vector2(W * 0.5, 12.0)
+		d.draw_circle(mc, 36.0, Color("#170e14"))
+		for sd in [-1.0, 1.0]:
+			d.draw_polyline_colors(PackedVector2Array([Vector2(W * 0.5, 0.5), Vector2(W * 0.5 + sd * W * 0.5, 0.5)]),
+				PackedColorArray([Color("#e9c98a", 0.85), Color("#e9c98a", 0.12)]), 1.2, true)
+		d.draw_line(Vector2(0, 2), Vector2(W, 2), Color(1, 1, 1, 0.04), 1.0)
+		d.draw_arc(mc, 36.0, PI * 1.06, TAU * 0.97, 48, Color("#e9c98a", 0.8), 1.4, true)
+		d.draw_arc(mc, 39.5, PI * 1.12, TAU * 0.94, 48, Color("#e9c98a", 0.14), 3.0, true))
 	var ind := L.find(".dk-ind")
-	if ind:
-		strip(L, ind)
-		under(ind, func(d: Node2D, sz: Vector2): panel(d, Rect2(Vector2(4, 9), sz - Vector2(8, 8)), Color("#ffb020"), 12, 3.5, Vector2(2, 4)))
+	if ind: strip(L, ind)       # gösterge: yerine scr_menu'deki kayan altın hap
 	for t in L.find_all(".dk-tab"):
 		for k in t.kids:
 			var key := String(k.d.key)
