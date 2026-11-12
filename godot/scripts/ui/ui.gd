@@ -299,7 +299,8 @@ func boot() -> void:
 		elif ov == "gift": celebrate.gift({"h": 6.5, "gold": 240, "chest": "ahsap", "full": false})
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
-		if _arg("rollsim") != "": _dev_rollsim()
+		if _arg("rollsim") == "2": _dev_rollsim2()
+		elif _arg("rollsim") != "": _dev_rollsim()
 		if _arg("chestshots") != "": _dev_chestshots(_arg("chestshots"))
 		if _arg("ceremony") != "":
 			# cerwait=sn: menü ısınması bittikten sonra (gerçek dokunuş gibi) aç
@@ -998,6 +999,39 @@ func _nav_test() -> void:
 	await get_tree().process_frame
 	await M._open_worlds()
 	print("NAV6 page=", M.page, " mode=", J.mode, " shell=", J.shell.data.get("name"))
+## geliştirici: rollsim=2 — sandık başına "en az bir epik / efsanevi" olasılığı (paketler ayrı)
+func _dev_rollsim2() -> void:
+	for id in D.CHARACTERS:
+		if not g.owns_char(id): g.meta.charsOwned.append(id)
+	for t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]:
+		var N := 20000
+		var e := 0; var l := 0; var lh := 0; var lg := 0; var pl := 0; var pe := 0; var cards := 0
+		for i in N:
+			var be := 0.0
+			var hl := false; var gl := false; var ppl := false; var ppe := false
+			for r in g.chests.roll_rewards(t):
+				if not (r.kind in ["char", "gear"]): continue
+				cards += int(r.get("cards", 1))
+				var k: float = ChestSystem.rk_of(r)
+				if r.get("pack"):
+					if k >= 4: ppl = true
+					elif k >= 3: ppe = true
+					continue
+				be = maxf(be, k)
+				if k >= 4:
+					if r.kind == "char": hl = true
+					else: gl = true
+			if be >= 3: e += 1
+			if be >= 4: l += 1
+			if hl: lh += 1
+			if gl: lg += 1
+			if ppl: pl += 1
+			if ppe: pe += 1
+		var f := func(x): return "%.2f%%" % (100.0 * x / N)
+		var oneIn := func(x): return ("1/%d" % int(round(float(N) / x))) if x > 0 else "-"
+		print("ODDS ", t, " epik+=", f.call(e), " efs=", f.call(l), " (", oneIn.call(l), ") efsKahraman=", f.call(lh), " efsEşya=", f.call(lg), " paketEfs=", f.call(pl), " paketEpik=", f.call(pe), " kart/sandık=", snappedf(cards / float(N), 0.1))
+	get_tree().quit()
+
 func _dev_rollsim() -> void:
 	for t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "ejderha"]:
 		var c := {}

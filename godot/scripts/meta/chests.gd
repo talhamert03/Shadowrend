@@ -269,6 +269,7 @@ func roll_rewards(type: String) -> Array:
 		for it in D.EQUIPMENT:
 			if rk(it.rarity) > C.rarityMax: continue
 			if wantHigh and rk(it.rarity) < minR: continue
+			if wantHigh and C.has("topMax") and rk(it.rarity) > float(C.topMax): continue
 			var dup := false
 			for o in out:
 				if o.get("id") == it.id: dup = true
@@ -281,16 +282,35 @@ func roll_rewards(type: String) -> Array:
 		out.append({"kind": "gear", "id": it.id, "name": it.name, "icon": it.get("icon"),
 			"rarity": it.rarity, "desc": it.get("desc"), "mods": it.mods, "cards": D.charCardDrop(int(it.rarity)),
 			"isNew": not g.owns_gear(it.id)})
-	# büyük ikramiye: düşük kademeli sandıkta çok küçük efsanevi eşya şansı (heyecan için)
-	if randf() < JS.num(C, "legendGear", 0.0):
-		var lp := []
-		for it in D.EQUIPMENT:
-			if int(it.rarity) == 4: lp.append(it)
-		if lp.size():
-			var it = lp[int(randf() * lp.size())]
-			out.append({"kind": "gear", "id": it.id, "name": it.name, "icon": it.get("icon"),
-				"rarity": it.rarity, "desc": it.get("desc"), "mods": it.mods, "cards": D.charCardDrop(int(it.rarity)),
-				"isNew": not g.owns_gear(it.id)})
+	# nadirlik merdiveni (Clash Royale tarzı): sandık başına AYRI epik ve efsanevi zarı.
+	# Çıkan şey yarı yarıya kahraman ya da eşya. Oranlar chests.json → epicChance / legendChance.
+	var lc := JS.num(C, "legendChance", 0.0) + JS.num(C, "legendGear", 0.0)
+	var ec := JS.num(C, "epicChance", 0.0)
+	var up := 0
+	if randf() < lc: up = 4
+	elif randf() < ec: up = 3
+	if up > 0:
+		var hero_first := randf() < 0.5
+		var added := false
+		if hero_first:
+			var ch = _char_of_rarity(up)
+			if ch:
+				out.append({"kind": "char", "id": ch.id, "name": ch.name, "rarity": float(up), "char": ch,
+					"cards": D.charCardDrop(up), "isNew": not g.owns_char(ch.id)})
+				added = true
+		if not added:
+			var gp := []
+			for it in D.EQUIPMENT:
+				if int(it.rarity) != up: continue
+				var dup := false
+				for o in out:
+					if o.get("id") == it.id: dup = true
+				if not dup: gp.append(it)
+			if gp.size():
+				var it = gp[int(randf() * gp.size())]
+				out.append({"kind": "gear", "id": it.id, "name": it.name, "icon": it.get("icon"),
+					"rarity": it.rarity, "desc": it.get("desc"), "mods": it.mods, "cards": D.charCardDrop(int(it.rarity)),
+					"isNew": not g.owns_gear(it.id)})
 	if randf() < C.weaponChance:
 		var locked := []
 		for id in D.WEAPON_META:

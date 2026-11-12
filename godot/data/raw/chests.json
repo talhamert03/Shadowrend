@@ -48,7 +48,9 @@
     10,
     0,
     0
-   ]
+   ],
+   "epicChance": 0.006,
+   "legendChance": 0.0003
   },
   "yaygin": {
    "name": "GÜMÜŞ SANDIK",
@@ -84,9 +86,9 @@
    "charOdds": [
     0,
     80,
-    18.9,
-    1,
-    0.1
+    20,
+    0,
+    0
    ],
    "heroCards": [
     2,
@@ -99,7 +101,9 @@
     2,
     0.3
    ],
-   "legendGear": 0.003
+   "legendGear": 0,
+   "epicChance": 0.02,
+   "legendChance": 0.001
   },
   "kemik": {
    "name": "ALTIN SANDIK",
@@ -135,9 +139,9 @@
    "charOdds": [
     0,
     66,
-    30,
-    3.5,
-    0.5
+    34,
+    0,
+    0
    ],
    "heroCards": [
     4,
@@ -150,7 +154,9 @@
     6,
     1
    ],
-   "legendGear": 0.008
+   "legendGear": 0,
+   "epicChance": 0.055,
+   "legendChance": 0.0035
   },
   "kan": {
    "name": "BÜYÜLÜ SANDIK",
@@ -185,10 +191,10 @@
    "desc": "Kara demir kafesin içinde nabız gibi atan zehir yeşili bir ışık. Kafatası kilidi gözlerini senden ayırmaz.",
    "charOdds": [
     0,
-    48,
-    40,
-    10.5,
-    1.5
+    50,
+    50,
+    0,
+    0
    ],
    "heroCards": [
     7,
@@ -200,7 +206,9 @@
     38,
     14,
     3
-   ]
+   ],
+   "epicChance": 0.28,
+   "legendChance": 0.012
   },
   "kadim": {
    "name": "BUZUL SANDIK",
@@ -236,9 +244,9 @@
    "charOdds": [
     0,
     25,
-    50,
-    21,
-    4
+    55,
+    20,
+    0
    ],
    "heroCards": [
     12,
@@ -250,7 +258,10 @@
     42,
     24,
     6
-   ]
+   ],
+   "epicChance": 0.0,
+   "legendChance": 0.055,
+   "topMax": 3
   },
   "mistik": {
    "name": "MİSTİK SANDIK",
