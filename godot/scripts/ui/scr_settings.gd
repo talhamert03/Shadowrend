@@ -27,6 +27,7 @@ var _closing := false
 func _init(game) -> void:
 	super(game)
 	name = "Settings"
+	D.ADM_WORLDS = str(Store.get_item("kh_adm", "")) == ADM_HASH and str(Store.get_item("kh_admw", "")) == "1"
 
 var _prect := Rect2()
 var _outDown := false
@@ -174,7 +175,7 @@ func _build_admin() -> void:
 	_dim.draw.connect(func(): _dim.draw_rect(Rect2(-40, -40, _W + 80, _H + 80), Color(0.02, 0.0, 0.02, 0.8)))
 	add_child(_dim)
 	var pw := minf(340.0, _W - 36.0)
-	var ph := 400.0 if _adm == "panel" else 330.0
+	var ph := 448.0 if _adm == "panel" else 330.0
 	_panel = Node2D.new()
 	_panel.position = Vector2(_W * 0.5, _H * 0.5)
 	add_child(_panel)
@@ -224,8 +225,16 @@ func _build_admin() -> void:
 		var nm := str(ChestSystem.chests().get(t, {}).get("name", t)).split(" ")[0].to_upper().substr(0, 6)
 		_small_btn(nm, x0 + (i % 4) * (tw + 10.0), y + (i / 4) * 44.0, tw, Color("#2a4a6a"), func(): g.give_chest(t); _adm_done(nm + " sandığı"))
 	y += 94.0
+	_small_btn("DÜNYALAR: " + ("AÇIK" if D.ADM_WORLDS else "KİLİTLİ"), x0, y, cw, Color("#2a5a3a") if D.ADM_WORLDS else Color("#3a2a33"), func():
+		D.ADM_WORLDS = not D.ADM_WORLDS
+		Store.set_item("kh_admw", "1" if D.ADM_WORLDS else "")
+		Store.rev += 1
+		_adm_done("dünyalar " + ("açıldı" if D.ADM_WORLDS else "kilitlendi")))
+	y += 48.0
 	_small_btn("PANELİ KİLİTLE", x0, y, bw, Color("#5a1a20"), func():
 		Store.set_item("kh_adm", "")
+		Store.set_item("kh_admw", "")
+		D.ADM_WORLDS = false
 		_adm = ""
 		_build_keep())
 	_small_btn("GERİ", x0 + bw + 10.0, y, bw, Color("#3a2a33"), func():

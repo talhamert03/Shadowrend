@@ -344,11 +344,12 @@ func saveProgress(prog: Dictionary) -> void:
 
 ## TEST: tüm dünyalar ve bölümler açık (yayından önce false yapılacak)
 const UNLOCK_ALL := false
+var ADM_WORLDS := false     # yönetici paneli: bu cihazda tüm dünyalar/görevler açık (ilerleme değişmez)
 ## simülasyona göre oyuncunun dünyaya vardığında beklenen kahraman seviyesi (denge v4)
 const EXPECTED_LV := [1, 1, 3, 4, 5, 6, 6, 7, 7, 8, 8]
 
 func worldCleared(prog: Dictionary, w: int) -> bool:
-	if w <= 1 or UNLOCK_ALL: return true
+	if w <= 1 or UNLOCK_ALL or ADM_WORLDS: return true
 	return JS.i(prog.get(w - 1, 0)) >= MISSIONS_PER_WORLD
 
 func worldUnlocked(_prog: Dictionary, _w: int) -> bool:
@@ -356,7 +357,7 @@ func worldUnlocked(_prog: Dictionary, _w: int) -> bool:
 
 func missionUnlocked(prog: Dictionary, w: int, m: int) -> bool:
 	if not worldUnlocked(prog, w): return false
-	if UNLOCK_ALL: return true
+	if UNLOCK_ALL or ADM_WORLDS: return true
 	return m <= JS.i(prog.get(w, 0)) + 1
 
 func nextMission(prog: Dictionary) -> Dictionary:
