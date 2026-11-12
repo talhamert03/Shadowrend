@@ -300,6 +300,17 @@ func boot() -> void:
 		elif ov.begins_with("odds:"): show_odds(ov.substr(5))
 		elif ov.begins_with("doc:"): open_doc(ov.substr(4))
 		if _arg("rollsim") == "2": _dev_rollsim2()
+		# geliştirici: eqslot=<yuva> — o yuvaya giyilebilir bir eşya kuşan, yuvaya dokunulmuş gibi menüyü aç
+		if _arg("eqslot") != "":
+			var es := _arg("eqslot")
+			for e in D.EQUIPMENT:
+				if str(e.slot) == es and int(e.rarity) == 1:
+					g.add_gear_cards(e.id, 3)
+					if g.can_wear(e.id) and not g.is_equipped(e.id): g.toggle_equip(e.id)
+					break
+			get_tree().create_timer(4.0).timeout.connect(func():
+				var ap = menu.pages.get("cephane")
+				if ap: ap._slot_tap(es, true, null))
 		elif _arg("rollsim") != "": _dev_rollsim()
 		if _arg("chestshots") != "": _dev_chestshots(_arg("chestshots"))
 		if _arg("ceremony") != "":

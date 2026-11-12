@@ -353,16 +353,18 @@ func _slots_and_stats() -> float:
 func _slot_tap(slot: String, filled: bool, C: Lyr) -> void:
 	g.audio.play("click")
 	if filled:
-		# ÇIKAR balonu (aç/kapat)
-		var was: bool = _pop != null and _pop.slot == slot
+		# kuşanılmış eşya: çantadakilerle aynı eylem menüsü (YÜKSELT · ÇIKAR · GELİŞTİR · İNCELE)
 		_close_pop()
-		if was: return
-		var col := shell.find_id("#kz-col-r") if slot == "zirh" or slot == "cizme" else shell.find_id("#kz-col-l")
-		var P := _add("kz_pop", col, C.position + Vector2(C.nodes[0].size.x * 0.5, C.find(".kz-frame").size.y + 6.0))
-		if P:
-			_pop = {"slot": slot, "L": P}
-			menu.btn(P, P.nodes[0], func():
-				g.unequip_slot(slot))       # unequip_slot sayfayı zaten kurar (ui.show_armory)
+		var gid = g.char_gear_map().get(slot)
+		if gid == null or g.gear_by_id(gid) == null: return
+		if C == null:
+			g.ui.gearmenu.open_for(self, str(gid), Rect2(Vector2(40, 330), Vector2(90, 90)))
+			return
+		var fr := C.find(".kz-frame")
+		var rn: Lyr.N = fr if fr else C.nodes[0]
+		var r := C.rect_of(rn)
+		var xf := C.get_global_transform_with_canvas()
+		g.ui.gearmenu.open_for(self, str(gid), Rect2(xf * r.position, xf.basis_xform(r.size)))
 		return
 	_close_pop()
 	tab = "all" if tab == slot else slot
