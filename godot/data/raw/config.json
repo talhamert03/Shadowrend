@@ -640,7 +640,7 @@
     "rim": "rgba(201,191,168,0.45)"
    },
    "emblem": "arrow",
-   "sigDmg": 0.794
+   "sigDmg": 1.0
   },
   "seher": {
    "id": "seher",
