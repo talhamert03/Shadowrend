@@ -24,8 +24,15 @@ void fragment() {
 	h.y = clamp(h.y * sat, 0.0, 1.0);
 	h.z *= val;
 	c = hsv2rgb(h);
+	// netlik: orta tonlarda hafif S eğrisi (koyu tema korunur, detaylar çamurlaşmaz)
+	c = mix(c, c * c * (3.0 - 2.0 * c), 0.28);
 	ALBEDO = c;
-	ROUGHNESS = 0.72;
+	// açık tonlar (metal süsler, taşlar) daha parlak ve pürüzsüz; koyu ahşap/deri mat kalır
+	float lum = dot(c, vec3(0.299, 0.587, 0.114));
+	ROUGHNESS = mix(0.74, 0.42, smoothstep(0.25, 0.65, lum));
+	SPECULAR = mix(0.35, 0.65, smoothstep(0.25, 0.65, lum));
 	METALLIC = 0.0;
+	RIM = 0.22;
+	RIM_TINT = 0.6;
 	EMISSION = c * emi;
 }

@@ -21,7 +21,7 @@ for k, v in new.items():
     b = nb[k]; c = v.crop(b); side = int(max(c.size) * 1.14)
     sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
     sq.alpha_composite(c, ((side - c.size[0]) // 2, (side - c.size[1]) // 2))
-    sq.resize((450, 450), Image.LANCZOS).save(f"assets/ui/art/chest/t{k}.png")
+    sq.resize((640, 640), Image.LANCZOS).save(f"assets/ui/art/chest/t{k}.png")
 files = {}
 for f in glob.glob("assets/ui/lyr/*.json"):
     try: d = json.load(open(f))
