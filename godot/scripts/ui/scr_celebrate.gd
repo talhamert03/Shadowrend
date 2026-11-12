@@ -23,6 +23,13 @@ func _show(key: String, kind: String) -> bool:
 		unbtn(L)
 		L.queue_free()
 	L = Lyr.make(key)
+	# tam ekran zemin: uzun/geniş ekranlarda yakalamanın dışında kalan köşe ve alt boşluklar kapansın
+	var bd := Node2D.new()
+	var W := UIK.ui_size(get_viewport())
+	bd.draw.connect(func():
+		bd.draw_rect(Rect2(-200, -200, W.x + 400, W.y + 400), Color8(2, 0, 2)))
+	L.add_child(bd)
+	L.move_child(bd, 0)
 	add_child(L)
 	L.stretch_h(Scr.dh_of(self))
 	_kind = kind

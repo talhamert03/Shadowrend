@@ -281,7 +281,7 @@ func boot() -> void:
 			var kind := "stone" if ov.substr(4) == "gem" else "ruby"
 			get_tree().create_timer(5.0).timeout.connect(func():
 				menu.fly_currency(menu.shell, menu.shell.find(".dk-tab", 2), kind))
-		elif ov.begins_with("hu:"): celebrate.hero_unlock(ov.substr(3))
+		elif ov.begins_with("hu:"): get_tree().create_timer(float(_arg("ovt", "0.1"))).timeout.connect(func(): celebrate.hero_unlock(ov.substr(3)))
 		elif ov.begins_with("alu:"): celebrate.level_up({"fromLevel": 4, "toLevel": 5, "rewards": [{"level": 5, "chest": ov.substr(4)}] if ov.substr(4) != "0" else []})
 		elif ov.begins_with("upx:"):
 			var cid := ov.substr(4)
