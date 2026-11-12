@@ -71,8 +71,18 @@ static func _setup_bus() -> void:
 		var mi := AudioServer.bus_count - 1
 		AudioServer.set_bus_name(mi, MUSIC_BUS)
 		AudioServer.set_bus_send(mi, "Master")
-	# (ana çıkışa ayrıca efekt eklenmez: Android'in küçük ses tamponunda her ek işlem
-	#  ses iş parçacığını yetiştirememe → cızırtı riskini artırır)
+	# ana çıkış: efekt + müzik toplamı 0 dB'yi aşınca Android sert kırpıyordu (cızırtı). Tek, ucuz
+	# bir sert sınırlayıcı tavanı −1 dB'de tutar; sıkıştırıcının 3 ms atağından kaçan vuruşları da yakalar.
+	var mb := AudioServer.get_bus_index("Master")
+	var has_lim := false
+	for ei in AudioServer.get_bus_effect_count(mb):
+		if AudioServer.get_bus_effect(mb, ei) is AudioEffectHardLimiter: has_lim = true
+	if not has_lim:
+		var hl := AudioEffectHardLimiter.new()
+		hl.ceiling_db = -1.0
+		hl.pre_gain_db = 0.0
+		hl.release = 0.12
+		AudioServer.add_bus_effect(mb, hl)
 
 func _now() -> float: return Time.get_ticks_usec() / 1e6
 
@@ -155,8 +165,17 @@ func play(nm: String, _a = null, _b = null, _c = null) -> void:
 	var k := _pick(nm, 3)
 	var st := _stream(_file_for(nm, k, now))
 	if st == null: return
-	var p := _players[_next]
-	_next = (_next + 1) % VOICES
+	# boşta bir ses seç; hepsi doluysa en eskisi (çalan sesi yarıda kesmek tık/cızırtı yapar)
+	var p: AudioStreamPlayer = null
+	for vi in VOICES:
+		var cand := _players[(_next + vi) % VOICES]
+		if not cand.playing:
+			p = cand
+			_next = (_next + vi + 1) % VOICES
+			break
+	if p == null:
+		p = _players[_next]
+		_next = (_next + 1) % VOICES
 	p.stream = st
 	p.pitch_scale = 1.0 + (randf() * 2 - 1) * 0.012 if gap < 0.15 else 1.0
 	p.play()

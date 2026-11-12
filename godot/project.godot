@@ -17,7 +17,7 @@ config/icon="res://icon.png"
 [audio]
 
 driver/output_latency=40
-driver/output_latency.android=60
+driver/output_latency.android=80
 driver/mix_rate.android=48000
 
 [autoload]
