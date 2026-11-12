@@ -36,6 +36,8 @@ var _warm_chest_n := 0
 var _chest_warmed := false
 var _ui_warmed := false
 var _save_t := 0.0
+var _req_pg := ""
+var _rest_req := false
 
 func _init(m) -> void:
 	menu = m
@@ -120,7 +122,8 @@ func _process(dt: float) -> void:
 			if L.is_empty(): L = (_ppaths.get(pg, {}) as Dictionary).keys()
 			L.append_array(_extra(pg))
 			_page_tex[pg] = L
-			UITex.request(L)
+		# dokular SAYFA SAYFA istenir (aşağıda): hepsi birden istenince önbellek bütçesi taşıyor,
+		# ilk sayfaların dokuları sayfa kurulmadan düşüyor ve sekme açılışında eşzamanlı yükleniyordu
 		_ppaths = {}
 		return
 	if not menu.visible or UITex.rec != "": return
@@ -143,9 +146,21 @@ func _process(dt: float) -> void:
 	while not _queue.is_empty() and menu.pages.has(_queue[0]): _queue.pop_front()
 	if not _queue.is_empty():
 		var pg: String = _queue[0]
+		if _req_pg != pg:
+			_req_pg = pg
+			UITex.pin(_page_tex.get(pg, []))
+			UITex.request(_page_tex.get(pg, []), true)
+			return
 		if not _tex_ready(pg) and UITex.busy(): return
 		_queue.pop_front()
 		if menu.pages.size() - 1 < menu.page_cap(): menu.prebuild(pg)
+		return
+	# sayfalar kuruldu (dokuları artık düğümlerde): tören + katman dokuları sırayla
+	if not _rest_req:
+		_rest_req = true
+		UITex.pin([])
+		for pg2 in _tex_pages:
+			if not menu.pages.has(pg2): UITex.request(_page_tex.get(pg2, []))
 		return
 	if not _chest_warmed and not UITex.busy():
 		_chest_warmed = true

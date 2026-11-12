@@ -17,6 +17,11 @@ static var _queue: Array = []  # istenmiş, henüz başlatılmamış
 static var _queued := {}
 static var battle := false     # savaşta menü dokuları arka planda çözülmez (iş parçacığı havuzu boş kalır)
 static var _urgent := {}
+static var _pin := {}         # yol → true: bütçe taşsa da düşmez (kurulacak sayfa)
+static func pin(paths: Array) -> void:
+	_pin = {}
+	for q in paths: _pin[str(q)] = true
+
 static var _pending := {}      # yol → true (load_threaded_request yapıldı)
 
 # ── kullanım manifestosu: hangi sayfa hangi dokuları kullandı (bir sonraki açılışta ön yükleme) ──
@@ -183,7 +188,12 @@ static func _put(p: String, tx: Texture2D) -> void:
 	_total += b
 	var cap: float = float(BUDGET_MB.get(Quality.tier, 190.0)) * 1048576.0
 	while _total > cap and _lru.size() > 1:
-		var v: String = _lru.pop_front()
+		# kurulmak üzere olan sayfanın dokuları (pin) düşürülmez
+		var vi := 0
+		while vi < _lru.size() - 1 and _pin.has(_lru[vi]): vi += 1
+		if vi >= _lru.size() - 1: break
+		var v: String = _lru[vi]
+		_lru.remove_at(vi)
 		_total -= float(_bytes.get(v, 0.0))
 		_cache.erase(v)
 		_bytes.erase(v)

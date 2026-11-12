@@ -142,7 +142,7 @@ func prebuild(p: String) -> void:
 	if L == null:
 		UITex.rec_end(rk)
 		return
-	_render(p)
+	_render_bg(p)
 	UITex.rec_end(rk)
 	Prof.t("prebuild:" + p)
 	_rendered[p] = Store.rev
@@ -164,7 +164,7 @@ func _idle_refresh(dt: float) -> void:
 		if L == null or not is_instance_valid(L): continue
 		Prof.s("idle:" + p)
 		var rk := UITex.rec_begin(p)
-		_render(p)
+		_render_bg(p)
 		UITex.rec_end(rk)
 		Prof.t("idle:" + p)
 		_rendered[p] = Store.rev
@@ -666,6 +666,11 @@ func _open_chapters() -> void:
 	if page == "dunyalar" and pages.has("dunyalar"):
 		(pages["dunyalar"] as JourneyPage).render_chapters(w)
 		(pages["dunyalar"] as JourneyPage).from_home = true
+
+## arka plan (gizli sayfa) kurulumu: ağır sayfalar karelere yayılır
+func _render_bg(p: String) -> void:
+	if p == "magaza" and p != page: (pages[p] as ShopPage).render_staged()
+	else: _render(p)
 
 func _render(p: String) -> void:
 	if p == "savas": _render_home()

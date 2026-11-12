@@ -42,6 +42,28 @@ func _init(m) -> void:
 	name = "Shop"
 
 func render() -> void:
+	_stage += 1          # süren aşamalı kurulum varsa iptal (tam kurulum hepsini kapsar)
+	_setup()
+	_chests()
+	_market()
+	_finish()
+
+## gizli (arka plan) kurulum: bölümler ayrı karelere yayılır — tek karede ~300 ms'lik takılma olmasın
+var _stage := 0
+func render_staged() -> void:
+	_stage += 1
+	var my := _stage
+	var steps: Array[Callable] = [_setup, _chests, _market, _finish]
+	for st in steps:
+		if my != _stage or not is_inside_tree(): return
+		var rk := UITex.rec_begin("magaza")
+		Prof.s("shop:" + str(st.get_method()))
+		st.call()
+		Prof.t("shop:" + str(st.get_method()))
+		UITex.rec_end(rk)
+		await get_tree().process_frame
+
+func _setup() -> void:
 	if shell == null:
 		shell = Lyr.make("pg_magaza")
 		add_child(shell)
@@ -56,8 +78,8 @@ func render() -> void:
 			if n: _cont[k] = Vector2(float(R[0]), float(R[1])) + shell.rect_of(n).position
 		var S = root.d.get("scroll")
 		if S is Dictionary: _scroll_h0 = float(S.h)
-	_chests()
-	_market()
+
+func _finish() -> void:
 	_stone_shop()
 	# gem → altın bozdurma kaldırıldı (bölüm gizli kalır)
 	for nn in shell.nodes:

@@ -99,6 +99,49 @@ func fade_show(dur := 0.2) -> void:
 	_fade_tw.tween_property(self, "scale", Vector2.ONE, dur * 1.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_fade_tw.tween_property(self, "position", Vector2.ZERO, dur * 1.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_fade_tw.chain().tween_callback(func(): _fade_tw = null)
+	if z_index == 40: call_deferred("stagger_in")
+
+## açılış: kaydırma alanındaki bloklar sırayla, hafif aşağıdan ve küçükten yerine oturur (hızlı)
+var _stg2: Array = []         # [{L, n, t, x0, o0}]
+func stagger_in(first := 0.05, gap := 0.035) -> void:
+	if Settings.data.get("rm", false) or not _stg2.is_empty(): return
+	for L in find_children("*", "Lyr", true, false):
+		var sc: Lyr.N = null
+		for n in (L as Lyr).nodes:
+			if n.scroller:
+				sc = n
+				break
+		if sc == null: continue
+		var kids: Array = sc.kids.filter(func(k): return not k.hidden and k.op_mul > 0.99 and k.extra == Transform2D.IDENTITY)
+		kids.sort_custom(func(a, b): return a.pos.y < b.pos.y)
+		var i := 0
+		for k in kids.slice(0, 8):
+			_stg2.append({"L": L, "n": k, "t": -(first + i * gap)})
+			k.op_mul = 0.0
+			k.extra = Transform2D(0, Vector2.ONE * 0.96, 0, Vector2(0, 14))
+			(L as Lyr).set_dyn(k)
+			i += 1
+		return
+
+func _tick_stagger(dt: float) -> void:
+	for S2 in _stg2.duplicate():
+		if not is_instance_valid(S2.L):
+			_stg2.erase(S2)
+			continue
+		S2.t = float(S2.t) + dt
+		var ks := float(S2.t) / 0.26
+		if ks < 0.0: continue
+		var N3: Lyr.N = S2.n
+		if ks >= 1.0:
+			N3.op_mul = 1.0
+			N3.extra = Transform2D.IDENTITY
+			_stg2.erase(S2)
+		else:
+			var q := ks - 1.0
+			var eb := 1.0 + 2.4 * q * q * q + 1.4 * q * q
+			N3.op_mul = minf(1.0, ks * 2.4)
+			N3.extra = Transform2D(0, Vector2.ONE * lerpf(0.96, 1.0, eb), 0, Vector2(0, 14.0 * (1.0 - eb)))
+		(S2.L as Lyr).set_dyn(N3)
 
 func clear_btns() -> void:
 	_btns.clear()
@@ -387,6 +430,7 @@ func _release(pos: Vector2, canceled: bool) -> void:
 
 func _tick_fling(dt: float) -> void:
 	_tick_springs(dt)
+	if not _stg2.is_empty(): _tick_stagger(dt)
 	# savurma + kenara geri yaylanma
 	if _fling.is_empty(): return
 	for F in _fling.duplicate():
