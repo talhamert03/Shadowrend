@@ -140,7 +140,7 @@ func _process(dt: float) -> void:
 		# arayüz + tören sesleri arka planda yüklensin (ilk dokunuşta disk okuması olmasın)
 		menu.g.audio.warm(["click", "tab", "panel", "select", "buy", "collect", "claim", "coin", "gem", "walletin", "error",
 			"equip", "reveal", "chestthud", "chestlatch", "chestburst", "chestrare", "epicpull", "legendary", "throw", "tally",
-			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy"])
+			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy", "boom", "blast"])
 		return
 	# kurulacak sayfa: dokuları hazırsa (ya da yükleyici boşaldıysa)
 	while not _queue.is_empty() and menu.pages.has(_queue[0]): _queue.pop_front()
@@ -190,7 +190,7 @@ func boot_warm() -> void:
 		_start_ui_warm()
 		menu.g.audio.warm(["click", "tab", "panel", "select", "buy", "collect", "claim", "coin", "gem", "walletin", "error",
 			"equip", "reveal", "chestthud", "chestlatch", "chestburst", "chestrare", "epicpull", "legendary", "throw", "tally",
-			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy"])
+			"star", "levelup", "start", "heroup", "tierclaim", "gemspend", "stonebuy", "boom", "blast"])
 	if not _chest_warmed:
 		_chest_warmed = true
 		_start_chest_warm()

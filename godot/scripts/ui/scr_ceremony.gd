@@ -47,6 +47,11 @@ var _t := 0.0
 var parts: Array = []        # {p, v, life, max, size, col, star}
 var confetti: Array = []
 var _pow_t := -1.0
+var _quake := 0.0          # ekran sarsıntısı (sn)
+var _quake_amp := 0.0
+var _pillar_t := -1.0      # ışık sütunu
+var _waves: Array = []     # gecikmeli kıvılcım dalgaları [[t, adet, hız]]
+var _hopn := -1
 var _flash_t := -1.0
 var _flash_dur := 0.4
 var _flash_c := Color.WHITE
@@ -257,6 +262,11 @@ func _build() -> void:
 	_count_t = -1.0
 	_pow_t = -1.0
 	_flash_t = -1.0
+	_quake = 0.0
+	_pillar_t = -1.0
+	_waves = []
+	_hopn = -1
+	position = Vector2.ZERO
 
 func _txt(w: int, sz: float, ls: float, col: Color, sh: String) -> UIText:
 	var t := UIText.new()
@@ -597,6 +607,24 @@ func _draw_badge() -> void:
 	_star(_badge, Vector2.ZERO, 30, 23, 12, YEL, 3.0, _t * 0.6)
 
 func _draw_fx() -> void:
+	# ışık sütunu: sandık ağzından yukarı, kademe renginde, hızla incelip söner
+	if _pillar_t >= 0.0:
+		var pk := clampf(_pillar_t / 0.9, 0, 1)
+		var pa := (1.0 - pk) * (1.0 - pk)
+		var pc := _chest_mouth()
+		var acp := JS.col(C.get("accent", C.color)).lerp(Color.WHITE, 0.35)
+		var hw := lerpf(120.0, 26.0, minf(1.0, pk * 1.6))
+		var top := -40.0
+		for li in 3:
+			var wk := 1.0 - li * 0.32
+			var colp := Color(acp.lerp(Color.WHITE, li * 0.35), pa * (0.16 + li * 0.10))
+			_fx.draw_colored_polygon(PackedVector2Array([pc + Vector2(-hw * wk * 0.55, 0), pc + Vector2(hw * wk * 0.55, 0),
+				Vector2(pc.x + hw * wk * 1.5, top), Vector2(pc.x - hw * wk * 1.5, top)]), colp)
+		# iki renkli şok halkası
+		for ri in 2:
+			var rk2 := clampf(pk * 1.5 - ri * 0.22, 0, 1)
+			if rk2 > 0.0 and rk2 < 1.0:
+				_fx.draw_arc(pc, 40.0 + 340.0 * rk2, 0, TAU, 56, Color(acp, (1.0 - rk2) * 0.75), 9.0 * (1.0 - rk2) + 1.5, true)
 	# POW yıldızı (açılış patlaması)
 	if _pow_t >= 0.0:
 		var k := clampf(_pow_t / 0.55, 0, 1)
@@ -762,6 +790,16 @@ func _process(dt: float) -> void:
 			sqx = 1.0 + pr * 0.04
 			_rays_target = 0.06 + pr * 0.08
 			if randf() < dt * (10.0 + pr * 20.0): _spark(_chest_mouth(), 2, 140, [YEL, Color.WHITE], true, 0.8)
+			# her yere basışta tok bir vuruş + toz; kilit aralığından kademe renginde kıvılcım sızar
+			var hn := int(S.shake * 20.0 / PI)
+			if hn != _hopn:
+				_hopn = hn
+				if hn > 0:
+					g.audio.play("chestthud")
+					_spark(_chest_mouth() + Vector2(0, 70), 5 + hn * 2, 170, [Color.WHITE, JS.col(C.get("accent", C.color))], false, 0.2)
+					_quake = 0.10
+					_quake_amp = 2.0 + pr * 3.0
+			if randf() < dt * (6.0 + pr * 26.0): _spark(_chest_mouth(), 1, 220, [JS.col(C.get("accent", C.color)).lerp(Color.WHITE, 0.4)], true, 1.0)
 			if S.shake >= 0.62: _burst()
 		"open":
 			S.open = minf(1.0, S.open + dt * 2.2)
@@ -784,6 +822,21 @@ func _process(dt: float) -> void:
 	_step_summary(dt)
 
 func _step_fx(dt: float) -> void:
+	# ekran sarsıntısı (hızlı sönen)
+	if _quake > 0.0:
+		_quake = maxf(0.0, _quake - dt)
+		var qk := minf(1.0, _quake / 0.3)
+		var rm: bool = Settings.data.get("rm", false) or not Settings.data.get("shake", true)
+		position = Vector2.ZERO if (_quake <= 0.0 or rm) else Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _quake_amp * qk
+	if _pillar_t >= 0.0:
+		_pillar_t += dt
+		if _pillar_t > 0.9: _pillar_t = -1.0
+	for wv in _waves.duplicate():
+		wv[0] = float(wv[0]) - dt
+		if float(wv[0]) <= 0.0:
+			_waves.erase(wv)
+			var ac := JS.col(C.get("accent", C.color))
+			_spark(_chest_mouth(), int(wv[1]), float(wv[2]), [YEL, Color.WHITE, ac, ac.lerp(Color.WHITE, 0.5)], true, 0.65)
 	_rays_a = move_toward(_rays_a, _rays_target, dt * 0.5)
 	_rays.rotation += dt * 0.12
 	_rays.queue_redraw()
@@ -885,6 +938,15 @@ func _burst() -> void:
 	_spark(_chest_mouth(), 46 + peak * 14, 520, [YEL, Color.WHITE, acc, Color("#ff8a3a")], true, 0.6)
 	_spark(_chest_mouth(), 20, 300, [YEL, Color.WHITE], false, 0.5)
 	g.audio.play("chestburst")
+	# katmanlı patlama: gövde vuruşu, ışık sütunu, sarsıntı, ardışık kıvılcım dalgaları
+	var tr := clampi(int(C.get("tier", 1)), 1, 7)
+	g.audio.play("boom" if tr >= 4 else "blast")
+	_quake = 0.34 + tr * 0.02
+	_quake_amp = 7.0 + tr * 1.4 + peak * 2.0
+	_pillar_t = 0.0
+	_rays_target = 0.14 + tr * 0.012
+	_waves = [[0.14, 22 + tr * 3, 620.0], [0.30, 16 + tr * 3, 480.0], [0.50, 12 + peak * 6, 380.0]]
+	if tr >= 5 or peak >= 3: _confetti(18 + tr * 4)
 	pass  # titreşim kapalı
 
 # ═════════════ ödüller ═════════════
@@ -1027,6 +1089,12 @@ func _land() -> void:
 		_word_t = 0.0
 		if dr >= 3: _confetti(56)
 	if r_is_cur(c.r) or int(c.r.get("cards", 0)) > 0: _count_t = 0.0
+	if dr >= 2:
+		_quake = 0.22 + dr * 0.08
+		_quake_amp = 4.0 + dr * 3.0
+		_pillar_t = 0.0 if dr >= 3 else _pillar_t
+		g.audio.play("boom" if dr >= 3 else "blast")
+		_waves.append([0.12, 14 + dr * 8, 460.0])
 	match dr:
 		3: g.audio.play("legendary")
 		2: g.audio.play("epicpull")
