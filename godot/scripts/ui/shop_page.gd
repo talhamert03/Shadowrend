@@ -301,7 +301,7 @@ func _restyle_vcard(V: Lyr, t: String) -> void:
 	var sp := Sprite2D.new()
 	sp.texture = UITex.get_tex("res://assets/ui/art/chest/t" + str(tier) + ".png")
 	sp.position = Vector2(cx, cy)
-	sp.scale = Vector2.ONE * (W * 0.93 / 450.0)
+	sp.scale = Vector2.ONE * (W * 0.92 / maxf(1.0, sp.texture.get_width()))
 	root.node.add_child(sp)
 	root.node.move_child(sp, 2)
 	var tw := sp.create_tween().set_loops()

@@ -18,7 +18,7 @@ def bbox(im, th=150, robust=False):
 nb = {k: bbox(v, 200, True) for k, v in new.items()}
 for k, v in new.items():
     # ortalanmış kare simge: sandık kutusu tam ortada, %7 pay
-    b = nb[k]; c = v.crop(b); side = int(max(c.size) * 1.14)
+    b = nb[k]; c = v.crop(b); side = int(max(c.size) * 1.32)
     sq = Image.new("RGBA", (side, side), (0, 0, 0, 0))
     sq.alpha_composite(c, ((side - c.size[0]) // 2, (side - c.size[1]) // 2))
     sq.resize((640, 640), Image.LANCZOS).save(f"assets/ui/art/chest/t{k}.png")
@@ -58,7 +58,7 @@ for fn, t in known.items():
     if ob is None: continue
     lum_o = stats(bak + "/" + fn).mean(); lum_ref = max(r.mean() for r in ref.get(t, [np.array([lum_o] * 3)]))
     src_im = new[t].crop(nb[t]); sw, sh = src_im.size; bw, bh = ob[2] - ob[0], ob[3] - ob[1]
-    k = min(bw / sw, bh / sh) * 1.12
+    k = min(bw / sw, bh / sh) * 0.94
     r = src_im.resize((max(1, round(sw * k)), max(1, round(sh * k))), Image.LANCZOS)
     if lum_o < lum_ref * 0.6:      # soluk / kilitli hâl
         r = ImageEnhance.Color(r).enhance(0.25); r = ImageEnhance.Brightness(r).enhance(0.6)
