@@ -209,6 +209,8 @@ class Enemy:
 	var frost := 0         # ayaz yükü (Ayaz Gelini): 3'te donar
 	var frozenT := 0.0     # donmuş: kıpırdamaz, temas hasarı vermez
 	var charmT := 0.0      # büyülenmiş (Deniz Sireni): en yakın düşmana saldırır
+	var skT := 0.0         # dünya yeteneği bekleme süresi
+	var castT := 0.0       # yetenek uyarısı sürerken kıpırdamaz
 	var charmCd := 0.0
 	# render tarafının yazdığı alanlar (render3d: __mdlTok/__mdlTop/__aliveTok/__bound/__score)
 	var mdlTok := 0; var mdlTop := 0.0; var aliveTok := 0; var bound = null; var score := 0.0

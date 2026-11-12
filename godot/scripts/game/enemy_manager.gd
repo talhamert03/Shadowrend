@@ -108,7 +108,7 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	e.x = x; e.y = y
 	e.type = type
 	e.flash = 0; e.kx = 0; e.ky = 0; e.hurtT = 0; e.atkAnim = 0; e.mvAmt = 0
-	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.frost = 0; e.frozenT = 0.0; e.charmT = 0.0; e.charmCd = 0.0; e.pushT = 0.0; e.thief = false; e.duelTok = 0
+	e.vOn = false; e.hitT = 0; e.hitD = 0.15; e.stopT = 0; e.stopCd = 0; e.stopMv = false; e.slowT = 0.0; e.skT = 4.0 + randf() * 6.0; e.castT = 0.0; e.frost = 0; e.frozenT = 0.0; e.charmT = 0.0; e.charmCd = 0.0; e.pushT = 0.0; e.thief = false; e.duelTok = 0
 	e.thiefStep = 0
 	e.txt = null; e.txtT = -9
 	e.seed = randf() * 6.283
@@ -579,8 +579,14 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 		elif d < back:
 			mvx = -dx / d * e.speed
 			mvy = -dy / d * e.speed
-		if e.fireCd <= 0 and g.in_view(e.x, e.y, 50):
-			e.fireCd = A.fireCd
+		# şarj: atıştan hemen önce elinde parıltı (oyuncu ne geleceğini görür)
+		if e.fireCd > 0.0 and e.fireCd < 0.5 and g.in_view(e.x, e.y, 50) and randf() < dt * 14.0:
+			var Sc := shot_style()
+			g.spawn_burst(e.x + dx / d * 16, e.y + dy / d * 16 - 6, "#" + (Sc.c as Color).to_html(false), 1, 40, 2.6, 0.35, true)
+		if e.fireCd <= 0 and g.in_view(e.x, e.y, 50) and not _shot_ok():
+			e.fireCd = 0.35 + randf() * 0.5          # kota dolu: biraz sonra dener
+		elif e.fireCd <= 0 and g.in_view(e.x, e.y, 50):
+			e.fireCd = A.fireCd * randf_range(0.9, 1.25)
 			e.atkAnim = 0.55
 			var ux := dx / d
 			var uy := dy / d
@@ -623,6 +629,12 @@ func update_enemy(e: Ent.Enemy, dt: float) -> bool:
 			e.charmT = 0.0
 		if g.in_view(e.x, e.y, 40) and randf() < dt * 3.0:
 			g.spawn_burst(e.x, e.y - e.radius - 18, "#ff8ad8", 1, 30, 2.6, 0.6, true)
+	# dünya yeteneği: yavaş, uyarılı alan saldırısı (uyarı boyunca düşman durur)
+	if not e.isBoss and e.charmT <= 0.0 and e.frozenT <= 0.0:
+		_world_skill(e, dt, d2)
+		if e.castT > 0.0:
+			e.castT -= dt
+			mvx = 0.0; mvy = 0.0
 	# donmuş (Ayaz Gelini): kıpırdamaz
 	if e.frozenT > 0.0:
 		mvx = 0.0; mvy = 0.0
@@ -985,3 +997,96 @@ func separate() -> void:
 				var wb := ma / (ma + mb)
 				a.x -= nx * push * wa; a.y -= ny * push * wa
 				b.x += nx * push * wb; b.y += ny * push * wb
+
+# ═════════════ düşman dünya yetenekleri (göz alıcı, yavaş, uyarılı) ═════════════
+# Her dünyada farklı düşmanlar farklı alan saldırısı yapar; hepsi önce renkli bir uyarı halkası
+# çizer (≥1,1 sn), sonra vurur. Aynı anda en çok 2 + dünya/3 düşman yeteneği ve yetenekler arası
+# en az 0,7 sn: kalabalıkta üst üste binip haksız olmaz.
+## [tür, yetenek, renk] — renk: 0 kan · 1 zehir · 2 kor · 3 hiçlik · 4 ayaz · 5 altın
+const WORLD_SKILLS := {
+	1: [],
+	2: [["atici", "meteor", 2]],
+	3: [["zombi", "pool", 1]],
+	4: [["muhafiz", "nova", 0]],
+	5: [["atici", "meteor", 3], ["agir", "slam", 3]],
+	6: [["muhafiz", "nova", 4], ["atici", "meteor", 4]],
+	7: [["agir", "slam", 5], ["muhafiz", "nova", 5]],
+	8: [["atici", "meteor", 4], ["agir", "slam", 4]],
+	9: [["agir", "slam", 0], ["zombi", "pool", 1]],
+	10: [["agir", "slam", 5], ["atici", "meteor", 2], ["muhafiz", "nova", 3]],
+}
+var _skLast := -9.0
+var _skLive: Array = []        # düşmanların açtığı tehlikeler
+var _shotT := 0.0
+var _shotTok := 3.0
+
+## menzilli atış kotası (jeton kovası): saniyede ~2,2 + dünya×0,25 mermi
+func _shot_ok() -> bool:
+	var g = game
+	var rate := 2.2 + float(g.worldId) * 0.25
+	var now: float = g.time
+	_shotTok = minf(rate * 1.2, _shotTok + (now - _shotT) * rate)
+	_shotT = now
+	if _shotTok < 1.0: return false
+	_shotTok -= 1.0
+	return true
+
+func _world_skill(e: Ent.Enemy, dt: float, d2: float) -> void:
+	var g = game
+	var list: Array = WORLD_SKILLS.get(int(g.worldId), [])
+	if list.is_empty(): return
+	var sk: Array = []
+	for it in list:
+		if it[0] == e.type:
+			sk = it
+			break
+	if sk.is_empty(): return
+	e.skT -= dt
+	if e.skT > 0.0: return
+	if d2 > 380.0 * 380.0 or not g.in_view(e.x, e.y, 30):
+		e.skT = 1.0
+		return
+	# eşzamanlı sınır + aralık
+	_skLive = _skLive.filter(func(h): return h != null and is_instance_valid(h) if h is Object else false)
+	var live := 0
+	for h in _skLive:
+		if g.pools.hazards.active.has(h): live += 1
+	var cap := 2 + int(g.worldId) / 3
+	if live >= cap or g.time - _skLast < 0.7:
+		e.skT = 0.8 + randf()
+		return
+	var kind: String = sk[1]
+	var hue: int = sk[2]
+	var p = g.player
+	var h = null
+	match kind:
+		"slam":
+			h = g.spawn_hazard(e.x, e.y, 82.0, e.dmg * 0.9, 1.25, 1.6, 0, hue)
+			e.castT = 1.25
+			e.atkAnim = 1.25
+		"nova":
+			h = g.spawn_hazard(e.x, e.y, 105.0, e.dmg * 0.75, 1.35, 1.7, 0, hue)
+			e.castT = 1.35
+			e.atkAnim = 1.35
+		"meteor":
+			# oyuncunun bulunduğu yere (hafif önüne) yavaş düşen büyü
+			var lx: float = p.x + p.vx * 0.25 if "vx" in p else p.x
+			var ly: float = p.y + p.vy * 0.25 if "vy" in p else p.y
+			h = g.spawn_hazard(lx, ly, 58.0, maxf(e.bulletDmg, e.dmg) * 1.0, 1.4, 1.75, 0, hue)
+			e.castT = 0.5
+			e.atkAnim = 0.8
+		"pool":
+			h = g.spawn_hazard(e.x, e.y, 62.0, e.dmg * 0.6, 1.1, 1.5, 0, hue, 3.2, maxf(2.0, e.dmg * 0.18))
+			e.castT = 0.6
+	if h == null:
+		e.skT = 2.0
+		return
+	_skLive.append(h)
+	_skLast = g.time
+	e.skT = 8.0 + randf() * 4.0
+	var col: String = HZ_HEX[clampi(hue, 0, HZ_HEX.size() - 1)]
+	g.spawn_burst(e.x, e.y - e.radius, col, 8, 110, 2.6, 0.45, true)
+	if g.renderer3d: g.renderer3d.spawn_cast(e.x, e.y, Color(col).r, Color(col).g, Color(col).b)
+	g.audio.play("telegraph")
+
+const HZ_HEX := ["#ff4a5e", "#6ad65a", "#ff8a2c", "#b06bff", "#7fd8ff", "#ffd774"]

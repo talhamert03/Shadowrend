@@ -1990,8 +1990,8 @@
    "weight": 0,
    "knockRes": 0.9,
    "range": 265,
-   "fireCd": 2.5,
-   "bulletSpeed": 155,
+   "fireCd": 3.6,
+   "bulletSpeed": 140,
    "bulletDmg": 13,
    "backRange": 120
   },

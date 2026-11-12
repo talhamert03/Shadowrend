@@ -1063,7 +1063,7 @@ func _update_hazards(g) -> void:
 			var s2: float = h.r * 0.96 * br
 			fill.scale = Vector3(s2, s2, s2)
 			fm.set_shader_parameter("opacity", 0.17 * maxf(0, fade))
-		var hex := "#6ad65a" if h.hue else "#ff4a5e"
+		var hex: String = EnemyManager.HZ_HEX[clampi(int(h.hue), 0, 5)]
 		if mesh.get_meta("hz", "") != hex:
 			mesh.set_meta("hz", hex)
 			mm.set_shader_parameter("color", Color(hex))

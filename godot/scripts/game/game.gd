@@ -2227,12 +2227,12 @@ func update_hazards(dt: float) -> void:
 				o.hit = true
 				var rr := o.r + p.radius
 				if dx * dx + dy * dy < rr * rr: Combat.damage_player(self, o.dmg, o.x, o.y)
-				var col := "#7bd66a" if o.hue else "#ff4a5e"
+				var col: String = EnemyManager.HZ_HEX[clampi(o.hue, 0, 5)]
 				pools.rings.take().setup(o.x, o.y, o.r * 1.06, 0.34, col)
 				spawn_burst(o.x, o.y, col, 9, 210, 3, 0.5, true)
 				if renderer3d and in_view(o.x, o.y, 60):
-					if o.hue: renderer3d.spawn_hit(o.x, o.y, 0, 2, 0.42, 1.0, 0.34)
-					else: renderer3d.spawn_hit(o.x, o.y, 0, 2, 1.0, 0.24, 0.28)
+					var cc := Color(col)
+					renderer3d.spawn_hit(o.x, o.y, 0, 2, cc.r, cc.g, cc.b)
 				add_shake(0.10)
 				audio.play("bombhit")
 				if o.pdur > 0:
