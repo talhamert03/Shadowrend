@@ -1,4 +1,5 @@
 class_name Combat
+const ARMOR_K := 10.0
 ## combat.js — Hasar Hesabı ve Vuruş Hissi (birebir).
 ## Tüm silahlar düşmana buradan vurur; tüm düşmanlar oyuncuya buradan vurur.
 
@@ -133,7 +134,9 @@ static func damage_player(game, raw: float, sx = null, sy = null) -> void:
 		game.spawn_burst(p.x, p.y, "#ffd45a", 8, 130, 2.6, 0.32, true)
 		game.audio.play("block")
 		return
-	var dmg := maxf(1.0, JS.round_js(raw) - p.armor)
+	# zırh: azalan getiri (Brotato tarzı) — düz çıkarmada ~20 zırh zayıf düşmanları 1 hasara indirip
+	# oyuncuyu ölümsüz yapıyordu. Düşük zırhta eski değerlerle neredeyse aynı.
+	var dmg := maxf(1.0, JS.round_js(raw * ARMOR_K / (ARMOR_K + maxf(0.0, p.armor))))
 	p.hp -= dmg
 	p.invuln = p.invulnTime
 	p.hurtT = 0.34

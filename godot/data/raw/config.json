@@ -3157,7 +3157,7 @@
   },
   "zirh": {
    "name": "Kemik Zırh",
-   "desc": "Yediğin her vuruştan 2 hasar siler, azami can +6.",
+   "desc": "Zırh +2: aldığın her vuruş azalır, azami can +6.",
    "maxLevel": 4,
    "mods": {
     "armor": 2,
