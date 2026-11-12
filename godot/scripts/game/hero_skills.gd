@@ -175,9 +175,25 @@ func _cast(d: Dictionary) -> bool:
 			for k in 12: g.spawn_burst(p.x + randf_range(-20, 20), p.y - randf() * 40, hx, 1, 60, 2.6, 0.6, true)
 		_:
 			return false
+	_flourish(d, col, hx)
 	_label(d)
 	g.audio.play("bless")
 	return true
+
+## ortak döküm anı: yetenek renginde ışık sütunu, ayakta çift halka, yükselen sarmal kıvılcım, hafif itki
+func _flourish(d: Dictionary, col: Color, hx: String) -> void:
+	var g = game
+	var p = g.player
+	if not g.in_view(p.x, p.y, 40): return
+	var k := str(d.get("kind", ""))
+	if g.renderer3d and k != "nova" and k != "frost": g.renderer3d.spawn_cast(p.x, p.y, col.r, col.g, col.b)
+	g.vfx.ring(p.x, p.y, 44.0, col.lightened(0.25), 0.4)
+	g.vfx.ring(p.x, p.y, 28.0, col, 0.3)
+	for i in 14:
+		var a := TAU * i / 7.0
+		var r := 16.0 + i * 1.6
+		g.pools.particles.take().setup(p.x + cos(a) * r, p.y + sin(a) * r * 0.55, cos(a) * 24.0, -70.0 - i * 6.0, 0.7 + i * 0.02, 2.6, hx, 0.95, 0, true)
+	g.punch(0.015)
 
 ## hedef noktalar: near = en yakın düşman, strong = yakındaki en dayanıklı, crowd = en kalabalık küme(ler)
 func _pick_points(mode: String, n: int) -> Array:
@@ -234,11 +250,12 @@ func _tick_shots(dt: float) -> void:
 		s.vy += (dy / maxf(d, 1.0) * s.sp - s.vy) * k
 		s.x += s.vx * dt
 		s.y += s.vy * dt
-		if g.in_view(s.x, s.y, 30): g.spawn_burst(s.x, s.y, s.c, 1, 18, 3.4, 0.2, true)
+		if g.in_view(s.x, s.y, 30): g.spawn_burst(s.x, s.y, s.c, 2, 22, 3.6, 0.26, true)
 		if d < 14.0 + e.radius:
 			Combat.apply_hit(g, e, s.dmg, atan2(s.vy, s.vx), 0.0)
 			if s.heal > 0.0: g.player.heal(g.player.maxHp * s.heal)
-			g.spawn_burst(e.x, e.y - 10, s.c, 6, 150, 2.6, 0.35, true)
+			g.spawn_burst(e.x, e.y - 10, s.c, 8, 160, 2.6, 0.38, true)
+			g.vfx.ring(e.x, e.y, 26.0, Color(s.c), 0.25)
 			if g.renderer3d:
 				var c := Color(s.c)
 				g.renderer3d.spawn_hit(e.x, e.y, atan2(s.vy, s.vx), 1, c.r, c.g, c.b)
@@ -262,8 +279,12 @@ func _tick_strikes(dt: float) -> void:
 				"flame": g.renderer3d.spawn_flame_impact(s.x, s.y, 0.0, s.r / 55.0)
 				_: g.renderer3d.spawn_storm_strike(s.x, s.y)
 		g.vfx.ring(s.x, s.y, s.r, Color(s.c), 0.4)
-		g.spawn_burst(s.x, s.y - 8, s.c, 14, 220, 3.0, 0.5, true)
-		g.add_shake(0.12)
+		g.vfx.ring(s.x, s.y, s.r * 1.4, Color(s.c).lightened(0.3), 0.55)     # ikinci şok dalgası
+		g.spawn_burst(s.x, s.y - 8, s.c, 18, 240, 3.0, 0.55, true)
+		if g.renderer3d:
+			var cc := Color(s.c)
+			g.renderer3d.spawn_hit(s.x, s.y, 0.0, 2, cc.r, cc.g, cc.b)
+		g.add_shake(0.14)
 		strikes.remove_at(i)
 
 func _tick_pulls(dt: float) -> void:
