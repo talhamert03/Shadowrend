@@ -162,6 +162,10 @@ func _ready() -> void:
 	# genel sayfa en üstte (ayarlar / yaş kapısı üstünden de açılır)
 	sheet = ScrSheet.new(g)
 	uiroot.add_child(sheet)
+	# pencerelerin (z 40) üstünden açılan ekranlar: geliştirme efekti, tören, kutlama, onay vb.
+	for o in [ceremony, celebrate, chestbuy, evo, adwatch, upfx, settings, battlepass, setguide, event_scr, sheet]:
+		if o: o.z_index = 60
+	if hud and hud.toastBox: hud.toastBox.z_index = 90
 
 # geliştirici: missdump=yol — çıkışta çevirisi bulunmayan metinleri (I18n.missing) dosyaya yazar
 func _exit_tree() -> void:

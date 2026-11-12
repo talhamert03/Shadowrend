@@ -54,7 +54,7 @@ var _rowSnd := 0
 func _init(game) -> void:
 	super(game)
 	name = "UpFx"
-	z_index = 20
+	z_index = 60
 
 ## make: Callable(lv:int) -> Node2D (merkezi 0,0'da kart); stats: [[ad, eski, yeni], …]
 func play(make: Callable, col: Color, lv0: int, lv1: int, card_h: float, stats: Array, extra := "", done := Callable()) -> void:
