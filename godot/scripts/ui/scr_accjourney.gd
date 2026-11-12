@@ -44,11 +44,28 @@ func open() -> void:
 		unbtn(L)
 		L.queue_free()
 	_items.clear()
-	L = Lyr.make("aj")
+	# yakalamada kaydırma alanı tanımlı değil (içerik o an sığıyordu): ray kaydırılabilir olsun
+	var J: Dictionary = Lyr.load_json("aj").duplicate(true)
+	for nd in J.get("nodes", []):
+		if nd is Dictionary and nd.get("key") == ".aj-scroll":
+			var bx: Array = nd.get("box", [0, 0, 358, 645])
+			nd["clip"] = [0, 0, 0, 0]
+			nd["clipBox"] = [0, 0, float(bx[2]), float(bx[3])]
+			nd["scroll"] = {"h": float(bx[3]), "ch": float(bx[3]), "top": 0}
+	L = Lyr.new()
+	L.build(J)
+	if ComicSkin.auto_on("aj"): ComicSkin.auto(L)
 	add_child(L)
 	L.stretch_h(Scr.dh_of(self))
 	var sc := L.find(".aj-scroll")
-	if sc: scroll_area(L, sc)
+	if sc:
+		scroll_area(L, sc)
+		# kaydırılan kartlar başlığın üstüne taşmasın: alanın kendi boyutunda maske
+		var mk: Node2D = sc.node
+		var msz: Vector2 = sc.size
+		mk.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+		mk.draw.connect(func(): mk.draw_rect(Rect2(Vector2(-60, 0), msz + Vector2(120, 0)), Color.WHITE))
+		mk.queue_redraw()
 	btn(L, L.find_id("#aj-close"), func(): g.audio.play("click"); close())
 	# boşluğa (başlık dışı) dokunmak kapatmaz: tam ekran sahne
 	var lvl: int = g.account_level()
@@ -132,7 +149,7 @@ func open() -> void:
 		var st := "claimed"
 		if pend.has(lv_i): st = "ready"
 		elif lv_i > lvl: st = "next" if lv_i == next_lv else "locked"
-		var card := _row(W, CH, lv_i, str(m.chest), st)
+		var card := _row(W, CH, lv_i, str(m.chest), st, pr)
 		card.position = Vector2(0, i * step)
 		rail.host.add_child(card)
 		_items.append(card)
@@ -164,64 +181,84 @@ func open() -> void:
 
 var _rail_n = null
 
-## ray kartı: sol seviye düğmesi + sandık + ad/durum + sağda AL! / tik / kilit
-func _row(W: float, CH: float, lv_i: int, chest: String, st: String) -> Node2D:
+## ray kartı: sol seviye düğmesi + sandık + ad/durum + sağda AL! / tik / kilit (premium)
+func _row(W: float, CH: float, lv_i: int, chest: String, st: String, pr: Dictionary = {}) -> Node2D:
 	var n := Node2D.new()
 	var C: Dictionary = ChestSystem.chests().get(chest, {})
 	var tex: Texture2D = UITex.get_tex("res://assets/ui/art/chest/t" + str(clampi(int(C.get("tier", 1)), 1, 7)) + ".png")
 	var nm := str(C.get("name", "SANDIK"))
+	var cc0 := Color(str(C.get("color", "#e9c98a")))
 	var fb := UIK.font(true, 900)
 	var fs := UIK.font(false, 700)
 	var t0 := Time.get_ticks_msec()
 	var gold := Color("#e9c98a")
+	var xpk: float = clampf(float(pr.get("cur", 0)) / maxf(1.0, float(pr.get("need", 1))), 0.0, 1.0)
+	var xpl := int(maxf(0.0, float(pr.get("need", 0)) - float(pr.get("cur", 0))))
 	n.draw.connect(func():
 		var tt := (Time.get_ticks_msec() - t0) / 1000.0
 		var R := Rect2(44, 0, W - 46, CH)
 		var pul := 0.5 + 0.5 * sin(tt * 4.0)
+		var lock := st == "locked"
 		if st == "ready":
-			for k in 3: n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 16 + k * 3, 3.0, Color(1, 0.8, 0.3, (0.35 - k * 0.1) * (0.5 + pul * 0.5))), R.grow(3 + k * 4))
-		n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 14), Rect2(R.position + Vector2(0, 4), R.size))
-		var fill := Color("#2a1a12") if st == "ready" else (Color("#1c1216") if st != "locked" else Color("#141014"))
-		var edge := Color("#ffd27a") if st == "ready" else (gold.darkened(0.2) if st == "next" else Color(gold, 0.25))
-		n.draw_style_box(ComicSkin.sb(fill, 14, 2.0, edge), R)
-		n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.05), 12), Rect2(R.position + Vector2(2, 2), Vector2(R.size.x - 4, R.size.y * 0.42)))
-		# sandık
+			for k in 3: n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 16 + k * 3, 2.5, Color(1, 0.8, 0.3, (0.38 - k * 0.11) * (0.5 + pul * 0.5))), R.grow(3 + k * 4))
+		elif st == "next":
+			n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 17, 2.0, Color(gold, 0.18 + 0.16 * pul)), R.grow(4))
+		n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 14), Rect2(R.position + Vector2(0, 5), R.size))
+		var fill := Color("#22141a") if st == "ready" else (Color("#1a1218") if not lock else Color("#120e12"))
+		var edge := Color("#ffd27a") if st == "ready" else (gold if st == "next" else Color(1, 1, 1, 0.08))
+		n.draw_style_box(ComicSkin.sb(fill, 14, 1.5, edge), R)
+		# üstten yumuşak ışık + sandık renginde sol şerit
+		n.draw_polygon(PackedVector2Array([R.position + Vector2(2, 2), Vector2(R.end.x - 2, R.position.y + 2), Vector2(R.end.x - 2, R.position.y + CH * 0.5), R.position + Vector2(2, CH * 0.5)]),
+			PackedColorArray([Color(1, 1, 1, 0.06), Color(1, 1, 1, 0.02), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0)]))
+		n.draw_style_box(ComicSkin.sb(Color(cc0, 0.35 if lock else 0.95), 2), Rect2(R.position.x, 14, 3, CH - 28))
+		# sandık: renkli ışıma + simge
 		var cc := Vector2(R.position.x + 46, CH * 0.5 + (sin(tt * 3.0) * 2.0 if st == "ready" else 0.0))
-		n.draw_circle(cc, 30, Color(1, 0.7, 0.3, 0.10 if st != "locked" else 0.03))
+		for k in 4: n.draw_circle(cc, 34.0 - k * 7.0, Color(cc0, (0.035 if lock else 0.07) + k * 0.012))
 		if tex:
-			var sz := 58.0
-			var md := Color(1, 1, 1, 1) if st != "locked" else Color(0.45, 0.42, 0.48, 1)
-			if st == "claimed": md = Color(0.7, 0.68, 0.7, 0.85)
+			var sz := 64.0
+			var md := Color(1, 1, 1, 1) if not lock else Color(0.42, 0.40, 0.46, 1)
+			if st == "claimed": md = Color(0.72, 0.70, 0.74, 0.9)
 			n.draw_texture_rect(tex, Rect2(cc - Vector2(sz, sz) * 0.5, Vector2(sz, sz)), false, md)
 		# yazılar
-		var tx := R.position.x + 86
-		var tc := Color("#fff1d6") if st != "locked" else Color(0.75, 0.7, 0.72)
-		n.draw_string(fb, Vector2(tx, 34), nm, HORIZONTAL_ALIGNMENT_LEFT, R.size.x - 150, 15, tc)
-		var sub: String = {"ready": "ÖDÜLÜN HAZIR!", "claimed": "ALINDI", "next": "SIRADAKİ ÖDÜL", "locked": "SEVİYE " + str(lv_i) + " ÖDÜLÜ"}[st]
-		var sc2 := Color("#ffcf6a") if st == "ready" or st == "next" else Color(1, 0.85, 0.75, 0.55)
-		n.draw_string(fs, Vector2(tx, 54), str(sub), HORIZONTAL_ALIGNMENT_LEFT, R.size.x - 150, 11, sc2)
+		var tx := R.position.x + 90
+		var tw := R.size.x - 160
+		var tc := Color("#fff1d6") if not lock else Color(0.72, 0.68, 0.72)
+		n.draw_string(fb, Vector2(tx, 32), nm, HORIZONTAL_ALIGNMENT_LEFT, tw, 15, tc)
+		var sub: String = {"ready": "ÖDÜLÜN HAZIR", "claimed": "ALINDI", "next": "SIRADAKİ ÖDÜL", "locked": "SV " + str(lv_i) + "'TE AÇILIR"}[st]
+		var sc2 := Color("#ffcf6a") if st == "ready" or st == "next" else (Color("#7fd69a") if st == "claimed" else Color(1, 1, 1, 0.38))
+		n.draw_string(fs, Vector2(tx, 50), sub, HORIZONTAL_ALIGNMENT_LEFT, tw, 10.5, sc2)
+		if st == "next":
+			var br := Rect2(tx, 58, minf(tw, 120.0), 6)
+			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.08), 3), br)
+			if xpk > 0.0: n.draw_style_box(ComicSkin.sb(Color("#f0a030"), 3), Rect2(br.position, Vector2(br.size.x * xpk, br.size.y)))
+			n.draw_string(fs, Vector2(br.end.x + 6, 65), str(xpl) + " XP", HORIZONTAL_ALIGNMENT_LEFT, 60, 9.5, Color(1, 0.9, 0.7, 0.75))
 		# sağ: AL! düğmesi / tik / kilit
-		var rx := R.end.x - 44
+		var rx := R.end.x - 40
 		if st == "ready":
-			var s := 1.0 + 0.06 * pul
-			var br := Rect2(rx - 30 * s, CH * 0.5 - 18 * s, 60 * s, 36 * s)
-			n.draw_style_box(ComicSkin.sb(ComicSkin.INK, 10), Rect2(br.position + Vector2(0, 4), br.size))
-			n.draw_style_box(ComicSkin.sb(Color("#ff4a3a"), 10, 2.0, Color("#ffd0b0")), br)
-			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.22), 8), Rect2(br.position + Vector2(2, 2), Vector2(br.size.x - 4, br.size.y * 0.45)))
-			n.draw_string(fb, Vector2(br.position.x, br.position.y + br.size.y * 0.5 + 6), "AL!", HORIZONTAL_ALIGNMENT_CENTER, br.size.x, 17, Color.WHITE)
+			var s := 1.0 + 0.05 * pul
+			var bb := Rect2(rx - 30 * s, CH * 0.5 - 17 * s, 60 * s, 34 * s)
+			n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 10), Rect2(bb.position + Vector2(0, 3), bb.size))
+			n.draw_style_box(ComicSkin.sb(Color("#f0a030"), 10, 1.5, Color("#ffe0a0")), bb)
+			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.25), 8), Rect2(bb.position + Vector2(2, 2), Vector2(bb.size.x - 4, bb.size.y * 0.42)))
+			n.draw_string(fb, Vector2(bb.position.x, bb.position.y + bb.size.y * 0.5 + 6), "AL", HORIZONTAL_ALIGNMENT_CENTER, bb.size.x, 16, Color("#2a1406"))
 		elif st == "claimed":
-			n.draw_circle(Vector2(rx, CH * 0.5), 14, Color("#2fae55"))
-			n.draw_polyline(PackedVector2Array([Vector2(rx - 6, CH * 0.5), Vector2(rx - 1.5, CH * 0.5 + 5), Vector2(rx + 7, CH * 0.5 - 5)]), Color.WHITE, 3.0, true)
+			n.draw_circle(Vector2(rx, CH * 0.5), 13, Color("#1f6b3a"))
+			n.draw_arc(Vector2(rx, CH * 0.5), 13, 0, TAU, 28, Color("#7fd69a"), 1.5, true)
+			n.draw_polyline(PackedVector2Array([Vector2(rx - 5.5, CH * 0.5), Vector2(rx - 1.5, CH * 0.5 + 4.5), Vector2(rx + 6, CH * 0.5 - 4.5)]), Color.WHITE, 2.5, true)
 		else:
-			var lc := Vector2(rx, CH * 0.5)
-			n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.35), 6, 1.5, Color(gold, 0.4)), Rect2(lc - Vector2(10, 4), Vector2(20, 16)))
-			n.draw_arc(lc - Vector2(0, 4), 6, PI, TAU, 12, Color(gold, 0.5), 2.5)
+			var lc := Vector2(rx, CH * 0.5 + 3)
+			var la := 0.55 if st == "next" else 0.3
+			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, la * 0.25), 4, 1.2, Color(gold, la)), Rect2(lc - Vector2(8, 3), Vector2(16, 12)))
+			n.draw_arc(lc - Vector2(0, 3), 5, PI, TAU, 12, Color(gold, la), 2.0, true)
 		# raydaki seviye düğmesi
 		var pc := Vector2(22, CH * 0.5)
 		var on := st == "claimed" or st == "ready"
-		n.draw_circle(pc, 17, ComicSkin.INK)
-		n.draw_circle(pc, 15, Color("#e9b456") if on else (Color("#7a3a20") if st == "next" else Color("#2a2028")))
-		n.draw_string(fb, Vector2(pc.x - 17, pc.y + 6), str(lv_i), HORIZONTAL_ALIGNMENT_CENTER, 34, 14, ComicSkin.INK if on else Color("#fff1d6")))
+		if st == "next": n.draw_arc(pc, 19.0 + 2.0 * pul, 0, TAU, 32, Color(gold, 0.35 * (1.0 - pul) + 0.15), 2.0, true)
+		n.draw_circle(pc, 16, Color("#0a0608"))
+		n.draw_circle(pc, 14.5, Color("#e9b456") if on else (Color("#5a3420") if st == "next" else Color("#1e171c")))
+		if on: n.draw_circle(pc + Vector2(-4, -5), 4.0, Color(1, 1, 1, 0.25))
+		n.draw_arc(pc, 14.5, 0, TAU, 28, Color(gold, 0.9 if (on or st == "next") else 0.25), 1.2, true)
+		n.draw_string(fb, Vector2(pc.x - 17, pc.y + 5), str(lv_i), HORIZONTAL_ALIGNMENT_CENTER, 34, 13, Color("#2a1406") if on else Color("#fff1d6")))
 	_tick_redraw(n)
 	return n
 
