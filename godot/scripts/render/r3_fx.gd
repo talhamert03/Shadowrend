@@ -7,10 +7,11 @@ extends RefCounted
 ## bıçakları · can barları. Kameraya bakan kareler render3d._bb ile aynı matris.
 
 ## XP: kesme ruh kristali (küçük camgöbeği · orta mor · büyük altın); yüzeyler ışıkla gölgeli
+## ruh özü (XP): hayalet camgöbeği → mor ruh → altın kadim ruh; okunur boy (eskiden nokta gibiydi)
 const GEM_SOULS := [
-	{"c": "#3fd2ff", "k": "#c8f6ff", "g": "#1a7fb8", "r": 5.4},
-	{"c": "#a066ff", "k": "#e6d4ff", "g": "#5a2bb0", "r": 6.6},
-	{"c": "#ffbf2e", "k": "#fff1c4", "g": "#b8740c", "r": 8.2},
+	{"c": "#3fe6ff", "k": "#e2fbff", "g": "#1590c8", "r": 7.6},
+	{"c": "#b06bff", "k": "#f0e2ff", "g": "#6a2bd0", "r": 9.0},
+	{"c": "#ffc94a", "k": "#fff4d0", "g": "#c8820c", "r": 11.0},
 ]
 
 ## çift piramit kristal: yüz başına sabit ışık gölgesi köşe rengine pişirilir (ışıksız malzemede yüzeyler okunur)
@@ -193,10 +194,10 @@ func _init(r) -> void:
 	S.add_child(crescentMesh)
 	_build_hero_projectiles(S)
 	# ── ruh kristali (XP) ──
-	var soul := _crystal_geo(6, 1.35, 0.95, 0.66, 0.12)
+	var soul := _crystal_geo(4, 1.85, 1.0, 0.56, 0.18)
 	gemMesh = IMesh.new(soul, Shd.basic({"alpha": true, "opacity": 0.96}), 380)
 	S.add_child(gemMesh)
-	var coreGeo := _crystal_geo(6, 0.8, 0.55, 0.36, 0.1)
+	var coreGeo := _crystal_geo(4, 1.1, 0.6, 0.32, 0.14)
 	gemCore = IMesh.new(coreGeo, Shd.basic({"add": true, "opacity": 0.8, "zwrite": false}), 380)
 	S.add_child(gemCore)
 	var ringGeo := Geo.merge([Geo.torus(0.92, 0.055, 5, 18)], [Transform3D(Basis(Vector3(1, 0, 0), -PI / 2), Vector3.ZERO)])
@@ -940,7 +941,7 @@ func _update_gems(g) -> void:
 		if idx >= 380: break
 		var tier: Dictionary = GEM_SOULS[gm.tier] if gm.tier >= 0 and gm.tier < 3 else GEM_SOULS[0]
 		var ph: float = gm.bob
-		var y := 16 + sin(ph + t * 1.7) * 1.8
+		var y := 18 + sin(ph + t * 1.7) * 2.6
 		var spin := t * 1.6 + ph
 		var tilt := sin(t * 2.0 + ph * 1.7) * 0.075
 		var flick := sin(t * 3.0 + ph) * 0.03
@@ -955,8 +956,8 @@ func _update_gems(g) -> void:
 		var ringS: float = tier.r * (1.45 + sin(t * 1.9 + ph) * 0.09)
 		gemRing.set_ys(idx, gm.x, 0.7, gm.y, -spin * 0.5, ringS, ringS, ringS)
 		gemRing.set_col(idx, c.r, c.g, c.b)
-		var halo: float = (2.9 + sin(t * 2.4 + ph * 1.3) * 0.3) * tier.r
-		gemGlow.set_bb(idx, gm.x, y, gm.y, halo, halo, 0, cam)
+		var halo: float = (2.6 + sin(t * 2.4 + ph * 1.3) * 0.3) * tier.r
+		gemGlow.set_bb(idx, gm.x, y + tier.r * 0.4, gm.y, halo, halo * 1.45, 0, cam)     # dikey ruh alevi
 		var cg := Color(tier.g).srgb_to_linear()
 		gemGlow.set_col(idx, cg.r, cg.g, cg.b)
 		idx += 1

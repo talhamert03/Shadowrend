@@ -253,7 +253,7 @@ func _ready() -> void:
 	comic = Draw.new(_draw_comic)
 	root.add_child(comic)
 	lvTag = UIText.new()
-	lvTag.style(false, 1000, 10, 1.0, "#ffd23a", "")
+	lvTag.style(false, 1000, 9, 1.4, "#d9b46a", "")
 	lvTag.anchor_x = 0.5
 	lvTag.text = "SV"
 	root.add_child(lvTag)
@@ -291,12 +291,13 @@ func _build_xp() -> void:
 	xpFill.visible = false
 	xpGlint = Draw.new(_draw_glint)
 	xpClip.add_child(xpGlint)
+	xpClip.visible = false      # eski ince çubuk + parıltı: yerini _draw_comic'teki ruh özü çubuğu aldı
 
 func _build_row() -> void:
 	var lb: Array = UIK.meta("hud_cell_l").get("texts", [])
 	lbLevel = UIK.text_from(root, lb[0] if lb.size() else {}, "SEVİYE")
 	lbLevel.line_h = 9.45
-	vLevel = _txt(root).style(false, 1000, 24, 0.5, "#2a1408", "", 24)
+	vLevel = _txt(root).style(false, 1000, 22, 0.5, "#fff4dc", "0 2px 3px rgba(0,0,0,0.9)", 22)
 	vLevel.anchor_x = 0.5
 	vLevel.text = "1"
 	lbMoney = _txt(root).style(false, 800, 8, 1.6, "#b9a8d6", "", 9.45)
@@ -534,41 +535,59 @@ func _draw_comic(c: Control) -> void:
 	var L := 12 + sal
 	var R := W - 12 - sar
 	var cw := R - L
-	# XP çubuğu: kalın, mürekkep konturlu, dolum limon→altın, yarım ton, parıltı
-	var xr := Rect2(L, sat + 4, cw, 11)
-	_plate(c, xr, Color("#1d1526"), 6, 2.5)
-	var fw := (cw - 6) * clampf(_xp_now(), 0.0, 1.0)
-	if fw > 2.0:
-		var f := StyleBoxFlat.new()
-		f.bg_color = Color("#b8f05a")
-		f.set_corner_radius_all(4)
-		c.draw_style_box(f, Rect2(L + 3, sat + 7, fw, 5))
-		c.draw_rect(Rect2(L + 3, sat + 7, fw, 2), Color(1, 1, 0.8, 0.55))
-		var gx := L + 3 + fmod(_t * 90.0, maxf(1.0, fw))
-		c.draw_rect(Rect2(gx, sat + 7, minf(8.0, L + 3 + fw - gx), 5), Color(1, 1, 1, 0.45))
+	# ── XP: "ruh özü" çubuğu — koyu gövde, ince altın çerçeve, uçlarda elmas süs; dolum koyu mordan
+	#    ruh camgöbeğine akar, içinde dalgalanan enerji, ucunda parlayan ruh alevi ──
+	var xr := Rect2(L + 8, sat + 4, cw - 16, 10)
+	var xk := clampf(_xp_now(), 0.0, 1.0)
+	var gold := Color("#d9b46a")
+	c.draw_style_box(_sbx(Color(0, 0, 0, 0.55), 6), Rect2(xr.position + Vector2(0, 2), xr.size))
+	c.draw_style_box(_sbx(Color("#0d0912"), 5, 1.2, Color(gold, 0.85)), xr)
+	for q in 9:
+		var tx := xr.position.x + xr.size.x * (q + 1) / 10.0
+		c.draw_line(Vector2(tx, xr.position.y + 3), Vector2(tx, xr.end.y - 3), Color(1, 1, 1, 0.06), 1.0)
+	var fr := Rect2(xr.position + Vector2(2, 2), Vector2((xr.size.x - 4) * xk, xr.size.y - 4))
+	if fr.size.x > 1.5:
+		var c0 := Color("#5b22c9")
+		var c1 := c0.lerp(Color("#3fe0ff"), xk)
+		c.draw_polygon(PackedVector2Array([fr.position, Vector2(fr.end.x, fr.position.y), fr.end, Vector2(fr.position.x, fr.end.y)]),
+			PackedColorArray([c0, c1, c1.darkened(0.25), c0.darkened(0.25)]))
+		c.draw_rect(Rect2(fr.position, Vector2(fr.size.x, 2)), Color(1, 1, 1, 0.28))
+		# akan enerji: dolum içinde kayan yumuşak ışık şeritleri
+		for w in 3:
+			var ph := fmod(_t * (40.0 + w * 17.0) + w * 53.0, fr.size.x + 30.0) - 15.0
+			if ph > 0.0 and ph < fr.size.x:
+				var ww := minf(14.0, fr.size.x - ph)
+				c.draw_rect(Rect2(fr.position.x + ph, fr.position.y + 1, ww, fr.size.y - 2), Color(0.85, 1.0, 1.0, 0.16 + 0.08 * sin(_t * 5.0 + w)))
+		# uçtaki ruh alevi (XP alınca parlar)
+		var hot := clampf(1.0 - (_t - _xpAt) / 0.5, 0.0, 1.0)
+		var ep := Vector2(fr.end.x, fr.position.y + fr.size.y * 0.5)
+		for k in 3: c.draw_circle(ep, 7.0 - k * 2.0 + hot * 4.0, Color(0.55, 0.95, 1.0, 0.12 + k * 0.1 + hot * 0.15))
+		c.draw_circle(ep, 1.8 + hot, Color(1, 1, 1, 0.9))
+	for sd in [-1.0, 1.0]:
+		var dc := Vector2(xr.position.x - 2.0 if sd < 0 else xr.end.x + 2.0, xr.position.y + xr.size.y * 0.5)
+		c.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -6), dc + Vector2(5, 0), dc + Vector2(0, 6), dc + Vector2(-5, 0)]), Color("#0d0912"))
+		c.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -4.5), dc + Vector2(3.6, 0), dc + Vector2(0, 4.5), dc + Vector2(-3.6, 0)]), gold)
+		c.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -2.2), dc + Vector2(1.6, 0), dc + Vector2(0, 2.2), dc + Vector2(-1.6, 0)]), Color("#3fe0ff"))
 	# satır plakaları
 	var rowY := sat + 20
 	var cellY := rowY + (_rowH - 29.375) * 0.5
-	# SEVİYE: sarı patlama rozeti (çizgi roman yıldızı), çevresinde XP halkası
+	# SEVİYE: gotik madalyon — altın halka, mor ruh taşı, çevresinde seviyeye kalan XP halkası
 	var bc := _lvl_center()
-	var star := PackedVector2Array()
-	var ink := PackedVector2Array()
-	var wob := 1.0 + sin(_t * 3.0) * 0.02
-	for i in 20:
-		var a := -PI * 0.5 + i * TAU / 20.0
-		var rr := (25.0 if i % 2 == 0 else 19.0) * wob
-		star.append(bc + Vector2(cos(a), sin(a)) * rr)
-		ink.append(bc + Vector2(cos(a), sin(a)) * (rr + 3.5) + Vector2(1.5, 3))
-	c.draw_colored_polygon(ink, INK)
-	var ink2 := PackedVector2Array()
-	for i in 20:
-		var a := -PI * 0.5 + i * TAU / 20.0
-		ink2.append(bc + Vector2(cos(a), sin(a)) * ((25.0 if i % 2 == 0 else 19.0) * wob + 3.0))
-	c.draw_colored_polygon(ink2, INK)
-	c.draw_colored_polygon(star, Color("#ffd23a"))
-	c.draw_circle(bc + Vector2(-6, -7), 5, Color(1, 1, 1, 0.55))
+	var br := 22.0 * (1.0 + sin(_t * 2.4) * 0.012)
+	c.draw_circle(bc + Vector2(0, 3), br + 4.0, Color(0, 0, 0, 0.55))
+	c.draw_circle(bc, br + 3.5, Color("#120c16"))
+	c.draw_arc(bc, br + 1.5, -PI * 0.5, -PI * 0.5 + TAU * xk, 40, Color("#3fe0ff"), 2.6, true)
+	c.draw_arc(bc, br + 1.5, -PI * 0.5 + TAU * xk, PI * 1.5, 40, Color(1, 1, 1, 0.08), 2.6, true)
+	c.draw_circle(bc, br - 1.0, gold.darkened(0.15))
+	c.draw_circle(bc, br - 3.0, Color("#2a1440"))
+	for k in 4: c.draw_circle(bc + Vector2(0, -2), br - 5.0 - k * 3.2, Color(0.52, 0.24, 0.95, 0.10 + k * 0.05))
+	c.draw_circle(bc + Vector2(-6, -8), 3.6, Color(1, 1, 1, 0.35))
+	for q in 4:
+		var aq := PI * 0.25 + q * PI * 0.5
+		var pq := bc + Vector2(cos(aq), sin(aq)) * (br + 1.5)
+		c.draw_circle(pq, 2.2, gold)
 	# SV etiketi (rozetin altında küçük bant)
-	c.draw_rect(Rect2(bc.x - 13, bc.y + 18, 26, 11), INK)
+	c.draw_style_box(_sbx(Color("#120c16"), 4, 1.0, Color(gold, 0.8)), Rect2(bc.x - 13, bc.y + 17, 26, 12))
 	# orta: dalga şeridi + süre plakası
 	var cx := L + cw * 0.5
 	var pw := 132.0
@@ -1275,3 +1294,13 @@ func _draw_skills(c: Control) -> void:
 		c.draw_circle(bp, 8.5, INK)
 		c.draw_circle(bp, 6.8, Color("#ffb03a") if tg == "O" else Color("#9fdcff"))
 		c.draw_string(UIK.font(false, 900), bp + Vector2(-3.6, 3.8), tg, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, INK)
+
+static func _sbx(bg: Color, r: int, bw := 0.0, bc := Color(0, 0, 0, 0)) -> StyleBoxFlat:
+	var f := StyleBoxFlat.new()
+	f.bg_color = bg
+	f.set_corner_radius_all(r)
+	if bw > 0.0:
+		f.set_border_width_all(int(ceil(bw)))
+		f.border_color = bc
+	f.anti_aliasing = true
+	return f

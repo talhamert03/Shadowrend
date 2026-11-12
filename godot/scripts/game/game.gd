@@ -2112,7 +2112,7 @@ func update_gems(dt: float) -> void:
 		if d2 < pickup2:
 			p.collect_gem(g.value * msn.gemMul, g.value * JS.num(msn, "xpMul", 1.0))
 			audio.play("gem")
-			spawn_burst(g.x, g.y, D.GEM_TIERS[g.tier].color, 3, 60, 2, 0.25, true)
+			spawn_burst(g.x, g.y, String(R3Fx.GEM_SOULS[clampi(g.tier, 0, 2)].c), 5, 80, 2.2, 0.3, true)
 			pools.gems.release(g)
 			continue
 		if g.pull or d2 < magnet2:
