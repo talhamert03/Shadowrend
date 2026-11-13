@@ -163,8 +163,12 @@ func _cast(d: Dictionary) -> bool:
 			for k in n:
 				var e = ts[k % ts.size()]
 				var a := TAU * k / maxf(1.0, n) + randf() * 0.4
-				shots.append({"x": p.x + cos(a) * 18.0, "y": p.y - 30.0 + sin(a) * 10.0, "tgt": e, "tok": e.lifeTok, "dmg": dmg, "c": hx,
-					"sp": 620.0, "heal": float(d.get("heal", 0.0)), "vx": cos(a) * 260.0, "vy": sin(a) * 260.0 - 160.0, "t": 0.0})
+				var gr: bool = d.get("gear", false)
+				var sx0: float = p.x + cos(a) * 18.0
+				var sy0: float = p.y - 30.0 + sin(a) * 10.0
+				shots.append({"x": sx0, "y": sy0, "px": sx0, "py": sy0, "tgt": e, "tok": e.lifeTok, "dmg": dmg, "c": hx, "gear": gr,
+					"sp": 520.0 if gr else 620.0, "heal": float(d.get("heal", 0.0)),
+					"vx": cos(a) * (340.0 if gr else 260.0), "vy": sin(a) * (340.0 if gr else 260.0) - 180.0, "t": 0.0})
 		"chain":
 			var n := int(d.get("n", 4))
 			var es0 := _near(p.x, p.y, 380.0)
@@ -217,11 +221,45 @@ func _cast(d: Dictionary) -> bool:
 			for k in 12: g.spawn_burst(p.x + randf_range(-20, 20), p.y - randf() * 40, hx, 1, 60, 2.6, 0.6, true)
 		_:
 			return false
-	if d.get("gear", false): _gear_flourish(col, hx)
+	if d.get("gear", false):
+		_gear_flourish(col, hx)
+		_gear_extra(d, col, hx)
 	else: _flourish(d, col, hx)
 	_label(d)
 	g.audio.play("tab" if d.get("gear", false) else "bless")
 	return true
+
+## efsanevi eşya yeteneği: türüne göre ek, göz alıcı katman (hasar değişmez)
+func _gear_extra(d: Dictionary, col: Color, hx: String) -> void:
+	var g = game
+	var p = g.player
+	match str(d.get("kind", "")):
+		"nova":
+			var R: float = float(d.get("r", 90.0))
+			if g.renderer3d: g.renderer3d.spawn_cast(p.x, p.y, col.r, col.g, col.b)
+			g.vfx.ring(p.x, p.y, R * 1.18, col.lightened(0.4), 0.6)
+			g.vfx.cast(p.x, p.y, col, R * 0.6)
+			for k in 12:
+				var a := TAU * k / 12.0
+				g.pools.particles.take().setup(p.x + cos(a) * R * 0.3, p.y + sin(a) * R * 0.3, cos(a) * 260.0, sin(a) * 160.0 - 30.0, 0.5, 3.4, hx, 0.9, 0, true)
+		"strike":
+			for st in strikes:
+				if float(st.t) > 0.3: g.vfx.cast(st.x, st.y, col, float(st.r) * 0.9)
+		"pull":
+			for w in pulls:
+				if float(w.t) > 1.0:
+					g.vfx.cast(w.x, w.y, col, float(w.r) * 0.7)
+					if g.renderer3d: g.renderer3d.spawn_cast(w.x, w.y, col.r, col.g, col.b)
+		"haste":
+			if g.renderer3d: g.renderer3d.spawn_cast(p.x, p.y, col.r, col.g, col.b)
+			g.vfx.ring(p.x, p.y, 70.0, col.lightened(0.3), 0.5)
+			for k in 16:
+				var a := TAU * k / 16.0
+				g.pools.particles.take().setup(p.x, p.y - 10, cos(a) * 200.0, sin(a) * 120.0 - 60.0, 0.55, 3.0, hx, 0.88, 0, true)
+		"bolts":
+			g.vfx.ring(p.x, p.y, 54.0, col.lightened(0.3), 0.35)
+		"chain":
+			g.vfx.ring(p.x, p.y, 50.0, col.lightened(0.3), 0.35)
 
 ## efsanevi eşya döküm anı: hızlı, hafif — eşya renginde genişleyen halka ve fırlayan kıvılcımlar
 func _gear_flourish(col: Color, hx: String) -> void:
@@ -301,14 +339,28 @@ func _tick_shots(dt: float) -> void:
 		var k := minf(1.0, dt * (4.0 + s.t * 14.0))
 		s.vx += (dx / maxf(d, 1.0) * s.sp - s.vx) * k
 		s.vy += (dy / maxf(d, 1.0) * s.sp - s.vy) * k
+		s.px = s.x; s.py = s.y
 		s.x += s.vx * dt
 		s.y += s.vy * dt
-		if g.in_view(s.x, s.y, 30): g.spawn_burst(s.x, s.y, s.c, 2, 22, 3.6, 0.26, true)
+		if s.get("gear", false):
+			# efsanevi mermi: katmanlı ışık kuyruğu (kalın, parlak, sönerek incelen) + kıvılcım
+			if g.in_view(s.x, s.y, 40):
+				var cc := Color(s.c)
+				g.vfx.beam(s.px, s.py, s.x, s.y, 16.0, 16.0, cc, 24.0)
+				g.spawn_burst(s.x, s.y - 14, s.c, 3, 70, 5.6, 0.36, true)
+				g.spawn_burst(s.x, s.y - 14, "#ffffff", 1, 24, 4.2, 0.18, true)
+		elif g.in_view(s.x, s.y, 30): g.spawn_burst(s.x, s.y, s.c, 2, 22, 3.6, 0.26, true)
 		if d < 14.0 + e.radius:
 			Combat.apply_hit(g, e, s.dmg, atan2(s.vy, s.vx), 0.0)
 			if s.heal > 0.0: g.player.heal(g.player.maxHp * s.heal)
 			g.spawn_burst(e.x, e.y - 10, s.c, 8, 160, 2.6, 0.38, true)
 			g.vfx.ring(e.x, e.y, 26.0, Color(s.c), 0.25)
+			if s.get("gear", false):
+				var hc := Color(s.c)
+				g.vfx.hit(e.x, e.y - 10, atan2(s.vy, s.vx), true, hc)
+				g.vfx.ring(e.x, e.y, 46.0, hc.lightened(0.3), 0.32)
+				g.spawn_burst(e.x, e.y - 10, s.c, 12, 240, 3.4, 0.45, true)
+				if g.renderer3d and hc.r > 0.8 and hc.g < 0.6: g.renderer3d.spawn_flame_impact(e.x, e.y, atan2(s.vy, s.vx), 0.7)
 			if g.renderer3d:
 				var c := Color(s.c)
 				g.renderer3d.spawn_hit(e.x, e.y, atan2(s.vy, s.vx), 1, c.r, c.g, c.b)

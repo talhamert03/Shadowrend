@@ -351,6 +351,11 @@ func boot() -> void:
 		# denge botu: lvl=N kahraman seviyesi, gear=R:L tüm yuvalara R nadirlikte L seviye eşya
 		if _arg("lvl") != "":
 			g.meta.charLevels[g.meta.selectedChar] = int(_arg("lvl"))
+		# geliştirici: eqid=e_a,e_b — bu eşyaları kuşan (efsanevi yetenek testi)
+		if _arg("eqid") != "":
+			for gid in _arg("eqid").split(","):
+				g.add_gear_cards(gid, 3)
+				if g.gear_by_id(gid) and not g.is_equipped(gid): g.equip_gear(gid, true)
 		if _arg("gear") != "":
 			var gp := _arg("gear").split(":")
 			var gr := float(gp[0]); var gl := int(gp[1]) if gp.size() > 1 else 1
