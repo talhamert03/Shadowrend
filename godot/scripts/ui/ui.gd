@@ -1017,12 +1017,17 @@ func _dev_rollsim2() -> void:
 	for t in ["ahsap", "yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]:
 		var N := 20000
 		var e := 0; var l := 0; var lh := 0; var lg := 0; var pl := 0; var pe := 0; var cards := 0
+		var gc := 0; var hcN := 0; var newH := 0
 		for i in N:
 			var be := 0.0
 			var hl := false; var gl := false; var ppl := false; var ppe := false
 			for r in g.chests.roll_rewards(t):
 				if not (r.kind in ["char", "gear"]): continue
 				cards += int(r.get("cards", 1))
+				if r.kind == "gear": gc += int(r.get("cards", 1))
+				else:
+					hcN += int(r.get("cards", 1))
+					if not r.get("pack"): newH += 1
 				var k: float = ChestSystem.rk_of(r)
 				if r.get("pack"):
 					if k >= 4: ppl = true
@@ -1040,7 +1045,7 @@ func _dev_rollsim2() -> void:
 			if ppe: pe += 1
 		var f := func(x): return "%.2f%%" % (100.0 * x / N)
 		var oneIn := func(x): return ("1/%d" % int(round(float(N) / x))) if x > 0 else "-"
-		print("ODDS ", t, " epik+=", f.call(e), " efs=", f.call(l), " (", oneIn.call(l), ") efsKahraman=", f.call(lh), " efsEşya=", f.call(lg), " paketEfs=", f.call(pl), " paketEpik=", f.call(pe), " kart/sandık=", snappedf(cards / float(N), 0.1))
+		print("ODDS ", t, " epik+=", f.call(e), " efs=", f.call(l), " (", oneIn.call(l), ") efsKahraman=", f.call(lh), " efsEşya=", f.call(lg), " paketEfs=", f.call(pl), " paketEpik=", f.call(pe), " kart/sandık=", snappedf(cards / float(N), 0.1), " eşyaKart=", snappedf(gc / float(N), 0.1), " kahramanKart=", snappedf(hcN / float(N), 0.1), " kahramanDüşmesi=", f.call(newH))
 	get_tree().quit()
 
 func _dev_rollsim() -> void:

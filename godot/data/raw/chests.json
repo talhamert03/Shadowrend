@@ -15,13 +15,13 @@
     30
    ],
    "gear": [
-    0,
+    1,
     1
    ],
-   "gearChance": 0.5,
+   "gearChance": 0.85,
    "rarityMax": 1,
    "weaponChance": 0,
-   "charChance": 0.04,
+   "charChance": 0.025,
    "charRarityMax": 2,
    "stoneChance": 0.1,
    "stoneDrop": [
@@ -40,7 +40,7 @@
    ],
    "heroCards": [
     1,
-    2
+    1
    ],
    "packOdds": [
     0,
@@ -49,8 +49,8 @@
     0,
     0
    ],
-   "epicChance": 0.006,
-   "legendChance": 0.0003
+   "epicChance": 0.004,
+   "legendChance": 0.0002
   },
   "yaygin": {
    "name": "GÜMÜŞ SANDIK",
@@ -68,12 +68,12 @@
    ],
    "gear": [
     1,
-    1
+    2
    ],
-   "gearChance": 0.75,
+   "gearChance": 1,
    "rarityMax": 2,
    "weaponChance": 0.04,
-   "charChance": 0.06,
+   "charChance": 0.035,
    "charRarityMax": 4,
    "stoneChance": 0.18,
    "stoneDrop": [
@@ -92,7 +92,7 @@
    ],
    "heroCards": [
     2,
-    4
+    3
    ],
    "packOdds": [
     0,
@@ -102,8 +102,8 @@
     0.3
    ],
    "legendGear": 0,
-   "epicChance": 0.02,
-   "legendChance": 0.001
+   "epicChance": 0.012,
+   "legendChance": 0.0007
   },
   "kemik": {
    "name": "ALTIN SANDIK",
@@ -121,12 +121,12 @@
    ],
    "gear": [
     1,
-    1
+    2
    ],
    "gearChance": 1,
    "rarityMax": 2,
    "weaponChance": 0.06,
-   "charChance": 0.09,
+   "charChance": 0.055,
    "charRarityMax": 4,
    "stoneChance": 0.3,
    "stoneDrop": [
@@ -144,8 +144,8 @@
     0
    ],
    "heroCards": [
-    4,
-    6
+    3,
+    4
    ],
    "packOdds": [
     0,
@@ -155,8 +155,8 @@
     1
    ],
    "legendGear": 0,
-   "epicChance": 0.055,
-   "legendChance": 0.0035
+   "epicChance": 0.03,
+   "legendChance": 0.0025
   },
   "kan": {
    "name": "BÜYÜLÜ SANDIK",
@@ -173,13 +173,13 @@
     120
    ],
    "gear": [
-    1,
+    2,
     2
    ],
    "gearChance": 1,
    "rarityMax": 3,
    "weaponChance": 0.2,
-   "charChance": 0.14,
+   "charChance": 0.085,
    "charRarityMax": 4,
    "stoneChance": 0.55,
    "stoneDrop": [
@@ -197,8 +197,8 @@
     0
    ],
    "heroCards": [
-    7,
-    10
+    4,
+    6
    ],
    "packOdds": [
     0,
@@ -207,8 +207,8 @@
     14,
     3
    ],
-   "epicChance": 0.28,
-   "legendChance": 0.012
+   "epicChance": 0.15,
+   "legendChance": 0.008
   },
   "kadim": {
    "name": "BUZUL SANDIK",
@@ -226,12 +226,12 @@
    ],
    "gear": [
     2,
-    2
+    3
    ],
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.45,
-   "charChance": 0.22,
+   "charChance": 0.13,
    "charRarityMax": 4,
    "stoneChance": 0.85,
    "stoneDrop": [
@@ -249,8 +249,8 @@
     0
    ],
    "heroCards": [
-    12,
-    16
+    6,
+    9
    ],
    "packOdds": [
     0,
@@ -260,7 +260,7 @@
     6
    ],
    "epicChance": 0.0,
-   "legendChance": 0.055,
+   "legendChance": 0.04,
    "topMax": 3
   },
   "mistik": {
@@ -311,13 +311,13 @@
     420
    ],
    "gear": [
-    2,
-    3
+    4,
+    5
    ],
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.6,
-   "charChance": 0.45,
+   "charChance": 0.28,
    "charRarityMax": 4,
    "stoneChance": 1,
    "stoneDrop": [
@@ -336,8 +336,8 @@
     12
    ],
    "heroCards": [
-    22,
-    30
+    11,
+    15
    ],
    "packOdds": [
     0,

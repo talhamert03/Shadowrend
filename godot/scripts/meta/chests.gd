@@ -241,7 +241,7 @@ func roll_rewards(type: String) -> Array:
 		var heroPool := []
 		for c in D.CHARACTERS.values():
 			if JS.num(c, "rarity", 1.0) >= 4: heroPool.append(c)
-		if heroPool.size() and randf() < 0.45:
+		if heroPool.size() and randf() < 0.30:     # mistik: %70 efsanevi eşya, %30 efsanevi kahraman
 			var fresh := []
 			for c in heroPool:
 				if not (g.owns_char(c.id) and g.char_level(c.id) >= D.CHAR_MAX_LEVEL): fresh.append(c)
@@ -290,7 +290,7 @@ func roll_rewards(type: String) -> Array:
 	if randf() < lc: up = 4
 	elif randf() < ec: up = 3
 	if up > 0:
-		var hero_first := randf() < 0.5
+		var hero_first := randf() < 0.3          # %70 eşya: eşya havuzu çok daha geniş, kahramanlar çabuk tükenmesin
 		var added := false
 		if hero_first:
 			var ch = _char_of_rarity(up)
