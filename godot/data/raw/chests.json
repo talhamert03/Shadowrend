@@ -18,10 +18,10 @@
     1,
     1
    ],
-   "gearChance": 0.85,
+   "gearChance": 1.0,
    "rarityMax": 1,
    "weaponChance": 0,
-   "charChance": 0.025,
+   "charChance": 0.015,
    "charRarityMax": 2,
    "stoneChance": 0.1,
    "stoneDrop": [
@@ -33,8 +33,8 @@
    "desc": "Sefer dönüşü ganimeti: is tutmuş kara meşe kalaslar, dövme demir kuşaklar ve yalın bir demir kilit.",
    "charOdds": [
     0,
-    92,
-    8,
+    94.4,
+    5.6,
     0,
     0
    ],
@@ -44,8 +44,8 @@
    ],
    "packOdds": [
     0,
-    90,
-    10,
+    92.5,
+    7.5,
     0,
     0
    ],
@@ -73,7 +73,7 @@
    "gearChance": 1,
    "rarityMax": 2,
    "weaponChance": 0.04,
-   "charChance": 0.035,
+   "charChance": 0.021,
    "charRarityMax": 4,
    "stoneChance": 0.18,
    "stoneDrop": [
@@ -85,19 +85,19 @@
    "desc": "Bal rengi meşe gövdeye cilalı gümüş kuşaklar dolanmış; kabaraları ay ışığında parıldar.",
    "charOdds": [
     0,
-    80,
-    20,
+    86.0,
+    14.0,
     0,
     0
    ],
    "heroCards": [
-    2,
-    3
+    1,
+    2
    ],
    "packOdds": [
     0,
-    78,
-    19.7,
+    82.92,
+    14.77,
     2,
     0.3
    ],
@@ -126,7 +126,7 @@
    "gearChance": 1,
    "rarityMax": 2,
    "weaponChance": 0.06,
-   "charChance": 0.055,
+   "charChance": 0.033,
    "charRarityMax": 4,
    "stoneChance": 0.3,
    "stoneDrop": [
@@ -138,19 +138,19 @@
    "desc": "Koyu kral altını, filigran kabartmalar ve güneş oymalı kapak. Kalbinde gerçek bir yakut mühür.",
    "charOdds": [
     0,
-    66,
-    34,
+    76.2,
+    23.8,
     0,
     0
    ],
    "heroCards": [
-    3,
-    4
+    2,
+    3
    ],
    "packOdds": [
     0,
-    62,
-    31,
+    69.75,
+    23.25,
     6,
     1
    ],
@@ -179,7 +179,7 @@
    "gearChance": 1,
    "rarityMax": 3,
    "weaponChance": 0.2,
-   "charChance": 0.085,
+   "charChance": 0.051,
    "charRarityMax": 4,
    "stoneChance": 0.55,
    "stoneDrop": [
@@ -191,19 +191,19 @@
    "desc": "Kara demir kafesin içinde nabız gibi atan zehir yeşili bir ışık. Kafatası kilidi gözlerini senden ayırmaz.",
    "charOdds": [
     0,
-    50,
-    50,
+    65.0,
+    35.0,
     0,
     0
    ],
    "heroCards": [
-    4,
-    6
+    3,
+    4
    ],
    "packOdds": [
     0,
-    45,
-    38,
+    54.5,
+    28.5,
     14,
     3
    ],
@@ -231,7 +231,7 @@
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.45,
-   "charChance": 0.13,
+   "charChance": 0.078,
    "charRarityMax": 4,
    "stoneChance": 0.85,
    "stoneDrop": [
@@ -243,19 +243,19 @@
    "desc": "Bin yıllık buzuldan sökülmüş; don çeliği gövdesinin derzlerinden buz mavisi kristaller taşar.",
    "charOdds": [
     0,
-    25,
-    55,
+    41.5,
+    38.5,
     20,
     0
    ],
    "heroCards": [
-    6,
-    9
+    4,
+    6
    ],
    "packOdds": [
     0,
-    28,
-    42,
+    38.5,
+    31.5,
     24,
     6
    ],
@@ -317,7 +317,7 @@
    "gearChance": 1,
    "rarityMax": 4,
    "weaponChance": 0.6,
-   "charChance": 0.28,
+   "charChance": 0.168,
    "charRarityMax": 4,
    "stoneChance": 1,
    "stoneDrop": [
@@ -330,19 +330,19 @@
    "desc": "Ejder yavrusunun sarıldığı kara demir sandık; pulları sıcak, gözleri hiç kapanmaz. İçinde efsane GARANTİ.",
    "charOdds": [
     0,
-    0,
-    40,
+    12.0,
+    28.0,
     48,
     12
    ],
    "heroCards": [
-    11,
-    15
+    8,
+    10
    ],
    "packOdds": [
     0,
-    10,
-    35,
+    18.75,
+    26.25,
     40,
     15
    ]

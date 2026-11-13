@@ -46,7 +46,7 @@ const FREE_KEY := "kh_freechest"
 const FREE_CHEST_CD := 6 * 60 * 60 * 1000.0
 const BOSS_DROP := [["ahsap", 32, 0.0], ["yaygin", 27, 0.3], ["kemik", 24, 0.6], ["kan", 13, 1.2], ["kadim", 4, 2.0]]
 const MISSION_DROP := [["ahsap", 42, 0.0], ["yaygin", 29, 0.3], ["kemik", 17, 0.6], ["kan", 9, 1.0], ["kadim", 3.5, 1.6]]
-const GEAR_W := [0, 100, 38, 7, 0.8, 20]
+const GEAR_W := [0, 100, 38, 7, 0.8, 13]     # ham nadirlik ağırlığı (5 = NADİR kademe: biraz daha seyrek)
 
 static var CHESTS: Dictionary = {}
 
@@ -241,7 +241,7 @@ func roll_rewards(type: String) -> Array:
 		var heroPool := []
 		for c in D.CHARACTERS.values():
 			if JS.num(c, "rarity", 1.0) >= 4: heroPool.append(c)
-		if heroPool.size() and randf() < 0.30:     # mistik: %70 efsanevi eşya, %30 efsanevi kahraman
+		if heroPool.size() and randf() < 0.20:     # mistik: %80 efsanevi eşya, %20 efsanevi kahraman
 			var fresh := []
 			for c in heroPool:
 				if not (g.owns_char(c.id) and g.char_level(c.id) >= D.CHAR_MAX_LEVEL): fresh.append(c)
@@ -290,7 +290,7 @@ func roll_rewards(type: String) -> Array:
 	if randf() < lc: up = 4
 	elif randf() < ec: up = 3
 	if up > 0:
-		var hero_first := randf() < 0.3          # %70 eşya: eşya havuzu çok daha geniş, kahramanlar çabuk tükenmesin
+		var hero_first := randf() < 0.2          # %80 eşya: eşya havuzu çok daha geniş, kahramanlar çabuk tükenmesin
 		var added := false
 		if hero_first:
 			var ch = _char_of_rarity(up)
