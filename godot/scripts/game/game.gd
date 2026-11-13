@@ -192,7 +192,7 @@ func _boot_paths() -> Array:
 func _preload(paths: Array) -> void:
 	for p in paths:
 		if p in _pre or not ResourceLoader.exists(p): continue
-		if ResourceLoader.load_threaded_request(p, "", true) == OK: _pre.append(p)
+		if ResourceLoader.load_threaded_request(p, "", false) == OK: _pre.append(p)
 
 ## istenenler bitene dek kare kare bekle (başlık ekranı akmaya devam eder); bitenleri tut
 func _await_preload(max_s: float) -> void:
@@ -230,8 +230,11 @@ func _ready() -> void:
 	Scr.boot_lock = true
 	# ağır kaynaklar (arayüz betik ağacı, 3B betikler, silah modelleri) firma introsu oynarken arka
 	# planda yüklenir/derlenir — başlık ekranı geldiğinde ana iş parçacığını saniyelerce kilitlemezler
-	_preload(_boot_paths())
-	if not (ua.has("nointro") or ua.has("autorun")):
+	# intro açılırken işlemciyle yarışmasın: ağır ön yükleme 1,2 sn sonra (intro yoksa hemen)
+	var intro_on := not (ua.has("nointro") or ua.has("autorun"))
+	if intro_on: get_tree().create_timer(1.2).timeout.connect(func(): _preload(_boot_paths()))
+	else: _preload(_boot_paths())
+	if intro_on:
 		var intro := ScrIntro.new()
 		add_child(intro)
 		await intro.finished

@@ -76,10 +76,18 @@ func _ready() -> void:
 		var p := AudioStreamPlayer.new()
 		p.stream = st
 		add_child(p)
-		p.play()
+		_snd = p          # ilk kare çizildikten sonra başlar (ses görüntüden önce gelmesin)
 
+var _snd: AudioStreamPlayer
+var _frames := 0
 func _process(dt: float) -> void:
-	_t += minf(dt, 1.0 / 20.0)
+	_frames += 1
+	if _snd and _frames == 2: _snd.play()
+	# saat: ses çalarken sesin konumu (takılma olsa da görüntü sesin gerisinde kalmaz)
+	if _snd and _snd.playing:
+		_t = maxf(_t, _snd.get_playback_position() + AudioServer.get_time_since_last_mix())
+	elif _frames > 2:
+		_t += minf(dt, 1.0 / 20.0)
 	_cv.queue_redraw()
 	if _t >= DUR and not _done:
 		_done = true
