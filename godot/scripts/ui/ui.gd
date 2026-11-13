@@ -1003,11 +1003,20 @@ func _apply_safe() -> void:
 ## geliştirici: promo=1 — tanıtım videosu çekimi: ana menü → sandık açılışı → kuşanım → eşya detayı → kahramanlar → mağaza
 func _promo() -> void:
 	var w := func(t: float): await get_tree().create_timer(t).timeout
-	await w.call(5.0)
+	await w.call(float(_arg("promo_t", "15")))
 	print("PROMO home")
 	await w.call(3.0)
 	print("PROMO chest")
-	chest_ceremony(_arg("promo_chest", "ejderha"), -1, func(): pass)
+	# vitrin için en zengin sonucu seç (çok sayıda nadir/efsanevi)
+	var ct := _arg("promo_chest", "ejderha")
+	var bestR: Array = []
+	var bestS := -1.0
+	for i in 40:
+		var rw: Array = g.chests.roll_rewards(ct)
+		var sc := 0.0
+		for r in rw: sc += pow(ChestSystem.rk_of(r), 2.0)
+		if sc > bestS: bestS = sc; bestR = rw
+	chest_ceremony(ct, -1, func(): pass, bestR)
 	await w.call(1.2)
 	for i in 22:
 		if not ceremony or not ceremony.visible: break
