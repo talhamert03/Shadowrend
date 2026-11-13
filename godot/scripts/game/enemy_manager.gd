@@ -1069,22 +1069,22 @@ func _world_skill(e: Ent.Enemy, dt: float, d2: float) -> void:
 	var h = null
 	match kind:
 		"slam":
-			h = g.spawn_hazard(e.x, e.y, 82.0, e.dmg * 0.9, 1.25, 1.6, 0, hue)
+			h = g.spawn_hazard(e.x, e.y, 82.0, e.dmg * 0.9, 2.25, 2.6, 0, hue)
 			e.castT = 1.25
 			e.atkAnim = 1.25
 		"nova":
-			h = g.spawn_hazard(e.x, e.y, 105.0, e.dmg * 0.75, 1.35, 1.7, 0, hue)
+			h = g.spawn_hazard(e.x, e.y, 105.0, e.dmg * 0.75, 2.35, 2.7, 0, hue)
 			e.castT = 1.35
 			e.atkAnim = 1.35
 		"meteor":
 			# oyuncunun bulunduğu yere (hafif önüne) yavaş düşen büyü
 			var lx: float = p.x + p.vx * 0.25 if "vx" in p else p.x
 			var ly: float = p.y + p.vy * 0.25 if "vy" in p else p.y
-			h = g.spawn_hazard(lx, ly, 58.0, maxf(e.bulletDmg, e.dmg) * 1.0, 1.4, 1.75, 0, hue)
+			h = g.spawn_hazard(lx, ly, 58.0, maxf(e.bulletDmg, e.dmg) * 1.0, 2.4, 2.75, 0, hue)
 			e.castT = 0.5
 			e.atkAnim = 0.8
 		"pool":
-			h = g.spawn_hazard(e.x, e.y, 62.0, e.dmg * 0.6, 1.1, 1.5, 0, hue, 3.2, maxf(2.0, e.dmg * 0.18))
+			h = g.spawn_hazard(e.x, e.y, 62.0, e.dmg * 0.6, 2.1, 2.5, 0, hue, 3.2, maxf(2.0, e.dmg * 0.18))
 			e.castT = 0.6
 	if h == null:
 		e.skT = 2.0

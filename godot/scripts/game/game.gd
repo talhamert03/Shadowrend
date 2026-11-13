@@ -2229,6 +2229,11 @@ func update_hazards(dt: float) -> void:
 		var dx := p.x - o.x
 		var dy := p.y - o.y
 		if o.kind == 0:
+			# uyarı sırasında: kenardan yükselen renkli kıvılcımlar
+			if not o.hit and o.t < o.tell and randf() < dt * 16.0 and in_view(o.x, o.y, o.r):
+				var aa := randf() * TAU
+				var hc: String = EnemyManager.HZ_HEX[clampi(o.hue, 0, 5)]
+				pools.particles.take().setup(o.x + cos(aa) * o.r * 0.95, o.y + sin(aa) * o.r * 0.95 * 0.6, 0.0, -55.0 - randf() * 40.0, 0.7, 2.6, hc, 0.96, 0, true)
 			if not o.hit and o.t >= o.tell:
 				o.hit = true
 				var rr := o.r + p.radius

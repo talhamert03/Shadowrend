@@ -129,6 +129,7 @@ var ringMeshes: Array = []
 var hazardMeshes: Array = []
 var hazardFills: Array = []
 var _hzGeo := {}
+var hazardRunes: Array = []
 var boltMeshes: Array = []
 var bombMeshes: Array = []
 var bladeMeshes: Array = []
@@ -234,8 +235,15 @@ func _init(r) -> void:
 		mm.visible = false
 		ringMeshes.append(mm)
 	# ── tehlike alanları (yuvarlak: zehir · sekizgen: patlama telegrafı) ──
+	# telegraf: sekizgen yerine büyü çemberi — ince yuvarlak dış halka + ters dönen kesik rün halkası
+	var arcs: Array = []
+	var arcT: Array = []
+	for q in 12:
+		arcs.append(Geo.ring(0.66, 0.74, 4, 1, TAU * q / 12.0, TAU / 24.0, PackedColorArray(), -1, -PI / 2))
+		arcT.append(Transform3D.IDENTITY)
 	_hzGeo = {"ringR": Geo.ring(0.84, 1, 34, 1, 0, TAU, PackedColorArray(), -1, -PI / 2), "fillR": Geo.circle(1, 30, 0, TAU, -PI / 2),
-		"ringO": Geo.ring(0.8, 1, 8, 1, PI / 8, TAU, PackedColorArray(), -1, -PI / 2), "fillO": Geo.circle(1, 8, PI / 8, TAU, -PI / 2)}
+		"ringO": Geo.ring(0.93, 1, 56, 1, 0, TAU, PackedColorArray(), -1, -PI / 2), "fillO": Geo.circle(1, 48, 0, TAU, -PI / 2),
+		"rune": Geo.merge(arcs, arcT)}
 	for i in HAZARD_CAP:
 		var mm := Render3D.mesh_node(_hzGeo.ringR, Shd.basic({"color": Color("#ff4a5e"), "add": true, "opacity": 0.5, "zwrite": false, "cull": "none", "order": 4}), S)
 		mm.position.y = 1.4
@@ -246,6 +254,10 @@ func _init(r) -> void:
 		f.position.y = 1.2
 		f.visible = false
 		hazardFills.append(f)
+		var rn := Render3D.mesh_node(_hzGeo.rune, Shd.basic({"color": Color("#ff4a5e"), "add": true, "opacity": 0.4, "zwrite": false, "cull": "none", "order": 4}), S)
+		rn.position.y = 1.5
+		rn.visible = false
+		hazardRunes.append(rn)
 	# ── yıldırım sütunları (çapraz iki düzlem) ──
 	var boltGeo := Geo.plane(7, 210)
 	for i in 8:
@@ -1027,10 +1039,12 @@ func _update_hazards(g) -> void:
 	for i in hazardMeshes.size():
 		var mesh: MeshInstance3D = hazardMeshes[i]
 		var fill: MeshInstance3D = hazardFills[i]
+		var rune: MeshInstance3D = hazardRunes[i] if i < hazardRunes.size() else null
 		if i >= hz.size():
 			if mesh.visible:
 				mesh.visible = false
 				fill.visible = false
+			if rune and rune.visible: rune.visible = false
 			continue
 		var h = hz[i]
 		mesh.visible = true; fill.visible = true
@@ -1049,12 +1063,24 @@ func _update_hazards(g) -> void:
 		if h.kind == 0:
 			var k: float = minf(1.0, h.t / maxf(0.001, h.tell))
 			var after: float = maxf(0.0, 1 - (h.t - h.tell) / 0.28) if h.t > h.tell else 1.0
-			mesh.scale = Vector3(h.r, h.r, h.r)
-			mm.set_shader_parameter("opacity", (0.34 + 0.34 * k) * after)
-			var fs: float = h.r * k
+			# patlamaya yaklaştıkça hızlanan nabız
+			var pul: float = 0.5 + 0.5 * sin(h.t * (5.0 + 22.0 * k * k))
+			var ri: float = h.r * (1.0 + 0.025 * pul * k)
+			mesh.scale = Vector3(ri, ri, ri)
+			mm.set_shader_parameter("opacity", (0.42 + 0.30 * k) * (0.75 + 0.25 * pul) * after)
+			var fs: float = h.r * (0.15 + 0.85 * k)
 			fill.scale = Vector3(fs, fs, fs)
-			fm.set_shader_parameter("opacity", 0.20 * after)
+			fm.set_shader_parameter("opacity", (0.10 + 0.16 * k) * after)
+			if rune:
+				rune.visible = true
+				rune.position = Vector3(h.x, 1.5, h.y)
+				rune.rotation.y = -h.t * 1.8
+				var rs: float = h.r * (0.96 + 0.04 * pul)
+				rune.scale = Vector3(rs, rs, rs)
+				var rmm: ShaderMaterial = rune.material_override
+				rmm.set_shader_parameter("opacity", (0.30 + 0.45 * k) * after)
 		else:
+			if rune and rune.visible: rune.visible = false
 			var fade: float = minf(1.0, minf((h.dur - h.t) * 2.2, h.t * 4))
 			var br: float = 1 + sin(g.time * 2.4 + h.seed) * 0.03
 			var s1: float = h.r * br
@@ -1068,6 +1094,7 @@ func _update_hazards(g) -> void:
 			mesh.set_meta("hz", hex)
 			mm.set_shader_parameter("color", Color(hex))
 			fm.set_shader_parameter("color", Color(hex))
+			if rune: (rune.material_override as ShaderMaterial).set_shader_parameter("color", Color(hex).lightened(0.25))
 
 func _update_rings(g) -> void:
 	var rings: Array = g.pools.rings.active
