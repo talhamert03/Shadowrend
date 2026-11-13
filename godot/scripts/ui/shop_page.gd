@@ -54,6 +54,11 @@ func render_staged() -> void:
 	_stage += 1
 	var my := _stage
 	var steps: Array[Callable] = [_setup, _chests, _market, _finish]
+	# dokular önce iş parçacığında çözülsün (kurulum karesi eşzamanlı çözüm yapıp takılmasın)
+	var need: Array = UITex.manifest("magaza")
+	for t in range(1, 8): need.append("res://assets/ui/art/chest/t" + str(t) + ".png")
+	await UITex.await_ready(self, need, 1.5)
+	if my != _stage or not is_inside_tree(): return
 	for st in steps:
 		if my != _stage or not is_inside_tree(): return
 		var rk := UITex.rec_begin("magaza")

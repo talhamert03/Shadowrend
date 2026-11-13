@@ -232,8 +232,7 @@ func _ready() -> void:
 	# planda yüklenir/derlenir — başlık ekranı geldiğinde ana iş parçacığını saniyelerce kilitlemezler
 	# intro açılırken işlemciyle yarışmasın: ağır ön yükleme 1,2 sn sonra (intro yoksa hemen)
 	var intro_on := not (ua.has("nointro") or ua.has("autorun"))
-	if intro_on: get_tree().create_timer(1.2).timeout.connect(func(): _preload(_boot_paths()))
-	else: _preload(_boot_paths())
+	_preload(_boot_paths())     # en başta (siyah açılış anında), tek iş parçacığıyla: animasyonun ortasında takılmasın
 	if intro_on:
 		var intro := ScrIntro.new()
 		add_child(intro)

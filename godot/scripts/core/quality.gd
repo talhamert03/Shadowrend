@@ -7,8 +7,8 @@ extends Node
 signal changed
 
 const BUDGETS := {
-	"low":  {"particles": 220, "modelEnemies": 18, "enemies": 130, "atmo": 40,  "impacts": 14, "props": 66, "dpr": 2.2,  "tex": 512,  "texHero": 768},
-	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.8, "tex": 512,  "texHero": 1024},
+	"low":  {"particles": 220, "modelEnemies": 18, "enemies": 130, "atmo": 40,  "impacts": 14, "props": 66, "dpr": 2.0,  "tex": 512,  "texHero": 768},
+	"mid":  {"particles": 450, "modelEnemies": 34, "enemies": 240, "atmo": 70,  "impacts": 22, "props": 72, "dpr": 2.6, "tex": 512,  "texHero": 1024},
 	"high": {"particles": 700, "modelEnemies": 52, "enemies": 460, "atmo": 110, "impacts": 30, "props": 78, "dpr": 3.0,  "tex": 1024, "texHero": 1536},
 }
 const FLEX := {"particles": 0.45, "modelEnemies": 0.25, "enemies": 0.15, "atmo": 0.6, "impacts": 0.30, "props": 0.0, "dpr": 0.0, "tex": 0.0, "texHero": 0.0}
@@ -39,7 +39,7 @@ func init(t: String, mobile: bool) -> void:
 	is_mobile = mobile
 	# net görüntü öncelikli: önce efekt bütçesi kısılır, çözünürlük en çok %78'e iner (eskiden %58 —
 	# karakterler pikselli/bulanık görünüyordu)
-	floor_scale = 0.82 if mobile else 0.84
+	floor_scale = 0.78 if mobile else 0.8
 	# Mobilde 60'a sabit (sim 60 Hz; 120 Hz'de fazla kare yalnız ısı üretir).
 	cap_fps = 60 if mobile else 0
 	target_ms = 16.7

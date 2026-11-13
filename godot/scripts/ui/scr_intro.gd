@@ -83,11 +83,14 @@ var _frames := 0
 func _process(dt: float) -> void:
 	_frames += 1
 	if _snd and _frames == 2: _snd.play()
-	# saat: ses çalarken sesin konumu (takılma olsa da görüntü sesin gerisinde kalmaz)
-	if _snd and _snd.playing:
-		_t = maxf(_t, _snd.get_playback_position() + AudioServer.get_time_since_last_mix())
-	elif _frames > 2:
+	# saat: kare süresiyle akıcı ilerler; ses çalarken sapma 80 ms'yi aşarsa yumuşakça sese yaklaşır
+	# (ses konumu Android'de 20–40 ms'lik adımlarla güncellenir — doğrudan bağlamak görüntüyü sıçratıyordu)
+	if _frames > 2:
 		_t += minf(dt, 1.0 / 20.0)
+		if _snd and _snd.playing:
+			var at := _snd.get_playback_position() + AudioServer.get_time_since_last_mix()
+			var drift := at - _t
+			if absf(drift) > 0.08: _t += drift * minf(1.0, dt * 3.0)
 	_cv.queue_redraw()
 	if _t >= DUR and not _done:
 		_done = true

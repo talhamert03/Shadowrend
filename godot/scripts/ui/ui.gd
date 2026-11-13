@@ -248,6 +248,7 @@ func boot() -> void:
 			if pg and _arg("pscroll") != "" and "shell" in pg and pg.shell:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
+		if _arg("tabcycle") != "": _tab_cycle()
 		if _arg("cbopen") != "":
 			# geliştirici: cbopen=<sandık> — mağaza sandık pop-up'ını aç
 			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): chest_buy(_arg("cbopen"), {}))
@@ -988,6 +989,17 @@ func _apply_safe() -> void:
 	_bands[3].size = Vector2(vs.x - x0 - w, bot - sa[0])
 
 ## geliştirici: navtest — harita → dünya → bölüm seç → harita → dünya listesi mi? · bölüm → geri
+## geliştirici: tabcycle=1 — 8 sn sonra alt menü sekmelerini 1,2 sn arayla iki tur gezer (takılma ölçümü)
+func _tab_cycle() -> void:
+	await get_tree().create_timer(8.0).timeout
+	print("TABCYCLE start")
+	for r in 2:
+		for p in ["cephane", "kahraman", "magaza", "etkinlik", "savas"]:
+			print("TAB ", p)
+			menu._tap(p)
+			await get_tree().create_timer(1.2).timeout
+	print("TABCYCLE end")
+
 func _nav_test() -> void:
 	await get_tree().create_timer(2.0).timeout
 	var M = menu

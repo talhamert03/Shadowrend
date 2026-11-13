@@ -105,7 +105,7 @@ func _init() -> void:
 	vp = SubViewport.new()
 	vp.own_world_3d = true
 	vp.transparent_bg = true
-	vp.msaa_3d = Viewport.MSAA_4X
+	vp.msaa_3d = Viewport.MSAA_2X if Quality.tier == "low" else Viewport.MSAA_4X
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp)
 	spr = Sprite2D.new()
@@ -185,8 +185,8 @@ func set_screen(scr: Vector2, box_pos: Vector2) -> void:
 	vp.size = Vector2i(maxi(2, int(scr.x * k)), maxi(2, int(scr.y * k)))
 	spr.scale = Vector2.ONE / k
 	spr.position = -box_pos
-	# tam ekran görüntü alanı: tek nesne, 4× MSAA (kenarlar net)
-	vp.msaa_3d = Viewport.MSAA_4X
+	# tam ekran görüntü alanı: yüksek kademe dışında 2× MSAA (tam ekran dolgu maliyeti)
+	vp.msaa_3d = Viewport.MSAA_4X if Quality.tier == "high" else Viewport.MSAA_2X
 	var tn := tan(deg_to_rad(30.0 / 2.0))
 	var sz := 2.0 * cam.near * tn * scr.y / size_l.y
 	cam.keep_aspect = Camera3D.KEEP_HEIGHT

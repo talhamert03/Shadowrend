@@ -51,7 +51,7 @@ func start() -> void:
 				if f.ends_with(".json"): _all_names.append(f.get_basename())
 	_queue = ORDER.filter(func(p): return not menu.pages.has(p))
 	# düşük kademe: yalnız komşu sekmeler kurulur (bellek); dokular yine de önbelleğe gelir
-	if Quality.tier == "low": _queue = _queue.filter(func(p): return p == "kahraman" or p == "cephane")
+	if Quality.tier == "low": _queue = _queue.filter(func(p): return p == "kahraman" or p == "cephane" or p == "magaza" or p == "etkinlik")
 	elif Quality.tier == "mid": _queue = _queue.filter(func(p): return p != "dunyalar")
 	_want_chests()
 	if _task < 0 and _page_tex.is_empty():
