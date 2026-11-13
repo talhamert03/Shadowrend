@@ -438,9 +438,13 @@ static func _duo(L: Lyr, n: Lyr.N, col: Color) -> void:
 		panel(d, r, col, 12, 4.0)
 		rays(d, r, Vector2(37, sz.y * 0.48), Color(1, 1, 1, 0.13), 14, 0.12, 4.0)
 		halftone(d, r.grow(-4), Color(0, 0, 0, 0.18), 7.0, 4, 2.0)
-		d.draw_circle(Vector2(37, sz.y * 0.47), 26, Color(0, 0, 0, 0.22)))
+		d.draw_circle(Vector2(37, sz.y * 0.48), 30, Color(0, 0, 0, 0.24)))
 	for k in n.kids:
 		if String(k.d.key).begins_with(".duo-t"): fonts(k, 1.12, Color.WHITE, 1.6)
+		# sandık görseli yuvasını doldursun: merkezinden büyür, rozetle aynı merkezde
+		elif String(k.d.key).contains("duo-glyph"):
+			k.extra = Transform2D(0, Vector2.ONE * 1.32, 0, Vector2(0, -1.5))
+			L.set_dyn(k)
 
 ## SAVAŞ düğmesi: iki tonlu sarı-turuncu, kalın mürekkep, nabız atan dış halka + parıltı süpürmesi
 static func _battle_btn(L: Lyr) -> void:
