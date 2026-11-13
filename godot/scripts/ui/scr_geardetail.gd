@@ -91,6 +91,12 @@ func _shade(r: Rect2, top: Color, bot: Color, rad := 14.0) -> void:
 		c.a = a * 0.16
 		cv.draw_rect(Rect2(r.position.x + rad * 0.35, r.position.y + r.size.y * (0.3 + 0.7 * a), r.size.x - rad * 0.7, r.size.y * 0.7 / n + 1.0), c)
 
+func _gemi(c: Vector2, k := 1.0) -> void:
+	var o := PackedVector2Array([c + Vector2(0, -9) * k, c + Vector2(8, -2) * k, c + Vector2(0, 9) * k, c + Vector2(-8, -2) * k])
+	cv.draw_colored_polygon(o, INK)
+	cv.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -7) * k, c + Vector2(6, -2) * k, c + Vector2(0, 7) * k, c + Vector2(-6, -2) * k]), Color("#a46bff"))
+	cv.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -7) * k, c + Vector2(6, -2) * k, c + Vector2(0, -1) * k, c + Vector2(-6, -2) * k]), Color("#d8c2ff"))
+
 func _coin(c: Vector2, k := 1.0) -> void:
 	cv.draw_circle(c, 8.0 * k, INK)
 	cv.draw_circle(c, 6.6 * k, Color("#e7a62c"))
@@ -106,7 +112,7 @@ func _icon(name_: String, c: Vector2, sz: float, mod := Color.WHITE) -> void:
 	cv.draw_texture_rect(t, Rect2(c - s * 0.5, s), false, mod)
 
 ## çizgi roman düğmesi: mürekkep gölge + gövde + üst parıltı + kayan ışık; cost>0 → altın simgeli bedel
-func _button(r: Rect2, label: String, col: Color, enabled: bool, cb: Callable, cost := -1, lsz := 26) -> void:
+func _button(r: Rect2, label: String, col: Color, enabled: bool, cb: Callable, cost := -1, lsz := 26, gem := false) -> void:
 	var c := col if enabled else Color("#4a4048")
 	_box(Rect2(r.position + Vector2(0, 5), r.size), INK, 16)
 	_box(r, c.darkened(0.28), 16, 3.0, INK)
@@ -128,7 +134,8 @@ func _button(r: Rect2, label: String, col: Color, enabled: bool, cb: Callable, c
 		var x0 := r.get_center().x - tot * 0.5
 		var by := r.get_center().y + lsz * 0.36
 		_bang(Vector2(x0, by), label, lsz, tc)
-		_coin(Vector2(x0 + lw + 16 + 8, by - lsz * 0.3))
+		if gem: _gemi(Vector2(x0 + lw + 16 + 8, by - lsz * 0.3))
+		else: _coin(Vector2(x0 + lw + 16 + 8, by - lsz * 0.3))
 		_bang(Vector2(x0 + lw + 16 + 20, by), cs, lsz - 6, Color("#fff1c9") if enabled else BAD)
 	_hits.append({"r": r, "cb": cb})
 
@@ -481,7 +488,10 @@ func _paint_forge(x: Dictionary, W: Vector2, t: float, dt: float) -> void:
 	elif busy:
 		_button(br, "DÖVÜLÜYOR…", FORGE, false, func(): pass)
 	else:
-		_button(br, "GELİŞTİR", FORGE, g.can_plus(id), func(): _plus(), int(g.plus_cost(id)), 30)
+		# iki yol: altınla ya da sabit 10 gem ile (aynı şans ve yanma kuralı)
+		var bw := (br.size.x - 10.0) * 0.5
+		_button(Rect2(br.position, Vector2(bw, br.size.y)), "GELİŞTİR", FORGE, g.can_plus(id), func(): _plus(false), int(g.plus_cost(id)), 22)
+		_button(Rect2(br.position + Vector2(bw + 10.0, 0), Vector2(bw, br.size.y)), "GELİŞTİR", Color("#6a3fd0"), g.can_plus(id, true), func(): _plus(true), int(g.PLUS_GEM), 22, true)
 	_txt(Vector2(cx, br.end.y + 22), "+" + str(g.PLUS_BURN_FROM) + " ve üstünde başarısız deneme eşyayı +0'a düşürür", 11, Color(1, 1, 1, 0.45), cw, HORIZONTAL_ALIGNMENT_CENTER, 500)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -631,14 +641,14 @@ func _upgrade() -> void:
 	ScrUpFx.play_gear(g, x, lv0, func():
 		if g.ui.menu.pages.has("cephane"): g.ui.menu.pages["cephane"].on_gear_upgraded(gid))
 
-func _plus() -> void:
+func _plus(gem := false) -> void:
 	if g.plus_cost(id) == null: return
-	if not g.can_plus(id):
+	if not g.can_plus(id, gem):
 		g.audio.play("error")
-		g.ui.toast("YETERSİZ ALTIN")
+		g.ui.toast("YETERSİZ GEM" if gem else "YETERSİZ ALTIN")
 		return
 	var from: int = g.gear_plus(id)
-	var res: String = g.plus_gear(id)
+	var res: String = g.plus_gear(id, gem)
 	if res == "": return
 	g.audio.play("heartbeat")
 	g.ui.menu.refresh_wallet()

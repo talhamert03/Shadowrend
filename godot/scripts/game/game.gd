@@ -1355,7 +1355,8 @@ func gold_for_next_gear(id):
 ## ~+%8-10) — güçlenme hissi verir ama oyunu bozacak sıçrama yaratmaz.
 const PLUS_MAX := 7
 const PLUS_BONUS := [0.0, 0.03, 0.06, 0.09, 0.13, 0.17, 0.22, 0.28]   # +N toplam stat bonusu
-const PLUS_CHANCE := [1.0, 0.9, 0.8, 0.65, 0.5, 0.38, 0.27]          # +N → +N+1 başarı şansı
+const PLUS_CHANCE := [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]            # +N → +N+1 başarı şansı (her adım −%10)
+const PLUS_GEM := 10                                                  # gem ile basma: deneme başı sabit bedel
 const PLUS_BURN_FROM := 4                                             # bu hedeften itibaren başarısızlık yakar
 const PLUS_BASE := [0, 250, 500, 900, 1600, 2600]                     # nadirlik sırası (GEAR_RANK) → taban altın
 const PLUS_STEP := [1.0, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5]
@@ -1374,17 +1375,20 @@ func plus_chance(id) -> float:
 	var p := gear_plus(id)
 	return 0.0 if p >= PLUS_MAX else PLUS_CHANCE[p]
 func plus_burns(id) -> bool: return gear_plus(id) + 1 >= PLUS_BURN_FROM
-func can_plus(id) -> bool:
+func can_plus(id, gem := false) -> bool:
 	var c = plus_cost(id)
-	return owns_gear(id) and c != null and read_rubies() >= c
+	if not owns_gear(id) or c == null: return false
+	return read_stones() >= PLUS_GEM if gem else read_rubies() >= c
 ## döner: "ok" | "fail" | "burn" | "" (yapılamadı)
-func plus_gear(id) -> String:
-	if not can_plus(id):
+func plus_gear(id, gem := false) -> String:
+	if not can_plus(id, gem):
 		audio.play("error")
 		return ""
 	var ch := plus_chance(id)
 	var burns := plus_burns(id)
-	if not spend_rubies(plus_cost(id)): return ""
+	if gem:
+		if not spend_stones(PLUS_GEM): return ""
+	elif not spend_rubies(plus_cost(id)): return ""
 	if not (meta.get("gearPlus") is Dictionary): meta["gearPlus"] = {}
 	var res := "ok"
 	if randf() < ch:
