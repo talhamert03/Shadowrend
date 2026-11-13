@@ -16,10 +16,10 @@ var WEAPON_EVO: Dictionary
 const EXTRA_PASSIVES := {
 	"kiragi":   {"name": "Kırağı Kabuğu", "desc": "Zırh +1, azami can +10.",              "maxLevel": 4, "mods": {"armor": 1, "maxHp": 10}},
 	"buzkalp":  {"name": "Buz Kalbi",     "desc": "Kritik vuruşların %22 daha sert.",      "maxLevel": 4, "mods": {"critMult": 0.22}},
-	"hayalet":  {"name": "Hayalet Adım",  "desc": "Kaçınma +%3, hız +%8.",                 "maxLevel": 4, "mods": {"dodge": 0.03, "speedPct": 0.08}},
+	"hayalet":  {"name": "Hayalet Adım",  "desc": "Kaçınma +%3, hız +%5.",                 "maxLevel": 4, "mods": {"dodge": 0.03, "speedPct": 0.05}},
 	"hasatrun": {"name": "Ruh Hasadı",    "desc": "Tecrübe +%10, çekim alanı +%20.",       "maxLevel": 4, "mods": {"xpPct": 0.10, "magnetPct": 0.20}},
 	"kanemici": {"name": "Kan Emici",     "desc": "Can çalma +%2, azami can +6.",          "maxLevel": 4, "mods": {"lifeSteal": 0.02, "maxHp": 6}},
-	"statik":   {"name": "Statik Yük",    "desc": "Saldırı hızı +%6, hız +%4.",            "maxLevel": 4, "mods": {"atkPct": 0.06, "speedPct": 0.04}},
+	"statik":   {"name": "Statik Yük",    "desc": "Saldırı hızı +%6, hız +%3.",            "maxLevel": 4, "mods": {"atkPct": 0.06, "speedPct": 0.03}},
 	"demir":    {"name": "Demir İrade",   "desc": "Azami can +10, zırh +1.",               "maxLevel": 4, "mods": {"maxHp": 10, "armor": 1}},
 	"kulkani":  {"name": "Kül Kanı",      "desc": "Hasar +%4, patlama şansı +%5.",         "maxLevel": 4, "mods": {"dmgPct": 0.04, "explodeChance": 0.05, "explodeDmgPct": 0.15}},
 }
@@ -29,7 +29,7 @@ const PAS_TAG := {"kalp": "CELIK", "zirh": "CELIK", "cizme": "YILDIRIM", "cabukl
 const FUSIONS := [
 	{"id": "demir", "a": "kalp", "b": "zirh", "name": "Demir Yürek", "desc": "Azami can +45, zırh +2, saniyede 1,5 can yenileme.", "mods": {"maxHp": 45, "armor": 2, "regen": 1.5}},
 	{"id": "kanemici", "a": "gazap", "b": "keskinlik", "name": "Kızıl Öfke", "desc": "Tüm hasar +%22, kritik hasarı +%40, can çalma +%2.", "mods": {"dmgPct": 0.22, "critMult": 0.4, "lifeSteal": 0.02}},
-	{"id": "statik", "a": "cabukluk", "b": "cizme", "name": "Fırtına Ayağı", "desc": "Saldırı hızı +%16, hız +%8, sıyrılma +%6.", "mods": {"atkPct": 0.16, "speedPct": 0.08, "dodge": 0.06}},
+	{"id": "statik", "a": "cabukluk", "b": "cizme", "name": "Fırtına Ayağı", "desc": "Saldırı hızı +%16, hız +%5, sıyrılma +%6.", "mods": {"atkPct": 0.16, "speedPct": 0.05, "dodge": 0.06}},
 	{"id": "hasatrun", "a": "miknatis", "b": "buzkalp", "name": "Ruh Hasadı", "desc": "Tecrübe +%18, çekim alanı +%60, saniyede 1 can yenileme.", "mods": {"xpPct": 0.18, "magnetPct": 0.6, "regen": 1.0}},
 	{"id": "kiragi", "a": "kulkani", "b": "gazap", "name": "Kıyamet Koru", "desc": "Patlama şansı +%14, patlama hasarı +%60, alanı +%30.", "mods": {"explodeChance": 0.14, "explodeDmgPct": 0.6, "explodeRPct": 0.3}},
 ]

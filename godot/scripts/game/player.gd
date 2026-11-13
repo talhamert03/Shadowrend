@@ -29,7 +29,7 @@ func reset() -> void:
 	if charId == "": charId = D.DEFAULT_CHAR
 	x = 0; y = 0
 	var P := D.PLAYER
-	radius = P.radius; speed = P.speed
+	radius = P.radius; speed = P.speed; spdBonus = 0.0
 	maxHp = P.maxHp; hp = P.maxHp; regen = P.regen
 	critChance = P.critChance; critMult = P.critMult; armor = P.armor
 	magnet = P.magnet; invulnTime = P.invulnTime
@@ -41,6 +41,12 @@ func reset() -> void:
 	invuln = 0; facing = 0; walk = 0; moving = false
 	attackT = 0; hurtT = 0; faceHold = 0; faceLeft = false
 	lsBucket = 0
+
+var spdBonus := 0.0
+## ilk %20 tam; üstü %45 etkiyle; toplam en çok +%45
+static func spd_curve(x: float) -> float:
+	if x <= 0.20: return x
+	return minf(0.45, 0.20 + (x - 0.20) * 0.45)
 
 var atkMult: float:
 	get: return 1.0 / (1.0 + atkPct)
@@ -55,7 +61,12 @@ func apply_mods(m) -> void:
 				if v > 0: hp = minf(maxHp, hp + v)
 				elif hp > maxHp: hp = maxHp
 			"regen": regen += v
-			"speedPct": speed *= (1.0 + v)
+			"speedPct":
+				# hareket hızı bonusları TOPLANIR ve yumuşak tavana bağlanır (eskiden çarpılıyordu: kartlar +
+				# botlar ~2,7× hıza çıkıyordu). Geçici çarpanlar (rüzgâr olayı vb.) korunur.
+				var f0 := 1.0 + spd_curve(spdBonus)
+				spdBonus += v
+				speed = speed / f0 * (1.0 + spd_curve(spdBonus))
 			"dmgPct": dmgMult += v
 			"atkPct": atkPct += v
 			"critChance": critChance += v

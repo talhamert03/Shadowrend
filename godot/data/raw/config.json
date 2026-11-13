@@ -3273,10 +3273,10 @@
   },
   "cizme": {
    "name": "Rüzgâr Adımı",
-   "desc": "%10 daha hızlı koşarsın.",
+   "desc": "%7 daha hızlı koşarsın.",
    "maxLevel": 4,
    "mods": {
-    "speedPct": 0.1
+    "speedPct": 0.07
    }
   },
   "miknatis": {
