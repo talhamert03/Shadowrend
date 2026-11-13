@@ -189,6 +189,52 @@ func _dock_glow(_n: Lyr.N) -> void:
 # Yakalanmış şerit / sarı gösterge / SAVAŞ çıkıntısı gizlenir (_skin: durum geçişlerinde de gizli
 # kalır); yerine koyu degrade şerit, ortada madalyon yuvası ve etkin sekmede kayan altın hap çizilir.
 var _dbg: Node2D
+var _dicons := {}
+
+## alt menü simgeleri (kuşanım: çapraz kılıçlı kalkan · kahraman: tüylü miğfer)
+static func _draw_dock_icon(n: Node2D, kind: String, sz: Vector2, on: bool) -> void:
+	var c := sz * 0.5 + Vector2(0, 0.5)
+	var ink := Color("#0c070e")
+	var hi := Color("#ffe9a8") if on else Color("#e2dae6")
+	var mid := Color("#e8b44a") if on else Color("#a99fb0")
+	var lo := Color("#9a6420") if on else Color("#6c6474")
+	if kind == "cephane":
+		# çapraz kılıçlar (arkada)
+		for sd in [-1.0, 1.0]:
+			var a := Vector2(c.x - 11.0 * sd, c.y + 11.0)
+			var b := Vector2(c.x + 9.0 * sd, c.y - 11.0)
+			n.draw_line(a, b, ink, 4.6, true)
+			n.draw_line(a, b, hi, 2.2, true)
+			var gp := a.lerp(b, 0.22)
+			var pd := (b - a).normalized().orthogonal() * 4.0
+			n.draw_line(gp - pd, gp + pd, ink, 3.6, true)
+			n.draw_line(gp - pd, gp + pd, lo, 1.8, true)
+		# kalkan
+		var sh := PackedVector2Array([c + Vector2(-8.5, -9), c + Vector2(8.5, -9), c + Vector2(8.5, 0), c + Vector2(0, 10), c + Vector2(-8.5, 0)])
+		var sh2 := PackedVector2Array()
+		for q in sh: sh2.append(c + (q - c) * 1.22)
+		n.draw_colored_polygon(sh2, ink)
+		n.draw_colored_polygon(sh, mid)
+		n.draw_colored_polygon(PackedVector2Array([c + Vector2(-8.5, -9), c + Vector2(0, -9), c + Vector2(0, 10), c + Vector2(-8.5, 0)]), hi)
+		# amblem: elmas
+		var dc := c + Vector2(0, -1)
+		n.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -5), dc + Vector2(4, 0), dc + Vector2(0, 5), dc + Vector2(-4, 0)]), lo)
+		n.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -3), dc + Vector2(2.2, 0), dc + Vector2(0, 3), dc + Vector2(-2.2, 0)]), hi)
+	else:
+		# tüy (arkada)
+		var pl := PackedVector2Array([c + Vector2(1, -10), c + Vector2(9, -15), c + Vector2(13, -9), c + Vector2(6, -6)])
+		n.draw_colored_polygon(pl, Color("#d8343c") if on else Color("#8a6f78"))
+		# miğfer gövdesi
+		var hm := PackedVector2Array([c + Vector2(-9, 10), c + Vector2(-10, -1), c + Vector2(-7, -8), c + Vector2(0, -11), c + Vector2(7, -8), c + Vector2(10, -1), c + Vector2(9, 10)])
+		var hm2 := PackedVector2Array()
+		for q in hm: hm2.append(c + (q - c) * 1.18)
+		n.draw_colored_polygon(hm2, ink)
+		n.draw_colored_polygon(hm, mid)
+		n.draw_colored_polygon(PackedVector2Array([c + Vector2(-9, 10), c + Vector2(-10, -1), c + Vector2(-7, -8), c + Vector2(0, -11), c + Vector2(0, 10)]), hi)
+		# vizör yarığı + nefes delikleri
+		n.draw_rect(Rect2(c + Vector2(-8, -1.5), Vector2(16, 3.2)), ink)
+		for k in 3: n.draw_circle(c + Vector2(3 + k * 2.4, 5), 0.9, lo)
+		n.draw_line(c + Vector2(0, -10), c + Vector2(0, -2), lo, 1.4, true)
 var _dpill: Node2D
 var _dpill_x := -1.0
 var _dpill_tw: Tween
@@ -220,6 +266,25 @@ func _dock_style(p: String) -> void:
 			var tnode: Node = (tn0 as Lyr.N).node
 			if tnode.get_parent() == dock.node: first = mini(first, tnode.get_index())
 		if first < (1 << 20): dock.node.move_child(_dpill, first)
+	# kuşanım + kahraman simgeleri: vektör çizim (yakalanmış resim yerine)
+	for pg2: String in ["cephane", "kahraman"]:
+		var tn2: Lyr.N = _tab_n.get(pg2)
+		if tn2 == null: continue
+		var ic2 := shell.find_in(tn2, ".dk-ico")
+		if ic2 == null: continue
+		if not _dicons.has(pg2):
+			for k in ic2.kids:
+				k.d["_skin"] = true
+				if k.img: k.img.visible = false
+			var dn := Node2D.new()
+			var kind: String = pg2
+			var nd: Lyr.N = ic2
+			dn.draw.connect(func(): _draw_dock_icon(dn, kind, nd.size, bool(dn.get_meta("on", false))))
+			ic2.node.add_child(dn)
+			_dicons[pg2] = dn
+		var dn2: Node2D = _dicons[pg2]
+		dn2.set_meta("on", pg2 == p)
+		dn2.queue_redraw()
 	# etkin sekme: hap kayar; simge büyür + yükselir, yazı altın; diğerleri sönük
 	for pg in _tab_n:
 		var tn: Lyr.N = _tab_n[pg]
