@@ -163,7 +163,7 @@ func _ready() -> void:
 	sheet = ScrSheet.new(g)
 	uiroot.add_child(sheet)
 	# pencerelerin (z 40) üstünden açılan ekranlar: geliştirme efekti, tören, kutlama, onay vb.
-	for o in [ceremony, celebrate, chestbuy, evo, adwatch, upfx, settings, battlepass, setguide, event_scr, sheet]:
+	for o in [ceremony, celebrate, chestbuy, evo, adwatch, upfx, settings, battlepass, setguide, event_scr, sheet, gearmenu]:
 		if o: o.z_index = 60
 	if hud and hud.toastBox: hud.toastBox.z_index = 90
 

@@ -358,7 +358,7 @@ func _slot_tap(slot: String, filled: bool, C: Lyr) -> void:
 		var gid = g.char_gear_map().get(slot)
 		if gid == null or g.gear_by_id(gid) == null: return
 		if C == null:
-			g.ui.gearmenu.open_for(self, str(gid), Rect2(Vector2(40, 330), Vector2(90, 90)))
+			g.ui.gearmenu.open_for(self, str(gid), Rect2(Vector2(40, 200), Vector2(90, 90)))
 			return
 		var fr := C.find(".kz-frame")
 		var rn: Lyr.N = fr if fr else C.nodes[0]
