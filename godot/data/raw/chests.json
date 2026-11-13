@@ -50,7 +50,8 @@
     0
    ],
    "epicChance": 0.004,
-   "legendChance": 0.0002
+   "legendChance": 0.0002,
+   "packChance": 0.5
   },
   "yaygin": {
    "name": "GÜMÜŞ SANDIK",
@@ -103,7 +104,8 @@
    ],
    "legendGear": 0,
    "epicChance": 0.012,
-   "legendChance": 0.0007
+   "legendChance": 0.0007,
+   "packChance": 0.6
   },
   "kemik": {
    "name": "ALTIN SANDIK",
@@ -156,7 +158,8 @@
    ],
    "legendGear": 0,
    "epicChance": 0.03,
-   "legendChance": 0.0025
+   "legendChance": 0.0025,
+   "packChance": 0.7
   },
   "kan": {
    "name": "BÜYÜLÜ SANDIK",
@@ -208,7 +211,8 @@
     3
    ],
    "epicChance": 0.15,
-   "legendChance": 0.008
+   "legendChance": 0.008,
+   "packChance": 0.8
   },
   "kadim": {
    "name": "BUZUL SANDIK",
@@ -261,7 +265,8 @@
    ],
    "epicChance": 0.0,
    "legendChance": 0.04,
-   "topMax": 3
+   "topMax": 3,
+   "packChance": 1.0
   },
   "mistik": {
    "name": "MİSTİK SANDIK",
@@ -345,7 +350,8 @@
     26.25,
     40,
     15
-   ]
+   ],
+   "packChance": 1.0
   }
  },
  "CHEST_SLOTS": 4,

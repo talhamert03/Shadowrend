@@ -353,6 +353,8 @@ func hero_pack(type: String) -> Array:
 	if not (hc is Array) or hc.size() < 2: return []
 	var n: int = int(hc[0]) + int(round(randf() * (float(hc[1]) - float(hc[0]))))
 	if n <= 0: return []
+	# paket her sandıkta çıkmaz (eşya ağır basar): sandığa özgü olasılık
+	if randf() > JS.num(C, "packChance", 1.0): return []
 	var open := func(id) -> bool: return D.CHARACTERS.has(id) and g.owns_char(id) and g.char_level(id) < D.CHAR_MAX_LEVEL
 	# sandığa özgü kart nadirliği: önce nadirlik zarı (packOdds), sonra o nadirlikten sahip olunan
 	# kahraman. Tahta sandıktan epik/efsanevi kart ÇIKMAZ; yüksek nadirlikte kart adedi de azalır.
@@ -366,7 +368,7 @@ func hero_pack(type: String) -> Array:
 	if by.is_empty(): return []
 	var sel: String = str(g.meta.selectedChar)
 	var parts := {}
-	var picks := 2 if n >= 2 else 1
+	var picks := 2 if n >= 8 else 1          # tek kahramana; yalnız büyük sandıklarda iki kahramana bölünür
 	var share := [int(round(n * 0.55)), n - int(round(n * 0.55))] if picks == 2 else [n]
 	for pi in picks:
 		var tot := 0.0

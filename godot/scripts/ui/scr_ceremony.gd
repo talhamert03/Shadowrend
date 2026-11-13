@@ -91,6 +91,14 @@ static func rarity_of(r: Dictionary) -> Dictionary:
 	var i := int(r.get("rarity", 0))
 	return arr[i] if i < arr.size() and arr[i] is Dictionary else {}
 
+## sıralama anahtarı: nadirlik (kahraman/eşya/silah ortak ölçek); eşitte kart paketi önce, yeni kahraman sonra
+static func _ord(r: Dictionary) -> float:
+	var k := ChestSystem.rk_of(r)
+	if r.kind == "weapon": k = 3.0
+	if r.get("pack", false): k -= 0.2
+	if r.get("isNew", false) and r.kind == "char": k += 0.1
+	return k
+
 static func drama_of(r: Dictionary) -> int:
 	if r.kind == "rubies" or r.kind == "stone": return 0
 	var rk := ChestSystem.rk_of(r)
@@ -165,6 +173,17 @@ func play(t: String, s: int, cb: Callable, given: Array = []) -> void:
 					"w": rewards.append({"kind": "weapon", "icon": "kilic", "rarity": 3, "name": "Kılıç", "cards": 1, "isNew": true})
 					"s": rewards.append({"kind": "stone", "amount": 12})
 					_: rewards.append({"kind": "rubies", "amount": 250})
+	# açılış sırası: önce altın/gem, sonra nadirliğe göre artan — en nadir EN SON (garanti ödülü dahil)
+	var cur: Array = rewards.filter(func(r): return r.kind == "rubies" or r.kind == "stone")
+	var rest: Array = rewards.filter(func(r): return not (r.kind == "rubies" or r.kind == "stone"))
+	for i in range(1, rest.size()):
+		var x = rest[i]
+		var j := i - 1
+		while j >= 0 and _ord(rest[j]) > _ord(x):
+			rest[j + 1] = rest[j]
+			j -= 1
+		rest[j + 1] = x
+	rewards = cur + rest
 	peak = 0
 	for r in rewards: peak = maxi(peak, drama_of(r))
 	_W = UIK.ui_size(get_viewport())
