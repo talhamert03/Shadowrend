@@ -160,6 +160,12 @@ func obtain(type: String, x: float, y: float, p_hpMul: float, p_dmgMul: float) -
 	return e
 
 func reset() -> void:
+	# atış kotası + yetenek zamanlayıcısı: koşu saati her savaşta 0'dan başlar (eski değer kalırsa
+	# menzilliler dakikalarca ateş edemiyor, yetenekler hiç çıkmıyordu)
+	_shotT = 0.0
+	_shotTok = 3.0
+	_skLast = -9.0
+	_skLive.clear()
 	pool.release_all()
 	wave = 1
 	spawning = false
@@ -1025,7 +1031,8 @@ func _shot_ok() -> bool:
 	var g = game
 	var rate := 2.2 + float(g.worldId) * 0.25
 	var now: float = g.time
-	_shotTok = minf(rate * 1.2, _shotTok + (now - _shotT) * rate)
+	if now < _shotT: _shotT = now          # saat geri gittiyse (yeni koşu) kotayı bozma
+	_shotTok = clampf(_shotTok + (now - _shotT) * rate, 0.0, rate * 1.2)
 	_shotT = now
 	if _shotTok < 1.0: return false
 	_shotTok -= 1.0
@@ -1052,6 +1059,7 @@ func _world_skill(e: Ent.Enemy, dt: float, d2: float) -> void:
 	for h in _skLive:
 		if g.pools.hazards.active.has(h): live += 1
 	var cap := 2 + int(g.worldId) / 3
+	if _skLast > g.time: _skLast = -9.0
 	if live >= cap or g.time - _skLast < 0.7:
 		e.skT = 0.8 + randf()
 		return
