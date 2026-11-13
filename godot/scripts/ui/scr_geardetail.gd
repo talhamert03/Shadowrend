@@ -190,8 +190,8 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	var loreH := 34.0
 	var gsk: Dictionary = HeroSkills.GEAR_SKILLS.get(str(id), {}) if int(x.rarity) == 4 else {}
 	if not gsk.is_empty(): loreH += 58.0
-	var upH := 156.0 if owned else 0.0
-	var actH := 72.0 if owned else 0.0
+	var upH := 134.0 if owned else 0.0
+	var actH := 58.0 if owned else 0.0
 	var H := showH + titleH + statH + loreH + upH + actH + 12.0
 	var top := clampf((W.y - H) * 0.5, 6.0, maxf(6.0, W.y - 8.0 - H))
 	var R := Rect2(cx, top, cw, H)
@@ -219,6 +219,11 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 		var pr := Rect2(Vector2(S.position.x + 12, S.end.y - 38), Vector2(74, 28))
 		_box(pr, Color(0, 0, 0, 0.6), 14, 2.0, GOLD.darkened(0.3))
 		_bang(Vector2(pr.position.x, pr.position.y + 21), "SV " + str(lvl) + "/" + str(D.GEAR_MAX_LEVEL), 18, GOLD, pr.size.x, HORIZONTAL_ALIGNMENT_CENTER, 2, 1.5)
+	if owned and g.is_equipped(id):
+		# KUŞANILDI: vitrinin altında ortalı küçük etiket (ad satırıyla çakışmaz)
+		var er := Rect2(Vector2(S.get_center().x - 44, S.end.y - 34), Vector2(88, 22))
+		_box(er, Color("#163a20", 0.92), 11, 1.5, GOOD.darkened(0.2))
+		_bang(Vector2(er.position.x, er.position.y + 16), "KUŞANILDI", 13, GOOD, er.size.x, HORIZONTAL_ALIGNMENT_CENTER, 2, 0)
 	if plus > 0:
 		var bc := Vector2(S.end.x - 32, S.end.y - 30)
 		_hex(bc, 20, _plus_col(plus))
@@ -228,10 +233,6 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	var y := R.position.y + showH + 4
 	_bang(Vector2(cx, y + 30), str(x.name) if owned else "???", 32, Color.WHITE, cw, HORIZONTAL_ALIGNMENT_CENTER, 4, 3)
 	_rarity_line(x, rc, cx, cw, y + 54)
-	if owned and g.is_equipped(id):
-		var er := Rect2(Vector2(R.end.x - 100, y - 2), Vector2(86, 22))
-		_box(er, Color("#1e4a2a"), 11, 1.5, GOOD.darkened(0.2))
-		_bang(Vector2(er.position.x, er.position.y + 17), "KUŞANILDI", 15, GOOD, er.size.x, HORIZONTAL_ALIGNMENT_CENTER, 2, 0)
 
 	# statlar
 	y = R.position.y + showH + titleH
@@ -275,17 +276,17 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 			_box(Rect2(br.position + Vector2(2, 2), Vector2(maxf(20.0, (br.size.x - 4) * f), br.size.y - 4)), fc, 10)
 			_box(Rect2(br.position + Vector2(5, 3), Vector2(maxf(14.0, (br.size.x - 10) * f), 6)), Color(1, 1, 1, 0.28), 5)
 		_bang(Vector2(br.position.x, br.position.y + 19), str(cards) + " / " + str(int(need)) + " KART", 17, Color.WHITE, br.size.x, HORIZONTAL_ALIGNMENT_CENTER, 3, 0)
-		_button(Rect2(b.position + Vector2(16, 80), Vector2(b.size.x - 32, 54)), "YÜKSELT", GOOD.darkened(0.15), g.can_upgrade_gear(id), func(): _upgrade(), int(g.gold_for_next_gear(id)))
+		_button(Rect2(b.position + Vector2(16, 78), Vector2(b.size.x - 32, 44)), "YÜKSELT", GOOD.darkened(0.15), g.can_upgrade_gear(id), func(): _upgrade(), int(g.gold_for_next_gear(id)), 20)
 
 	# alt sıra: KULLAN/ÇIKAR · GELİŞTİR
 	var ay := b.end.y + 12
 	var hw := (cw - 32 - 10) * 0.5
-	var lr := Rect2(Vector2(cx + 16, ay), Vector2(hw, 52))
-	var rr := Rect2(Vector2(cx + 16 + hw + 10, ay), Vector2(hw, 52))
-	if g.is_equipped(id): _button(lr, "ÇIKAR", Color("#6a5468"), true, func(): _toggle())
-	elif g.can_wear(id): _button(lr, "KULLAN", Color("#e8b73a"), true, func(): _toggle())
-	else: _button(lr, "KUŞANAMAZ", Color("#4a4048"), false, func(): g.audio.play("error"), -1, 20)
-	_button(rr, "GELİŞTİR", FORGE, true, func(): _go_forge())
+	var lr := Rect2(Vector2(cx + 16, ay), Vector2(hw, 42))
+	var rr := Rect2(Vector2(cx + 16 + hw + 10, ay), Vector2(hw, 42))
+	if g.is_equipped(id): _button(lr, "ÇIKAR", Color("#6a5468"), true, func(): _toggle(), -1, 20)
+	elif g.can_wear(id): _button(lr, "KULLAN", Color("#e8b73a"), true, func(): _toggle(), -1, 20)
+	else: _button(lr, "KUŞANAMAZ", Color("#4a4048"), false, func(): g.audio.play("error"), -1, 17)
+	_button(rr, "GELİŞTİR", FORGE, true, func(): _go_forge(), -1, 20)
 	if plus > 0:
 		var hc := Vector2(rr.end.x - 10, rr.position.y + 4)
 		_hex(hc, 13, _plus_col(plus))
@@ -494,16 +495,16 @@ func _paint_forge(x: Dictionary, W: Vector2, t: float, dt: float) -> void:
 		_box(rk, Color("#4a1414") if burns else Color("#163a20"), 11, 1.5, BAD.darkened(0.2) if burns else GOOD.darkened(0.3))
 		_bang(Vector2(rk.position.x, rk.position.y + 17), "YANMA RİSKİ" if burns else "GÜVENLİ", 15, BAD if burns else GOOD, rk.size.x, HORIZONTAL_ALIGNMENT_CENTER, 2, 0)
 	# düğme
-	var br := Rect2(Vector2(cx + 16, P.end.y + 12), Vector2(cw - 32, 62))
+	var br := Rect2(Vector2(cx + 16, P.end.y + 12), Vector2(cw - 32, 48))
 	if real >= PM and not busy:
-		_button(br, "GERİ", Color("#6a5468"), true, func(): g.audio.play("click"); mode = "info")
+		_button(br, "GERİ", Color("#6a5468"), true, func(): g.audio.play("click"); mode = "info", -1, 20)
 	elif busy:
-		_button(br, "DÖVÜLÜYOR…", FORGE, false, func(): pass)
+		_button(br, "DÖVÜLÜYOR…", FORGE, false, func(): pass, -1, 20)
 	else:
 		# iki yol: altınla ya da sabit 10 gem ile (aynı şans ve yanma kuralı)
 		var bw := (br.size.x - 10.0) * 0.5
-		_button(Rect2(br.position, Vector2(bw, br.size.y)), "GELİŞTİR", FORGE, g.can_plus(id), func(): _plus(false), int(g.plus_cost(id)), 22)
-		_button(Rect2(br.position + Vector2(bw + 10.0, 0), Vector2(bw, br.size.y)), "GELİŞTİR", Color("#6a3fd0"), g.can_plus(id, true), func(): _plus(true), int(g.PLUS_GEM), 22, true)
+		_button(Rect2(br.position, Vector2(bw, br.size.y)), "GELİŞTİR", FORGE, g.can_plus(id), func(): _plus(false), int(g.plus_cost(id)), 19)
+		_button(Rect2(br.position + Vector2(bw + 10.0, 0), Vector2(bw, br.size.y)), "GELİŞTİR", Color("#6a3fd0"), g.can_plus(id, true), func(): _plus(true), int(g.PLUS_GEM), 19, true)
 	_txt(Vector2(cx, br.end.y + 22), "+" + str(g.PLUS_BURN_FROM) + " ve üstünde başarısız deneme eşyayı +0'a düşürür", 11, Color(1, 1, 1, 0.45), cw, HORIZONTAL_ALIGNMENT_CENTER, 500)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
