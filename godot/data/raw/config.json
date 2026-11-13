@@ -2386,8 +2386,8 @@
    "icon": "z_levha",
    "desc": "Ağır ama güvenilir bir kalkanlama.",
    "mods": {
-    "maxHp": 6,
-    "dmgPct": 0.015
+    "maxHp": 7,
+    "dmgPct": 0.01
    }
   },
   {
@@ -2424,8 +2424,8 @@
    "icon": "z_ejder",
    "desc": "Her pul kadim bir savaşın izini taşır.",
    "mods": {
-    "maxHp": 26,
-    "dmgPct": 0.04
+    "maxHp": 29,
+    "dmgPct": 0.02
    }
   },
   {
@@ -2450,8 +2450,8 @@
    "icon": "z_kadim",
    "desc": "Sayısız savaş görmüş, hiç kırılmamış.",
    "mods": {
-    "maxHp": 36,
-    "dmgPct": 0.045
+    "maxHp": 40,
+    "dmgPct": 0.02
    }
   },
   {
@@ -2489,7 +2489,8 @@
    "icon": "g_deri",
    "desc": "İyi bir kavrama her şeyi değiştirir.",
    "mods": {
-    "atkPct": 0.05
+    "atkPct": 0.01,
+    "critChance": 0.015
    }
   },
   {
@@ -2499,10 +2500,10 @@
    "rarity": 2,
    "price": 110,
    "icon": "g_zincir",
-   "desc": "Halkalar arasında hız saklı.",
+   "desc": "Halkalar arasında isabet saklı.",
    "mods": {
-    "atkPct": 0.12,
-    "maxHp": -5
+    "atkPct": 0.01,
+    "critChance": 0.039
    }
   },
   {
@@ -2526,8 +2527,9 @@
    "icon": "g_keskin",
    "desc": "Vuruş hem sert hem çevik.",
    "mods": {
-    "dmgPct": 0.12,
-    "atkPct": 0.06
+    "dmgPct": 0.02,
+    "atkPct": 0.02,
+    "critChance": 0.049
    }
   },
   {
@@ -2540,8 +2542,8 @@
    "desc": "Gece beslenmeyi öğretir.",
    "mods": {
     "lifeSteal": 0.07,
-    "dmgPct": 0.105,
-    "maxHp": -6
+    "dmgPct": 0.02,
+    "critChance": 0.03
    }
   },
   {
@@ -2553,8 +2555,10 @@
    "icon": "g_kadim",
    "desc": "Sayısız düşman bu eli tanıdı.",
    "mods": {
-    "dmgPct": 0.14,
-    "atkPct": 0.095
+    "dmgPct": 0.02,
+    "atkPct": 0.02,
+    "critChance": 0.068,
+    "critMult": 0.15
    }
   },
   {
@@ -2578,8 +2582,8 @@
    "icon": "g_nd",
    "desc": "Soğuk çelik, sakin el, isabetli vuruş.",
    "mods": {
-    "atkPct": 0.1,
-    "critChance": 0.03
+    "atkPct": 0.015,
+    "critChance": 0.06
    }
   },
   {
@@ -2602,9 +2606,10 @@
    "rarity": 1,
    "price": 40,
    "icon": "b_deri",
-   "desc": "Sessiz adımlar, hızlı vuruş.",
+   "desc": "Sessiz adımlar, çevik bir kaçış.",
    "mods": {
-    "atkPct": 0.05
+    "atkPct": 0.01,
+    "speedPct": 0.012
    }
   },
   {
@@ -2616,8 +2621,8 @@
    "icon": "b_cevik",
    "desc": "Hafiflik hıza dönüşür.",
    "mods": {
-    "atkPct": 0.12,
-    "maxHp": -5
+    "atkPct": 0.01,
+    "speedPct": 0.033
    }
   },
   {
@@ -2629,7 +2634,8 @@
    "icon": "b_zirhli",
    "desc": "Ağır adımlar, sağlam duruş.",
    "mods": {
-    "maxHp": 17
+    "maxHp": 6,
+    "speedPct": 0.04
    }
   },
   {
@@ -2641,7 +2647,8 @@
    "icon": "b_firtina",
    "desc": "Her adım bir önceki rüzgârı taşır.",
    "mods": {
-    "atkPct": 0.19
+    "atkPct": 0.02,
+    "speedPct": 0.07
    }
   },
   {
@@ -2654,7 +2661,8 @@
    "desc": "Bastığı yerde iz değil, kan bırakır.",
    "mods": {
     "lifeSteal": 0.06,
-    "atkPct": 0.1
+    "atkPct": 0.02,
+    "speedPct": 0.024
    }
   },
   {
@@ -2666,8 +2674,10 @@
    "icon": "b_kadim",
    "desc": "Hiçbir av bu adımlardan kaçamaz.",
    "mods": {
-    "atkPct": 0.17500000000000002,
-    "dmgPct": 0.07
+    "atkPct": 0.02,
+    "dmgPct": 0.02,
+    "speedPct": 0.062,
+    "dodge": 0.03
    }
   },
   {
@@ -2691,8 +2701,8 @@
    "icon": "b_nd",
    "desc": "Karda iz bırakmaz, rüzgâr gibi geçer.",
    "mods": {
-    "atkPct": 0.09,
-    "speedPct": 0.04
+    "atkPct": 0.015,
+    "speedPct": 0.063
    }
   },
   {
@@ -2706,6 +2716,137 @@
    "mods": {
     "dodge": 0.06,
     "speedPct": 0.06
+   }
+  },
+  {
+   "id": "e_kiragi",
+   "name": "Kırağı Göğüslüğü",
+   "slot": "zirh",
+   "rarity": 5,
+   "price": 170,
+   "icon": "z_kiragi",
+   "desc": "Buz tutmuş pullar darbeyi yutar.",
+   "mods": {
+    "maxHp": 24,
+    "lifeSteal": 0.01
+   }
+  },
+  {
+   "id": "e_buzkanca",
+   "name": "Buz Kancası",
+   "slot": "eldiven",
+   "rarity": 5,
+   "price": 165,
+   "icon": "g_buzkanca",
+   "desc": "Soğuk çelik pençe, isabetli ve acımasız.",
+   "mods": {
+    "critChance": 0.05,
+    "critMult": 0.12
+   }
+  },
+  {
+   "id": "e_sis",
+   "name": "Sis Adımı",
+   "slot": "cizme",
+   "rarity": 5,
+   "price": 165,
+   "icon": "b_sis",
+   "desc": "Sisin içinde iz bırakmadan kaybolur.",
+   "mods": {
+    "speedPct": 0.05,
+    "dodge": 0.03
+   }
+  },
+  {
+   "id": "e_percin",
+   "name": "Perçinli Yelek",
+   "slot": "zirh",
+   "rarity": 2,
+   "price": 115,
+   "icon": "z_percin",
+   "desc": "Tunç perçinler göğsü sıkı tutar.",
+   "mods": {
+    "maxHp": 15,
+    "armor": 1
+   }
+  },
+  {
+   "id": "e_gezgin",
+   "name": "Gezgin Postalı",
+   "slot": "cizme",
+   "rarity": 2,
+   "price": 110,
+   "icon": "b_gezgin",
+   "desc": "Uzun yolların sessiz yoldaşı.",
+   "mods": {
+    "speedPct": 0.045,
+    "maxHp": 4
+   }
+  },
+  {
+   "id": "e_korpence",
+   "name": "Kor Pençesi",
+   "slot": "eldiven",
+   "rarity": 3,
+   "price": 215,
+   "icon": "g_kor",
+   "desc": "Her vuruşta közler sıçrar.",
+   "mods": {
+    "critChance": 0.06,
+    "critMult": 0.18
+   }
+  },
+  {
+   "id": "e_diken",
+   "name": "Diken Zırhı",
+   "slot": "zirh",
+   "rarity": 3,
+   "price": 215,
+   "icon": "z_diken",
+   "desc": "Yaklaşanın kanını döker.",
+   "mods": {
+    "maxHp": 27,
+    "armor": 1
+   }
+  },
+  {
+   "id": "e_ruzgar",
+   "name": "Rüzgâr Yürüyüşçüsü",
+   "slot": "cizme",
+   "rarity": 4,
+   "price": 390,
+   "icon": "b_ruzgar",
+   "desc": "Fırtınayı adımlarında taşır.",
+   "mods": {
+    "speedPct": 0.08,
+    "dodge": 0.04
+   }
+  },
+  {
+   "id": "e_kanayin",
+   "name": "Kan Ayini Eldiveni",
+   "slot": "eldiven",
+   "rarity": 4,
+   "price": 390,
+   "icon": "g_kanayin",
+   "desc": "Akıtılan her damla gücüne güç katar.",
+   "mods": {
+    "lifeSteal": 0.05,
+    "critChance": 0.06,
+    "critMult": 0.1
+   }
+  },
+  {
+   "id": "e_hiclik",
+   "name": "Hiçlik Kabuğu",
+   "slot": "zirh",
+   "rarity": 4,
+   "price": 395,
+   "icon": "z_hiclik",
+   "desc": "Boşluğun kendisinden dövülmüş.",
+   "mods": {
+    "maxHp": 38,
+    "armor": 2
    }
   }
  ],
