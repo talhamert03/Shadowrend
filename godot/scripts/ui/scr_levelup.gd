@@ -210,7 +210,7 @@ func _show(choices: Array) -> void:
 	for i in n: order.append([rank(list[i]), i])
 	order.sort_custom(func(a, b): return a[0] < b[0] or (a[0] == b[0] and a[1] < b[1]))
 	var delay := {}
-	for k in order.size(): delay[order[k][1]] = 0.25 + k * 0.16 + (0.12 if order[k][0] >= 3 and k == order.size() - 1 else 0.0)
+	for k in order.size(): delay[order[k][1]] = 0.06 + k * 0.07 + (0.06 if order[k][0] >= 3 and k == order.size() - 1 else 0.0)
 	for i in n:
 		var c: Dictionary = list[i]
 		var K := card_kind(c)
@@ -516,22 +516,22 @@ func _process(dt: float) -> void:
 	_bg.modulate.a = clampf(_t / 0.25, 0.0, 1.0)
 	_rays.queue_redraw()
 	# başlık patlaması
-	var kt := clampf(_t / 0.4, 0.0, 1.0)
+	var kt := clampf(_t / 0.25, 0.0, 1.0)
 	var ts := _back_ease(kt) if kt < 1.0 else 1.0 + sin(_t * 2.2) * 0.015
 	_title.pivot_offset = Vector2(_W.x * 0.5, 26)
 	_title.scale = Vector2.ONE * maxf(0.01, ts)
 	_title.rotation = -0.05
 	_title.modulate.a = kt
-	_sub.modulate.a = clampf((_t - 0.2) / 0.3, 0.0, 1.0)
+	_sub.modulate.a = clampf((_t - 0.12) / 0.2, 0.0, 1.0)
 	_reroll.visible = _mode == "level"
-	_reroll.modulate.a = clampf((_t - 0.9) / 0.3, 0.0, 1.0) * (0.0 if _pick >= 0 else 1.0)
+	_reroll.modulate.a = clampf((_t - 0.45) / 0.2, 0.0, 1.0) * (0.0 if _pick >= 0 else 1.0)
 	for i in cards.size():
 		var C: Dictionary = cards[i]
 		var node: Node2D = C.node
 		var lt: float = _t - float(C.t0)
 		var base: Vector2 = C.base
 		if _pick >= 0:
-			var kp := clampf((_t - _pick_t) / 0.45, 0.0, 1.0)
+			var kp := clampf((_t - _pick_t) / 0.3, 0.0, 1.0)
 			if i == _pick:
 				var e := 1.0 - pow(1.0 - kp, 3.0)
 				node.position = base.lerp(Vector2(_W.x * 0.5, _W.y * 0.5), e)
@@ -545,32 +545,34 @@ func _process(dt: float) -> void:
 		if lt < 0.0:
 			node.scale = Vector2.ZERO
 			continue
-		# uçarak gel (aşağıdan, dönerek) → çevir (arka → ön)
-		var kf := clampf(lt / 0.32, 0.0, 1.0)
-		var ef := 1.0 - pow(1.0 - kf, 3.0)
-		var start := base + Vector2((float(i) - 1.0) * 40.0, 420.0)
-		var pos := start.lerp(base, ef)
-		var rot := lerpf((float(i) - 1.0) * -0.5, 0.0, ef)
-		var kflip := clampf((lt - 0.30) / 0.24, 0.0, 1.0)
-		var sx := absf(cos(kflip * PI))
-		var front := kflip >= 0.5
-		if front and not C.flipped:
+		# ekrana ÇARPAR: büyük ve saydamdan hızla yerine (0,16 sn), çarpmada kısa ezilme + kıvılcım.
+		# (her seviyede tekrarlandığı için hızlı; arka yüz/çevirme yok, yüz baştan açık)
+		var ks := clampf(lt / 0.16, 0.0, 1.0)
+		var es := ks * ks
+		if ks >= 1.0 and not C.flipped:
 			C.flipped = true
-			_burst(node.position, C.col, 14 if C.rare else 8, 220.0 if C.rare else 150.0)
+			_burst(node.position + Vector2(0, CH * 0.42), C.col, 16 if C.rare else 9, 240.0 if C.rare else 160.0)
+			_burst(node.position, C.col.lightened(0.4), 6 if C.rare else 3, 120.0)
 			g.audio.play("tab")
-		(C.back as Node2D).visible = not front
-		(C.face as Node2D).visible = front
-		var land := clampf((lt - 0.54) / 0.25, 0.0, 1.0)
-		var pop := 1.0 + 0.08 * sin(land * PI)
-		var bob := sin(_t * 2.0 + i * 1.3) * 3.0 if lt > 0.8 else 0.0
-		node.position = pos + Vector2(0, bob)
-		node.rotation = rot + (float(i) - 1.0) * 0.035 * clampf(land * 2.0, 0.0, 1.0)
-		node.scale = Vector2(maxf(0.02, sx) * pop, pop) * minf(1.0, 0.6 + 0.4 * ef)
+		(C.back as Node2D).visible = false
+		(C.face as Node2D).visible = true
+		var sq := 0.0
+		if lt > 0.16:
+			var q := clampf((lt - 0.16) / 0.18, 0.0, 1.0)
+			sq = sin(q * PI * 1.5) * (1.0 - q) * 0.10
+		var bob := sin(_t * 2.0 + i * 1.3) * 2.5 if lt > 0.5 else 0.0
+		node.position = base + Vector2(0, -26.0 * (1.0 - es) + bob)
+		node.rotation = (float(i) - 1.0) * (0.12 * (1.0 - es) + 0.03 * es)
+		var sc := lerpf(1.75, 1.0, es)
+		node.scale = Vector2(sc * (1.0 + sq), sc * (1.0 - sq))
+		node.modulate.a = clampf(ks * 2.5, 0.0, 1.0)
+		var flash: float = clampf(1.0 - (lt - 0.16) / 0.14, 0.0, 1.0) if lt > 0.16 else 0.0
+		(C.face as Node2D).modulate = Color(1, 1, 1).lerp(Color(1.6, 1.6, 1.6), flash * (0.8 if C.rare else 0.5))
 		var shine: Node2D = (C.face as Node2D).get_node_or_null("shine")
 		if shine:
 			shine.set_meta("ph", float(C.sh))
 			shine.queue_redraw()
-	if _pick >= 0 and _t - _pick_t >= 0.5:
+	if _pick >= 0 and _t - _pick_t >= 0.33:
 		var choice: Dictionary = cards[_pick].choice
 		_pick = -2
 		if _mode == "bless":
@@ -609,7 +611,7 @@ func _input(ev: InputEvent) -> void:
 			(cards[i].node as Node2D).modulate = Color(0.9, 0.9, 0.9)
 			get_viewport().set_input_as_handled()
 			return
-		if _mode == "level" and int(g.rerolls) > 0 and _t > 0.9 and Rect2(_reroll.position - Vector2(80, 24), Vector2(160, 48)).has_point(lp):
+		if _mode == "level" and int(g.rerolls) > 0 and _t > 0.5 and Rect2(_reroll.position - Vector2(80, 24), Vector2(160, 48)).has_point(lp):
 			_press = st.index
 			_press_i = -2
 			get_viewport().set_input_as_handled()
