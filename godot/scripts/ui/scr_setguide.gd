@@ -36,7 +36,8 @@ func _build_content(y: float) -> float:
 	var cnt := _worn_counts()
 	# nadirlik sırasıyla (sıradan → efsanevi)
 	var order := []
-	for rar in [1, 2, 3, 4, 5]: order.append([rar, SideModes.RANK[rar]])
+	# kademe sırasıyla (set kimliği = kademe; ham nadirlik kodu 5 = NADİR olduğundan doğrudan kademe kullanılır)
+	for rk in [1, 2, 3, 4, 5]: order.append([rk, rk])
 	var i := 0
 	for o in order:
 		y = _page(y, int(o[0]), int(o[1]), int(cnt.get(o[1], 0)), i) + 14
