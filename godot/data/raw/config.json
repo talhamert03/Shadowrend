@@ -1831,30 +1831,8 @@
    "sigDmg": 0.462
   }
  },
- "CHAR_CARD_REQ": [
-  0,
-  0,
-  2,
-  4,
-  10,
-  20,
-  50,
-  100,
-  200,
-  400
- ],
- "CHAR_GOLD_COST": [
-  0,
-  0,
-  110,
-  240,
-  520,
-  1200,
-  2700,
-  5800,
-  11500,
-  22000
- ],
+ "CHAR_CARD_REQ": [0, 0, 3, 10, 30, 80, 200, 400, 800, 1600],
+ "CHAR_GOLD_COST": [0, 0, 250, 1100, 4000, 12000, 22000, 30000, 40000, 50000],
  "CHAR_MAX_LEVEL": 9,
  "CHAR_RARITIES": [
   null,
@@ -3640,7 +3618,7 @@
    {
     "id": "sig_o9",
     "name": "Ay Nişancısı",
-    "minLvl": 5,
+    "minLvl": 4,
     "myth": true,
     "glyph": "nisanci",
     "desc": "Kritik şansı +%7, kritik hasarı +%25.",
@@ -3653,7 +3631,7 @@
    {
     "id": "sig_o10",
     "name": "Ok Sağanağı",
-    "minLvl": 7,
+    "minLvl": 5,
     "myth": true,
     "glyph": "yagmur",
     "desc": "Her 4. gerişte gökten ok sağanağı iner.",
@@ -3665,7 +3643,7 @@
    {
     "id": "sig_o11",
     "name": "Dolunay Salvosu",
-    "minLvl": 9,
+    "minLvl": 5,
     "myth": true,
     "glyph": "salvo",
     "desc": "Her gerişte +2 ok, yelpaze genişler.",

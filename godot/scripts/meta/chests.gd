@@ -244,7 +244,7 @@ func roll_rewards(type: String) -> Array:
 		if heroPool.size() and randf() < 0.20:     # mistik: %80 efsanevi eşya, %20 efsanevi kahraman
 			var fresh := []
 			for c in heroPool:
-				if not (g.owns_char(c.id) and g.char_level(c.id) >= D.CHAR_MAX_LEVEL): fresh.append(c)
+				if not (g.owns_char(c.id) and g.char_level(c.id) >= D.char_max(c.id)): fresh.append(c)
 			var src := fresh if fresh.size() else heroPool
 			var ch = src[int(randf() * src.size())]
 			if ch:
@@ -355,7 +355,7 @@ func hero_pack(type: String) -> Array:
 	if n <= 0: return []
 	# paket her sandıkta çıkmaz (eşya ağır basar): sandığa özgü olasılık
 	if randf() > JS.num(C, "packChance", 1.0): return []
-	var open := func(id) -> bool: return D.CHARACTERS.has(id) and g.owns_char(id) and g.char_level(id) < D.CHAR_MAX_LEVEL
+	var open := func(id) -> bool: return D.CHARACTERS.has(id) and g.owns_char(id) and g.char_level(id) < D.char_max(id)
 	# sandığa özgü kart nadirliği: önce nadirlik zarı (packOdds), sonra o nadirlikten sahip olunan
 	# kahraman. Tahta sandıktan epik/efsanevi kart ÇIKMAZ; yüksek nadirlikte kart adedi de azalır.
 	var po = C.get("packOdds")
@@ -436,6 +436,9 @@ func pity_left(t: String = "") -> int:
 	return maxi(1, pity_n(t) - pity_count(t))
 
 func apply_pity(rewards: Array, t: String = "") -> Array:
+	return cap_new_heroes(_apply_pity(rewards, t))
+
+func _apply_pity(rewards: Array, t: String = "") -> Array:
 	var g = game
 	hero_pity(rewards)
 	var P := _pt()
@@ -542,7 +545,7 @@ func pick_drop_char(type: String, damp_legend: bool, odds_arr = null):
 		var w := 10.0
 		if r < D.CHAR_RARITIES.size() and D.CHAR_RARITIES[r] is Dictionary: w = JS.num(D.CHAR_RARITIES[r], "dropW", 10.0)
 		if r >= 3: w *= 0.06 if damp_legend else 0.55
-		if g.owns_char(id) and g.char_level(id) >= D.CHAR_MAX_LEVEL: w *= 0.12
+		if g.owns_char(id) and g.char_level(id) >= D.char_max(id): w *= 0.12
 		pool.append([c, w])
 		total += w
 	if pool.is_empty(): return null
@@ -560,7 +563,7 @@ func _char_of_rarity(r: int):
 	for id in D.CHARACTERS:
 		var c: Dictionary = D.CHARACTERS[id]
 		if int(JS.num(c, "rarity", 1.0)) != r: continue
-		var w := 0.12 if (g.owns_char(id) and g.char_level(id) >= D.CHAR_MAX_LEVEL) else 1.0
+		var w := 0.12 if (g.owns_char(id) and g.char_level(id) >= D.char_max(id)) else 1.0
 		pool.append([c, w]); tot += w
 	if pool.is_empty(): return null
 	var x := randf() * tot
@@ -592,6 +595,18 @@ func hero_pity(rewards: Array) -> Array:
 	g.meta["hpE"] = e
 	g.meta["hpL"] = l
 	return rewards
+
+## İlk kez bulunan kahraman yalnızca 1 kartla gelir (aynı sandıkta ikinci kopya da açılmaz).
+func cap_new_heroes(rewards: Array) -> Array:
+	var seen := {}
+	for r in rewards:
+		if r.get("kind") != "char" or game.owns_char(r.id): continue
+		if seen.has(r.id): r.cards = 0
+		else:
+			r.cards = 1
+			r.isNew = true
+			seen[r.id] = true
+	return rewards.filter(func(r): return r.get("kind") != "char" or int(r.get("cards", 1)) > 0)
 
 func apply_rewards(rewards: Array) -> void:
 	var g = game

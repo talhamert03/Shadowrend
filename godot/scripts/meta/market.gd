@@ -50,7 +50,7 @@ static func offers(g) -> Array:
 	var cid: String = g.meta.selectedChar
 	var heroOffer := func(id: String, slot: String):
 		var L: int = g.char_level(id) if g.owns_char(id) else 0
-		if L >= D.CHAR_MAX_LEVEL: return null
+		if L >= D.char_max(id): return null
 		var C: Dictionary = D.CHARACTERS[id]
 		var r := clampi(int(JS.num(C, "rarity", 1.0)), 1, 4)
 		var req: float = D.CHAR_CARD_REQ[mini(L + 1, D.CHAR_CARD_REQ.size() - 1)]
@@ -58,7 +58,7 @@ static func offers(g) -> Array:
 		var each := JS.round_js(HERO_EACH[r] * (1.0 + 0.2 * L))
 		var base := n * each
 		return {"slot": slot, "kind": "char", "id": id, "rar": r, "name": C.name, "n": n, "price": JS.round_js(base * GOLD_MUL), "gem": _to_gem(base), "got": B.got.has(slot)}
-	var ids: Array = D.CHARACTERS.keys().filter(func(x): return g.char_level(x) < D.CHAR_MAX_LEVEL or not g.owns_char(x))
+	var ids: Array = D.CHARACTERS.keys().filter(func(x): return g.char_level(x) < D.char_max(x) or not g.owns_char(x))
 	# kahraman kartları da her gün tamamen rastgele (seçili kahraman sabit değil)
 	var picks := []
 	for x in _pick(ids, HERO_OFFERS, day * 7 + 1): picks.append(x)

@@ -1270,15 +1270,14 @@ func char_def(id: String = "") -> Dictionary:
 func owns_char(id) -> bool: return meta.charsOwned.has(id)
 func char_level(id: String = "") -> int:
 	var k := id if id else String(meta.selectedChar)
-	var v := maxi(1, JS.i(meta.charLevels.get(k)))
-	return v if v else 1
+	return clampi(JS.i(meta.charLevels.get(k)), 1, D.char_max(k))
 func char_card_count(id) -> int: return JS.i(meta.charCards.get(id))
 func cards_for_next(id):
 	var lvl := char_level(id)
-	return null if lvl >= D.CHAR_MAX_LEVEL else D.CHAR_CARD_REQ[lvl + 1]
+	return null if lvl >= D.char_max(id) else D.CHAR_CARD_REQ[lvl + 1]
 func gold_for_next(id):
 	var lvl := char_level(id)
-	return null if lvl >= D.CHAR_MAX_LEVEL else D.CHAR_GOLD_COST[lvl + 1]
+	return null if lvl >= D.char_max(id) else D.CHAR_GOLD_COST[lvl + 1]
 func can_upgrade_char(id) -> bool:
 	if not owns_char(id): return false
 	var need = cards_for_next(id)

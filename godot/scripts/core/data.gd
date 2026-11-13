@@ -216,6 +216,17 @@ func signaturePower(rarity) -> float:
 	var r := JS.i(rarity)
 	return t[r] if r >= 0 and r < t.size() else 1.0
 
+## Kahramanın maks seviyesi = son imza yeteneğinin açıldığı seviye (tüm yetenekler açılınca maks).
+var _cmax := {}
+func char_max(charId: String) -> int:
+	if _cmax.has(charId): return _cmax[charId]
+	var m := 4
+	for s in SIGNATURES.get(charId, []):
+		if JS.truthy(s.get("minLvl")): m = maxi(m, JS.i(s.minLvl))
+	m = mini(m, CHAR_MAX_LEVEL)
+	_cmax[charId] = m
+	return m
+
 func signatureUnlocks(charId: String, charLevel) -> Array:
 	var list: Array = SIGNATURES.get(charId, [])
 	var out := []
@@ -227,7 +238,7 @@ func signatureUnlocks(charId: String, charLevel) -> Array:
 
 func charLevelMods(level) -> Dictionary:
 	var b := maxf(0.0, JS.i(level) - 1)
-	return {"hpMul": 1.0 + 0.08 * b, "dmgAdd": 0.07 * b, "atkAdd": 0.02 * b}
+	return {"hpMul": 1.0 + 0.13 * b, "dmgAdd": 0.11 * b, "atkAdd": 0.03 * b}
 
 func charCardDrop(rarity: int) -> int:
 	if rarity >= 4: return 1
