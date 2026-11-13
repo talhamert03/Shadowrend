@@ -160,7 +160,22 @@ func _cast(d: Dictionary) -> bool:
 			var n := int(d.get("n", 1))
 			var ts: Array = g.weapons.aim_targets(p.x, p.y, n, 420.0)
 			if ts.is_empty(): return false
-			for k in n:
+			if d.get("ball", false):
+				# Kaptan: gerçek dökme demir gülle (ışık hüzmesi değil) — düz uçar, duman bırakır
+				var W = g.weapons
+				for k in n:
+					var e = ts[k % ts.size()]
+					var a := atan2(e.y - p.y, e.x - p.x)
+					var b = W._bullet(p.x + cos(a) * 18.0, p.y + sin(a) * 18.0, cos(a) * 520.0, sin(a) * 520.0, dmg, 1, 1.2, 8, "#3c3f45")
+					b.isArrow = false; b.bounce = 0; b.flame = 0; b.homing = 0
+					b.stone = false; b.shatter = 0; b.explode = 0; b.split = 0; b.frag = false
+					b.smoke = 1; b.metal = true; b.critAdd = 0.0; b.angle = a
+					for q in 6:
+						var a2 := a + (randf() - 0.5) * 0.9
+						g.pools.particles.take().setup(p.x + cos(a) * 22.0, p.y + sin(a) * 22.0, cos(a2) * 120.0, sin(a2) * 70.0,
+							0.4, 3.2, "#ffb060" if q == 0 else "#6b6558", 0.93, -20, q == 0)
+				g.audio.play("cannon")
+			for k in (0 if d.get("ball", false) else n):
 				var e = ts[k % ts.size()]
 				var a := TAU * k / maxf(1.0, n) + randf() * 0.4
 				var gr: bool = d.get("gear", false)

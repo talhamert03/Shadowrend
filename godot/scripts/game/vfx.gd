@@ -289,7 +289,7 @@ func _draw_streams(U: Ultimate, g) -> void:
 	# oyuncu mermileri (ok ve ateş topu 3B katmanda kendi izini taşır; burada yalnız küreler)
 	var tn := tan(Render3D.TILT)
 	for b in P.pBullets.active:
-		if b.isArrow or b.fireball: continue
+		if b.isArrow or b.fireball or b.metal: continue   # gülle: ışık hüzmesi yok, demir top olarak görünsün
 		if not g.in_view(b.x, b.y, 40): continue
 		var v := Vector2(b.vx, b.vy)
 		var sp := v.length()

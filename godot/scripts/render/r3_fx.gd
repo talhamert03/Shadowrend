@@ -164,7 +164,8 @@ func _init(r) -> void:
 	var sph := Geo.sphere(1, 8, 8)
 	bulletMesh = IMesh.new(sph, Shd.lit({"color": Color(1, 1, 1), "emissive": Color("#333333"), "emissive_k": 1.0, "roughness": 0.3, "rim": false}), 220)
 	S.add_child(bulletMesh)
-	bulletMetal = IMesh.new(sph, Shd.lit({"color": Color(1, 1, 1), "metalness": 0.95, "roughness": 0.34, "emissive": Color("#0b0c0e"), "emissive_k": 1.0, "rim": false}), 96)
+	# Kaptan güllesi: el çizimi mat dökme demir gülle (billboard) — parlak yansıma yok, top olduğu belli
+	bulletMetal = IMesh.new(Geo.plane(1, 1), Shd.basic({"map": "srgb", "tex": r3.tex("res://assets/fx/cannonball.png"), "alpha": true, "zwrite": false, "cull": "none"}), 96)
 	S.add_child(bulletMetal)
 	# ok: okunur kalınlıkta şaft + belirgin uç + çapraz tüy (uzaktan çizgi gibi kaybolmasın)
 	var shaft := Geo.cylinder(1.0, 1.0, 20, 6)
@@ -807,10 +808,9 @@ func _update_projectiles(g) -> void:
 			_arrow_trail(b.x, b.y, b.vx, b.vy, 0.7, JS.col(b.color))
 		elif b.metal:
 			if mi >= 96: continue
-			var rr := maxf(1.0, b.r)
-			bulletMetal.set_ys(mi, b.x, maxf(6.0, b.r), b.y, 0, rr, rr, rr)
-			var c := JS.col(b.color).srgb_to_linear()
-			bulletMetal.set_col(mi, c.r, c.g, c.b)
+			var rr := maxf(1.0, b.r) * 2.9
+			bulletMetal.set_bb(mi, b.x, maxf(8.0, rr * 0.5), b.y, rr, rr, 0.0, cam)
+			bulletMetal.set_col(mi, 1, 1, 1)
 			mi += 1
 		else:
 			if idx >= 220: continue

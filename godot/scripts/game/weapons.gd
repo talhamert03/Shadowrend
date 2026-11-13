@@ -880,9 +880,9 @@ func fire_gun(id: String) -> void:
 			var a := ang + (randf() - 0.5) * 0.9
 			var sp := 90.0 + randf() * 110.0
 			g.pools.particles.take().setup(ox, oy, cos(a) * sp, sin(a) * sp * 0.6,
-				0.34, 3.2, "#ffd9a0" if i % 3 == 0 else "#6b6558", 0.93, -26, true)
+				0.34, 3.2, "#ffb060" if i % 4 == 0 else "#6b6558", 0.93, -26, i % 4 == 0)
 		Quality.haptic("ui")
-	g.fx_muzzle(ox, oy, ang, Wd.get("rainColor", "#ffd08a"))
+	if not JS.truthy(Wd.get("cannonVisual")): g.fx_muzzle(ox, oy, ang, Wd.get("rainColor", "#ffd08a"))
 	var sfx = Wd.get("sfx")
 	g.audio.play(sfx if sfx else ("thunder" if JS.truthy(Wd.get("orb")) else "shoot"))
 
@@ -958,7 +958,7 @@ func fire_broadside(Wd: Dictionary) -> void:
 	var sp: float = Wd.speed * 0.94
 	for i in n:
 		var a := base + (i - (n - 1) / 2.0) * 0.22
-		var b = _bullet(ox, oy, cos(a) * sp, sin(a) * sp, dmg, Wd.pierce[L], 1.3, 6, "#8d9096")
+		var b = _bullet(ox, oy, cos(a) * sp, sin(a) * sp, dmg, Wd.pierce[L], 1.3, 6, "#3c3f45")
 		b.isArrow = false; b.bounce = 0; b.flame = 0; b.homing = 0
 		b.stone = false; b.shatter = 0
 		b.explode = wi(Wd, "explode"); b.split = wi(Wd, "split"); b.frag = false
@@ -1172,7 +1172,7 @@ func update_arrow(b, dt: float) -> bool:
 	elif b.smoke:
 		if randf() < dt * 32:
 			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 24, -12 - randf() * 18,
-				0.44, 3.0, "#ffd9a0" if randf() < 0.32 else "#5c5852", 0.95, -10, true)
+				0.5, 3.2, "#3a3632" if randf() < 0.5 else "#5c5852", 0.95, -10, false)
 	elif b.fireball:
 		if randf() < dt * 34:
 			g.pools.particles.take().setup(b.x, b.y, (randf() - 0.5) * 30, -14 - randf() * 22,
