@@ -118,6 +118,9 @@ var gemMesh: IMesh
 var gemCore: IMesh
 var gemRing: IMesh
 var gemGlow: IMesh
+var soulMesh: Array = []
+## ruh boyu (dünya birimi): kahramanların ~yarısı — karakterlerle karışmaz; yüksek kademe biraz büyük
+const SOUL_H := [44.0, 50.0, 57.0]
 var heartMesh: IMesh
 var heartGlow: IMesh
 # parçacık
@@ -206,6 +209,11 @@ func _init(r) -> void:
 	S.add_child(gemRing)
 	gemGlow = IMesh.new(Geo.plane(1, 1), Shd.basic({"map": "raw", "tex": r3.tex("res://assets/fx/soft_glow.png"), "add": true, "opacity": 0.6, "zwrite": false, "cull": "none"}), 380)
 	S.add_child(gemGlow)
+	# ruhlar (XP): kameraya bakan, yeşil gözlü süzülen ruh — kademe başına ayrı doku
+	for t in 3:
+		var sm := IMesh.new(Geo.plane(1, 1), Shd.basic({"map": "srgb", "tex": r3.tex("res://assets/fx/soul_t%d.png" % t), "alpha": true, "zwrite": false, "cull": "none"}), 380)
+		S.add_child(sm)
+		soulMesh.append(sm)
 	# ── kan kalbi ──
 	var hg: Dictionary = r3._glb_meshes("res://assets/fx/fx_geo.glb")
 	heartMesh = IMesh.new(hg.get("heart"), Shd.lit({"color": Color("#ff3346"), "emissive": Color("#9c0d1c"), "emissive_k": 0.9, "roughness": 0.3, "metalness": 0.1, "rim": false}), 40)
@@ -948,35 +956,36 @@ func _push_cyclone(W, n: int, T: float) -> void:
 
 func _update_gems(g) -> void:
 	var idx := 0
+	var ti := [0, 0, 0]
 	var t: float = g.time
 	for gm in g.pools.gems.active:
 		if idx >= 380: break
 		if not g.in_view(gm.x, gm.y, 60): continue      # ekran dışı: güncellenmez/çizilmez (görünüm aynı)
-		var tier: Dictionary = GEM_SOULS[gm.tier] if gm.tier >= 0 and gm.tier < 3 else GEM_SOULS[0]
+		var tk: int = clampi(int(gm.tier), 0, 2)
+		var tier: Dictionary = GEM_SOULS[tk]
 		var ph: float = gm.bob
-		var y := 18 + sin(ph + t * 1.7) * 2.6
-		var spin := t * 1.6 + ph
-		var tilt := sin(t * 2.0 + ph * 1.7) * 0.075
-		var flick := sin(t * 3.0 + ph) * 0.03
-		var hS: float = tier.r * (1 + flick)
-		var wS: float = tier.r * (1 - flick * 0.55)
-		gemMesh.set_trs(idx, gm.x, y, gm.y, tilt, spin, tilt * 0.5, wS, hS, wS)
-		var c := Color(tier.c).srgb_to_linear()
-		gemMesh.set_col(idx, c.r, c.g, c.b)
-		gemCore.set_trs(idx, gm.x, y, gm.y, tilt, spin, tilt * 0.5, wS * 0.98, hS * (1 - flick * 0.8), wS * 0.98)
-		var ck := Color(tier.k).srgb_to_linear()
-		gemCore.set_col(idx, ck.r, ck.g, ck.b)
-		var ringS: float = tier.r * (1.45 + sin(t * 1.9 + ph) * 0.09)
-		gemRing.set_ys(idx, gm.x, 0.7, gm.y, -spin * 0.5, ringS, ringS, ringS)
-		gemRing.set_col(idx, c.r, c.g, c.b)
-		var halo: float = (2.6 + sin(t * 2.4 + ph * 1.3) * 0.3) * tier.r
-		gemGlow.set_bb(idx, gm.x, y + tier.r * 0.4, gm.y, halo, halo * 1.45, 0, cam)     # dikey ruh alevi
+		# ağır ağır sağa sola süzülme + hafif yükselip alçalma + eğilme + nefes
+		var sway: float = sin(t * 0.9 + ph) * 5.0
+		var y: float = 15.0 + sin(t * 1.6 + ph * 1.3) * 2.6
+		var tilt: float = sin(t * 0.9 + ph + 0.6) * 0.14
+		var br: float = sin(t * 2.4 + ph) * 0.035
+		var h: float = SOUL_H[tk]
+		var w: float = h * 0.753
+		var sm: IMesh = soulMesh[tk]
+		var k: int = ti[tk]
+		sm.set_bb(k, gm.x + sway, y + h * 0.45, gm.y, w * (1.0 + br), h * (1.0 - br), tilt, cam)
+		sm.set_col(k, 1.0, 1.0, 1.0)
+		ti[tk] = k + 1
+		# altında yumuşak ruh ışıması
+		var halo: float = (2.1 + sin(t * 2.0 + ph) * 0.2) * tier.r
+		gemGlow.set_bb(idx, gm.x + sway * 0.6, y + 2.0, gm.y, halo, halo * 0.9, 0, cam)
 		var cg := Color(tier.g).srgb_to_linear()
 		gemGlow.set_col(idx, cg.r, cg.g, cg.b)
 		idx += 1
-	gemMesh.commit(idx)
-	gemCore.commit(idx)
-	gemRing.commit(idx)
+	for q in 3: (soulMesh[q] as IMesh).commit(ti[q])
+	gemMesh.commit(0)
+	gemCore.commit(0)
+	gemRing.commit(0)
 	gemGlow.commit(idx)
 
 func _update_hearts(g) -> void:
