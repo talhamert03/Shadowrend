@@ -598,8 +598,9 @@ func _process(_dt: float) -> void:
 	if _arg("procprobe") != "" and Engine.get_process_frames() == int(_arg("procprobe")): _proc_probe()
 	if _arg("proctime") != "" and Engine.get_process_frames() == int(_arg("proctime")): _proc_time()
 	# geliştirici: perfmon — profilleyicisiz kare işlem süresi (PROF'un kendi yükü olmadan)
+	if _arg("tridump") != "" and Engine.get_process_frames() == int(_arg("tridump")): _tri_dump()
 	if _arg("perfmon") != "" and Engine.get_process_frames() % 60 == 0:
-		print("PERFMON proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " st=", g.state, " en=", g.enemies.list.size() if g.enemies and "list" in g.enemies else -1)
+		print("PERFMON draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " objs=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " prims=", Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " st=", g.state, " en=", g.enemies.list.size() if g.enemies and "list" in g.enemies else -1)
 	if Prof.on and Engine.get_process_frames() % 30 == 0:
 		Prof.frame()
 		print("MENUPERF draws=", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " items=", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME), " proc_ms=", snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.1), " nodes=", Performance.get_monitor(Performance.OBJECT_NODE_COUNT), " vmem=", int(Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0), "MB fps=", Engine.get_frames_per_second())
@@ -1004,6 +1005,52 @@ func _tab_cycle() -> void:
 			menu._tap(p)
 			await get_tree().create_timer(1.2).timeout
 	print("TABCYCLE end")
+
+## geliştirici: tridump=kare — görünür 3B nesnelerin üçgen payı (örnek sayısı dahil), en büyükler
+func _tri_dump() -> void:
+	var acc := {}
+	var stack: Array = [get_tree().root]
+	while stack.size():
+		var n: Node = stack.pop_back()
+		for c in n.get_children(): stack.append(c)
+		if not (n is GeometryInstance3D) or not (n as Node3D).is_visible_in_tree(): continue
+		var tris := 0
+		var key := str(n.name)
+		if n is MeshInstance3D and (n as MeshInstance3D).mesh:
+			var m: Mesh = (n as MeshInstance3D).mesh
+			for si in m.get_surface_count():
+				var arr := m.surface_get_arrays(si)
+				var ix = arr[Mesh.ARRAY_INDEX]
+				var vv = arr[Mesh.ARRAY_VERTEX]
+				tris += (ix.size() / 3) if ix != null and ix.size() > 0 else ((vv.size() / 3) if vv != null else 0)
+			var mo: Material = (n as MeshInstance3D).material_override
+			if mo == null and m.get_surface_count() > 0: mo = m.surface_get_material(0)
+			if mo and mo.next_pass: tris *= 2
+			key = "MI:" + str(m.resource_path.get_file() if m.resource_path != "" else n.get_parent().name + "/" + n.name)
+		elif n is MultiMeshInstance3D and (n as MultiMeshInstance3D).multimesh:
+			var mm: MultiMesh = (n as MultiMeshInstance3D).multimesh
+			if mm.mesh == null: continue
+			var t1 := 0
+			for si in mm.mesh.get_surface_count():
+				var arr := mm.mesh.surface_get_arrays(si)
+				var ix = arr[Mesh.ARRAY_INDEX]
+				var vv2 = arr[Mesh.ARRAY_VERTEX]
+				t1 += (ix.size() / 3) if ix != null and ix.size() > 0 else ((vv2.size() / 3) if vv2 != null else 0)
+			var cnt: int = mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
+			var mo2: Material = (n as MultiMeshInstance3D).material_override
+			tris = t1 * cnt * (2 if mo2 and mo2.next_pass else 1)
+			var gp: Node = n.get_parent()
+			var scr = gp.get_script() if gp else null
+			var scn: String = (scr as Script).resource_path.get_file() if scr else ""
+			if scn == "" and gp and gp.get_parent() and gp.get_parent().get_script(): scn = "^" + (gp.get_parent().get_script() as Script).resource_path.get_file()
+			key = "MM:" + scn + ":" + str(mm.mesh.resource_name if mm.mesh.resource_name != "" else mm.mesh.resource_path.get_file()) + " n=" + str(cnt) + " t1=" + str(t1)
+		acc[key] = int(acc.get(key, 0)) + tris
+	var ks := acc.keys()
+	ks.sort_custom(func(a, b): return acc[a] > acc[b])
+	var tot := 0
+	for k in ks: tot += int(acc[k])
+	print("TRIDUMP total=", tot)
+	for k in ks.slice(0, 18): print("TRI ", k, " ", acc[k])
 
 func _nav_test() -> void:
 	await get_tree().create_timer(2.0).timeout

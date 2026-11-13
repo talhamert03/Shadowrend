@@ -80,6 +80,34 @@ class Job:
 ## Sonuç: {mesh: ArrayMesh (kemiksiz, yüzey malzemeleri ayarlanmamış), src_mats: Array[BaseMaterial3D],
 ##   offs: Array[int] (yüzey köşe ofsetleri), pos: ImageTexture, nrm: ImageTexture, rows, frames, dur}
 ## Boş sözlük = pişirilemedi (eski iskeletli yola düşülür).
+## düşman modeli sadeleştirme: ekranda 40–60 px boyundaki düşmanda 5 bin üçgenin çoğu görünmez.
+## Köşeler AYNEN kalır (VAT köşe numarasıyla okur), yalnız üçgen listesi meshoptimizer'in en ayrıntılı seviyesine
+## iner; sadeleştirici köşe dizisini değiştirdiyse yüzeye dokunulmaz (animasyon asla bozulmaz).
+static var _noDecim := OS.get_cmdline_user_args().has("nodecim")
+static func _decimate(B: Array) -> PackedInt32Array:
+	var ix = B[Mesh.ARRAY_INDEX]
+	if _noDecim or ix == null or (ix as PackedInt32Array).size() < 300 * 3: return ix
+	var n: int = (ix as PackedInt32Array).size()
+	var imp := ImporterMesh.new()
+	imp.add_surface(Mesh.PRIMITIVE_TRIANGLES, B)
+	imp.generate_lods(25.0, 60.0, [])
+	var A2 := imp.get_surface_arrays(0)
+	var dbg := OS.get_environment("DECIMDBG") != ""
+	if dbg: print("DECIM n=", n, " v0=", (B[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(), " v1=", (A2[Mesh.ARRAY_VERTEX] as PackedVector3Array).size() if A2[Mesh.ARRAY_VERTEX] != null else -1, " base=", (A2[Mesh.ARRAY_INDEX] as PackedInt32Array).size() if A2[Mesh.ARRAY_INDEX] != null else -1, " lods=", imp.get_surface_lod_count(0), " sizes=", range(imp.get_surface_lod_count(0)).map(func(i): return imp.get_surface_lod_indices(0, i).size()))
+	var v0: PackedVector3Array = B[Mesh.ARRAY_VERTEX]
+	var v1 = A2[Mesh.ARRAY_VERTEX]
+	if v1 == null or (v1 as PackedVector3Array).size() != v0.size(): return ix
+	for q in range(0, v0.size(), maxi(1, v0.size() / 64)):
+		if not (v1[q] as Vector3).is_equal_approx(v0[q]): return ix
+	var base: PackedInt32Array = A2[Mesh.ARRAY_INDEX]
+	if base.size() != n: return ix
+	var best: PackedInt32Array = ix
+	# en ayrıntılı (ilk) seviye: kalite korunur, üçgen ~%25–45 azalır
+	if imp.get_surface_lod_count(0) > 0:
+		var L: PackedInt32Array = imp.get_surface_lod_indices(0, 0)
+		if L.size() >= 3 and L.size() <= int(n * 0.75) and L.size() >= int(n * 0.45): best = L
+	return best
+
 static func bake(parent: Node3D, ps: PackedScene, def: Dictionary) -> Dictionary:
 	var id := str(def.get("id", "x"))
 	var holder := Node3D.new()
@@ -149,6 +177,7 @@ static func bake(parent: Node3D, ps: PackedScene, def: Dictionary) -> Dictionary
 			B.resize(Mesh.ARRAY_MAX)
 			for k in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TANGENT, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_INDEX]:
 				B[k] = A[k]
+			B[Mesh.ARRAY_INDEX] = _decimate(B)
 			am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, B)
 			src_mats.append(mi.get_active_material(si))
 	var rows := int(ceil(float(job.V) / TEX_W))

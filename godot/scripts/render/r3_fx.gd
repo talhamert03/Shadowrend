@@ -951,6 +951,7 @@ func _update_gems(g) -> void:
 	var t: float = g.time
 	for gm in g.pools.gems.active:
 		if idx >= 380: break
+		if not g.in_view(gm.x, gm.y, 60): continue      # ekran dışı: güncellenmez/çizilmez (görünüm aynı)
 		var tier: Dictionary = GEM_SOULS[gm.tier] if gm.tier >= 0 and gm.tier < 3 else GEM_SOULS[0]
 		var ph: float = gm.bob
 		var y := 18 + sin(ph + t * 1.7) * 2.6
