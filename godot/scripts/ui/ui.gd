@@ -249,6 +249,7 @@ func boot() -> void:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
 		if _arg("tabcycle") != "": _tab_cycle()
+		if _arg("promo") != "": _promo()
 		if _arg("qetap") != "":
 			get_tree().create_timer(4.0).timeout.connect(func():
 				var ap = menu.pages.get("cephane")
@@ -999,6 +1000,44 @@ func _apply_safe() -> void:
 	_bands[3].size = Vector2(vs.x - x0 - w, bot - sa[0])
 
 ## geliştirici: navtest — harita → dünya → bölüm seç → harita → dünya listesi mi? · bölüm → geri
+## geliştirici: promo=1 — tanıtım videosu çekimi: ana menü → sandık açılışı → kuşanım → eşya detayı → kahramanlar → mağaza
+func _promo() -> void:
+	var w := func(t: float): await get_tree().create_timer(t).timeout
+	await w.call(5.0)
+	print("PROMO home")
+	await w.call(3.0)
+	print("PROMO chest")
+	chest_ceremony(_arg("promo_chest", "ejderha"), -1, func(): pass)
+	await w.call(1.2)
+	for i in 22:
+		if not ceremony or not ceremony.visible: break
+		ceremony._tap()
+		await w.call(0.75 if i > 0 else 1.6)
+	await w.call(0.8)
+	print("PROMO armory")
+	menu._tap("cephane")
+	await w.call(3.0)
+	var best := ""
+	var br := -1.0
+	for e in D.EQUIPMENT:
+		if g.meta.owned.has(e.id) and ChestSystem.rk(e.rarity) > br:
+			br = ChestSystem.rk(e.rarity); best = e.id
+	if best != "":
+		print("PROMO gear ", best)
+		open_gear_detail(best)
+		await w.call(3.2)
+		geardetail.close()
+		await w.call(0.8)
+	print("PROMO heroes")
+	menu._tap("kahraman")
+	await w.call(3.0)
+	print("PROMO shop")
+	menu._tap("magaza")
+	await w.call(3.0)
+	menu._tap("savas")
+	await w.call(2.0)
+	print("PROMO end")
+
 ## geliştirici: tabcycle=1 — 8 sn sonra alt menü sekmelerini 1,2 sn arayla iki tur gezer (takılma ölçümü)
 func _tab_cycle() -> void:
 	await get_tree().create_timer(8.0).timeout
