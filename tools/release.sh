@@ -66,6 +66,12 @@ with zipfile.ZipFile(f'{out}/Shadowrend_{V}.zip','w',zipfile.ZIP_DEFLATED,compre
             if rel=='.' and f in ('local.properties','.gdignore'): continue
             p=os.path.join(r,f); arc=os.path.normpath(os.path.join(top,rel,f))
             if rel=='.' and f=='gradle.properties': z.writestr(arc,open(p).read().rstrip('\n')+'\n\n'+props); continue
+            # Android Studio'nun güncel Java'sı (17–25) ile derlensin: Gradle 9.2.1 + AGP 8.13.1 + Kotlin 2.2.21
+            if rel=='.' and f=='config.gradle':
+                t=open(p).read().replace("androidGradlePlugin: '8.6.1'","androidGradlePlugin: '8.13.1'").replace("kotlinVersion      : '2.1.20'","kotlinVersion      : '2.2.21'")
+                z.writestr(arc,t); continue
+            if f=='gradle-wrapper.properties':
+                z.writestr(arc,open(p).read().replace('gradle-8.11.1-bin.zip','gradle-9.2.1-bin.zip')); continue
             z.write(p,arc,compress_type=zipfile.ZIP_STORED if f.endswith(STORE) else zipfile.ZIP_DEFLATED)
     z.write(f'{root}/godot/addons/shadow_ads/android/ShadowAds.aar',top+'/plugins/ShadowAds.aar')
     z.write(f'{root}/tools/release/OKU_BENI_android.txt',top+'/OKU_BENI.txt')
