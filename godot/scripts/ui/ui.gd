@@ -249,6 +249,10 @@ func boot() -> void:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
 		if _arg("tabcycle") != "": _tab_cycle()
+		if _arg("qetap") != "":
+			get_tree().create_timer(4.0).timeout.connect(func():
+				var ap = menu.pages.get("cephane")
+				if ap: ap._slot_tap(_arg("qetap"), false, null))
 		if _arg("cbopen") != "":
 			# geliştirici: cbopen=<sandık> — mağaza sandık pop-up'ını aç
 			get_tree().create_timer(float(_arg("shopbuy_t", "6"))).timeout.connect(func(): chest_buy(_arg("cbopen"), {}))

@@ -255,7 +255,7 @@ func _slots_and_stats() -> float:
 		if right: yr += C.nodes[0].size.y + 10.0
 		else: yl += C.nodes[0].size.y + 10.0
 		if gx == null:
-			_quick_equip(col, str(s.id), right, y, C.nodes[0].size)
+			if _qe_slot == str(s.id): _quick_equip(col, str(s.id), right, y, C.nodes[0].size)
 		if gx:
 			_art_into(C, C.find(".kz-frame"), str(gx.icon), 0.62)
 			var lv := C.find(".kz-lv")
@@ -367,6 +367,8 @@ func _slot_tap(slot: String, filled: bool, C: Lyr) -> void:
 		g.ui.gearmenu.open_for(self, str(gid), Rect2(xf * r.position, xf.basis_xform(r.size)))
 		return
 	_close_pop()
+	# boş yuva: önerilen 2 eşya yalnız dokununca görünür (tekrar dokununca gizlenir)
+	_qe_slot = "" if _qe_slot == slot else slot
 	tab = "all" if tab == slot else slot
 	sel_id = ""
 	render()
@@ -634,6 +636,7 @@ func on_gear_upgraded(id: String) -> void:
 
 func _equip(id: String) -> void:
 	sel_id = ""
+	_qe_slot = ""
 	g.equip_gear(id, true)      # sessiz: sayfayı game değil burada TEK kez kur (eskiden iki kez)
 	g.audio.play("equip")
 	g.ui.menu.refresh_wallet()
@@ -662,6 +665,7 @@ func _plus_badge(host: Node, at: Vector2, pl: int) -> void:
 ## HIZLI KUŞAN: boş yuvanın iç yanında, o yuvaya giyilebilecek en iyi 1-2 eşya küçük kutucuk olarak
 ## durur (nadirlik → seviye → basma sırasıyla). Dokununca doğrudan kuşanılır.
 const QE_RAR := {1: "#aeb6c4", 2: "#58c878", 5: "#5aa9ff", 3: "#b96cff", 4: "#ffb23a"}
+var _qe_slot := ""
 func _quick_equip(col: Lyr.N, slot_id: String, right: bool, y: float, ssz: Vector2) -> void:
 	var cand := []
 	for id in g.meta.owned:
@@ -679,6 +683,7 @@ func _quick_equip(col: Lyr.N, slot_id: String, right: bool, y: float, ssz: Vecto
 		L.build({"nodes": [{"id": "0", "key": ".qe", "box": [0, 0, Q, Q], "origin": [Q * 0.5, Q * 0.5]}]})
 		var x := (-Q - 6.0) if right else (ssz.x + 6.0)
 		L.position = Vector2(x, y + 6.0 + i * (Q + 6.0))
+		L.z_index = 20              # ortadaki portrenin üstünde
 		col.host.add_child(L)
 		_items.append(L)
 		var rc := Color(String(QE_RAR.get(int(it.rarity), "#aeb6c4")))
