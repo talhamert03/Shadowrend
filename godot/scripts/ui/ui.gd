@@ -1018,7 +1018,7 @@ func _promo() -> void:
 		if sc > bestS: bestS = sc; bestR = rw
 	chest_ceremony(ct, -1, func(): pass, bestR)
 	await w.call(1.2)
-	for i in 22:
+	for i in 45:
 		if not ceremony or not ceremony.visible: break
 		ceremony._tap()
 		await w.call(0.75 if i > 0 else 1.6)
