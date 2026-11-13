@@ -221,20 +221,25 @@ static func _draw_dock_icon(n: Node2D, kind: String, sz: Vector2, on: bool) -> v
 		n.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -5), dc + Vector2(4, 0), dc + Vector2(0, 5), dc + Vector2(-4, 0)]), lo)
 		n.draw_colored_polygon(PackedVector2Array([dc + Vector2(0, -3), dc + Vector2(2.2, 0), dc + Vector2(0, 3), dc + Vector2(-2.2, 0)]), hi)
 	else:
-		# tüy (arkada)
-		var pl := PackedVector2Array([c + Vector2(1, -10), c + Vector2(9, -15), c + Vector2(13, -9), c + Vector2(6, -6)])
-		n.draw_colored_polygon(pl, Color("#d8343c") if on else Color("#8a6f78"))
-		# miğfer gövdesi
-		var hm := PackedVector2Array([c + Vector2(-9, 10), c + Vector2(-10, -1), c + Vector2(-7, -8), c + Vector2(0, -11), c + Vector2(7, -8), c + Vector2(10, -1), c + Vector2(9, 10)])
-		var hm2 := PackedVector2Array()
-		for q in hm: hm2.append(c + (q - c) * 1.18)
-		n.draw_colored_polygon(hm2, ink)
-		n.draw_colored_polygon(hm, mid)
-		n.draw_colored_polygon(PackedVector2Array([c + Vector2(-9, 10), c + Vector2(-10, -1), c + Vector2(-7, -8), c + Vector2(0, -11), c + Vector2(0, 10)]), hi)
-		# vizör yarığı + nefes delikleri
-		n.draw_rect(Rect2(c + Vector2(-8, -1.5), Vector2(16, 3.2)), ink)
-		for k in 3: n.draw_circle(c + Vector2(3 + k * 2.4, 5), 0.9, lo)
-		n.draw_line(c + Vector2(0, -10), c + Vector2(0, -2), lo, 1.4, true)
+		# kukuletalı kahraman büstü: sivri kukuleta, karanlık yüz boşluğu, parlayan gözler, omuzlar
+		var body := PackedVector2Array([c + Vector2(-11, 11), c + Vector2(-9, 4), c + Vector2(-5, 1), c + Vector2(5, 1), c + Vector2(9, 4), c + Vector2(11, 11)])
+		var hood := PackedVector2Array([c + Vector2(-7.5, 3), c + Vector2(-8, -4), c + Vector2(-4, -10), c + Vector2(1, -13), c + Vector2(4, -10), c + Vector2(8, -4), c + Vector2(7.5, 3)])
+		for poly in [body, hood]:
+			var pp := PackedVector2Array()
+			for q in poly: pp.append(c + (q - c) * 1.16)
+			n.draw_colored_polygon(pp, ink)
+		n.draw_colored_polygon(body, mid)
+		n.draw_colored_polygon(PackedVector2Array([c + Vector2(-11, 11), c + Vector2(-9, 4), c + Vector2(-5, 1), c + Vector2(0, 1), c + Vector2(0, 11)]), hi)
+		n.draw_colored_polygon(hood, mid)
+		n.draw_colored_polygon(PackedVector2Array([c + Vector2(-7.5, 3), c + Vector2(-8, -4), c + Vector2(-4, -10), c + Vector2(1, -13), c + Vector2(0, 3)]), hi)
+		# yüz boşluğu
+		var face := PackedVector2Array([c + Vector2(-4.6, 2.5), c + Vector2(-4.8, -3), c + Vector2(-2, -6.5), c + Vector2(2, -6.5), c + Vector2(4.8, -3), c + Vector2(4.6, 2.5)])
+		n.draw_colored_polygon(face, ink)
+		var eye := Color("#7fe8ff") if on else Color("#d8d0e0")
+		n.draw_circle(c + Vector2(-2.0, -2.2), 1.05, eye)
+		n.draw_circle(c + Vector2(2.0, -2.2), 1.05, eye)
+		# pelerin tokası
+		n.draw_circle(c + Vector2(0, 4.5), 1.6, lo)
 var _dpill: Node2D
 var _dpill_x := -1.0
 var _dpill_tw: Tween
@@ -253,12 +258,13 @@ func _dock_style(p: String) -> void:
 		dock.node.add_child(_dbg)
 		_dpill = Node2D.new()
 		_dpill.draw.connect(func():
-			var r := Rect2(-31, 4, 62, 50)
-			for k in 3: _dpill.draw_style_box(ComicSkin.sb(Color(1.0, 0.78, 0.36, 0.05 - k * 0.012), 18 + k * 3), r.grow(3.0 + k * 3.0))
-			_dpill.draw_style_box(ComicSkin.sb(Color("#3a2416"), 16, 1.3, Color("#e9c98a", 0.85)), r)
-			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(3, 3), Vector2(r.end.x - 3, r.position.y + 3), Vector2(r.end.x - 3, r.position.y + 24), r.position + Vector2(3, 24)]),
-				PackedColorArray([Color(1, 0.85, 0.55, 0.22), Color(1, 0.85, 0.55, 0.22), Color(1, 0.85, 0.55, 0.0), Color(1, 0.85, 0.55, 0.0)]))
-			_dpill.draw_line(Vector2(-10, 1.5), Vector2(10, 1.5), Color("#ffd774"), 2.5, true))
+			var r := Rect2(-35, -1, 70, 60)
+			for k in 3: _dpill.draw_style_box(ComicSkin.sb(Color(1.0, 0.76, 0.34, 0.045 - k * 0.012), 16 + k * 3), r.grow(2.0 + k * 3.0))
+			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(2, 2), Vector2(r.end.x - 2, r.position.y + 2), r.end - Vector2(2, 2), Vector2(r.position.x + 2, r.end.y - 2)]),
+				PackedColorArray([Color("#3d2716"), Color("#3d2716"), Color("#1a100b"), Color("#1a100b")]))
+			_dpill.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 14, 1.4, Color("#e9c98a", 0.9)), r)
+			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(4, 3), Vector2(r.end.x - 4, r.position.y + 3), Vector2(r.end.x - 4, r.position.y + 20), r.position + Vector2(4, 20)]),
+				PackedColorArray([Color(1, 0.86, 0.58, 0.16), Color(1, 0.86, 0.58, 0.16), Color(1, 0.86, 0.58, 0.0), Color(1, 0.86, 0.58, 0.0)])))
 		dock.node.add_child(_dpill)
 		# şeridin (kaplama) üstünde, sekme simgelerinin altında
 		var first := 1 << 20
@@ -312,13 +318,16 @@ func _dock_style(p: String) -> void:
 	var an: Lyr.N = _tab_n.get(p)
 	if an == null: return
 	var cx: float = an.pos.x + an.size.x * 0.5
-	_dpill.visible = p != "savas"
+	var on_b := p == "savas" or p == "dunyalar"
+	_dpill.visible = true
 	if _dpill_x < 0.0 or Settings.data.get("rm", false):
-		_dpill.position = Vector2(cx, an.pos.y - 4.0)
+		_dpill.position = Vector2(cx, an.pos.y)
+		_dpill.modulate.a = 0.0 if on_b else 1.0
 	else:
 		if _dpill_tw and _dpill_tw.is_valid(): _dpill_tw.kill()
-		_dpill_tw = _dpill.create_tween()
-		_dpill_tw.tween_property(_dpill, "position", Vector2(cx, an.pos.y - 4.0), 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_dpill_tw = _dpill.create_tween().set_parallel(true)
+		_dpill_tw.tween_property(_dpill, "position", Vector2(cx, an.pos.y), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_dpill_tw.tween_property(_dpill, "modulate:a", 0.0 if on_b else 1.0, 0.2)
 	_dpill_x = cx
 
 func _dock_fx(p: String) -> void:
@@ -442,6 +451,30 @@ func _slide_pair(old: Node2D, L: Node2D, fw: bool, off: float) -> void:
 	_slides.append({"L": L, "from": lf, "to": 0.0, "a0": L.modulate.a if absf(off) > 0.0 else 0.4, "a1": 1.0, "t0": _t, "dur": 0.34, "out": false})
 	_slides.append({"L": old, "from": old.position.x, "to": -W * sgn, "a0": old.modulate.a, "a1": 0.4, "t0": _t, "dur": 0.34, "out": true})
 
+## gösterge, sayfa parmakla kaydırılırken komşu sekmeye doğru kayar (SAVAŞ'ta solar)
+func _pill_follow(from_p: String, to_p: String, f: float, spring := false) -> void:
+	if _dpill == null or not is_instance_valid(_dpill): return
+	var a: Lyr.N = _tab_n.get("savas" if from_p == "dunyalar" else from_p)
+	if a == null: return
+	var ax: float = a.pos.x + a.size.x * 0.5
+	var b: Lyr.N = _tab_n.get(to_p) if to_p != "" else null
+	var bx: float = (b.pos.x + b.size.x * 0.5) if b else ax
+	var ff := clampf(f * 1.25, 0.0, 1.0)
+	var x := lerpf(ax, bx, ff)
+	var al := 1.0
+	if from_p == "savas" or from_p == "dunyalar": al = ff if b else 0.0
+	elif to_p == "savas": al = 1.0 - ff
+	_dpill.visible = al > 0.01
+	_dpill.modulate.a = al
+	if spring:
+		if _dpill_tw and _dpill_tw.is_valid(): _dpill_tw.kill()
+		_dpill_tw = _dpill.create_tween().set_parallel(true)
+		_dpill_tw.tween_property(_dpill, "position:x", ax, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_dpill_tw.tween_property(_dpill, "modulate:a", 0.0 if (from_p == "savas" or from_p == "dunyalar") else 1.0, 0.2)
+	else:
+		if _dpill_tw and _dpill_tw.is_valid(): _dpill_tw.kill()
+		_dpill.position.x = x
+
 ## ── parmakla sayfa kaydırma (alt menü sırasında komşu sekme) ──
 var _sw_n: Node2D = null       # önizlenen komşu sayfa
 var _sw_p := ""
@@ -461,6 +494,7 @@ func _swipe_move(dx: float) -> void:
 		_sw_p = np
 		_sw_n = pages.get(np) if np != "" and FileAccess.file_exists(Lyr.BASE + "pg_" + np + ".json") else null
 	var k := 1.0 if _sw_n else 0.35          # komşu yoksa lastik direnç
+	_pill_follow(page, np if _sw_n else "", absf(dx) / W)
 	cur.position.x = dx * k
 	cur.modulate.a = 1.0 - minf(0.5, absf(dx) / W * 0.6)
 	if _sw_n:
@@ -485,6 +519,7 @@ func _swipe_end(dx: float, vel: float) -> void:
 		_slide_pair(cur, L, dx < 0, 1.0)
 	else:
 		# geri yaylan
+		_pill_follow(page, "", 0.0, true)
 		_slides.clear()
 		_slides.append({"L": cur, "from": cur.position.x, "to": 0.0, "a0": cur.modulate.a, "a1": 1.0, "t0": _t, "dur": 0.26, "out": false})
 		if nb:
