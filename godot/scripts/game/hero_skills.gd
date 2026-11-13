@@ -18,6 +18,27 @@ var scratch: Array = []
 func _init(g) -> void:
 	game = g
 
+## Efsanevi eşya yetenekleri: kuşanılan her efsanevi eşya kendine özel, kısa ve göz alıcı bir yetenek
+## verir. Kahraman yeteneklerinden ZAYIF (zayıf yetenek düzeyinin altında hasar, 9–14 sn bekleme,
+## en çok 4 hedef); hasar eşyanın seviyesi + basma bonusuyla ölçeklenir.
+const GEAR_SKILLS := {
+	"e_ef_kilic": {"name": "Güneş Yarığı", "en": "Sun Rift", "kind": "strike", "cd": 11, "dmg": 22, "r": 55, "pick": "strong", "fx": "judge", "c": "#ffd060", "desc": "En güçlü düşmana gökten altın bir darbe iner."},
+	"e_ef_balta": {"name": "Kıyamet Darbesi", "en": "Doom Strike", "kind": "strike", "cd": 12, "dmg": 20, "r": 70, "pick": "near", "fx": "judge", "c": "#ff6a3a", "desc": "Yakındaki düşmana kıyamet baltası iner."},
+	"e_ef_yay": {"name": "Yıldırım Oku", "en": "Thunder Arrow", "kind": "chain", "cd": 10, "dmg": 13, "n": 3, "c": "#9fdcff", "desc": "Şimşek üç düşman arasında sıçrar."},
+	"e_ef_asa": {"name": "Güneş Patlaması", "en": "Solar Burst", "kind": "nova", "cd": 12, "dmg": 14, "r": 90, "fx": "flame", "c": "#ffb040", "desc": "Çevrende kısa bir alev halkası patlar."},
+	"e_ef_hancer": {"name": "Ejder Dişleri", "en": "Dragon Fangs", "kind": "bolts", "cd": 9, "dmg": 11, "n": 3, "c": "#ff5a3a", "desc": "Üç ateş dişi en yakın düşmanlara uçar."},
+	"e_kadimzirh": {"name": "Muhafız Halkası", "en": "Warden Ring", "kind": "nova", "cd": 13, "dmg": 10, "r": 85, "slow": 1.5, "c": "#e8d8a0", "desc": "Çevreye yavaşlatan bir koruma dalgası yayar."},
+	"e_kizilay": {"name": "Kızıl Ay Hasadı", "en": "Crimson Harvest", "kind": "bolts", "cd": 12, "dmg": 10, "n": 3, "heal": 0.006, "c": "#ff3a5a", "desc": "Üç kan oku; her isabet seni biraz iyileştirir."},
+	"e_savaseldiven": {"name": "Savaş Narası", "en": "War Cry", "kind": "haste", "cd": 14, "t": 2.5, "amt": 0.12, "c": "#ffc04a", "desc": "Kısa süre saldırı hızın artar."},
+	"e_cellatel": {"name": "Cellat İmi", "en": "Executioner's Mark", "kind": "strike", "cd": 13, "dmg": 26, "r": 45, "pick": "strong", "fx": "judge", "c": "#ff4040", "desc": "En güçlü düşmana infaz darbesi iner."},
+	"e_avcicizme": {"name": "Avcı Okları", "en": "Hunter's Volley", "kind": "bolts", "cd": 10, "dmg": 9, "n": 4, "c": "#b8ff6a", "desc": "Dört güdümlü ok en yakın düşmanları bulur."},
+	"e_golgecizme": {"name": "Gölge Patlaması", "en": "Shadow Burst", "kind": "nova", "cd": 11, "dmg": 10, "r": 80, "slow": 1.2, "c": "#9a7aff", "desc": "Gölgeler patlar, çevredeki düşmanlar yavaşlar."},
+	"e_ruzgar": {"name": "Fırtına Adımı", "en": "Storm Step", "kind": "strike", "cd": 12, "dmg": 14, "r": 75, "pick": "crowd", "fx": "storm", "c": "#9ff0ff", "desc": "Düşman kalabalığına yıldırım düşer."},
+	"e_kanayin": {"name": "Kan Ayini", "en": "Blood Rite", "kind": "nova", "cd": 14, "dmg": 9, "r": 80, "heal": 0.02, "c": "#ff2a48", "desc": "Çevreye kan dalgası yayar ve seni iyileştirir."},
+	"e_hiclik": {"name": "Hiçlik Çekimi", "en": "Void Pull", "kind": "pull", "cd": 14, "dmg": 14, "r": 120, "c": "#a06bff", "desc": "Düşmanları bir noktaya çekip ezer."},
+}
+const GEAR_AOE := 4
+
 func reset(char_id: String) -> void:
 	list.clear(); shots.clear(); strikes.clear(); pulls.clear()
 	hastes.clear()   # oyuncu yeni koşuda zaten sıfırlanır
@@ -28,12 +49,28 @@ func reset(char_id: String) -> void:
 		# ilk kullanım biraz gecikmeli ve yetenekler birbirinden kaymış başlar
 		list.append({"def": d, "cd": float(d.get("cd", 8.0)) * (0.55 + 0.25 * i), "max": float(d.get("cd", 8.0)), "flash": 0.0})
 		i += 1
+	# kuşanılan efsanevi eşyalar
+	if not OS.get_cmdline_user_args().has("noskills") and game.has_method("char_gear_map"):
+		var mp: Dictionary = game.char_gear_map()
+		for sl in mp:
+			var gid = mp[sl]
+			if gid == null or not GEAR_SKILLS.has(str(gid)): continue
+			var it = game.gear_by_id(gid)
+			if it == null or int(it.rarity) != 4: continue
+			var gd: Dictionary = GEAR_SKILLS[str(gid)].duplicate()
+			gd["gear"] = true
+			gd["gicon"] = str(it.get("icon", ""))
+			gd["gmul"] = float(game.gear_mul(gid)) if game.has_method("gear_mul") else 1.0
+			list.append({"def": gd, "cd": float(gd.cd) * (0.7 + 0.2 * i), "max": float(gd.cd), "flash": 0.0})
+			i += 1
 
 ## oyuncu seviyesiyle büyüyen hasar (silahlarla aynı eğim)
 ## alan yetenekleri kalabalıkta çok düşmana değdiği için daha düşük katsayı alır (denge ölçümü)
 const KIND_MUL := {"nova": 0.55, "frost": 0.55, "strike": 0.42, "flame": 0.42, "pull": 0.55, "bolts": 0.42, "chain": 0.42}
 func _dmg(d: Dictionary) -> float:
 	var km: float = KIND_MUL.get(str(d.get("kind", "")), 1.0)
+	if d.get("gear", false):
+		return float(d.get("dmg", 0.0)) * km * (1.0 + 0.08 * float(game.player.level - 1)) * float(d.get("gmul", 1.0))
 	return float(d.get("dmg", 0.0)) * km * (1.0 + 0.09 * float(game.player.level - 1))
 
 func update(dt: float) -> void:
@@ -76,6 +113,10 @@ func _near(x: float, y: float, R: float, cap := 0) -> Array:
 
 func _label(d: Dictionary) -> void:
 	var p = game.player
+	if d.get("gear", false):
+		var nm := str(d.get("en", d.name)) if I18n.lang == "en" else str(d.name)
+		game.spawn_text(p.x, p.y - 58, "◆ " + Txt.upper_tr(nm), str(d.get("c", "#ffffff")), 13, true)
+		return
 	game.spawn_text(p.x, p.y - 70, Txt.upper_tr(I18n.t(str(d.get("name", "")))), str(d.get("c", "#ffffff")), 15, true)
 
 func _cast(d: Dictionary) -> bool:
@@ -85,9 +126,10 @@ func _cast(d: Dictionary) -> bool:
 	var hx: String = str(d.get("c", "#ffffff"))
 	var dmg := _dmg(d)
 	var R: float = float(d.get("r", 100.0))
+	var cap: int = GEAR_AOE if d.get("gear", false) else AOE_CAP
 	match str(d.get("kind", "")):
 		"nova", "frost":
-			var es := _near(p.x, p.y, R, AOE_CAP)
+			var es := _near(p.x, p.y, R, cap)
 			var isHeal := float(d.get("heal", 0.0)) > 0.0
 			if es.is_empty() and not isHeal: return false
 			for e in es:
@@ -156,12 +198,12 @@ func _cast(d: Dictionary) -> bool:
 			for k in pts.size():
 				var q: Vector2 = pts[k]
 				strikes.append({"x": q.x, "y": q.y, "t": (0.12 if isFlame else 0.45) + 0.18 * k, "dmg": dmg, "r": float(d.get("r", 60.0)),
-					"c": hx, "fx": "flame" if isFlame else str(d.get("fx", "storm")), "warn": 0.0})
+					"c": hx, "fx": "flame" if isFlame else str(d.get("fx", "storm")), "warn": 0.0, "cap": cap})
 		"pull":
 			var pts := _pick_points("crowd", 1)
 			if pts.is_empty(): return false
 			var q: Vector2 = pts[0]
-			pulls.append({"x": q.x, "y": q.y, "t": 1.1, "max": 1.1, "r": R, "dmg": dmg, "c": hx})
+			pulls.append({"x": q.x, "y": q.y, "t": 1.1, "max": 1.1, "r": R, "dmg": dmg, "c": hx, "cap": cap})
 			g.vfx.ring(q.x, q.y, R, col, 1.1)
 		"haste":
 			var amt := float(d.get("amt", 0.25))
@@ -175,10 +217,21 @@ func _cast(d: Dictionary) -> bool:
 			for k in 12: g.spawn_burst(p.x + randf_range(-20, 20), p.y - randf() * 40, hx, 1, 60, 2.6, 0.6, true)
 		_:
 			return false
-	_flourish(d, col, hx)
+	if d.get("gear", false): _gear_flourish(col, hx)
+	else: _flourish(d, col, hx)
 	_label(d)
-	g.audio.play("bless")
+	g.audio.play("tab" if d.get("gear", false) else "bless")
 	return true
+
+## efsanevi eşya döküm anı: hızlı, hafif — eşya renginde genişleyen halka ve fırlayan kıvılcımlar
+func _gear_flourish(col: Color, hx: String) -> void:
+	var g = game
+	var p = g.player
+	if not g.in_view(p.x, p.y, 40): return
+	g.vfx.ring(p.x, p.y, 36.0, col.lightened(0.35), 0.28)
+	for i in 10:
+		var a := TAU * i / 10.0
+		g.pools.particles.take().setup(p.x, p.y - 10, cos(a) * 150.0, sin(a) * 90.0 - 40.0, 0.35, 2.4, hx, 0.9, 0, true)
 
 ## ortak döküm anı: yetenek renginde ışık sütunu, ayakta çift halka, yükselen sarmal kıvılcım, hafif itki
 func _flourish(d: Dictionary, col: Color, hx: String) -> void:
@@ -271,7 +324,7 @@ func _tick_strikes(dt: float) -> void:
 			s.warn = 0.12
 			g.vfx.ring(s.x, s.y, s.r, Color(s.c), 0.14)
 		if s.t > 0.0: continue
-		for e in _near(s.x, s.y, s.r, AOE_CAP):
+		for e in _near(s.x, s.y, s.r, int(s.get("cap", AOE_CAP))):
 			Combat.apply_hit(g, e, s.dmg, atan2(e.y - s.y, e.x - s.x), 0.0)
 		if g.renderer3d:
 			match str(s.fx):
@@ -305,7 +358,7 @@ func _tick_pulls(dt: float) -> void:
 			var a := randf() * TAU
 			g.spawn_burst(w.x + cos(a) * w.r * 0.8, w.y + sin(a) * w.r * 0.8, w.c, 1, 30, 2.6, 0.4, true)
 		if w.t <= 0.0:
-			for e in _near(w.x, w.y, w.r * 0.7, AOE_CAP):
+			for e in _near(w.x, w.y, w.r * 0.7, int(w.get("cap", AOE_CAP))):
 				Combat.apply_hit(g, e, w.dmg, atan2(e.y - w.y, e.x - w.x), 0.0)
 			if g.renderer3d:
 				var c := Color(w.c)

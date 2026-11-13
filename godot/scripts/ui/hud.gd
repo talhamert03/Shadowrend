@@ -1261,16 +1261,17 @@ func _draw_skills(c: Control) -> void:
 	for i in n:
 		var s: Dictionary = L[i]
 		var d: Dictionary = s.def
-		var R := 23.0
-		var ctr := Vector2(150 - R - 4 - i * (2 * R + 12), 37 + 10)
+		var gear: bool = d.get("gear", false)
+		var R := 19.0 if gear else 23.0
+		var ctr := Vector2(150 - 23.0 - 4 - i * (2 * 23.0 + 12), 37 + 10 + (4.0 if gear else 0.0))
 		var col := Color(str(d.get("c", "#ffffff")))
 		var ready: bool = s.cd <= 0.45
 		c.draw_circle(ctr + Vector2(0, 3), R + 3, INK)
 		c.draw_circle(ctr, R + 3, INK)
 		c.draw_circle(ctr, R, col.darkened(0.72))
-		var id := str(d.get("icon", ""))
+		var id := str(d.get("icon", "")) if not gear else "g:" + str(d.get("gicon", ""))
 		if not _skTex.has(id):
-			var pth := "res://assets/ui/art/skill/" + id + ".png"
+			var pth := ("res://assets/ui/art/skill/" + id + ".png") if not gear else ("res://assets/ui/art/gear/" + str(d.get("gicon", "")) + ".png")
 			_skTex[id] = load(pth) if ResourceLoader.exists(pth) else null
 		var tx: Texture2D = _skTex[id]
 		if tx: c.draw_texture_rect(tx, Rect2(ctr - Vector2(R, R) * 0.92, Vector2(R, R) * 1.84), false)
@@ -1287,6 +1288,12 @@ func _draw_skills(c: Control) -> void:
 		var fl: float = clampf(s.flash / 0.6, 0.0, 1.0)
 		c.draw_arc(ctr, R + 1.0, 0, TAU, 32, col.lerp(Color.WHITE, fl) if (ready or fl > 0) else Color(0.35, 0.3, 0.42), 2.6 + fl * 2.0, true)
 		if fl > 0.0: c.draw_arc(ctr, R + 4 + (1.0 - fl) * 10.0, 0, TAU, 32, Color(col.r, col.g, col.b, fl), 2.0, true)
+		if gear:
+			# efsanevi eşya rozeti: altın elmas
+			var gp := ctr + Vector2(R * 0.72, R * 0.72)
+			c.draw_colored_polygon(PackedVector2Array([gp + Vector2(0, -8), gp + Vector2(7, 0), gp + Vector2(0, 8), gp + Vector2(-7, 0)]), INK)
+			c.draw_colored_polygon(PackedVector2Array([gp + Vector2(0, -6), gp + Vector2(5, 0), gp + Vector2(0, 6), gp + Vector2(-5, 0)]), Color("#ffc94a"))
+			continue
 		# kademe rozeti (Z/O)
 		var tier := str(d.get("tier", ""))
 		var tg := "O" if tier == "orta" else "Z"

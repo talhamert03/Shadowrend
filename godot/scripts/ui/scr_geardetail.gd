@@ -188,6 +188,8 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	var titleH := 66.0
 	var statH := 10.0 + ceilf(stats.size() / 2.0) * 52.0 + (22.0 if cur else 0.0)
 	var loreH := 34.0
+	var gsk: Dictionary = HeroSkills.GEAR_SKILLS.get(str(id), {}) if int(x.rarity) == 4 else {}
+	if not gsk.is_empty(): loreH += 58.0
 	var upH := 156.0 if owned else 0.0
 	var actH := 72.0 if owned else 0.0
 	var H := showH + titleH + statH + loreH + upH + actH + 12.0
@@ -239,6 +241,16 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	_paint_stats(stats, rc, owned, cx, cw, y)
 	y = R.position.y + showH + titleH + statH
 	_txt(Vector2(cx + 20, y + 20), ("“" + str(x.get("desc", "")) + "”") if owned else "Sandıklardan ve mağazadan elde edilir", 13, Color("#c9bcae") if owned else DIM, cw - 40, HORIZONTAL_ALIGNMENT_CENTER, 500)
+	if not gsk.is_empty():
+		# efsanevi eşya yeteneği kutusu
+		var kc := Color(str(gsk.get("c", "#ffc94a")))
+		var kb := Rect2(Vector2(cx + 16, y + 34), Vector2(cw - 32, 50))
+		_box(kb, Color(kc.r * 0.18, kc.g * 0.12, kc.b * 0.18, 0.9), 12, 1.5, Color(kc, 0.7))
+		var dp := kb.position + Vector2(20, 25)
+		cv.draw_colored_polygon(PackedVector2Array([dp + Vector2(0, -9), dp + Vector2(8, 0), dp + Vector2(0, 9), dp + Vector2(-8, 0)]), kc)
+		var nm := str(gsk.get("en", gsk.name)) if I18n.lang == "en" else str(gsk.name)
+		_bang(Vector2(kb.position.x + 38, kb.position.y + 20), nm.to_upper() + "   ·   " + str(int(gsk.cd)) + " SN", 15, kc.lightened(0.3))
+		_txt(Vector2(kb.position.x + 38, kb.position.y + 40), str(gsk.get("desc", "")), 12, Color(1, 1, 1, 0.75), kb.size.x - 46)
 	if not owned: return
 	y += loreH
 

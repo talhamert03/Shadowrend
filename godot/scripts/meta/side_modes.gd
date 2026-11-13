@@ -114,11 +114,12 @@ static func nm_finish(g, won: bool, mpw: int, world_count: int) -> Dictionary:
 # ═══════════ EKİPMAN SETLERİ ═══════════
 const RANK := {1: 1, 2: 2, 5: 3, 3: 4, 4: 5}
 const GEAR_SETS := {
-	1: {"name": "GEZGİN",  "col": "#b8a07a", "p2": {"magnetPct": 0.15}, "p4": {"speedPct": 0.04}, "l2": "Toplama menzili +%15", "l4": "Hareket hızı +%4"},
-	2: {"name": "TUNÇ",    "col": "#d8a262", "p2": {"maxHp": 12}, "p4": {"regen": 0.8, "armor": 1}, "l2": "Can +12", "l4": "Can yenileme +0,8/sn · Zırh +1"},
-	3: {"name": "AYAZ",    "col": "#7cc8f0", "p2": {"armor": 1}, "p4": {"dodge": 0.04, "maxHp": 10}, "l2": "Zırh +1", "l4": "Kaçınma +%4 · Can +10"},
-	4: {"name": "YILDIRIM", "col": "#b48aff", "p2": {"atkPct": 0.06}, "p4": {"critChance": 0.05, "critMult": 0.2}, "l2": "Saldırı hızı +%6", "l4": "Kritik şansı +%5 · Kritik hasar +%20"},
-	5: {"name": "KOR",     "col": "#ff8a3c", "p2": {"dmgPct": 0.06}, "p4": {"explodeChance": 0.06, "explodeDmgPct": 0.25}, "l2": "Hasar +%6", "l4": "Vuruşta patlama şansı +%6 · Patlama hasarı +%25"},
+	# set bonusları −%35 (denge: setler eşyaların önüne geçmesin)
+	1: {"name": "GEZGİN",  "col": "#b8a07a", "p2": {"magnetPct": 0.10}, "p4": {"speedPct": 0.026}, "l2": "Toplama menzili +%10", "l4": "Hareket hızı +%2,6"},
+	2: {"name": "TUNÇ",    "col": "#d8a262", "p2": {"maxHp": 8}, "p4": {"regen": 0.5, "armor": 0.65}, "l2": "Can +8", "l4": "Can yenileme +0,5/sn · Zırh +0,65"},
+	3: {"name": "AYAZ",    "col": "#7cc8f0", "p2": {"armor": 0.65}, "p4": {"dodge": 0.026, "maxHp": 6.5}, "l2": "Zırh +0,65", "l4": "Kaçınma +%2,6 · Can +6,5"},
+	4: {"name": "YILDIRIM", "col": "#b48aff", "p2": {"atkPct": 0.039}, "p4": {"critChance": 0.0325, "critMult": 0.13}, "l2": "Saldırı hızı +%3,9", "l4": "Kritik şansı +%3,25 · Kritik hasar +%13"},
+	5: {"name": "KOR",     "col": "#ff8a3c", "p2": {"dmgPct": 0.039}, "p4": {"explodeChance": 0.039, "explodeDmgPct": 0.1625}, "l2": "Hasar +%3,9", "l4": "Vuruşta patlama şansı +%3,9 · Patlama hasarı +%16"},
 }
 
 static func active_sets(items: Array) -> Array:
