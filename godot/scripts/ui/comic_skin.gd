@@ -368,7 +368,7 @@ static func _skin_dock(L: Lyr) -> void:
 
 static func skin_home(L: Lyr) -> void:
 	_duo(L, L.find_id("#free-chest"), Color("#2fb36a"))
-	_duo(L, L.find_id("#victory-chest"), Color("#8b4ae8"))
+	_duo(L, L.find_id("#victory-chest"), Color("#8b4ae8"), VIC_TIER)
 	var hm := L.find_id("#home-map")
 	if hm:
 		strip(L, hm)
@@ -430,7 +430,8 @@ static func _dash_rect(d: CanvasItem, r: Rect2, c: Color, w: float) -> void:
 			d.draw_line(a + dir * s, a + dir * minf(s + 7.0, L - 6.0), c, w)
 			s += 12.0
 
-static func _duo(L: Lyr, n: Lyr.N, col: Color) -> void:
+const VIC_TIER := 4   # zafer sandığı = kan sandığı (IV. kademe)
+static func _duo(L: Lyr, n: Lyr.N, col: Color, tier := 1) -> void:
 	if n == null: return
 	strip(L, n)
 	under(n, func(d: Node2D, sz: Vector2):
@@ -443,8 +444,13 @@ static func _duo(L: Lyr, n: Lyr.N, col: Color) -> void:
 		if String(k.d.key).begins_with(".duo-t"): fonts(k, 1.12, Color.WHITE, 1.6)
 		# sandık görseli yuvasını doldursun: merkezinden büyür, rozetle aynı merkezde
 		elif String(k.d.key).contains("duo-glyph"):
-			k.extra = Transform2D(0, Vector2.ONE * 1.32, 0, Vector2(0, -1.5))
-			L.set_dyn(k)
+			# durağan görsel yerine canlı sandık simgesi: net, yuvayı doldurur, yerinde hafifçe hareket eder
+			if k.img: k.img.visible = false
+			if k.host and k.host.get_node_or_null("ci") == null:
+				var ci := ChestIcon.make(tier, minf(k.size.x, k.size.y) * 1.42)
+				ci.name = "ci"
+				ci.position = k.size * 0.5 + Vector2(0, -2.0)
+				k.host.add_child(ci)
 
 ## SAVAŞ düğmesi: iki tonlu sarı-turuncu, kalın mürekkep, nabız atan dış halka + parıltı süpürmesi
 static func _battle_btn(L: Lyr) -> void:

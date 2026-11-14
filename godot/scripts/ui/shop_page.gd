@@ -181,6 +181,7 @@ func _chests() -> void:
 		if cd and not deal.bought:
 			D1.set_text(cd, ChestSystem.fmt_dur(day_ends_in()))
 			_cd["deal"] = [D1, cd]
+		_live_chest(D1, int(deal.C.get("tier", 2)))
 		menu.btn(D1, D1.nodes[0], func(): _deal_tap(), 0.98)
 	# ücretsiz sandık
 	var free_in: float = g.chests.free_ready_in()
@@ -190,6 +191,7 @@ func _chests() -> void:
 		if cd:
 			F.set_text(cd, ChestSystem.fmt_dur(free_in))
 			_cd["free"] = [F, cd]
+		_live_chest(F, 1)
 		menu.btn(F, F.nodes[0], func(): _free_tap(), 0.98)
 	# reklamlı bonus sandık
 	var ad_in := ad_chest_in()
@@ -204,13 +206,9 @@ func _chests() -> void:
 		if cs and cs.img:
 			cs.img.visible = false
 			var C: Dictionary = ChestSystem.chests().get(AD_CHEST, {})
-			var tx: Texture2D = UITex.get_tex("res://assets/ui/art/chest/t" + str(clampi(int(C.get("tier", 3)), 1, 7)) + ".png")
-			if tx:
-				var sp := Sprite2D.new()
-				sp.texture = tx
-				sp.scale = Vector2.ONE * (minf(cs.size.x, cs.size.y) * 1.05 / maxf(tx.get_width(), tx.get_height()))
-				sp.position = cs.size * 0.5
-				cs.host.add_child(sp)
+			var sp := ChestIcon.make(int(C.get("tier", 3)), minf(cs.size.x, cs.size.y) * 1.18)
+			sp.position = cs.size * 0.5
+			cs.host.add_child(sp)
 		if ad_in <= 0: EventsPage.txt(A, A.find("em"), "Kısa bir reklam izle, ALTIN SANDIK senin", 0.0)
 		menu.btn(A, A.nodes[0], func(): _ad_tap(), 0.98)
 	_add("sec_sefer", K)
@@ -226,6 +224,20 @@ func _chests() -> void:
 			var tt: String = t
 			_restyle_vcard(V, t)
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
+
+## satırdaki durağan sandık görselini canlı simgeyle değiştir (net + oturaklı + hafif hareketli)
+func _live_chest(L: Lyr, tier: int) -> void:
+	var cs := L.find(".chest-svg")
+	if cs == null:
+		for nn in L.nodes:
+			if nn is Lyr.N and str(nn.d.get("tag", "")) == "svg" and nn.size.x >= 40.0:
+				cs = nn
+				break
+	if cs == null or cs.host == null: return
+	if cs.img: cs.img.visible = false
+	var sp := ChestIcon.make(tier, minf(cs.size.x, cs.size.y) * 1.18)
+	sp.position = cs.size * 0.5
+	cs.host.add_child(sp)
 
 func _deal_tap() -> void:
 	var deal := today_deal()
@@ -284,8 +296,10 @@ func _restyle_vcard(V: Lyr, t: String) -> void:
 		fr.draw_style_box(ComicSkin.sb(Color("#15101a"), 12), I)
 		fr.draw_style_box(ComicSkin.sb(Color("#1e1626"), 12), Rect2(I.position, Vector2(I.size.x, I.size.y * 0.34)))
 		# sandığın altında yumuşak gölge
-		fr.draw_set_transform(Vector2(cx, cy + 40.0), 0.0, Vector2(1.0, 0.24))
-		fr.draw_circle(Vector2.ZERO, W * 0.36, Color(0, 0, 0, 0.45))
+		var gy: float = (50.0 + H - 74.0) * 0.5 + minf(W * 1.02, (H - 124.0) * 0.98) * 0.33
+		fr.draw_set_transform(Vector2(cx, gy), 0.0, Vector2(1.0, 0.22))
+		fr.draw_circle(Vector2.ZERO, W * 0.40, Color(0, 0, 0, 0.42))
+		fr.draw_circle(Vector2.ZERO, W * 0.28, Color(0, 0, 0, 0.25))
 		fr.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		# isim altı ince çizgi
 		fr.draw_rect(Rect2(cx - 22.0, 43.0, 44.0, 1.4), Color(gc, 0.75)))
@@ -302,17 +316,17 @@ func _restyle_vcard(V: Lyr, t: String) -> void:
 	gl.scale = Vector2.ONE * (W * 1.25 / gl.texture.get_width())
 	root.node.add_child(gl)
 	root.node.move_child(gl, 1)
-	# sandık: tam ortada, sabit boyut; hafifçe süzülür
-	var sp := Sprite2D.new()
-	sp.texture = UITex.get_tex("res://assets/ui/art/chest/t" + str(tier) + ".png")
+	# sandık: başlık ile fiyat düğmesi arasındaki boşluğun tam ortasında, yuvayı dolduracak boyda;
+	# zemine oturur (gölge) ve yerinde hafifçe canlanır
+	var area_t := 50.0
+	var area_b := H - 74.0
+	var csz := minf(W * 1.02, (area_b - area_t) * 0.98)
+	cy = (area_t + area_b) * 0.5 - csz * 0.03
+	gl.position = Vector2(cx, cy)
+	var sp := ChestIcon.make(tier, csz, false)
 	sp.position = Vector2(cx, cy)
-	sp.scale = Vector2.ONE * (W * 0.92 / maxf(1.0, sp.texture.get_width()))
 	root.node.add_child(sp)
 	root.node.move_child(sp, 2)
-	var tw := sp.create_tween().set_loops()
-	var ph := float(tier) * 0.23
-	tw.tween_property(sp, "position:y", cy - 3.0, 1.1 + ph * 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(sp, "position:y", cy + 1.0, 1.1 + ph * 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	var tg := gl.create_tween().set_loops()
 	tg.tween_property(gl, "modulate:a", 0.56, 1.3).set_trans(Tween.TRANS_SINE)
 	tg.tween_property(gl, "modulate:a", 0.34, 1.3).set_trans(Tween.TRANS_SINE)

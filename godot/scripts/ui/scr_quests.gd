@@ -273,7 +273,14 @@ func _day_card(day: int, rw: Dictionary, st: String, sz: Vector2) -> Node2D:
 	_txt(n, "GÜN " + str(day), 17, YEL if st != "future" else Color(1, 1, 1, 0.7), "", Vector2(-sz.x * 0.5, -sz.y * 0.5 + 4), sz.x).align = 0.5
 	# ödül ikonu
 	var tex: Texture2D = _reward_tex(rw)
-	if tex:
+	if tex and rw.kind == "chest" and st != "taken":
+		# canlı sandık: zemine oturur, yerinde hafifçe hareket eder
+		var CC: Dictionary = ChestSystem.chests().get(rw.get("chest", ""), {})
+		var ci := ChestIcon.make(int(CC.get("tier", 1)), 60.0 if day < 7 else 74.0)
+		ci.position = Vector2(0, 2)
+		if st == "future": ci.modulate = Color(0.88, 0.88, 0.93)
+		n.add_child(ci)
+	elif tex:
 		var sp := Sprite2D.new()
 		sp.texture = tex
 		var big := 50.0 if rw.kind != "chest" else (58.0 if day < 7 else 70.0)
@@ -306,7 +313,7 @@ static func _reward_tex(rw: Dictionary) -> Texture2D:
 		"chest":
 			var C: Dictionary = ChestSystem.chests().get(rw.get("chest", ""), {})
 			var t := clampi(int(C.get("tier", 1)), 1, 5)
-			return load("res://assets/ui/art/chest/t" + str(t) + ".png")
+			return load("res://assets/ui/art/chest/t" + str(t) + "_s.png")   # küçük kullanım: net, ön-küçültülmüş doku
 	return null
 
 func _sec_track(d: Dailies, y: float) -> float:

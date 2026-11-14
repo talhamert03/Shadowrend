@@ -316,7 +316,7 @@ static func _reward_tex(rw: Dictionary) -> Texture2D:
 		"chest":
 			var C: Dictionary = ChestSystem.chests().get(rw.get("chest", ""), {})
 			var t := clampi(int(C.get("tier", 1)), 1, 7)
-			return load("res://assets/ui/art/chest/t" + str(t) + ".png")
+			return load("res://assets/ui/art/chest/t" + str(t) + "_s.png")   # küçük kullanım: net, ön-küçültülmüş doku
 		"gear", "gearcards": return load("res://assets/ui/art/icon/kilic.png")
 		"char", "cards": return load("res://assets/ui/art/icon/maske.png")
 	return null
