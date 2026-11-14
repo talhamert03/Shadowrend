@@ -48,6 +48,8 @@ var _t := 0.0
 var parts: Array = []        # {p, v, life, max, size, col, star}
 var confetti: Array = []
 var _pow_t := -1.0
+var _smoke: Array = []        # {p, v, r, life, max, col, a, rot, spin}
+var _smoke_tex: Texture2D
 var _quake := 0.0          # ekran sarsıntısı (sn)
 var _quake_amp := 0.0
 var _pillar_t := -1.0      # ışık sütunu
@@ -202,6 +204,8 @@ func _clear() -> void:
 	_sum_cards.clear()
 	parts.clear()
 	confetti.clear()
+	_smoke.clear()
+	if _smoke_tex == null: _smoke_tex = load("res://assets/fx/smoke_puff.png")
 
 func _build() -> void:
 	_clear()
@@ -660,30 +664,28 @@ func _draw_fx() -> void:
 			var rk2 := clampf(pk * 1.5 - ri * 0.22, 0, 1)
 			if rk2 > 0.0 and rk2 < 1.0:
 				_fx.draw_arc(pc, 40.0 + 340.0 * rk2, 0, TAU, 56, Color(acp, (1.0 - rk2) * 0.75), 9.0 * (1.0 - rk2) + 1.5, true)
-	# POW yıldızı (açılış patlaması)
-	if _pow_t >= 0.0:
-		var k := clampf(_pow_t / 0.55, 0, 1)
-		var s := ScrLevelUp._back_ease(minf(1.0, k / 0.35)) * (1.0 + k * 0.15)
-		var a := 1.0 - maxf(0.0, (k - 0.55) / 0.45)
-		var c := _chest_mouth()
+	# açılış: sandık renginde büyülü duman — ağızdan kabarır, yavaşça yükselip dağılır
+	if _smoke.size():
 		_fx.modulate.a = 1.0
-		var P := PackedVector2Array()
-		var I := PackedVector2Array()
-		for i in 28:
-			var an := -PI * 0.5 + i * PI / 14.0
-			var rr := (150.0 if i % 2 == 0 else 96.0) * s
-			P.append(c + Vector2(cos(an) * rr, sin(an) * rr * 0.75))
-			I.append(c + Vector2(cos(an) * (rr + 7), sin(an) * (rr + 7) * 0.75) + Vector2(5, 6))
-		_fx.draw_colored_polygon(I, Color(INK, a))
-		_fx.draw_colored_polygon(P, Color(YEL, a))
-		var P2 := PackedVector2Array()
-		for i in 28:
-			var an := -PI * 0.5 + i * PI / 14.0 + 0.1
-			var rr := (100.0 if i % 2 == 0 else 66.0) * s
-			P2.append(c + Vector2(cos(an) * rr, sin(an) * rr * 0.75))
-		_fx.draw_colored_polygon(P2, Color(Color.WHITE, a * 0.9))
-		# genişleyen mürekkep halka
-		_fx.draw_arc(c, 60 + 220 * k, 0, TAU, 48, Color(INK, (1.0 - k) * 0.8), 6.0 * (1.0 - k) + 1.0, true)
+		for q in _smoke:
+			var u: float = 1.0 - float(q.life) / float(q.max)
+			if u < 0.0: continue
+			var rr: float = float(q.r) * (0.45 + 1.25 * (1.0 - pow(1.0 - u, 2.2)))
+			var al: float = float(q.a) * minf(1.0, u * 9.0) * pow(1.0 - u, 1.35)
+			var cq: Color = q.col
+			cq.a = al
+			var pq: Vector2 = q.p
+			_fx.draw_set_transform(pq, float(q.rot) + u * float(q.spin), Vector2.ONE)
+			_fx.draw_texture_rect(_smoke_tex, Rect2(-rr, -rr, rr * 2.0, rr * 2.0), false, cq)
+		_fx.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if _pow_t >= 0.0:
+		# ağızda kısa ışık çakımı + sandık renginde genişleyen ince halka
+		var k := clampf(_pow_t / 0.55, 0, 1)
+		var c := _chest_mouth()
+		var acq := JS.col(C.get("accent", C.color))
+		var gr := 150.0 * (0.5 + k * 0.8)
+		_fx.draw_texture_rect(_smoke_tex, Rect2(c.x - gr, c.y - gr * 0.8, gr * 2.0, gr * 1.6), false, Color(acq.lerp(Color.WHITE, 0.6), (1.0 - k) * 0.85))
+		_fx.draw_arc(c, 50 + 230 * k, 0, TAU, 48, Color(acq.lerp(Color.WHITE, 0.3), (1.0 - k) * 0.7), 5.0 * (1.0 - k) + 1.0, true)
 	# nadirlik sözü: iki yana sönen ince çizgiler, yumuşak ışıma, bir kez geçen parlama (sade, premium)
 	if _word_t >= 0.0 and _word.visible:
 		var cc: Color = cards[idx].col if idx >= 0 and idx < cards.size() else YEL
@@ -941,6 +943,18 @@ func _step_fx(dt: float) -> void:
 		var ks := clampf((_word_t - 0.28) / 0.3, 0, 1)
 		_word_sub.modulate.a = ks
 		_word_sub.position = _word.position + Vector2(0, -24.0 + (1.0 - ks) * 6.0)
+	for i in range(_smoke.size() - 1, -1, -1):
+		var q: Dictionary = _smoke[i]
+		q.life = float(q.life) - dt
+		if q.life <= 0.0:
+			_smoke.remove_at(i)
+			continue
+		if q.life > q.max: continue          # gecikmeli doğan topak
+		var qv: Vector2 = q.v
+		qv *= exp(-1.9 * dt)                 # hızla yavaşlar, sonra süzülür
+		qv.y -= 16.0 * dt
+		q.v = qv
+		q.p = (q.p as Vector2) + qv * dt + Vector2(sin(_t * 1.7 + float(q.rot) * 3.0) * 9.0 * dt, 0)
 	for i in range(parts.size() - 1, -1, -1):
 		var p: Dictionary = parts[i]
 		p.life = float(p.life) - dt
@@ -999,8 +1013,22 @@ func _burst() -> void:
 	_title.visible = false
 	_pow_t = 0.0
 	_flash_t = 0.0
-	_flash_dur = 0.35
+	_flash_dur = 0.22
 	_flash_c = Color.WHITE
+	# büyülü duman: sandığın kendi renginde, koyu/açık tonlar karışık
+	var sa := JS.col(C.get("accent", C.color))
+	var sb := JS.col(C.color)
+	var mth := _chest_mouth()
+	_smoke.clear()
+	for i in 30:
+		var an := -PI * 0.5 + randf_range(-1.15, 1.15)
+		var sp := randf_range(150.0, 520.0) * (0.55 if i >= 20 else 1.0)
+		var lf := randf_range(1.5, 2.6)
+		var tone := randf()
+		var cs := sb.lerp(sa, tone).lerp(Color.WHITE, 0.10 + 0.25 * tone * tone)
+		_smoke.append({"p": mth + Vector2(randf_range(-46, 46), randf_range(-10, 14)), "v": Vector2(cos(an) * sp * 0.75, sin(an) * sp),
+			"r": randf_range(46.0, 96.0), "life": lf + (0.0 if i < 20 else randf_range(0.05, 0.35)), "max": lf,
+			"col": cs, "a": randf_range(0.42, 0.72), "rot": randf() * TAU, "spin": randf_range(-0.9, 0.9)})
 	_rays_target = 0.14
 	var acc := JS.col(C.get("accent", C.color))
 	_spark(_chest_mouth(), 46 + peak * 14, 520, [YEL, Color.WHITE, acc, Color("#ff8a3a")], true, 0.6)
