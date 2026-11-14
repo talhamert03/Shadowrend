@@ -153,8 +153,20 @@ func render_worlds() -> void:
 		var C := Lyr.make(key)
 		_host().add_child(C)
 		_items.append(C)
-		C.position = Vector2(14, y)
-		card_h = C.nodes[0].size.y
+		# kart ekranı kenardan kenara doldurur (yanlarda/köşelerde boşluk kalmaz): ölçekle + köşe arkası dolgu
+		var cw0: float = C.nodes[0].size.x
+		var ks: float = 390.0 / maxf(1.0, cw0)
+		C.scale = Vector2(ks, ks)
+		C.position = Vector2(0, y)
+		card_h = C.nodes[0].size.y * ks
+		var under := ColorRect.new()
+		under.color = Color("#07050b")
+		under.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		under.position = Vector2(0, y)
+		under.size = Vector2(390, card_h)
+		_host().add_child(under)
+		_host().move_child(under, C.get_index())
+		_items.append(under)
 		if cur: cur_y = y
 		# önizleme sanatı (tuval düğümünün yerinde, kartın yuvarlak kırpmasıyla)
 		# çizim tembel: kart görünür alana yaklaşınca dokuları arka planda yüklenip boyanır,
@@ -181,8 +193,8 @@ func render_worlds() -> void:
 				g.audio.play("click")
 				world = ww
 				render_chapters(ww), 0.98)
-		y += card_h + GAP
-	var total := y - GAP + 22.0 + 18.0   # .wsel alt dolgu 22 + sayfa alt dolgu 18 (ölçüldü)
+		y += card_h + 8.0
+	var total := y - 8.0 + 22.0 + 18.0   # .wsel alt dolgu 22 + sayfa alt dolgu 18 (ölçüldü)
 	_set_content_h(total)
 	var ch: float = root.size.y
 	if cur_y >= 0: shell.set_scroll(root, clampf(cur_y - 72.0, 0, shell.scroll_max(root)))
