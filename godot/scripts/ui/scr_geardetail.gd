@@ -114,15 +114,21 @@ func _icon(name_: String, c: Vector2, sz: float, mod := Color.WHITE) -> void:
 ## çizgi roman düğmesi: mürekkep gölge + gövde + üst parıltı + kayan ışık; cost>0 → altın simgeli bedel
 func _button(r: Rect2, label: String, col: Color, enabled: bool, cb: Callable, cost := -1, lsz := 26, gem := false) -> void:
 	var c := col if enabled else Color("#4a4048")
-	_box(Rect2(r.position + Vector2(0, 5), r.size), INK, 16)
-	_box(r, c.darkened(0.28), 16, 3.0, INK)
-	_box(Rect2(r.position + Vector2(3, 3), Vector2(r.size.x - 6, r.size.y * 0.52)), c.lightened(0.06), 13)
+	# oval (hap) düğme: yumuşak gölge, koyu kenar, iki tonlu dolgu, üstte cam parlaması
+	var rad := r.size.y * 0.5
+	_box(Rect2(r.position + Vector2(0, 5), r.size), Color(0, 0, 0, 0.5), rad)
+	_box(r.grow(2.0), INK, rad + 2.0)
+	_box(r, c.darkened(0.40), rad)
+	_box(Rect2(r.position, r.size - Vector2(0, 4)), c.darkened(0.06), rad)
+	_box(Rect2(r.position + Vector2(2, 2), Vector2(r.size.x - 4, r.size.y * 0.52)), c.lightened(0.12), rad)
+	_box(Rect2(r.position + Vector2(rad * 0.7, 4), Vector2(r.size.x - rad * 1.4, r.size.y * 0.18)), Color(1, 1, 1, 0.20), r.size.y * 0.18)
+	cv.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), rad, 1.2, Color(1, 1, 1, 0.14)), r.grow(-1.0))
 	if enabled:
 		var ph := fmod(_now() * 0.55, 1.7)
 		if ph < 1.0:
-			var x := r.position.x + 20 + (r.size.x - 40) * ph
+			var x := r.position.x + rad + 8 + (r.size.x - rad * 2.0 - 16) * ph
 			cv.draw_colored_polygon(PackedVector2Array([Vector2(x - 10, r.position.y + 5), Vector2(x + 8, r.position.y + 5),
-				Vector2(x - 4, r.end.y - 5), Vector2(x - 22, r.end.y - 5)]), Color(1, 1, 1, 0.15))
+				Vector2(x - 4, r.end.y - 6), Vector2(x - 22, r.end.y - 6)]), Color(1, 1, 1, 0.13))
 	var tc := Color.WHITE if enabled else Color("#b0a7ad")
 	if cost < 0:
 		_bang(Vector2(r.position.x, r.get_center().y + lsz * 0.36), label, lsz, tc, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
