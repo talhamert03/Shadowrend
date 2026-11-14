@@ -179,7 +179,7 @@ func reset() -> void:
 	swordQueue = []
 	for i in 6: swordQueue.append({"t": 0.0, "dir": 0.0, "mul": 1.0, "kind": "normal", "on": false, "id": ""})
 	waves = []
-	for i in 16: waves.append({"x": 0.0, "y": 0.0, "dir": 0.0, "life": 0.0, "max": 1.0, "dmg": 0.0, "r": 0.0, "wid": 0, "spd": 0.0, "crit": 0.0})
+	for i in 16: waves.append({"x": 0.0, "y": 0.0, "dir": 0.0, "life": 0.0, "max": 1.0, "dmg": 0.0, "dmg0": 0.0, "r": 0.0, "wid": 0, "spd": 0.0, "crit": 0.0})
 	_waveTok = 0
 	orbitA = 0; zoneT = 2.0; boltT = 3.0; bombT = 1.6
 	gunT = {}
@@ -474,8 +474,8 @@ func sword_strike(dir: float, mul: float, kind: String, id: String) -> void:
 			var fan := mini(2, wi(Wd, "fan"))
 			for f in range(1, fan + 1):
 				var off := 0.30 * f
-				spawn_wave(dir + off, wd * 0.52, wv, cr, Wd)
-				spawn_wave(dir - off, wd * 0.52, wv, cr, Wd)
+				spawn_wave(dir + off, wd * 0.40, wv, cr, Wd)
+				spawn_wave(dir - off, wd * 0.40, wv, cr, Wd)
 	if wi(Wd, "shock") > 0 and kind != "echo":
 		g.explode(p.x + cos(dir) * range_ * 0.55, p.y + sin(dir) * range_ * 0.55, dmg * 0.3, 26 + wi(Wd, "shock") * 7, true)
 	if kind != "echo":
@@ -504,6 +504,7 @@ func spawn_wave(dir: float, dmg: float, tier: int, crit: float, Wd) -> void:
 	slot.max = 0.62 * (JS.num(Wd, "waveLife", 1.0) if Wd else 1.0)
 	slot.life = slot.max
 	slot.dmg = dmg
+	slot.dmg0 = dmg
 	slot.crit = crit
 	slot.r = (46 + tier * 8) * (JS.num(Wd, "waveR", 1.0) if Wd else 1.0)
 	slot.spd = 520.0
@@ -527,6 +528,8 @@ func update_waves(dt: float) -> void:
 			if dx * dx + dy * dy > rr * rr: continue
 			e.waveHit = w.wid
 			Combat.apply_hit(g, e, w.dmg, w.dir, 90, w.crit, false)
+			# kesik her düşmandan geçtikçe körelir (sonsuz tam hasarla delip geçmesin); taban %30
+			w.dmg = maxf(w.dmg0 * 0.30, w.dmg * 0.86)
 
 # ── 2. GÖLGE BIÇAKLARI ──
 func update_orbit(dt: float) -> void:

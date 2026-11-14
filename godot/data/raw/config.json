@@ -4338,7 +4338,7 @@
     "myth": true,
     "kralice": true,
     "glyph": "uclu",
-    "desc": "Her savuruşta üç kesik yelpazesi fırlar.",
+    "desc": "Her savuruşta üç kesik yelpazesi fırlar; yan kesikler daha zayıftır.",
     "boost": {
      "weapon": "tackilic",
      "fanAdd": 1
@@ -4390,11 +4390,11 @@
     "myth": true,
     "kralice": true,
     "glyph": "tacnisan",
-    "desc": "Kritik şansı +%15, kritik hasarı +%60.",
+    "desc": "Kritik şansı +%10, kritik hasarı +%40.",
     "boost": {
      "weapon": "tackilic",
-     "critAdd": 0.15,
-     "critMultAdd": 0.6
+     "critAdd": 0.1,
+     "critMultAdd": 0.4
     }
    }
   ],
@@ -8839,11 +8839,11 @@
     "Ağır hüküm, geri tepme +"
    ],
    "dmg": [
-    13,
-    16,
-    21,
-    28,
-    36
+    12,
+    15,
+    19,
+    25,
+    32
    ],
    "cooldown": [
     0.94,
