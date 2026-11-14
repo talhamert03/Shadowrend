@@ -6,7 +6,7 @@ extends Scr
 
 const INK := Color(0.05, 0.03, 0.07)
 const BTN_H := 44.0
-const GAP := 8.0
+const GAP := 10.0
 const W := 196.0
 const HEAD := 34.0
 const GOLD := Color("#d9a441")
@@ -119,20 +119,24 @@ func _paint() -> void:
 		_hits.append({"r": Rect2(br.position + Vector2(x, y) + Vector2(W, h) * 0.5, br.size), "cb": cb})
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
-## eğik (çizgi roman) düğme: mürekkep gölge, iki tonlu dolgu, üst parlama, solda simge madalyonu
+## oval (hap) düğme: yumuşak gölge, koyu kenar, iki tonlu dolgu, üstte cam parlaması, solda simge madalyonu
 func _btn(r: Rect2, a: Dictionary, vis := 1.0) -> void:
 	if vis <= 0.01: return
 	var c: Color = a.c
-	var sk := 7.0
+	var sk := 2.0
 	var off := Vector2((1.0 - vis) * 26.0, 0)
-	var q := func(rr: Rect2, s2: float) -> PackedVector2Array:
-		return PackedVector2Array([rr.position + Vector2(s2, 0) + off, Vector2(rr.end.x, rr.position.y) + off, rr.end - Vector2(s2, 0) + off, Vector2(rr.position.x, rr.end.y) + off])
 	var al := vis
-	cv.draw_colored_polygon(q.call(Rect2(r.position + Vector2(-2, 3), r.size + Vector2(4, 4)), sk), Color(INK, al))
-	cv.draw_polygon(q.call(r, sk), PackedColorArray([Color(c.lightened(0.12), al), Color(c.lightened(0.12), al), Color(c.darkened(0.38), al), Color(c.darkened(0.38), al)]))
-	cv.draw_colored_polygon(q.call(Rect2(r.position + Vector2(4, 3), Vector2(r.size.x - 8, r.size.y * 0.36)), sk * 0.4), Color(1, 1, 1, 0.20 * al))
-	# alt kenar çizgisi (derinlik)
-	cv.draw_line(Vector2(r.position.x + 3, r.end.y - 2.5) + off, Vector2(r.end.x - sk - 2, r.end.y - 2.5) + off, Color(0, 0, 0, 0.32 * al), 2.0)
+	var rr := Rect2(r.position + off, r.size)
+	var rad := int(rr.size.y * 0.5)
+	cv.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45 * al), rad), Rect2(rr.position + Vector2(0, 4), rr.size))
+	cv.draw_style_box(ComicSkin.sb(Color(INK, al), rad + 2), rr.grow(2.0))
+	cv.draw_style_box(ComicSkin.sb(Color(c.darkened(0.42), al), rad), rr)
+	cv.draw_style_box(ComicSkin.sb(Color(c.darkened(0.08), al), rad), Rect2(rr.position, rr.size - Vector2(0, 4)))
+	cv.draw_style_box(ComicSkin.sb(Color(c.lightened(0.14), al), rad), Rect2(rr.position + Vector2(2, 2), Vector2(rr.size.x - 4, rr.size.y * 0.52)))
+	# cam parlaması: üstte ince açık şerit
+	cv.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.22 * al), int(rr.size.y * 0.2)), Rect2(rr.position + Vector2(rad * 0.7, 4), Vector2(rr.size.x - rad * 1.4, rr.size.y * 0.2)))
+	# ince açık kenar çizgisi (profesyonel bitiş)
+	cv.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), rad, 1.2, Color(1, 1, 1, 0.16 * al)), rr.grow(-1.0))
 	# simge madalyonu
 	var mc := Vector2(r.position.x + sk + 20.0, r.get_center().y) + off
 	cv.draw_circle(mc, 16.0, Color(INK, al))
