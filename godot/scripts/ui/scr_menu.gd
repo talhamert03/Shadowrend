@@ -195,9 +195,9 @@ var _dicons := {}
 static func _draw_dock_icon(n: Node2D, kind: String, sz: Vector2, on: bool) -> void:
 	var c := sz * 0.5 + Vector2(0, 0.5)
 	var ink := Color("#0c070e")
-	var hi := Color("#ffe9a8") if on else Color("#e2dae6")
-	var mid := Color("#e8b44a") if on else Color("#a99fb0")
-	var lo := Color("#9a6420") if on else Color("#6c6474")
+	var hi := Color("#ffb3ba") if on else Color("#e2dae6")
+	var mid := Color("#d83a4a") if on else Color("#a99fb0")
+	var lo := Color("#7a1420") if on else Color("#6c6474")
 	if kind == "cephane":
 		# çapraz kılıçlar (arkada)
 		for sd in [-1.0, 1.0]:
@@ -259,12 +259,12 @@ func _dock_style(p: String) -> void:
 		_dpill = Node2D.new()
 		_dpill.draw.connect(func():
 			var r := Rect2(-35, -1, 70, 60)
-			for k in 3: _dpill.draw_style_box(ComicSkin.sb(Color(1.0, 0.76, 0.34, 0.045 - k * 0.012), 16 + k * 3), r.grow(2.0 + k * 3.0))
+			for k in 3: _dpill.draw_style_box(ComicSkin.sb_raw(Color(0.85, 0.16, 0.22, 0.06 - k * 0.015), 16 + k * 3), r.grow(2.0 + k * 3.0))
 			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(2, 2), Vector2(r.end.x - 2, r.position.y + 2), r.end - Vector2(2, 2), Vector2(r.position.x + 2, r.end.y - 2)]),
-				PackedColorArray([Color("#3d2716"), Color("#3d2716"), Color("#1a100b"), Color("#1a100b")]))
-			_dpill.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 14, 1.4, Color("#e9c98a", 0.9)), r)
+				PackedColorArray([Color("#4a1820"), Color("#4a1820"), Color("#1c0a0e"), Color("#1c0a0e")]))
+			_dpill.draw_style_box(ComicSkin.sb_raw(Color(0, 0, 0, 0), 14, 1.4, Color("#d84a58", 0.9)), r)
 			_dpill.draw_polygon(PackedVector2Array([r.position + Vector2(4, 3), Vector2(r.end.x - 4, r.position.y + 3), Vector2(r.end.x - 4, r.position.y + 20), r.position + Vector2(4, 20)]),
-				PackedColorArray([Color(1, 0.86, 0.58, 0.16), Color(1, 0.86, 0.58, 0.16), Color(1, 0.86, 0.58, 0.0), Color(1, 0.86, 0.58, 0.0)])))
+				PackedColorArray([Color(1, 0.6, 0.62, 0.14), Color(1, 0.6, 0.62, 0.14), Color(1, 0.6, 0.62, 0.0), Color(1, 0.6, 0.62, 0.0)])))
 		dock.node.add_child(_dpill)
 		# şeridin (kaplama) üstünde, sekme simgelerinin altında
 		var first := 1 << 20
@@ -304,7 +304,7 @@ func _dock_style(p: String) -> void:
 				shell.set_dyn(ico)
 			if lab:
 				lab.op_mul = 1.0 if on else 0.5
-				if lab.txt: lab.txt.color = Color("#ffd774") if on else Color("#d8cfd6")
+				if lab.txt: lab.txt.color = Color("#ff7a86") if on else Color("#d8cfd6")
 				shell.set_dyn(lab)
 		else:
 			var md := shell.find_in(tn, ".dk-medal")
@@ -312,7 +312,7 @@ func _dock_style(p: String) -> void:
 				md.extra = Transform2D(0, Vector2.ONE * (1.06 if on else 0.96), 0, Vector2.ZERO)
 				shell.set_dyn(md)
 			if lab:
-				if lab.txt: lab.txt.color = Color("#ffd774") if on else Color("#d8cfd6")
+				if lab.txt: lab.txt.color = Color("#ff7a86") if on else Color("#d8cfd6")
 				lab.op_mul = 1.0 if on else 0.7
 				shell.set_dyn(lab)
 	var an: Lyr.N = _tab_n.get(p)

@@ -24,7 +24,7 @@ void fragment() {
 	float hw = clamp(1.0 - abs(hsv.x - 0.79) / 0.15, 0.0, 1.0);
 	float vw = clamp((0.78 - hsv.z) / 0.4, 0.0, 1.0);
 	float w = hw * vw * clamp(hsv.y * 2.5, 0.0, 1.0) * amount;
-	vec3 tgt = hsv2rgb(vec3(0.985, hsv.y * 0.6, hsv.z * 0.9));
+	vec3 tgt = hsv2rgb(vec3(0.74, hsv.y * 0.22, hsv.z * 0.85));   // tema: nötr koyu gri-mor
 	vec3 o = mix(c, tgt, w);
 	float lum = dot(o, vec3(0.299, 0.587, 0.114));
 	o *= mix(1.0, lum < 0.5 ? 0.97 + 0.06 * lum : 1.0, amount);
@@ -32,6 +32,6 @@ void fragment() {
 	// kenar vinyeti (kızıl-siyah)
 	vec2 d = (SCREEN_UV - 0.5) * vec2(1.0, 0.8);
 	float v = smoothstep(0.42, 0.85, length(d)) * vig * amount;
-	o = mix(o, vec3(0.045, 0.012, 0.016), v);
+	o = mix(o, vec3(0.03, 0.025, 0.04), v);
 	COLOR = vec4(o, 1.0);
 }

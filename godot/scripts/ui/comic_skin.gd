@@ -10,7 +10,7 @@ const INK := Color(0.05, 0.03, 0.07)
 const YEL := Color("#ffd23a")
 const ORANGE := Color("#ff8a2a")
 const PAPER := Color("#fff3d6")
-const NIGHT := Color("#1c0f2a")
+const NIGHT := Color("#16121c")
 
 ## kutu çizici: düğüm boyu değişince (esneme, yuva büyümesi) kendini yeniden çizer;
 ## anim = her kare (nabız, parıltı)
@@ -79,7 +79,44 @@ static func over(n: Lyr.N, fn: Callable, anim := false) -> Drawer:
 	n.node.add_child(d)
 	return d
 
+## TEMA (koyu kırmızı vurgu, nötr koyu zemin): arayüz dolgu renkleri tek noktada eşlenir.
+## altın/turuncu/sarı → kan kırmızısı · yeşil/turkuaz → nötr koyu · bordo/pembe zemin → nötr gri-mor.
+## Mor (gem, nadirlik), parlak kırmızı (uyarı) ve mavi korunur. Dokular (kahraman, sandık, harita) etkilenmez.
+const THEME_ON := true
+static func tc(c: Color) -> Color:
+	if not THEME_ON or c.a <= 0.001: return c
+	var h := c.h
+	var s := c.s
+	var v := c.v
+	if s < 0.08: return c
+	if h > 0.02 and h < 0.17 and s > 0.35:
+		# vurgu: koyu kırmızı (parlak sarıların koyu kırmızı karşılığı)
+		return Color.from_hsv(0.985, clampf(s, 0.66, 0.82), clampf(v * 0.74, 0.0, 0.86), c.a)
+	if h >= 0.20 and h < 0.45 and s > 0.4 and v > 0.5:
+		# canlı yeşil (onay / yükselt düğmeleri) → vurgu rengi
+		return Color.from_hsv(0.985, 0.70, clampf(v * 0.72, 0.0, 0.84), c.a)
+	if h >= 0.20 and h < 0.56 and s > 0.25:
+		return Color.from_hsv(0.74, minf(0.16, s * 0.3), v * 0.62, c.a)
+	if (h >= 0.86 or h <= 0.02) and v < 0.42:
+		# bordo / koyu pembe zemin → nötr koyu gri-mor
+		return Color.from_hsv(0.74, minf(0.20, s * 0.35), v * 0.9, c.a)
+	if h >= 0.70 and h < 0.86 and v < 0.30:
+		return Color.from_hsv(0.74, minf(0.22, s * 0.45), v, c.a)
+	return c
+
+static func sb_raw(c: Color, r: float, bw := 0.0, bc := INK) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = c
+	s.set_corner_radius_all(int(r))
+	if bw > 0.0:
+		s.set_border_width_all(int(bw))
+		s.border_color = bc
+	s.anti_aliasing = true
+	return s
+
 static func sb(c: Color, r: float, bw := 0.0, bc := INK) -> StyleBoxFlat:
+	c = tc(c)
+	bc = tc(bc)
 	var s := StyleBoxFlat.new()
 	s.bg_color = c
 	s.set_corner_radius_all(int(r))
@@ -99,6 +136,7 @@ static func panel(d: CanvasItem, r: Rect2, fill: Color, rad := 12.0, bw := 4.0, 
 
 ## dikdörtgene kırpılı aksiyon ışınları
 static func rays(d: CanvasItem, r: Rect2, c: Vector2, col: Color, n := 16, wdt := 0.11, inset := 3.0) -> void:
+	col = tc(col)
 	var box := PackedVector2Array([r.position + Vector2(inset, inset), Vector2(r.end.x - inset, r.position.y + inset), r.end - Vector2(inset, inset), Vector2(r.position.x + inset, r.end.y - inset)])
 	var R := r.size.length() * 1.2
 	var V := PackedVector2Array()
@@ -219,7 +257,7 @@ static func _section(L: Lyr, n: Lyr.N) -> void:
 		var r := Rect2(Vector2.ZERO, sz)
 		panel(d, r, Color("#2a1838"), 14, 4.0, Vector2(3, 6))
 		halftone(d, Rect2(r.position + Vector2(5, maxf(5.0, sz.y - 60.0)), Vector2(sz.x - 10, minf(55.0, sz.y - 10))), Color(0, 0, 0, 0.22), 8.0, 5, 2.2)
-		d.draw_rect(Rect2(14, 4, minf(80.0, sz.x * 0.3), 4), Color(YEL, 0.85)))
+		d.draw_rect(Rect2(14, 4, minf(80.0, sz.x * 0.3), 4), Color(tc(YEL), 0.95)))
 
 # ═════════════ ANA MENÜ KABUĞU ═════════════
 
@@ -229,8 +267,8 @@ static func skin_shell(L: Lyr) -> void:
 	if sky:
 		strip(L, sky)
 		under(sky, func(d: Node2D, sz: Vector2):
-			var top := Color("#3a1a52")
-			var bot := Color("#120820")
+			var top := Color("#221c2c")
+			var bot := Color("#0b090f")
 			d.draw_polygon(PackedVector2Array([Vector2(-400, 0), Vector2(sz.x + 400, 0), Vector2(sz.x + 400, sz.y), Vector2(-400, sz.y)]),
 				PackedColorArray([top, top, bot, bot]))
 			halftone(d, Rect2(-400, sz.y * 0.55, sz.x + 800, sz.y * 0.45), Color(0, 0, 0, 0.28), 12.0, 16, 3.4))
@@ -253,7 +291,7 @@ static func skin_shell(L: Lyr) -> void:
 		under(tb, func(d: Node2D, sz: Vector2):
 			d.draw_rect(Rect2(-400, -200, sz.x + 800, sz.y + 200), NIGHT)
 			halftone(d, Rect2(-400, 0, sz.x + 800, sz.y), Color(0, 0, 0, 0.25), 7.0, 6, 2.0)
-			d.draw_rect(Rect2(-400, sz.y - 6, sz.x + 800, 3), Color(YEL, 0.85))
+			d.draw_rect(Rect2(-400, sz.y - 6, sz.x + 800, 3), Color(tc(YEL), 0.95))
 			d.draw_rect(Rect2(-400, sz.y - 3, sz.x + 800, 4), INK))
 	_skin_level(L)
 	for c in L.find_all(".tb-cur"): _skin_cur(L, c)
@@ -360,8 +398,8 @@ static func _skin_dock(L: Lyr) -> void:
 			var R := sz.x * 0.5
 			d.draw_circle(c + Vector2(2, 4), R, INK)
 			d.draw_circle(c, R, INK)
-			d.draw_circle(c, R - 4, Color("#ff5a2c"))
-			d.draw_circle(c + Vector2(0, -R * 0.15), R - 9, Color("#ff7a3a"))
+			d.draw_circle(c, R - 4, Color("#9e1626"))
+			d.draw_circle(c + Vector2(0, -R * 0.15), R - 9, Color("#c42a3a"))
 			d.draw_arc(c, R - 7, PI * 1.1, PI * 1.6, 12, Color(1, 1, 1, 0.55), 3.0, true))
 
 # ═════════════ SAVAŞ SAYFASI ═════════════

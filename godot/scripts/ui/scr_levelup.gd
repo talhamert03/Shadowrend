@@ -144,7 +144,7 @@ func _ensure_shell() -> void:
 	_reroll = Node2D.new()
 	_reroll.draw.connect(_draw_reroll)
 	add_child(_reroll)
-	_rr_txt = _mk_text(false, 1000, 20, 1.5, INK, "")
+	_rr_txt = _mk_text(false, 1000, 20, 1.5, Color.WHITE, UIK.ink_stroke(1.6, 2.0))
 	_rr_txt.reparent(_reroll)
 	_spark = Node2D.new()
 	_spark.draw.connect(_draw_sparks)
@@ -467,7 +467,7 @@ func _draw_reroll() -> void:
 	sh.set_corner_radius_all(21)
 	_reroll.draw_style_box(sh, Rect2(r.position + Vector2(3, 5), r.size))
 	var b := StyleBoxFlat.new()
-	b.bg_color = YEL if n > 0 else Color("#6a6070")
+	b.bg_color = ComicSkin.tc(YEL) if n > 0 else Color("#6a6070")
 	b.set_corner_radius_all(21)
 	b.set_border_width_all(4)
 	b.border_color = INK
