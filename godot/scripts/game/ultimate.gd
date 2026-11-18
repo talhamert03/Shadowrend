@@ -166,7 +166,7 @@ func _set_ready() -> void:
 		Quality.haptic("ui")
 		if not _told:
 			_told = true
-			g.ui.toast(id.name + " HAZIR — sağ alttaki mühre dokun")
+			g.ui.toast((I18n.tx(str(id.name)) + " READY — tap the seal at bottom right") if I18n.lang == "en" else (id.name + " HAZIR — sağ alttaki mühre dokun"))
 
 ## kare başı vuruş bütçesi: süperin aynı karede 40–60 düşmanı birden öldürmesi (ölüm efekti,
 ## ruh, metin) kareyi uzatıyordu; fazlası sonraki karelere sıralanır (~70 ms — göz fark etmez)

@@ -92,7 +92,7 @@ static func tc(c: Color) -> Color:
 	if h > 0.02 and h < 0.17 and s > 0.35:
 		# vurgu: koyu kırmızı (parlak sarıların koyu kırmızı karşılığı)
 		return Color.from_hsv(0.985, clampf(s, 0.66, 0.82), clampf(v * 0.74, 0.0, 0.86), c.a)
-	if h >= 0.20 and h < 0.45 and s > 0.4 and v > 0.5:
+	if h >= 0.20 and h < 0.45 and s > 0.28 and v > 0.5:
 		# canlı yeşil (onay / yükselt düğmeleri) → vurgu rengi
 		return Color.from_hsv(0.985, 0.70, clampf(v * 0.72, 0.0, 0.84), c.a)
 	if h >= 0.20 and h < 0.56 and s > 0.25:
