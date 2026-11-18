@@ -200,8 +200,8 @@ func _decks() -> void:
 				ov.draw_line(Vector2(r.position.x - 1.5, r.position.y + 8), Vector2(r.position.x - 1.5, r.end.y - 8), Color(gold, 0.18), 1.0)
 			var tc: Color = ink if I.on else Color(1, 0.93, 0.85, 0.9)
 			var mc: Color = Color(ink, 0.75) if I.on else Color(gold, 0.6)
-			ov.draw_string(fb, Vector2(r.position.x, r.position.y + 17), str(I.name), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, tc)
-			ov.draw_string(fs, Vector2(r.position.x, r.position.y + 33), str(I.meta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 10, mc)
+			ov.draw_string(fb, Vector2(r.position.x, r.position.y + 17), I18n.tx(str(I.name)), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, tc)
+			ov.draw_string(fs, Vector2(r.position.x, r.position.y + 33), I18n.tx(str(I.meta)), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 10, mc)
 		# SETLER düğmesi: altın çerçeveli, kitap simgesi
 		var sr := Rect2(barW + gap, 0, setW, RH)
 		ov.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.45), 14), Rect2(sr.position + Vector2(0, 3), sr.size))
@@ -209,7 +209,7 @@ func _decks() -> void:
 		var bc := sr.get_center() + Vector2(0, -7)
 		ov.draw_colored_polygon(PackedVector2Array([bc + Vector2(-11, -7), bc + Vector2(-1, -5), bc + Vector2(-1, 8), bc + Vector2(-11, 6)]), gold)
 		ov.draw_colored_polygon(PackedVector2Array([bc + Vector2(11, -7), bc + Vector2(1, -5), bc + Vector2(1, 8), bc + Vector2(11, 6)]), gold.darkened(0.15))
-		ov.draw_string(fb, Vector2(sr.position.x, sr.end.y - 7), "SETLER", HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 10, gold))
+		ov.draw_string(fb, Vector2(sr.position.x, sr.end.y - 7), I18n.tx("SETLER"), HORIZONTAL_ALIGNMENT_CENTER, sr.size.x, 10, gold))
 	row.node.add_child(ov)
 
 # ═════════════ kahraman sahnesi + statlar ═════════════

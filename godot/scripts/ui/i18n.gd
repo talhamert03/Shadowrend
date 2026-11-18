@@ -48,6 +48,10 @@ static func _load() -> void:
 	_re_upword = RegEx.new()
 	_re_upword.compile("[A-ZÇĞİÖŞÜ]+")
 
+## doğrudan çizilen metinler için kısa yol: Türkçede dokunmaz
+static func tx(s: String) -> String:
+	return s if lang == "tr" or s == "" else t(s)
+
 static func t(s: String) -> String:
 	if lang == "tr" or lang == "" or s == "" or _dict.is_empty(): return s
 	if _cache.has(s): return _cache[s]

@@ -661,9 +661,9 @@ func _draw_pu(c: Control) -> void:
 		var ft := UIK.font(true, 800, 1.2)
 		var bx := x + 1 + 5
 		# <b> 13 px (line-height 1) dikey ortada; metin 10 px
-		c.draw_string(fg, Vector2(bx, 11 + (fg.get_ascent(13) - fg.get_descent(13)) * 0.5), b.g, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, a))
+		c.draw_string(fg, Vector2(bx, 11 + (fg.get_ascent(13) - fg.get_descent(13)) * 0.5), I18n.tx(b.g), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(col, a))
 		var gw: float = b.gw
-		c.draw_string(ft, Vector2(bx + gw + 5, 11 + (ft.get_ascent(10) - ft.get_descent(10)) * 0.5), b.txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(col, a))
+		c.draw_string(ft, Vector2(bx + gw + 5, 11 + (ft.get_ascent(10) - ft.get_descent(10)) * 0.5), I18n.tx(b.txt), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(col, a))
 		x += w + gap
 	c.draw_set_transform(Vector2.ZERO, 0, Vector2.ONE)
 
@@ -914,8 +914,8 @@ func update_hud() -> void:
 			if (had > 0) != (_pu.size() > 0): _layout()
 
 func _badge(gl: String, txt: String, col: String, ending: bool) -> Dictionary:
-	var gw := UIK.font(true, 900, 1.2).get_string_size(gl, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-	var tw := UIK.font(true, 800, 1.2).get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x
+	var gw := UIK.font(true, 900, 1.2).get_string_size(I18n.tx(gl), HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	var tw := UIK.font(true, 800, 1.2).get_string_size(I18n.tx(txt), HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x
 	return {"g": gl, "txt": txt, "col": Color(col), "ending": ending, "gw": gw, "w": 1 + 5 + gw + 5 + tw + 8 + 1}
 
 func _fmt_time(sec: int) -> String:

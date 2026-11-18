@@ -102,7 +102,7 @@ func _paint() -> void:
 		cv.draw_colored_polygon(PackedVector2Array([cpt + Vector2(0, -4), cpt + Vector2(4, 0), cpt + Vector2(0, 4), cpt + Vector2(-4, 0)]), GOLD)
 	# başlık: eşya adı + nadirlik çizgisi
 	var f := UIK.font(false, 1000)
-	var nm := str(it.name).to_upper() if it else ""
+	var nm := I18n.tx(str(it.name).to_upper()) if it else ""
 	var hs := 17
 	while hs > 11 and f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, hs).x > W - 44.0: hs -= 1
 	_bang(f, Vector2(R.position.x, R.position.y + 26), nm, hs, rc.lightened(0.25), R.size.x, 3)
@@ -145,7 +145,7 @@ func _btn(r: Rect2, a: Dictionary, vis := 1.0) -> void:
 	_glyph(mc, String(a.l), Color(c.lightened(0.45), al))
 	var f := UIK.font(false, 1000)
 	var tc := Color(INK, al) if a.get("dark", false) else Color(1, 1, 1, al)
-	var lbl: String = a.l
+	var lbl: String = I18n.tx(a.l)
 	var tx := r.position.x + sk + 44.0 + off.x
 	var by := r.get_center().y + 8
 	_bang(f, Vector2(tx, by), lbl, 21, tc)
@@ -191,6 +191,7 @@ func _glyph(c: Vector2, lbl: String, col: Color) -> void:
 			cv.draw_line(c + Vector2(2.6, 2.6), c + Vector2(8, 8), col, 3.4)
 
 func _bang(f: Font, p: Vector2, s: String, sz: int, col: Color, w := 0.0, stroke := 3) -> void:
+	s = I18n.tx(s)
 	var al := HORIZONTAL_ALIGNMENT_CENTER if w > 0 else HORIZONTAL_ALIGNMENT_LEFT
 	var ww := w if w > 0 else -1.0
 	if col != INK:

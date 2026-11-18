@@ -64,6 +64,7 @@ func _now() -> float: return Time.get_ticks_msec() / 1000.0
 # ───────────────────────── yazı & kutu ─────────────────────────
 ## ana menü yazısı: Bangers (çizgi roman başlık) + mürekkep kontur + alt gölge
 func _bang(p: Vector2, s: String, sz: int, col: Color, w := 0.0, al := HORIZONTAL_ALIGNMENT_LEFT, stroke := 3, drop := 3.0) -> void:
+	s = I18n.tx(s)
 	var f := UIK.font(false, 1000)
 	var ww := w if w > 0 else -1.0
 	var ink := Color(INK, col.a)
@@ -73,11 +74,11 @@ func _bang(p: Vector2, s: String, sz: int, col: Color, w := 0.0, al := HORIZONTA
 	cv.draw_string(f, p, s, al, ww, sz, col)
 
 func _bw(s: String, sz: int) -> float:
-	return UIK.font(false, 1000).get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
+	return UIK.font(false, 1000).get_string_size(I18n.tx(s), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 
 ## gövde yazısı (Chakra Petch)
 func _txt(p: Vector2, s: String, sz: int, col: Color, w := 0.0, al := HORIZONTAL_ALIGNMENT_LEFT, wt := 600) -> void:
-	cv.draw_string(UIK.font(false, wt), p, s, al, w if w > 0 else -1.0, sz, col)
+	cv.draw_string(UIK.font(false, wt), p, I18n.tx(s), al, w if w > 0 else -1.0, sz, col)
 
 func _box(r: Rect2, c: Color, rad := 14.0, bw := 0.0, bc := INK) -> void:
 	cv.draw_style_box(ComicSkin.sb(c, rad, bw, bc), r)
@@ -243,11 +244,11 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	# statlar
 	y = R.position.y + showH + titleH
 	if cur:
-		_txt(Vector2(cx, y + 12), "Kuşanılana göre: " + str(cur.name), 12, DIM, cw, HORIZONTAL_ALIGNMENT_CENTER)
+		_txt(Vector2(cx, y + 12), (("Compared to: " + I18n.tx(str(cur.name))) if I18n.lang == "en" else ("Kuşanılana göre: " + str(cur.name))), 12, DIM, cw, HORIZONTAL_ALIGNMENT_CENTER)
 		y += 22
 	_paint_stats(stats, rc, owned, cx, cw, y)
 	y = R.position.y + showH + titleH + statH
-	_txt(Vector2(cx + 20, y + 20), ("“" + str(x.get("desc", "")) + "”") if owned else "Sandıklardan ve mağazadan elde edilir", 13, Color("#c9bcae") if owned else DIM, cw - 40, HORIZONTAL_ALIGNMENT_CENTER, 500)
+	_txt(Vector2(cx + 20, y + 20), ("“" + I18n.tx(str(x.get("desc", ""))) + "”") if owned else "Sandıklardan ve mağazadan elde edilir", 13, Color("#c9bcae") if owned else DIM, cw - 40, HORIZONTAL_ALIGNMENT_CENTER, 500)
 	if not gsk.is_empty():
 		# efsanevi eşya yeteneği kutusu
 		var kc := Color(str(gsk.get("c", "#ffc94a")))
@@ -257,7 +258,10 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 		cv.draw_colored_polygon(PackedVector2Array([dp + Vector2(0, -9), dp + Vector2(8, 0), dp + Vector2(0, 9), dp + Vector2(-8, 0)]), kc)
 		var nm := str(gsk.get("en", gsk.name)) if I18n.lang == "en" else str(gsk.name)
 		_bang(Vector2(kb.position.x + 38, kb.position.y + 20), nm.to_upper() + "   ·   " + str(int(gsk.cd)) + " SN", 15, kc.lightened(0.3))
-		_txt(Vector2(kb.position.x + 38, kb.position.y + 40), str(gsk.get("desc", "")), 12, Color(1, 1, 1, 0.75), kb.size.x - 46)
+		var gd := I18n.tx(str(gsk.get("desc", "")))
+		var gfs := 12
+		while gfs > 9 and UIK.font(false, 600).get_string_size(gd, HORIZONTAL_ALIGNMENT_LEFT, -1, gfs).x > kb.size.x - 46: gfs -= 1
+		_txt(Vector2(kb.position.x + 38, kb.position.y + 40), gd, gfs, Color(1, 1, 1, 0.75), kb.size.x - 46)
 	if not owned: return
 	y += loreH
 
@@ -272,7 +276,7 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 	else:
 		var nx := D.gearLevelMods(lvl + 1)
 		_bang(Vector2(b.position.x + 16, b.position.y + 32), "YÜKSELT", 24, Color.WHITE)
-		_txt(Vector2(b.position.x, b.position.y + 28), "SV " + str(lvl) + " → SV " + str(lvl + 1) + "   ·   statlar +%" + str(int(round((nx / gl - 1.0) * 100))), 12, GOOD, b.size.x - 16, HORIZONTAL_ALIGNMENT_RIGHT, 700)
+		_txt(Vector2(b.position.x, b.position.y + 28), (("LV " + str(lvl) + " → LV " + str(lvl + 1) + "   ·   stats +" + str(int(round((nx / gl - 1.0) * 100))) + "%") if I18n.lang == "en" else ("SV " + str(lvl) + " → SV " + str(lvl + 1) + "   ·   statlar +%" + str(int(round((nx / gl - 1.0) * 100))))), 12, GOOD, b.size.x - 16, HORIZONTAL_ALIGNMENT_RIGHT, 700)
 		var cards: int = g.gear_card_count(id)
 		var f := clampf(float(cards) / maxf(1.0, float(need)), 0.0, 1.0)
 		var br := Rect2(b.position + Vector2(16, 44), Vector2(b.size.x - 32, 24))
@@ -299,7 +303,7 @@ func _paint_info(x: Dictionary, W: Vector2, t: float) -> void:
 		_bang(Vector2(hc.x - 16, hc.y + 6), "+" + str(plus), 16, Color.WHITE, 32, HORIZONTAL_ALIGNMENT_CENTER, 2, 0)
 
 func _rarity_line(x: Dictionary, rc: Color, cx: float, cw: float, ry: float) -> void:
-	var rn: String = RNAME.get(int(x.rarity), "")
+	var rn: String = I18n.tx(RNAME.get(int(x.rarity), ""))
 	var rfont := UIK.font(false, 700, 3.0)
 	var rw := rfont.get_string_size(rn, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 	var mid := cx + cw * 0.5
@@ -308,7 +312,7 @@ func _rarity_line(x: Dictionary, rc: Color, cx: float, cw: float, ry: float) -> 
 	for sx in [-1.0, 1.0]:
 		var dp := Vector2(mid + sx * (rw * 0.5 + 8), ry - 5)
 		cv.draw_colored_polygon(PackedVector2Array([dp + Vector2(0, -4), dp + Vector2(4, 0), dp + Vector2(0, 4), dp + Vector2(-4, 0)]), rc)
-	cv.draw_string(rfont, Vector2(cx, ry), rn, HORIZONTAL_ALIGNMENT_CENTER, cw, 12, rc)
+	cv.draw_string(rfont, Vector2(cx, ry), I18n.tx(rn), HORIZONTAL_ALIGNMENT_CENTER, cw, 12, rc)
 
 func _paint_stats(stats: Array, rc: Color, owned: bool, cx: float, cw: float, y: float) -> void:
 	var colW := (cw - 32 - 8) * 0.5
@@ -478,7 +482,7 @@ func _paint_forge(x: Dictionary, W: Vector2, t: float, dt: float) -> void:
 	_bang(Vector2(P.position.x, P.position.y + 28), str(x.name), 22, Color.WHITE, P.size.x, HORIZONTAL_ALIGNMENT_CENTER, 3, 2)
 	if real >= PM and not busy:
 		_bang(Vector2(P.position.x, P.position.y + 78), "AZAMİ +7", 40, GOLD, P.size.x, HORIZONTAL_ALIGNMENT_CENTER, 4, 3)
-		_txt(Vector2(P.position.x, P.position.y + 104), "Tüm statlar +%" + str(int(round(g.PLUS_BONUS[PM] * 100))) + " · eşya tam güçte", 13, DIM, P.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		_txt(Vector2(P.position.x, P.position.y + 104), (("All stats +" + str(int(round(g.PLUS_BONUS[PM] * 100))) + "% · item at full power") if I18n.lang == "en" else ("Tüm statlar +%" + str(int(round(g.PLUS_BONUS[PM] * 100))) + " · eşya tam güçte")), 13, DIM, P.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	else:
 		var cur := mini(shown, PM - 1)
 		var b0 := int(round(g.PLUS_BONUS[cur] * 100))

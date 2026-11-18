@@ -23,7 +23,7 @@ func _al_tag(N: Lyr) -> void:
 		tg.draw_set_transform(Vector2(0, -3.0 * absf(sin(tt * 4.0))), 0.0, Vector2.ONE)
 		tg.draw_style_box(ComicSkin.sb(ComicSkin.INK, 6), Rect2(-24, -12, 50, 26))
 		tg.draw_style_box(ComicSkin.sb(Color("#e8323c"), 6), Rect2(-26, -14, 50, 24))
-		tg.draw_string(UIK.font(true, 900), Vector2(-26, 5), "AL!", HORIZONTAL_ALIGNMENT_CENTER, 50, 16, Color.WHITE))
+		tg.draw_string(UIK.font(true, 900), Vector2(-26, 5), I18n.tx("AL!"), HORIZONTAL_ALIGNMENT_CENTER, 50, 16, Color.WHITE))
 	N.add_child(tg)
 	var tw := tg.create_tween().set_loops()
 	tw.tween_callback(func(): if is_instance_valid(tg) and tg.is_visible_in_tree(): tg.queue_redraw()).set_delay(0.033)
@@ -108,7 +108,7 @@ func open() -> void:
 			# başlık + XP
 			var x0 := 84.0
 			var w := R.size.x - x0 - 14.0
-			hd.draw_string(fb, Vector2(x0, 24), "HESAP SEVİYESİ " + str(lvl), HORIZONTAL_ALIGNMENT_LEFT, w, 15, Color("#fff1d6"))
+			hd.draw_string(fb, Vector2(x0, 24), I18n.tx("HESAP SEVİYESİ " + str(lvl)), HORIZONTAL_ALIGNMENT_LEFT, w, 15, Color("#fff1d6"))
 			var br := Rect2(x0, 34, w, 12)
 			hd.draw_style_box(ComicSkin.sb(Color("#0a0508"), 6, 1.5, Color(0, 0, 0, 0.8)), br)
 			if xpk > 0.0:
@@ -117,7 +117,7 @@ func open() -> void:
 				hd.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.25), 4), Rect2(fr.position, Vector2(fr.size.x, fr.size.y * 0.45)))
 			hd.draw_string(fs, Vector2(x0, 62), str(int(pr.cur)) + " / " + str(int(pr.need)) + " XP", HORIZONTAL_ALIGNMENT_LEFT, w, 10, Color(1, 0.9, 0.75, 0.85))
 			if next_lv > 0:
-				hd.draw_string(fs, Vector2(x0, 62), "SIRADAKİ: SV " + str(next_lv) + " · " + nxt_name, HORIZONTAL_ALIGNMENT_RIGHT, w, 10, Color("#ffcf6a")))
+				hd.draw_string(fs, Vector2(x0, 62), I18n.tx("SIRADAKİ: SV " + str(next_lv) + " · " + nxt_name), HORIZONTAL_ALIGNMENT_RIGHT, w, 10, Color("#ffcf6a")))
 		intro.node.add_child(hd)
 		_tick_redraw(hd)
 	# ── ödül rayı: özel kartlar ──
@@ -223,10 +223,10 @@ func _row(W: float, CH: float, lv_i: int, chest: String, st: String, pr: Diction
 		var tx := R.position.x + 90
 		var tw := R.size.x - 160
 		var tc := Color("#fff1d6") if not lock else Color(0.72, 0.68, 0.72)
-		n.draw_string(fb, Vector2(tx, 32), nm, HORIZONTAL_ALIGNMENT_LEFT, tw, 15, tc)
+		n.draw_string(fb, Vector2(tx, 32), I18n.tx(nm), HORIZONTAL_ALIGNMENT_LEFT, tw, 15, tc)
 		var sub: String = {"ready": "ÖDÜLÜN HAZIR", "claimed": "ALINDI", "next": "SIRADAKİ ÖDÜL", "locked": "SV " + str(lv_i) + "'TE AÇILIR"}[st]
 		var sc2 := Color("#ffcf6a") if st == "ready" or st == "next" else (Color("#7fd69a") if st == "claimed" else Color(1, 1, 1, 0.38))
-		n.draw_string(fs, Vector2(tx, 50), sub, HORIZONTAL_ALIGNMENT_LEFT, tw, 10.5, sc2)
+		n.draw_string(fs, Vector2(tx, 50), I18n.tx(sub), HORIZONTAL_ALIGNMENT_LEFT, tw, 10.5, sc2)
 		if st == "next":
 			var br := Rect2(tx, 58, minf(tw, 120.0), 6)
 			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.08), 3), br)
@@ -240,7 +240,7 @@ func _row(W: float, CH: float, lv_i: int, chest: String, st: String, pr: Diction
 			n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0.5), 10), Rect2(bb.position + Vector2(0, 3), bb.size))
 			n.draw_style_box(ComicSkin.sb(Color("#f0a030"), 10, 1.5, Color("#ffe0a0")), bb)
 			n.draw_style_box(ComicSkin.sb(Color(1, 1, 1, 0.25), 8), Rect2(bb.position + Vector2(2, 2), Vector2(bb.size.x - 4, bb.size.y * 0.42)))
-			n.draw_string(fb, Vector2(bb.position.x, bb.position.y + bb.size.y * 0.5 + 6), "AL", HORIZONTAL_ALIGNMENT_CENTER, bb.size.x, 16, Color("#2a1406"))
+			n.draw_string(fb, Vector2(bb.position.x, bb.position.y + bb.size.y * 0.5 + 6), I18n.tx("AL"), HORIZONTAL_ALIGNMENT_CENTER, bb.size.x, 16, Color("#2a1406"))
 		elif st == "claimed":
 			n.draw_circle(Vector2(rx, CH * 0.5), 13, Color("#1f6b3a"))
 			n.draw_arc(Vector2(rx, CH * 0.5), 13, 0, TAU, 28, Color("#7fd69a"), 1.5, true)
