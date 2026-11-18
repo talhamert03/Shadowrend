@@ -104,11 +104,14 @@ static func t(s: String) -> String:
 	_cache[s] = res
 	return res
 
-## dil değişince: kaydedilir, sahne baştan yüklenir (web: location.reload)
+## dil değişince: kaydedilir, arayüz ekranları yeni dilde yeniden kurulur
 static func set_lang(l: String, tree: SceneTree) -> void:
 	if not (l in LANGS) or l == lang: return
 	Settings.set_value("lang", l)
 	lang = l
 	_cache.clear()
 	_load()
-	tree.reload_current_scene()
+	# sahne baştan yüklenmez (Android'de eklenti/bellek çökmesi): ekranlar yeni dilde yeniden kurulur
+	var game = tree.current_scene
+	if game and game.get("ui") and game.ui.has_method("relocalize"): game.ui.relocalize()
+	else: tree.reload_current_scene()

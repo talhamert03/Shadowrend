@@ -112,8 +112,7 @@ func _build() -> void:
 	var hw := (cw - 10.0) * 0.5
 	_segment(["TR", "EN"], ["tr", "en"].find(I18n.lang), x0, y, hw, func(i: int):
 		g.audio.play("click")
-		I18n.set_lang(["tr", "en"][i], get_tree())
-		_build_keep())
+		I18n.set_lang(["tr", "en"][i], get_tree()))   # ekranlar yeniden kurulur; bu pencere de yenisiyle değişir
 	var sh := bool(Settings.data.get("shake", true))
 	y = _segment(["AÇIK", "KAPALI"], 0 if sh else 1, x0 + hw + 10.0, y, hw, func(i: int):
 		g.audio.play("click")

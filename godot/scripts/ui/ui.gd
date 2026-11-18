@@ -101,6 +101,18 @@ func _ready() -> void:
 	gm.shader = load("res://shaders/ui_grade.gdshader")
 	_grade.material = gm
 	_gradeL.add_child(_grade)
+	ads = Ads.new(g)
+	add_child(ads)
+	pay = Pay.new(g)
+	add_child(pay)
+	cloud = Cloud.new(g)
+	add_child(cloud)
+	_build_screens()
+
+## arayüz ekranları (menü, HUD, pencereler). Dil değişince yeniden kurulur; Ads/Pay/Cloud (Android
+## eklentileri) bir kez kurulur ve korunur — sahneyi baştan yüklemek eklentileri ikinci kez başlatıp
+## telefonda çökmeye ve tüm dokuların ikinci kez yüklenmesiyle bellek taşmasına yol açıyordu.
+func _build_screens() -> void:
 	menu = ScrMenu.new(g)
 	uiroot.add_child(menu)
 	hud = HUD.new(g)
@@ -117,12 +129,6 @@ func _ready() -> void:
 	uiroot.add_child(gate)
 	adwatch = ScrAdWatch.new(g)
 	uiroot.add_child(adwatch)
-	ads = Ads.new(g)
-	add_child(ads)
-	pay = Pay.new(g)
-	add_child(pay)
-	cloud = Cloud.new(g)
-	add_child(cloud)
 	evo = ScrEvo.new(g)
 	uiroot.add_child(evo)
 	ach = AchToast.new(g)
@@ -166,6 +172,29 @@ func _ready() -> void:
 	for o in [ceremony, celebrate, chestbuy, evo, adwatch, upfx, settings, battlepass, setguide, event_scr, sheet, gearmenu]:
 		if o: o.z_index = 60
 	if hud and hud.toastBox: hud.toastBox.z_index = 90
+
+func _screens() -> Array:
+	return [menu, hud, levelup, bless, pause, missionend, gate, adwatch, evo, ach, ftue, chestinspect, ceremony,
+		chardetail, gearmenu, geardetail, chestbuy, settings, drawer, accjourney, quests, battlepass, setguide,
+		event_scr, celebrate, upfx, sheet]
+
+## dil değişimi: oyunu yeniden başlatmadan tüm ekranları yeni dilde baştan kur, menüye dön ve
+## ayarları yeniden aç (kullanıcı nerede olduğunu kaybetmesin)
+func relocalize() -> void:
+	var reopen_settings: bool = settings != null and settings.visible
+	for n in _screens():
+		if n and is_instance_valid(n):
+			n.visible = false
+			n.queue_free()
+	await get_tree().process_frame
+	_build_screens()
+	_apply_safe()
+	if g.state != "playing": show_menu()
+	if reopen_settings: get_tree().create_timer(0.05).timeout.connect(func(): settings.show_settings(false))
+	# alt menü sekmeleri arkada sırayla kurulsun (ilk geçişte takılma olmasın)
+	for pg in g.BOOT_PAGES:
+		await get_tree().create_timer(0.25).timeout
+		if menu and is_instance_valid(menu) and not menu.pages.has(pg) and menu.pages.size() < menu.page_cap(): menu.prebuild(pg)
 
 # geliştirici: missdump=yol — çıkışta çevirisi bulunmayan metinleri (I18n.missing) dosyaya yazar
 func _exit_tree() -> void:
@@ -249,6 +278,9 @@ func boot() -> void:
 				pg.shell.set_scroll(pg.root, minf(float(_arg("pscroll")), pg.shell.scroll_max(pg.root)))
 		if _arg("navtest") != "": _nav_test()
 		if _arg("tabcycle") != "": _tab_cycle()
+		if _arg("setlang") != "":
+			# geliştirici: setlang=en — ayarlardan dil değiştirmeyi taklit et (çökme testi)
+			get_tree().create_timer(float(_arg("setlang_t", "6"))).timeout.connect(func(): I18n.set_lang(_arg("setlang"), get_tree()))
 		if _arg("promo") != "": _promo()
 		if _arg("qetap") != "":
 			get_tree().create_timer(4.0).timeout.connect(func():
