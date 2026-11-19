@@ -70,6 +70,12 @@ with zipfile.ZipFile(f'{out}/Shadowrend_{V}.zip','w',zipfile.ZIP_DEFLATED,compre
             if rel=='.' and f=='config.gradle':
                 t=open(p).read().replace("androidGradlePlugin: '8.6.1'","androidGradlePlugin: '8.13.1'").replace("kotlinVersion      : '2.1.20'","kotlinVersion      : '2.2.21'")
                 z.writestr(arc,t); continue
+            # ekran yönü özelliği zorunlu değil (Play: "zorunlu donanım özelliği" uyarısı; Chromebook/masaüstü/XR dışlanmasın)
+            if rel=='.' and f=='AndroidManifest.xml':
+                t=open(p).read()
+                if 'android.hardware.screen.portrait' not in t:
+                    t=t.replace('<application','<uses-feature android:name="android.hardware.screen.portrait" android:required="false" />\n    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />\n\n    <application',1)
+                z.writestr(arc,t); continue
             if f=='gradle-wrapper.properties':
                 z.writestr(arc,open(p).read().replace('gradle-8.11.1-bin.zip','gradle-9.2.1-bin.zip')); continue
             z.write(p,arc,compress_type=zipfile.ZIP_STORED if f.endswith(STORE) else zipfile.ZIP_DEFLATED)
