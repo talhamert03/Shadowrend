@@ -1955,7 +1955,7 @@ func _process(_delta: float) -> void:
 				acc -= STEP
 				steps += 1
 			if steps == MAX_STEPS * devSpeed: acc = 0
-	if not _botMode or Engine.get_frames_drawn() % 30 == 0:
+	if not _botMode or _movie or Engine.get_frames_drawn() % 30 == 0:   # film kaydında her kare çizilir
 		Prof.b("render_frame"); render_frame(); Prof.e("render_frame")
 	Prof.frame()
 	Prof.cur = "motor-cizim"      # betik bitti: buradan sonraki donma motor/GPU tarafında
