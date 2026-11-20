@@ -425,6 +425,15 @@ func boot() -> void:
 				var need: int = int(_arg("horde")) - E.pool.active.size()
 				for i in clampi(need, 0, 25): E.spawn_one(E.weights, E.hpMul * float(_arg("spawnhp", "3")), E.dmgMul * 0.05))
 			ht.start()
+		if _arg("ultat") != "":
+			# geliştirici: ultat=sn[,sn…] — tanıtım çekimi: süper gücü bu anlarda ateşle
+			for ts in _arg("ultat").split(","):
+				get_tree().create_timer(float(ts)).timeout.connect(func():
+					if g.ult:
+						g.ult._set_ready()
+						g.ult.fire())
+		if _arg("bossat") != "":
+			get_tree().create_timer(float(_arg("bossat"))).timeout.connect(func(): g.enemies.spawn_boss())
 		if _arg("pausenow") != "":
 			get_tree().create_timer(float(_arg("pausenow"))).timeout.connect(func(): g.pause_game())
 		if _arg("endnow") != "":

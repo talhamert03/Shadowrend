@@ -1885,7 +1885,7 @@ func _process(_delta: float) -> void:
 			freeze = 0
 			last = _now_ms()
 	# ham kare süresi: tek takılmalar ölçüm dışı, SÜREKLİ ağır kareler acil kalite düşürmeyi tetikler
-	if Quality.sample(minf(rdtMs, 1400.0), state == "playing"):
+	if not _movie and Quality.sample(minf(rdtMs, 1400.0), state == "playing"):
 		if renderer3d: renderer3d.resize()
 	if state == "playing": PerfLog.push(rdt * 1000.0)
 	fpsEma = Quality.fps

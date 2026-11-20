@@ -33,6 +33,7 @@ const CAM_NEAR := 1.26
 ## geliştirici: kamera uzaklık çarpanı (camzoom=0.4 → yakın çekim, stil incelemesi)
 var _dev_zoom := 1.0
 var _fixdt := 0.0
+var _movT := 0.0
 var cam_left := -185.0
 var cam_right := 185.0
 var cam_top := 560.0
@@ -799,7 +800,12 @@ func render(g) -> void:
 		_probe_scan(scene)
 	var now := Time.get_ticks_msec() * 1.0
 	var dt := minf(0.1, (now - _clock) / 1000.0) if _clock > 0 else 0.016
-	if _fixdt > 0.0: dt = _fixdt          # geliştirici: --write-movie kaydında kare başına sabit adım
+	if _fixdt <= 0.0 and Engine.get_write_movie_path() != "": _fixdt = maxf(0.001, get_process_delta_time())
+	if _fixdt > 0.0:
+		# film kaydı: duvar saati değil sabit kare adımı (animasyonlar kayıtta akıcı)
+		dt = _fixdt
+		_movT += dt
+		now = _movT * 1000.0
 	_clock = now
 	RenderingServer.global_shader_parameter_set("r3_time", now / 1000.0)
 	if g.player.charId and g.player.charId != _currentCharId:
