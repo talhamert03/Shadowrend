@@ -371,6 +371,23 @@ func _abs_of(n: N) -> Vector2:
 		m = pn
 	return p
 
+## dokunma testi: düğümün ekranda GERÇEKTEN çizildiği dikdörtgen (genel koordinat) —
+## animasyon / betik dönüşümleri (extra, ölçek, kayma) dahil; kaydırma kapsayıcısıyla kırpılır.
+## Ham kutu (rect_of) dönüşümsüzdür: küçültülen kartın çarpısı gibi kayan düğümlerde
+## dokunuş yanlış yere düşüyordu.
+func screen_rect_of(n: N) -> Rect2:
+	if n.node == null or not is_instance_valid(n.node) or not n.node.is_inside_tree():
+		return get_global_transform() * visible_rect_of(n)
+	var r: Rect2 = n.node.get_global_transform() * Rect2(Vector2.ZERO, n.size)
+	var par = n.d.get("parent")
+	while par != null:
+		var pn: N = by_id.get(str(par))
+		if pn == null: break
+		if pn.scroller and pn.node and is_instance_valid(pn.node):
+			r = r.intersection(pn.node.get_global_transform() * Rect2(Vector2.ZERO, pn.size))
+		par = pn.d.get("parent")
+	return r
+
 ## kaydırma kapsayıcıları içinde görünen dikdörtgen (dokunma testi için)
 func visible_rect_of(n: N) -> Rect2:
 	var r := rect_of(n)

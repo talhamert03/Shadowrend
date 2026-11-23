@@ -62,9 +62,12 @@ func _build() -> void:
 	# kart biraz daha küçük (ekranı kaplamasın)
 	var cd := L.find(".ci-card")
 	if cd:
+		# düğüm dönüşümü origin etrafında uygulanır: ölçek kartın merkezine göre olsun
+		# (origin + öteleme birlikte verilince kart sağa-aşağı kayıyordu, çarpının dokunma
+		# alanı da görünen yerinden kopuyordu)
 		var s := 0.9
-		var cc: Vector2 = cd.size * 0.5
-		cd.extra = Transform2D(0, Vector2(s, s), 0, cc - cc * s)
+		var d: Vector2 = cd.size * 0.5 - cd.origin
+		cd.extra = Transform2D(0, Vector2(s, s), 0, d - d * s)
 		L.set_dyn(cd)
 	# 3B sandık: tuval düğümünün yerinde
 	var cv := L.find_id("#chest-canvas-3d")

@@ -71,25 +71,40 @@ func unbtn(L: Lyr) -> void:
 
 ## kapanış geçişi: kısa solma, sonra asıl kapatma (cb); açılışta reset_fade()
 var _fade_tw: Tween
+var _fade_closing := false
 func fade_hide(cb: Callable, dur := 0.16) -> void:
-	if _fade_tw and _fade_tw.is_valid(): return
+	# zaten kapanıyorsa tekrar etme; AÇILIŞ geçişi sürüyorsa kes ve kapan (eskiden açılış
+	# animasyonu bitene dek çarpı / boşluk dokunuşu sessizce yok sayılıyordu)
+	if _fade_tw and _fade_tw.is_valid():
+		if _fade_closing: return
+		_fade_tw.kill()
+	_fade_closing = true
 	_fade_tw = create_tween()
 	_fade_tw.tween_property(self, "modulate:a", 0.0, dur).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_fade_tw.parallel().tween_property(self, "scale", Vector2.ONE * 0.985, dur).set_ease(Tween.EASE_IN)
+	_fade_tw.parallel().tween_property(self, "position", UIK.ui_size(get_viewport()) * 0.5 * 0.015, dur).set_ease(Tween.EASE_IN)
 	_fade_tw.tween_callback(func():
 		_fade_tw = null
+		_fade_closing = false
 		cb.call()
-		modulate.a = 1.0)
+		modulate.a = 1.0
+		scale = Vector2.ONE
+		position = Vector2.ZERO)
 
 ## bekleyen kapanış geçişini iptal et (ekran kapanırken yeniden açıldı)
 func cancel_fade() -> void:
 	if _fade_tw and _fade_tw.is_valid(): _fade_tw.kill()
 	_fade_tw = null
+	_fade_closing = false
 	modulate.a = 1.0
+	scale = Vector2.ONE
+	position = Vector2.ZERO
 
 ## açılış geçişi: solarak + hafif büyüyerek belirir (ekran merkezli)
 func fade_show(dur := 0.2) -> void:
 	if name != "Menu" and not (get_script() as Script).resource_path.ends_with("scr_menu.gd"): z_index = 40   # sayfalardaki z_index'li ögelerin üstünde kal
 	if _fade_tw and _fade_tw.is_valid(): _fade_tw.kill()
+	_fade_closing = false
 	var W := UIK.ui_size(get_viewport())
 	modulate.a = 0.0
 	scale = Vector2.ONE * 0.97
@@ -152,11 +167,15 @@ func clear_btns() -> void:
 
 func _rect(B: Dictionary) -> Rect2:
 	var L: Lyr = B.lyr
-	# hit: katman yerelinde elle verilen dokunma kutusu (çizim dönüşümüyle kayan düğümler için)
-	var r: Rect2 = B.hit if B.get("hit", Rect2()).has_area() else L.visible_rect_of(B.n)
-	if B.get("clipn", false): r = r.intersection(L.visible_rect_of(B.n))
-	if r.size.x <= 0 or r.size.y <= 0: return Rect2()
-	return _clip(L, (L.get_global_transform() * r).grow(B.grow))
+	# hit: katman yerelinde elle verilen dokunma kutusu; yoksa düğümün ekranda çizildiği yer
+	var R: Rect2
+	if B.get("hit", Rect2()).has_area():
+		R = L.get_global_transform() * (B.hit as Rect2)
+		if B.get("clipn", false): R = R.intersection(L.screen_rect_of(B.n))
+	else:
+		R = L.screen_rect_of(B.n)
+	if R.size.x <= 0 or R.size.y <= 0: return Rect2()
+	return _clip(L, R.grow(B.grow))
 
 ## kırpan ata (sayfa görünüm alanı vb.): görünmeyen kısım dokunuş almaz — kaydırma alanının
 ## dışına taşan kartlar / sayfa kökü alt menünün dokunuşunu yutmasın
