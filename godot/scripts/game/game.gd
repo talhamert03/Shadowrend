@@ -234,7 +234,7 @@ func _ready() -> void:
 	var intro_on := not (ua.has("nointro") or ua.has("autorun"))
 	_preload(_boot_paths())     # en başta (siyah açılış anında), tek iş parçacığıyla: animasyonun ortasında takılmasın
 	if intro_on:
-		var intro := ScrIntro.new()
+		var intro: ScrIntro = ScrIntroV2.new() if ua.has("intro2") else ScrIntro.new()
 		add_child(intro)
 		await intro.finished
 	boot_screen = ScrBoot.new()
