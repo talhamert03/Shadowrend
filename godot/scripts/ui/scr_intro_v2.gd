@@ -47,11 +47,20 @@ func _ready() -> void:
 	_streak.width = 256
 	_streak.height = 1
 
+## v2 daha kısa: "tınn" sonrası beklemeden siyaha söner
+const DUR2 := 4.9
+const FADE_A := 4.3
+
 func _process(dt: float) -> void:
+	if _t >= DUR2 and not _done:
+		_done = true
+		finished.emit()
+		queue_free()
+		return
 	super(dt)
 	if not is_instance_valid(_cv): return
 	# yavaş kamera yaklaşması (ekran merkezli, sona doğru yavaşlar)
-	var k := 1.0 + 0.05 * _eo(clampf(maxf(0.0, _t) / DUR, 0.0, 1.0))
+	var k := 1.0 + 0.05 * _eo(clampf(maxf(0.0, _t) / DUR2, 0.0, 1.0))
 	_cv.scale = Vector2.ONE * k
 	_cv.position = Vector2(W, H) * 0.5 * (1.0 - k)
 
@@ -60,10 +69,12 @@ func _render() -> void:
 	_atmos(t)
 	super()
 	_front(t)
+	var fo := _seg(t, FADE_A, DUR2 - 0.05)
+	if fo > 0.0: _cv.draw_rect(Rect2(-W, -H, W * 3.0, H * 3.0), Color(0, 0, 0, _eio(fo)))
 
 ## arka: ay ışığından yayılan koyu lacivert ışıma + yükselen toz
 func _atmos(t: float) -> void:
-	var a := _eo(_seg(t, 0.0, 1.2)) * (1.0 - _seg(t, 4.9, 5.5))
+	var a := _eo(_seg(t, 0.0, 1.2))
 	if a <= 0.0: return
 	var c := Vector2(W * 0.5, H * 0.38)
 	var R := maxf(W, H) * 1.05
