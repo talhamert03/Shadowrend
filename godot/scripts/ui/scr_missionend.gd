@@ -425,6 +425,14 @@ func _relayout() -> void:
 		for k in act.kids: bl.append(k)
 		var dh := L.relayout_col(act, bl)
 		act.size.y = float(act.d.get("_h0", act.d.box[3])) + dh
+		# diriliş varken en üstte: göz önce "yeniden doğ"a gitsin (ana menü altına iner)
+		var bm := L.find("#btn-me-menu")
+		var bv := L.find("#btn-me-revive")
+		if bm and bv and not bv.hidden and not bm.hidden and bv.pos.y > bm.pos.y:
+			var y0 := bm.pos.y
+			var gap := bv.pos.y - (bm.pos.y + bm.size.y)
+			L.move(bv, Vector2(bv.pos.x, y0))
+			L.move(bm, Vector2(bm.pos.x, y0 + bv.size.y + gap))
 	var items := []
 	for k in card.kids:
 		if String(k.d.get("kind", "el")) == "el": items.append(k)

@@ -404,6 +404,14 @@ func boot() -> void:
 				if not g.meta.owned.has(it.id): g.meta.owned.append(it.id)
 				g.meta.gearLevels[it.id] = gl
 				mp[it.slot] = it.id
+		# geliştirici: zamanlı dokunuşlar savaşta da (taps=sn@xXy,…)
+		for tk in _arg("taps").split(",", false):
+			var pp := tk.split("@")
+			var at := Vector2(195, 422)
+			if pp.size() > 1:
+				var xy := pp[1].split("x")
+				at = Vector2(float(xy[0]), float(xy[1]))
+			_taps.append([float(pp[0]), at])
 		g.devSpeed = int(_arg("speed", "1"))
 		_god = _arg("god") != ""
 		if _arg("bench") != "": Combat.devHpMul = 8.0
