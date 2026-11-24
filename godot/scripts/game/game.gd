@@ -232,11 +232,17 @@ func _ready() -> void:
 	# planda yüklenir/derlenir — başlık ekranı geldiğinde ana iş parçacığını saniyelerce kilitlemezler
 	# intro açılırken işlemciyle yarışmasın: ağır ön yükleme 1,2 sn sonra (intro yoksa hemen)
 	var intro_on := not (ua.has("nointro") or ua.has("autorun"))
-	_preload(_boot_paths())     # en başta (siyah açılış anında), tek iş parçacığıyla: animasyonun ortasında takılmasın
+	var bp := _boot_paths()
 	if intro_on:
-		var intro: ScrIntro = ScrIntroV2.new() if ua.has("intro2") else ScrIntro.new()
+		# betikler en başta (siyah açılış anında); 3B modeller (doku yüklemesi ana iş parçacığını
+		# kısa süre kilitler) siyaha sönerken — kurt birleşip ulurken ve logo gelirken takılma olmasın
+		_preload(bp.slice(0, 6))
+		var intro: ScrIntro = ScrIntro.new() if ua.has("intro1") else ScrIntroV2.new()
 		add_child(intro)
+		get_tree().create_timer(4.4).timeout.connect(func(): _preload(bp.slice(6)))
 		await intro.finished
+	else:
+		_preload(bp)
 	boot_screen = ScrBoot.new()
 	add_child(boot_screen)
 	await get_tree().process_frame

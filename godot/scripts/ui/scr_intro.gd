@@ -27,6 +27,7 @@ var _moon: GradientTexture2D
 var _fade: GradientTexture2D
 var _seed := 7
 var _done := false
+var snd_path := BASE + "intro.ogg"     # alt sürüm kendi sesini verir
 
 func _init() -> void:
 	layer = 110
@@ -71,7 +72,7 @@ func _ready() -> void:
 	_cv = Node2D.new()
 	_cv.draw.connect(_render)
 	add_child(_cv)
-	var st: AudioStream = load(BASE + "intro.ogg")
+	var st: AudioStream = load(snd_path)
 	if st and not (Settings.data and float(Settings.data.get("sfx", 1.0)) <= 0.0):
 		var p := AudioStreamPlayer.new()
 		p.stream = st

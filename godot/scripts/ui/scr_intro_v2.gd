@@ -14,11 +14,12 @@ var _sparks: Array = []    # [başlangıç (yerel), gecikme, boyut]
 var _soft: GradientTexture2D
 var _streak: GradientTexture2D
 
+func _init() -> void:
+	super()
+	snd_path = SND_V2
+
 func _ready() -> void:
 	super()
-	if _snd:
-		var st: AudioStream = load(SND_V2)
-		if st: _snd.stream = st
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2026
 	for i in DUST:
