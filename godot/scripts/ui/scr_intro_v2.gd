@@ -84,6 +84,28 @@ func _atmos(t: float) -> void:
 	var fh := 260.0 * U
 	_cv.draw_texture_rect(_fade, Rect2(-W, y0 - fh, W * 3.0, fh), false)
 	_cv.draw_rect(Rect2(-W, y0 - 0.5, W * 3.0, H * 2.0), Color.BLACK)
+	_full_moon(t, s, cy, to_logo)
+
+## dolunay: ScrIntro'nun ay halkasıyla aynı yer/boyut; soluk mavimsi beyaz (göz almaz) — merkezde
+## hafif ışık, kenarda kararma, birkaç yumuşak leke. Kurt başı önünde silüet olarak okunur.
+const _MARIA := [[-0.28, -0.22, 0.30], [0.22, -0.30, 0.22], [0.10, 0.18, 0.34], [-0.30, 0.30, 0.20], [0.38, 0.10, 0.16], [-0.05, -0.45, 0.10], [0.45, -0.12, 0.08], [-0.48, 0.02, 0.09], [0.24, 0.46, 0.08]]
+func _full_moon(t: float, s: float, cy: float, to_logo: float) -> void:
+	var mg := _eo(_seg(t, 0.9, 1.7)) * (1.0 - 0.45 * to_logo)
+	if mg <= 0.0: return
+	var mc := Vector2(W / 2.0 + 120.0 * s, cy - 330.0 * s)
+	var mr := 330.0 * s
+	# dış hale
+	_cv.draw_texture_rect(_soft, Rect2(mc - Vector2.ONE * mr * 2.3, Vector2.ONE * mr * 4.6), false, Color(0.55, 0.70, 0.92, 0.16 * mg))
+	# disk
+	_cv.draw_circle(mc, mr, Color(0.80, 0.85, 0.91, 0.66 * mg), true, -1.0, true)
+	# merkez ışığı (sol üste kaçık) + lekeler
+	_cv.draw_texture_rect(_soft, Rect2(mc + Vector2(-0.18, -0.2) * mr - Vector2.ONE * mr * 0.95, Vector2.ONE * mr * 1.9), false, Color(1, 1, 1, 0.16 * mg))
+	for m in _MARIA:
+		var p := mc + Vector2(float(m[0]), float(m[1])) * mr
+		var rr := float(m[2]) * mr
+		_cv.draw_texture_rect(_soft, Rect2(p - Vector2.ONE * rr, Vector2.ONE * rr * 2.0), false, Color(0.40, 0.47, 0.58, 0.30 * mg))
+	# kenar kararması
+	_cv.draw_arc(mc, mr * 0.955, 0.0, TAU, 96, Color(0.30, 0.38, 0.50, 0.16 * mg), mr * 0.09, true)
 
 ## ön: birleşme kıvılcımları, logo ışık patlaması, yatay ışık çizgisi, tınn yıldızı
 func _front(t: float) -> void:
