@@ -20,6 +20,10 @@ const VITRINE := ["yaygin", "kemik", "kan", "kadim", "mistik", "ejderha"]
 const AD_CHEST_CD := 4 * 3600e3
 ## reklamlı bonus sandık: ALTIN (gümüşün bir üstü)
 const AD_CHEST := "kemik"
+## reklamlı günlük ücretsiz gem: her izleme +GEM_AD, günde en çok GEM_AD_MAX kez
+const GEM_AD := 5
+const GEM_AD_MAX := 2
+const ROW_STEP := 109.0     # afiş satırları arası (yakalama: ücretsiz → bonus)
 const MK_HC_W := 176.0          # kahraman kartı (2 sütun · 10 px aralık)
 const MK_GAP := 10.0
 const MK_GC_STEP := Vector2(185.0, 128.0)
@@ -211,6 +215,12 @@ func _chests() -> void:
 			cs.host.add_child(sp)
 		if ad_in <= 0: EventsPage.txt(A, A.find("em"), "Kısa bir reklam izle, ALTIN SANDIK senin", 0.0)
 		menu.btn(A, A.nodes[0], func(): _ad_tap(), 0.98)
+	# reklamlı günlük ücretsiz gem (bonus sandığın altında; sonraki her şey bir satır kayar)
+	var shift := 0.0
+	if A:
+		_gem_row(K, A.position + Vector2(0, ROW_STEP))
+		shift = ROW_STEP
+	var first_after: int = (_items[K] as Array).size()
 	_add("sec_sefer", K)
 	_add("sec_kral", K)
 	for t in VITRINE:
@@ -224,6 +234,66 @@ func _chests() -> void:
 			var tt: String = t
 			_restyle_vcard(V, t)
 			menu.btn(V, V.nodes[0], func(): _vcard_tap(tt), 0.96)
+	if shift > 0.0:
+		var its: Array = _items[K]
+		for i in range(first_after, its.size()):
+			(its[i] as Node2D).position.y += shift
+		var box := shell.find_id(K)
+		if box:
+			if not box.d.has("_h0"): box.d["_h0"] = box.size.y
+			shell.resize_h(box, float(box.d["_h0"]) + shift)
+
+## günlük ücretsiz gem — bugünkü izleme sayısı (yerel gün)
+static func gem_ad_used() -> int:
+	var v := str(Store.get_item("kh_gemad", "")).split(":")
+	if v.size() < 2 or int(v[0]) != shop_day(): return 0
+	return int(v[1])
+
+func _gem_row(K: String, pos: Vector2) -> void:
+	var used := gem_ad_used()
+	var left := GEM_AD_MAX - used
+	var en := I18n.lang == "en"
+	var R := _add("fb_ad_" + ("ready" if left > 0 else "wait"), K, pos)
+	if R == null: return
+	R.set_text(R.find_exact("b"), "FREE GEMS" if en else "ÜCRETSİZ GEM")
+	if left > 0:
+		var sub := ("Watch a short ad, +%d GEMS · %d/%d left" if en else "Kısa bir reklam izle, +%d GEM · %d/%d hak") % [GEM_AD, left, GEM_AD_MAX]
+		EventsPage.txt(R, R.find("em"), sub, 0.0)
+	else:
+		R.set_text(R.find("em"), "New gems in" if en else "Yeni gem hakkı")
+		var cd := R.find_id("#ad-cd")
+		if cd:
+			R.set_text(cd, ChestSystem.fmt_dur(day_ends_in()))
+			_cd["gem"] = [R, cd]
+	# sandık görseli yerine parıldayan gem
+	var cs := R.find(".chest-svg")
+	if cs and cs.img:
+		cs.img.visible = false
+		var sp := Sprite2D.new()
+		sp.texture = load("res://assets/fx/currency/gem.png")
+		var k := minf(cs.size.x, cs.size.y) * 0.92 / maxf(1.0, float(sp.texture.get_height()))
+		sp.scale = Vector2(k, k)
+		sp.position = cs.size * 0.5
+		cs.host.add_child(sp)
+		_bob.append([R, cs, randf() * TAU])
+	menu.btn(R, R.nodes[0], func(): _gem_tap(R), 0.98)
+
+func _gem_tap(R: Lyr) -> void:
+	if gem_ad_used() >= GEM_AD_MAX:
+		g.audio.play("click")
+		g.ui.toast("YARIN YENİ GEM HAKKI")
+		return
+	g.ui.show_rewarded("gunluk_gem", func():
+		var n := gem_ad_used()
+		if n >= GEM_AD_MAX: return
+		Store.set_item("kh_gemad", str(shop_day()) + ":" + str(n + 1))
+		g.add_stones(GEM_AD)
+		g.audio.play("adreward")
+		g.ui.toast("+" + str(GEM_AD) + " GEM")
+		if is_instance_valid(R): menu.fly_currency(R, R.nodes[0], "stone", func(): render())
+		else:
+			menu.refresh_wallet()
+			render())
 
 ## satırdaki durağan sandık görselini canlı simgeyle değiştir (net + oturaklı + hafif hareketli)
 func _live_chest(L: Lyr, tier: int) -> void:
@@ -783,6 +853,12 @@ func _process(dt: float) -> void:
 			render()
 			return
 		_cd.ad[0].set_text(_cd.ad[1], ChestSystem.fmt_dur(left))
+	if _cd.has("gem"):
+		var left := day_ends_in()
+		if left <= 1000:
+			render()
+			return
+		_cd.gem[0].set_text(_cd.gem[1], ChestSystem.fmt_dur(left))
 	if _cd.has("deal"):
 		var left := day_ends_in()
 		if left <= 1000:

@@ -19,6 +19,8 @@ const REAL_UNITS := {
 	"magaza_sandik": "ca-app-pub-1770141144744598/2965924667",
 	"sandik_hizlandir": "ca-app-pub-1770141144744598/2774352971",
 	"dirilis": "ca-app-pub-1770141144744598/3895862956",
+	# günlük ücretsiz gem: mağaza sandığıyla aynı ödüllü birim (ayrı birim açılırsa buraya)
+	"gunluk_gem": "ca-app-pub-1770141144744598/2965924667",
 }
 
 const TEST_APP_ID := "ca-app-pub-3940256099942544~3347511713"
@@ -30,5 +32,13 @@ static func unit(placement: String) -> String:
 	var u: String = REAL_UNITS.get(placement, "")
 	return TEST_REWARDED if TEST or u == "" else u
 
+## ön yükleme: her BİRİM bir kez (aynı birimi paylaşan yerleşimler tekrar yüklemesin)
 static func placements() -> Array:
-	return REAL_UNITS.keys()
+	var out := []
+	var seen := {}
+	for k in REAL_UNITS:
+		var u := unit(k)
+		if seen.has(u): continue
+		seen[u] = true
+		out.append(k)
+	return out
