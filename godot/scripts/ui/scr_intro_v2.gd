@@ -158,7 +158,7 @@ func _front(t: float) -> void:
 		var gl := (34.0 + 40.0 * gi) * U * 3.0 * gi
 		var rot := gk * 0.6
 		_cv.draw_texture_rect(_soft, Rect2(gp - Vector2.ONE * gl * 0.35, Vector2.ONE * gl * 0.7), false, Color(0.75, 0.9, 1.0, 0.7 * gi))
-		for a in [0.0, PI * 0.5]:
+		for a in ([] if gl * 0.035 < 0.25 else [0.0, PI * 0.5]):     # sıfıra yakın ince kol üçgenlenemez
 			var dv := Vector2(cos(a + rot), sin(a + rot))
 			var nv := Vector2(-dv.y, dv.x)
 			var q := PackedVector2Array([gp + dv * gl * 0.5, gp + nv * gl * 0.035, gp - dv * gl * 0.5, gp - nv * gl * 0.035])

@@ -17,6 +17,12 @@ mkdir -p "$OUT"; rm -f "$OUT"/*.zip
 cd "$G"
 run() { timeout 2400 xvfb-run -a "$GODOT" --headless --path . "$@" > "$OUT/godot.log" 2>&1; rm -f .godot/imported/*-??????; }
 
+# 0) Android motoru yamalı olmalı (resmî 4.5.1 OpenSL sürücüsü sesleri çıtırtılı çalar)
+AAR="$G/android/build/libs/release/godot-lib.template_release.aar"
+if ! unzip -p "$AAR" jni/arm64-v8a/libgodot_android.so | strings | grep -c "4.5.1.stable.custom_build" > /dev/null; then
+	echo "HATA: Android motoru yamasız (ses cızırtısı). Önce: tools/engine/build_android_engine.sh"; exit 1
+fi
+
 # 1) sürüm numarası (kod +1)
 CODE=$(( $(grep -m1 '^version/code=' export_presets.cfg | cut -d= -f2) + 1 ))
 sed -i "0,/^version\/code=.*/s//version\/code=$CODE/; 0,/^version\/name=.*/s//version\/name=\"$V\"/" export_presets.cfg

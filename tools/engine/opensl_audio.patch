@@ -1,0 +1,25 @@
+--- a/platform/android/audio_driver_opensl.h	2025-10-13 19:05:40.000000000 +0000
++++ b/platform/android/audio_driver_opensl.h	2026-11-25 22:26:43.804851653 +0000
+@@ -41,7 +41,7 @@
+ 	Mutex mutex;
+ 
+ 	enum {
+-		BUFFER_COUNT = 2
++		BUFFER_COUNT = 4 // Shadowrend: 2 tampon (~46 ms) Android'de yetersiz → cızırtı
+ 	};
+ 
+ 	bool pause = false;
+--- a/platform/android/audio_driver_opensl.cpp	2025-10-13 19:05:40.000000000 +0000
++++ b/platform/android/audio_driver_opensl.cpp	2026-11-25 22:26:43.805273105 +0000
+@@ -42,7 +42,10 @@
+ 	if (pause) {
+ 		mix = false;
+ 	} else {
+-		mix = mutex.try_lock();
++		// Shadowrend: try_lock başarısız olunca tampon SESSİZLİKLE doluyordu (23 ms boşluk = çıtırtı).
++		// Ana iş parçacığı kilidi yalnız mikrosaniyeler tutar: beklemek sessizlikten iyidir.
++		mutex.lock();
++		mix = true;
+ 	}
+ 
+ 	if (mix) {

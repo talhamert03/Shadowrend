@@ -145,6 +145,7 @@ func _draw() -> void:
 		if k < 0.0 or k >= 1.0: continue
 		var p: Vector2 = s[0] + s[1] * (_t - float(s[2]))
 		var r: float = float(s[4]) * (1.0 - k)
+		if r < 0.35: continue          # sönmüş: sıfıra yakın çokgen üçgenlenemez (uyarı basıyordu)
 		var c := Color(col.lerp(Color.WHITE, 0.55), 1.0 - k)
 		draw_colored_polygon(PackedVector2Array([p + Vector2(0, -r * 2.2), p + Vector2(r * 0.45, 0), p + Vector2(0, r * 2.2), p + Vector2(-r * 0.45, 0)]), c)
 		draw_colored_polygon(PackedVector2Array([p + Vector2(-r * 2.2, 0), p + Vector2(0, r * 0.45), p + Vector2(r * 2.2, 0), p + Vector2(0, -r * 0.45)]), c)
