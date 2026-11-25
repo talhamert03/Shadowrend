@@ -51,18 +51,21 @@ func _ready() -> void:
 		_players.append(p)
 	_apply()
 
-## DC engeli + limiter (threshold −9 dB · knee 8 · ratio 11 · attack 3 ms · release 160 ms)
+## sıkıştırıcı (−9 dB · 6:1 · 8 ms · 180 ms) + ana çıkışta −1 dB sert sınırlayıcı
 static func _setup_bus() -> void:
 	if AudioServer.get_bus_index(BUS) >= 0: return
 	AudioServer.add_bus()
 	var i := AudioServer.bus_count - 1
 	AudioServer.set_bus_name(i, BUS)
 	AudioServer.set_bus_send(i, "Master")
+	# web'deki DynamicsCompressor 6 ms önden okumayla çalışıyordu; Godot'ta önden okuma yok —
+	# 3 ms atak + 11:1 oran bas ağırlıklı vuruşlarda dalgayı bükerek çıtırtılı bozulma yapıyordu.
+	# Daha yumuşak atak/oran; ani tepeleri ana çıkışın sert sınırlayıcısı yakalar.
 	var c := AudioEffectCompressor.new()
 	c.threshold = -9
-	c.ratio = 11
-	c.attack_us = 3000
-	c.release_ms = 160
+	c.ratio = 6
+	c.attack_us = 8000
+	c.release_ms = 180
 	AudioServer.add_bus_effect(i, c)
 	# müzik ayrı veriyolunda: efektlerin sert sıkıştırıcısı müziği her vuruşta kısıp açınca
 	# baslarda cızırtı/bozulma yapıyordu. Müzik yalnız ana çıkışın yumuşak sınırlayıcısından geçer.

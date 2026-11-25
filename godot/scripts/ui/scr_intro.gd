@@ -89,7 +89,9 @@ func _process(dt: float) -> void:
 	if _frames > 2:
 		_t += minf(dt, 1.0 / 20.0)
 		if _snd and _snd.playing:
-			var at := _snd.get_playback_position() + AudioServer.get_time_since_last_mix()
+			# yalnız oynatma konumu: AudioServer.get_time_since_last_mix() her çağrıda ses sürücüsünü
+			# kilitler; Android sürücüsü kilit meşgulse tamponu sessiz doldurur (çıtırtı)
+			var at := _snd.get_playback_position()
 			var drift := at - _t
 			if absf(drift) > 0.08: _t += drift * minf(1.0, dt * 3.0)
 	_cv.queue_redraw()

@@ -46,7 +46,7 @@ func _ready() -> void:
 	# parçalar arka planda çözülsün (ilk geçişte disk okuması/ayrıştırma takılması olmasın)
 	for st in TRACKS:
 		for f in TRACKS[st]:
-			var path: String = DIR + f + ".wav"
+			var path: String = DIR + f + ".ogg"
 			if ResourceLoader.exists(path) and ResourceLoader.load_threaded_request(path) == OK: _req[f] = path
 
 func _stream(file: String) -> AudioStream:
@@ -56,17 +56,11 @@ func _stream(file: String) -> AudioStream:
 			s = ResourceLoader.load_threaded_get(_req[file])
 			_req.erase(file)
 		else:
-			s = load(DIR + file + ".wav")
-		if s is AudioStreamWAV:
-			# WAV (QOA): Vorbis çözme yükü yok — Android'in küçük ses tamponunda ses iş parçacığı
-			# yetişemeyince oluşan cızırtı/çıtırtı bunu tetikliyordu
-			var w := s as AudioStreamWAV
-			if SEAMLESS.has(_state_of(file)):
-				w.loop_mode = AudioStreamWAV.LOOP_FORWARD
-				w.loop_begin = 0
-				w.loop_end = int(w.get_length() * w.mix_rate)
-			else:
-				w.loop_mode = AudioStreamWAV.LOOP_DISABLED
+			s = load(DIR + file + ".ogg")
+		if s is AudioStreamOggVorbis:
+			# Ogg Vorbis q8 (44,1 kHz = Android sürücüsünün sabit hızı; yeniden örnekleme yok).
+			# Eskiden WAV/QOA idi: kayıplı QOA müzikte tıs/cızırtı bırakıyordu
+			(s as AudioStreamOggVorbis).loop = SEAMLESS.has(_state_of(file))
 		_cache[file] = s
 	return _cache[file]
 
