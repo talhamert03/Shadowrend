@@ -475,7 +475,7 @@ func update(g, dt: float) -> void:
 			enemyMesh.set_ys(idx, x, y, z, yaw, scale * (1 + 0.09 * sq), scale * (1 - 0.15 * sq), scale * (1 + 0.09 * sq))
 		else:
 			enemyMesh.set_ys(idx, x, y, z, yaw, scale, scale, scale)
-		var c := Color(1, 1, 1) if e.flash > 0 else JS.col(e.color).srgb_to_linear()
+		var c := Color(1, 1, 1) if e.flash > 0 else R3Fx._lin(e.color)
 		enemyMesh.set_col(idx, c.r, c.g, c.b)
 		var es := 2.2 * scale
 		eyeMesh.set_ys(idx, x + sin(yaw) * 5 * scale, y + 8 * scale, z + cos(yaw) * 5 * scale, yaw, es, es, es)

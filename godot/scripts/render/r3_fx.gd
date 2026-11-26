@@ -979,7 +979,7 @@ func _update_gems(g) -> void:
 		# altında yumuşak ruh ışıması
 		var halo: float = (2.1 + sin(t * 2.0 + ph) * 0.2) * tier.r
 		gemGlow.set_bb(idx, gm.x + sway * 0.6, y + 2.0, gm.y, halo, halo * 0.9, 0, cam)
-		var cg := Color(tier.g).srgb_to_linear()
+		var cg := _lin(tier.g)
 		gemGlow.set_col(idx, cg.r, cg.g, cg.b)
 		idx += 1
 	for q in 3: (soulMesh[q] as IMesh).commit(ti[q])
@@ -1176,9 +1176,19 @@ func _add_bar(idx: int, x: float, y: float, z: float, width: float, height: floa
 	var p := Vector3(x - width / 2, y, z)
 	hpBg.set_mat(idx, (cam * Basis.from_scale(Vector3(width, height, 1))), p)
 	hpFill.set_mat(idx, (cam * Basis.from_scale(Vector3(maxf(0.001, width * frac), height, 1))), p)
-	var c: Color = (JS.col(hex) if hex is String else hex).srgb_to_linear()
+	var c: Color = _lin(hex)
 	hpFill.set_col(idx, c.r, c.g, c.b)
 	return idx + 1
+
+## renk → doğrusal renk önbelleği: can çubuğu / gem rengi her karede her nesne için metinden
+## ayrıştırılıp doğrusala çevriliyordu (aynı birkaç renk)
+static var _linc := {}
+static func _lin(v) -> Color:
+	var c = _linc.get(v)
+	if c == null:
+		c = (JS.col(v) if v is String else v).srgb_to_linear()
+		if _linc.size() < 256: _linc[v] = c
+	return c
 
 ## geliştirici: hide=bars — düşman can çubukları çizilmez (tanıtım görüntüsü)
 var dev_nobars := false
