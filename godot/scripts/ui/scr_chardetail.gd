@@ -411,14 +411,7 @@ func _big_btn(parent: Node2D, pos: Vector2, sz: Vector2, col: Color, label: Stri
 				var pts := PackedVector2Array([Vector2(x, 2), Vector2(x + 16, 2), Vector2(x - 4, sz.y - 2), Vector2(x - 20, sz.y - 2)])
 				var poly := Geometry2D.intersect_polygons(pts, PackedVector2Array([Vector2(4, 2), Vector2(sz.x - 4, 2), Vector2(sz.x - 4, sz.y - 2), Vector2(4, sz.y - 2)]))
 				for q in poly: sh.draw_colored_polygon(q, Color(1, 1, 1, 0.32 * sin(cyc * PI)))
-			# zıplayan yukarı ok (sol)
-			var b := absf(sin(_t * 4.2)) * 4.0
-			var ax := 22.0
-			var ay := sz.y * 0.5 - b
-			var arr := PackedVector2Array([Vector2(ax, ay - 12), Vector2(ax + 10, ay - 1), Vector2(ax + 4, ay - 1), Vector2(ax + 4, ay + 10), Vector2(ax - 4, ay + 10), Vector2(ax - 4, ay - 1), Vector2(ax - 10, ay - 1)])
-			var ol := arr.duplicate(); ol.append(arr[0])
-			sh.draw_colored_polygon(arr, Color.WHITE)
-			sh.draw_polyline(ol, INK, 2.5, true))
+			pass)
 		_hot.append([pz, fx, sh])
 		pz.add_child(n)
 		pz.add_child(sh)
