@@ -194,7 +194,8 @@ static func from_gltf(src: BaseMaterial3D, o: Dictionary) -> ShaderMaterial:
 	return m
 
 ## VAT köşe fonksiyonu (lit ve kontur ortak): vat_hi/vat_lo (16 bit konum) + vat_nrm, RGBA8; genişlik vat_w,
-## kare başına vat_rows satır, vat_frames kare. Köşe sırası = yüzey dizisi (VERTEX_ID).
+## kare başına vat_rows satır, vat_frames kare. Köşenin global sırası UV2.x (VatBake yazar; VERTEX_ID
+## bazı GLES çeviri katmanlarında — Play Games PC — örneklemeli çizimde güvenilmez).
 const VAT_HEAD := """uniform highp sampler2D vat_hi : filter_nearest;
 uniform highp sampler2D vat_lo : filter_nearest;
 uniform highp sampler2D vat_nrm : filter_nearest;
@@ -220,7 +221,7 @@ vec3 vat_n(int vid, int f) {
 }
 """
 const VAT_VERTEX := VAT_HEAD + """void vertex() {
-	int vid = VERTEX_ID + vat_off;
+	int vid = int(UV2.x + 0.5);
 	float fr = fract(INSTANCE_CUSTOM.x) * float(vat_frames);
 	int f0 = int(floor(fr));
 	int f1 = f0 + 1;
@@ -238,7 +239,7 @@ static func vat_outline(tex: Texture2D, base := Color(1, 1, 1), width := 1.5) ->
 	if _vat_outline_sh == null:
 		var code := OUTLINE_CODE.replace("uniform sampler2D map : filter_linear_mipmap;", "uniform sampler2D map : filter_linear_mipmap;\n" + VAT_HEAD)
 		code = code.replace("void vertex() {\n", """void vertex() {
-	int vid = VERTEX_ID + vat_off;
+	int vid = int(UV2.x + 0.5);
 	float fr = fract(INSTANCE_CUSTOM.x) * float(vat_frames);
 	int f0 = int(floor(fr));
 	int f1 = f0 + 1;

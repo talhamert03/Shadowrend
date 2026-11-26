@@ -177,6 +177,14 @@ static func bake(parent: Node3D, ps: PackedScene, def: Dictionary) -> Dictionary
 			B.resize(Mesh.ARRAY_MAX)
 			for k in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_TANGENT, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_INDEX]:
 				B[k] = A[k]
+			# köşenin VAT dokusundaki global sırası UV2.x'te: gölgelendirici VERTEX_ID'ye güvenmez
+			# (Google Play Games PC'nin GLES çeviri katmanında örneklemeli çizimde VERTEX_ID yanlış
+			# gelip düşman ağları "patlıyordu")
+			var uv2 := PackedVector2Array()
+			uv2.resize(nv)
+			var vb: int = job.V - nv
+			for v in nv: uv2[v] = Vector2(float(vb + v), 0.0)
+			B[Mesh.ARRAY_TEX_UV2] = uv2
 			B[Mesh.ARRAY_INDEX] = _decimate(B)
 			am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, B)
 			src_mats.append(mi.get_active_material(si))
