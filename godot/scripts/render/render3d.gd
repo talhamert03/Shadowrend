@@ -270,6 +270,8 @@ func _build_ground() -> void:
 	groundMat = ShaderMaterial.new()
 	groundMat.shader = load("res://shaders/ground.gdshader")
 	groundMat.set_shader_parameter("macro_k", 0.0 if Quality.tier == "low" else 1.0)
+	# kabartma ışığı 4 ek doku okuması: düşük kademede kapalı (yalnız netlik + renk)
+	groundMat.set_shader_parameter("relief", 0.0 if Quality.tier == "low" else 0.55)
 	ground = mesh_node(Geo.plane(1, 1, 1, 1, -PI / 2), groundMat, scene)
 	ground.visible = false
 	# dış boşluk: ada uçurumun üstünde süzülür — paralakslı sis katları + dipte kıvılcımlar
