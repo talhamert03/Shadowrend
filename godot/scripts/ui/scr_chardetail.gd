@@ -70,6 +70,7 @@ func _build() -> void:
 	_cbtns.clear()
 	_csprings.clear()
 	_anim_in.clear()
+	_hot.clear()
 	_W = UIK.ui_size(get_viewport())
 	_SR = UIK.screen_rect(self)
 	var c: Dictionary = D.CHARACTERS.get(id, {})
@@ -370,7 +371,7 @@ func _action(panel: Node2D, y: float, owned: bool, lvl: int) -> float:
 	var half := (bw - 10.0) * 0.5
 	if need != null:
 		var gold = g.gold_for_next(id)
-		var ub := _big_btn(panel, Vector2(14, y), Vector2(half, 56), Color("#3fbf55") if can else Color("#5a5466"), "GELİŞTİR", "◆ " + str(int(gold)) if gold != null else "")
+		var ub := _big_btn(panel, Vector2(14, y), Vector2(half, 56), Color("#3fbf55") if can else Color("#5a5466"), "GELİŞTİR", "◆ " + str(int(gold)) if gold != null else "", can)
 		_btn(ub, Rect2(-half * 0.5, -28, half, 56), func(): _upgrade())     # düğüm merkezde (yay ölçeği)
 	var sx := 14.0 + (half + 10.0 if need != null else 0.0)
 	var swd := half if need != null else bw
@@ -381,21 +382,65 @@ func _action(panel: Node2D, y: float, owned: bool, lvl: int) -> float:
 		close())
 	return y + 56.0
 
-func _big_btn(parent: Node2D, pos: Vector2, sz: Vector2, col: Color, label: String, sub: String) -> Node2D:
+## hot: basılabilir ana eylem (GELİŞTİR hazır) — canlı yeşil (tema dönüşümü atlanır), arkada nabız
+## gibi ışıma, nefes alan ölçek, üzerinden geçen parıltı ve zıplayan ok. Soluk durup "para yetmiyor"
+## gibi görünmesin.
+var _hot: Array = []     # [nefes düğümü, efekt düğümü, boyut]
+func _big_btn(parent: Node2D, pos: Vector2, sz: Vector2, col: Color, label: String, sub: String, hot := false) -> Node2D:
 	var holder := Node2D.new()
 	holder.position = pos + sz * 0.5
+	var pz := Node2D.new()          # nefes (basma yayı holder.scale'i kullanır — çakışmasın)
+	holder.add_child(pz)
 	var n := Node2D.new()
 	n.position = -sz * 0.5
-	holder.add_child(n)
+	if hot:
+		var fx := Node2D.new()
+		fx.position = -sz * 0.5
+		fx.draw.connect(func():
+			var k := 0.5 + 0.5 * sin(_t * 3.4)
+			var gw := 16.0 + 8.0 * k
+			fx.draw_style_box(ComicSkin.sb_raw(Color(0.35, 1.0, 0.5, 0.10 + 0.14 * k), 22), Rect2(-gw * 0.5, -gw * 0.5 + 3, sz.x + gw, sz.y + gw))
+			fx.draw_style_box(ComicSkin.sb_raw(Color(0.45, 1.0, 0.6, 0.12 + 0.16 * k), 18), Rect2(-gw * 0.25, -gw * 0.25 + 3, sz.x + gw * 0.5, sz.y + gw * 0.5)))
+		pz.add_child(fx)
+		var sh := Node2D.new()      # parıltı süpürmesi + ok: yazının altında değil üstünde
+		sh.position = -sz * 0.5
+		sh.draw.connect(func():
+			var cyc := fmod(_t, 2.6) / 0.75
+			if cyc < 1.0:
+				var x := -40.0 + (sz.x + 80.0) * cyc
+				var pts := PackedVector2Array([Vector2(x, 2), Vector2(x + 16, 2), Vector2(x - 4, sz.y - 2), Vector2(x - 20, sz.y - 2)])
+				var poly := Geometry2D.intersect_polygons(pts, PackedVector2Array([Vector2(4, 2), Vector2(sz.x - 4, 2), Vector2(sz.x - 4, sz.y - 2), Vector2(4, sz.y - 2)]))
+				for q in poly: sh.draw_colored_polygon(q, Color(1, 1, 1, 0.32 * sin(cyc * PI)))
+			# zıplayan yukarı ok (sol)
+			var b := absf(sin(_t * 4.2)) * 4.0
+			var ax := 22.0
+			var ay := sz.y * 0.5 - b
+			var arr := PackedVector2Array([Vector2(ax, ay - 12), Vector2(ax + 10, ay - 1), Vector2(ax + 4, ay - 1), Vector2(ax + 4, ay + 10), Vector2(ax - 4, ay + 10), Vector2(ax - 4, ay - 1), Vector2(ax - 10, ay - 1)])
+			var ol := arr.duplicate(); ol.append(arr[0])
+			sh.draw_colored_polygon(arr, Color.WHITE)
+			sh.draw_polyline(ol, INK, 2.5, true))
+		_hot.append([pz, fx, sh])
+		pz.add_child(n)
+		pz.add_child(sh)
+	else:
+		pz.add_child(n)
+	var c0 := col
 	n.draw.connect(func():
+		if hot:
+			n.draw_style_box(ComicSkin.sb_raw(INK, 14), Rect2(0, 6, sz.x, sz.y))
+			n.draw_style_box(ComicSkin.sb_raw(Color("#21b04a"), 14), Rect2(0, 0, sz.x, sz.y))
+			n.draw_style_box(ComicSkin.sb_raw(Color("#3fdc68"), 13), Rect2(3, 3, sz.x - 6, sz.y - 10))
+			n.draw_style_box(ComicSkin.sb_raw(Color("#8ff5a6"), 12), Rect2(6, 4, sz.x - 12, sz.y * 0.36))
+			n.draw_style_box(ComicSkin.sb_raw(Color(0, 0, 0, 0), 14, 3.5, INK), Rect2(0, 0, sz.x, sz.y))
+			return
 		n.draw_style_box(ComicSkin.sb(INK, 14), Rect2(0, 6, sz.x, sz.y))
-		n.draw_style_box(ComicSkin.sb(col, 14), Rect2(0, 0, sz.x, sz.y))
-		n.draw_style_box(ComicSkin.sb(col.lightened(0.18), 12), Rect2(4, 3, sz.x - 8, sz.y * 0.45))
+		n.draw_style_box(ComicSkin.sb(c0, 14), Rect2(0, 0, sz.x, sz.y))
+		n.draw_style_box(ComicSkin.sb(c0.lightened(0.18), 12), Rect2(4, 3, sz.x - 8, sz.y * 0.45))
 		n.draw_style_box(ComicSkin.sb(Color(0, 0, 0, 0), 14, 3.5, INK), Rect2(0, 0, sz.x, sz.y)))
 	parent.add_child(holder)
-	var dark: bool = col.get_luminance() > 0.55
+	var dark: bool = col.get_luminance() > 0.55 and not hot
 	_txt(n, label, 22 if sub == "" else 19, INK if dark else Color.WHITE, "" if dark else UIK.ink_stroke(1.8, 2.2), Vector2(0, 6 if sub != "" else 13), sz.x, 0.5)
-	if sub != "": _txt(n, sub, 14, YEL if not dark else INK, "" if dark else UIK.ink_stroke(1.2, 1.6), Vector2(0, 31), sz.x, 0.5)
+	if sub != "": _txt(n, sub, 14, (Color("#fff3b0") if hot else YEL) if not dark else INK, "" if dark else UIK.ink_stroke(1.2, 1.6), Vector2(0, 31), sz.x, 0.5)
 	return holder
 
 static func _pct(v: float) -> String:
@@ -543,6 +588,11 @@ func _process(dt: float) -> void:
 			_scroll = lerpf(_scroll, _scroll_max, 1.0 - pow(0.0005, dt))
 			_vel = 0.0
 	_content.position.y = -_scroll
+	for H in _hot:
+		if not is_instance_valid(H[0]): continue
+		(H[0] as Node2D).scale = Vector2.ONE * (1.0 + 0.03 * (0.5 + 0.5 * sin(_t * 3.4)))
+		(H[1] as Node2D).queue_redraw()
+		(H[2] as Node2D).queue_redraw()
 	for n in _csprings.keys():
 		if not is_instance_valid(n):
 			_csprings.erase(n)
