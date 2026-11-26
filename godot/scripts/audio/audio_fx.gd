@@ -12,6 +12,8 @@ extends Node
 const BUS := "Oyun"
 const MUSIC_BUS := "Muzik"
 const VOICES := 28
+## aynı anda çalabilecek örnek sayısı (varsayılan 4): çok sık seslerde 3
+const MAX_SAME := {"hit": 3, "crit": 3, "gem": 3, "kill": 3, "slashhit": 3, "ulthit": 3, "bombhit": 3}
 
 var g
 var _calm := true
@@ -165,10 +167,16 @@ func play(nm: String, _a = null, _b = null, _c = null) -> void:
 	var gap: float = float(minGap.get(nm, 0.035))
 	if now - float(lastPlayed.get(nm, -10.0)) < gap: return
 	lastPlayed[nm] = now
+	# aynı sesten aynı anda en çok N örnek: yoğun savaşta onlarca vuruş üst üste binip hem
+	# çamurlaşıyor hem 28 sesin hepsini doldurup çalan sesleri yarıda kestiriyordu (tık/cızırtı)
+	var same := 0
+	for q in _players:
+		if q.playing and q.get_meta("nm", "") == nm: same += 1
+	if same >= int(MAX_SAME.get(nm, 4)): return
 	var k := _pick(nm, 3)
 	var st := _stream(_file_for(nm, k, now))
 	if st == null: return
-	# boşta bir ses seç; hepsi doluysa en eskisi (çalan sesi yarıda kesmek tık/cızırtı yapar)
+	# boşta bir ses seç
 	var p: AudioStreamPlayer = null
 	for vi in VOICES:
 		var cand := _players[(_next + vi) % VOICES]
@@ -177,8 +185,17 @@ func play(nm: String, _a = null, _b = null, _c = null) -> void:
 			_next = (_next + vi + 1) % VOICES
 			break
 	if p == null:
-		p = _players[_next]
-		_next = (_next + 1) % VOICES
+		# hepsi dolu: sıradan (sık) ses hiç çalınmaz — çalanı yarıda kesmek tık yapar.
+		# Önemli ses (arayüz / seyrek) bitmeye en yakın sesin yerini alır.
+		if not (uiSnd.has(nm) or gap >= 0.15): return
+		var best := -1.0
+		for q in _players:
+			var L := q.stream.get_length() if q.stream else 0.0
+			var r := q.get_playback_position() / L if L > 0.0 else 1.0
+			if r > best:
+				best = r
+				p = q
+	p.set_meta("nm", nm)
 	p.stream = st
 	p.pitch_scale = 1.0 + (randf() * 2 - 1) * 0.012 if gap < 0.15 else 1.0
 	p.play()
