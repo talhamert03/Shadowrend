@@ -1,5 +1,5 @@
 #!/bin/bash
-# Shadowrend — yamalı Godot 4.5.1 Android motoru (arm64) derler ve oyunun motor kütüphanesine
+# Shadowrend — yamalı Godot 4.5.1 Android motoru (arm64 + x86_64) derler ve oyunun motor kütüphanesine
 # (godot/android/build/libs/release/godot-lib.template_release.aar) yerleştirir.
 #
 # Neden: Godot 4.5.1'in Android ses sürücüsü (OpenSL ES) yalnız 2 tampon kullanıyor ve kilit
@@ -7,7 +7,7 @@
 # Yama (opensl_audio.patch): 4 tampon + kilidi bekle. Gecikme ~46 → ~93 ms.
 #
 # Kullanım:  tools/engine/build_android_engine.sh [çalışma_klasörü]
-#   (~1,6 GB indirme: Godot kaynak + NDK r28b + Swappy; 4 çekirdekte ~10 dk derleme)
+#   (~1,6 GB indirme: Godot kaynak + NDK r28b + Swappy; 4 çekirdekte mimari başına ~10 dk derleme)
 # android/build git'e girmediği için yeni bir makinede sürüm çıkarmadan önce bir kez çalıştırılır;
 # tools/release.sh yamasız motorla derlemeyi reddeder.
 set -euo pipefail
@@ -30,11 +30,16 @@ cd godot-4.5.1-stable
 if ! grep -q "BUFFER_COUNT = 4" platform/android/audio_driver_opensl.h; then
 	patch -p1 < "$ROOT/tools/engine/opensl_audio.patch"
 fi
-ANDROID_HOME="$W/ah" scons platform=android target=template_release arch=arm64 production=yes swappy=yes -j"$(nproc)"
-SO=platform/android/java/lib/libs/release/arm64-v8a/libgodot_android.so
-strings "$SO" | grep -c "4.5.1.stable.custom_build" > /dev/null || { echo "derleme çıktısı beklenen sürüm değil"; exit 1; }
-T="$(mktemp -d)"; mkdir -p "$T/jni/arm64-v8a"; cp "$SO" "$T/jni/arm64-v8a/libgodot_android.so"
 [ -f "$W/godot-lib.template_release.official.aar" ] || cp "$AAR" "$W/godot-lib.template_release.official.aar"   # yedek proje DIŞINDA
-(cd "$T" && zip -q -9 "$AAR" jni/arm64-v8a/libgodot_android.so)
+T="$(mktemp -d)"
+# arm64: telefonlar · x86_64: Google Play Games PC (ARM çeviri katmanı olmadan, yerel)
+for P in "arm64 arm64-v8a" "x86_64 x86_64"; do
+	set -- $P
+	ANDROID_HOME="$W/ah" scons platform=android target=template_release arch=$1 production=yes swappy=yes -j"$(nproc)"
+	SO=platform/android/java/lib/libs/release/$2/libgodot_android.so
+	strings "$SO" | grep -c "4.5.1.stable.custom_build" > /dev/null || { echo "derleme çıktısı beklenen sürüm değil ($2)"; exit 1; }
+	mkdir -p "$T/jni/$2"; cp "$SO" "$T/jni/$2/libgodot_android.so"
+done
+(cd "$T" && zip -q -9 "$AAR" jni/arm64-v8a/libgodot_android.so jni/x86_64/libgodot_android.so)
 rm -rf "$T"
 echo "== yamalı motor yerleştirildi: $AAR"

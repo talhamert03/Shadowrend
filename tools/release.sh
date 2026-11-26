@@ -19,9 +19,11 @@ run() { timeout 2400 xvfb-run -a "$GODOT" --headless --path . "$@" > "$OUT/godot
 
 # 0) Android motoru yamalı olmalı (resmî 4.5.1 OpenSL sürücüsü sesleri çıtırtılı çalar)
 AAR="$G/android/build/libs/release/godot-lib.template_release.aar"
-if ! unzip -p "$AAR" jni/arm64-v8a/libgodot_android.so | strings | grep -c "4.5.1.stable.custom_build" > /dev/null; then
-	echo "HATA: Android motoru yamasız (ses cızırtısı). Önce: tools/engine/build_android_engine.sh"; exit 1
-fi
+for ABI in arm64-v8a x86_64; do
+	if ! unzip -p "$AAR" jni/$ABI/libgodot_android.so | strings | grep -c "4.5.1.stable.custom_build" > /dev/null; then
+		echo "HATA: Android motoru ($ABI) yamasız (ses cızırtısı). Önce: tools/engine/build_android_engine.sh"; exit 1
+	fi
+done
 
 # 1) sürüm numarası (kod +1)
 CODE=$(( $(grep -m1 '^version/code=' export_presets.cfg | cut -d= -f2) + 1 ))
@@ -81,6 +83,9 @@ with zipfile.ZipFile(f'{out}/Shadowrend_{V}.zip','w',zipfile.ZIP_DEFLATED,compre
                 t=open(p).read()
                 if 'android.hardware.screen.portrait' not in t:
                     t=t.replace('<application','<uses-feature android:name="android.hardware.screen.portrait" android:required="false" />\n    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />\n\n    <application',1)
+                # Google Play Games PC: dokunmatik ekran zorunlu olmasın (fare/klavye ile oynanır)
+                if 'android.hardware.touchscreen' not in t:
+                    t=t.replace('<application','<uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <uses-feature android:name="android.hardware.faketouch" android:required="false" />\n\n    <application',1)
                 z.writestr(arc,t); continue
             if f=='gradle-wrapper.properties':
                 z.writestr(arc,open(p).read().replace('gradle-8.11.1-bin.zip','gradle-9.2.1-bin.zip')); continue
